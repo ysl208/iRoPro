@@ -14,5 +14,5 @@ The actions of a step are run in parallel, but the steps run in sequence.
 For example, in one step, you can point the head down and move the robot's arms to the side, and in the next step, you can detect tabletop objects.
 
 ## Getting started
-- [Development setup](https://github.com/jstnhuang/rapid/wiki/Rapid-PbD-development-setup)
-- [Running Rapid PbD](https://github.com/jstnhuang/rapid/wiki/Running-Rapid-PbD)
+- [Development setup](https://github.com/jstnhuang/rapid_pbd/wiki/Rapid-PbD-development-setup)
+- [Running Rapid PbD](https://github.com/jstnhuang/rapid_pbd/wiki/Running-Rapid-PbD)
