@@ -2,8 +2,8 @@
 Changelog for package rapid_pbd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.2 (2017-09-11)
+------------------
 * Added install targets.
 * Contributors: Justin Huang
 
