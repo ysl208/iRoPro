@@ -356,31 +356,77 @@ target_link_libraries(rapid_pbd_pr2_arm_joint_demo
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(PROGRAMS
+  scripts/open_frontend
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts
+)
+# Install frontend
+install(DIRECTORY frontend/build/es6-bundled/
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/www
+)
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS rapid_pbd rapid_pbd_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS 
+  # Libraries
+  rapid_pbd_action_clients
+  rapid_pbd_action_executor
+  rapid_pbd_action_utils
+  rapid_pbd_editor
+  rapid_pbd_fetch_actions
+  rapid_pbd_joint_state
+  rapid_pbd_joint_state_reader
+  rapid_pbd_landmarks
+  rapid_pbd_motion_planning
+  rapid_pbd_pr2_actions
+  rapid_pbd_program_db
+  rapid_pbd_program_executor
+  rapid_pbd_robot_config
+  rapid_pbd_step_executor
+  rapid_pbd_surface_segmentation_action
+  rapid_pbd_visualizer
+  rapid_pbd_world
+  # Executables
+  rapid_pbd_editor_node
+  rapid_pbd_fetch_action_node
+  rapid_pbd_program_execution_demo
+  rapid_pbd_program_execution_node
+  rapid_pbd_pr2_action_node
+  rapid_pbd_surface_segmentation_node
+  rapid_pbd_pr2_gripper_demo
+  rapid_pbd_pr2_arm_joint_demo
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(FILES
+  config/kinematics.yaml
+  config/pr2_sim.rviz
+  config/pr2.srdf
+  config/sensors_dummy.yaml
+  config/surface_segmentation.yaml
+  launch/editor.launch
+  launch/fetch_app.launch
+  launch/fetch.launch
+  launch/fetch_moveit.launch
+  launch/fetch_planning_context.launch
+  launch/open_frontend.launch
+  launch/pr2_app.launch
+  launch/pr2.launch
+  launch/pr2_moveit.launch
+  launch/pr2_planning_context.launch
+  launch/pr2_sim.launch
+  launch/web_prereqs.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 #############
 ## Testing ##
