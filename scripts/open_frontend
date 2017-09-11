@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd ../www;
+sleep 0.5
+xdg-open http://localhost:8124;
+python -m SimpleHTTPServer 8124 "../www";

@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="rapid_pbd" type="open_frontend" cwd="node" name="rapid_pbd_open_frontend" />
+</launch>
