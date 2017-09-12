@@ -2,8 +2,8 @@
 Changelog for package rapid_pbd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.3 (2017-09-11)
+------------------
 * Added missing build dependencies.
 * Contributors: Justin Huang
 
