@@ -7,8 +7,10 @@ project(rapid_pbd)
 find_package(catkin REQUIRED COMPONENTS
   actionlib
   control_msgs
+  geometry_msgs
   mongodb_store
   moveit_core
+  moveit_msgs
   moveit_ros_planning
   moveit_ros_planning_interface
   moveit_goal_builder
@@ -16,17 +18,23 @@ find_package(catkin REQUIRED COMPONENTS
   pr2_controllers_msgs
   pr2_mechanism_msgs
   rapid_pbd_msgs
+  robot_controllers_msgs
   robot_markers
   roscpp
   rospy
+  sensor_msgs
   shape_msgs
+  std_msgs
   surface_perception
+  tf
   transform_graph
+  urdf
+  visualization_msgs
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(Boost REQUIRED COMPONENTS system)
+find_package(PCL REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -136,18 +144,32 @@ catkin_package(
   CATKIN_DEPENDS
     actionlib
     control_msgs
+    geometry_msgs
     mongodb_store
+    moveit_core
+    moveit_msgs
+    moveit_ros_planning
+    moveit_ros_planning_interface
     moveit_goal_builder
     pcl_ros
     pr2_controllers_msgs
     pr2_mechanism_msgs
     rapid_pbd_msgs
+    robot_controllers_msgs
     robot_markers
     roscpp
     rospy
+    sensor_msgs
+    shape_msgs
+    std_msgs
     surface_perception
+    tf
     transform_graph
-#  DEPENDS system_lib
+    urdf
+    visualization_msgs
+  DEPENDS
+    Boost
+    PCL
 )
 
 ###########
