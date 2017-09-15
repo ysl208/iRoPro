@@ -27,7 +27,12 @@
       h3 {
         margin: auto 0px;
         display: inline-block;
-      }
+      }			      
+      p {
+        margin: auto 0px;
+        display: block;
+        font-size: 80%;
+			}
     </style>
     <ros-topic auto
       id="eventPub"
@@ -36,10 +41,13 @@
       ros="[[ros]]"
     ></ros-topic>
     <div class="center horizontal layout title">
-      <h3>Step [[_stepNum(index)]]</h3>
+      <h3>[[_title(index)]]</h3>
       <span class="flex"></span>
       <paper-button class="add important" on-tap="_togglePicker">+ Add parallel action</paper-button>
-      <paper-button class="delete" on-tap="_maybeDeleteStep">Delete</paper-button>
+      <paper-button class="delete" hidden$="[[isSenseStep(index)]]" on-tap="_maybeDeleteStep">Delete</paper-button>
+    </div>
+    <div>
+      <p>[[_description(index)]]</p>
     </div>
     <iron-collapse id="picker">
       <pbd-action-picker class="dropdown-content" params="[[params]]" ros="[[ros]]" on-iron-select="_addAction" on-iron-deselect="closeActionPicker"></pbd-action-picker>
@@ -50,7 +58,9 @@
     <template is="dom-repeat" items="{{step.actions}}" as="action" index-as="stepIndex">
       <pbd-action action="{{action}}" params="[[params]]" program-id="[[programId]]"
         step-num="[[index]]" index="[[stepIndex]]" landmarks="[[landmarks]]"
+        
         on-delete="_handleDeleteAction" ros="[[ros]]"></pbd-action>
+        <!-- TO DO conditions="{{step.conditions}}" -->
     </template>
     <paper-dialog id="deleteDialog" modal>
       <h2>Delete step [[_stepNum(index)]]?</h2>
@@ -172,6 +182,26 @@
 
       closeActionPicker: function() {
         this.$.picker.opened = false;
+      },
+			
+      isSenseStep: function(index) {
+        return parseInt(index) < 3;
+      },
+
+      _title: function(index) {
+        if ( this.isSenseStep(index) ) {
+          return "Step: " + this._stepNum(index) + " (Sense)";
+        } else{
+          return "Step " + this._stepNum(index);
+        }
+      },
+      _description: function(index){
+        console.log('_description of index ' + index);
+        if ( this.isSenseStep(index) ) {
+          return "Sense steps are required to check the world conditions";
+        } else{
+          return "Customized robot actions";
+        }
       }
     });
   </script>

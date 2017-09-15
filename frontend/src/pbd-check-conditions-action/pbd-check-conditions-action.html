@@ -1,0 +1,501 @@
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../shared-styles/shared-styles.html">
+
+<dom-module id="pbd-check-conditions-action">
+  <template>
+    <style include="shared-styles"></style>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style>
+      :host {
+        display: block;
+      }
+      paper-button {
+        margin-left: 10px;
+      }
+      .title {
+        border-top: 1px solid var(--paper-grey-300);
+        padding-top: 10px;
+        margin-bottom: 10px;
+      }
+      .title paper-button {
+        height: 30px;
+      }
+      .conditionDiv {
+        margin: 0;
+        padding: 0;
+      }
+      paper-input {
+        display: inline-block;
+        max-width: 200px;
+        margin: 0; 
+        padding: 0;
+      }
+      .number {
+        max-width: 60px;
+      }
+      paper-dropdown-menu {
+        max-width: 200px;
+        margin-left: 10px; 
+      }
+      h3 {
+        margin: auto 0px;
+        display: inline-block;
+      }
+      #wrap {
+        width:100%;
+      }
+      #left_col {
+        float:left;
+        width:50%;
+        padding: 0;
+      }
+      #right_col {
+        float:right;
+        width:50%;
+      }
+    </style>
+    <ros-topic auto
+      id="eventPub"
+      msg-type="rapid_pbd_msgs/EditorEvent"
+      topic="rapid_pbd/editor_events"
+      ros="[[ros]]"
+    ></ros-topic>
+    <div class="layout horizontal center">
+      <p>World conditions can be used to specify landmark properties required for a step.</p>
+      <paper-button class="normal" on-tap="_generate">Generate Conditions</paper-button>
+     </div>
+    <div> 
+      <paper-dropdown-menu label="Main landmark">
+        <paper-listbox slot="dropdown-content" selected="[[_landmarkName(currentCondition.landmark)]]" attr-for-selected="name">
+          <template is="dom-repeat" items="[[_objectLandmarks(landmarks,'')]]">
+            <paper-item name="[[_landmarkName(item)]]" on-tap="_updateLandmark">[[_landmarkName(item)]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <paper-button class="normal" on-tap="_clear">Remove</paper-button>
+    </div>
+    <div id="conditionProperties" hidden=true>
+    <div>
+      <h3>[[currentCondition.landmark.name]] properties </h3>
+    </div>
+    <div>
+      <paper-checkbox on-change="_sizeRelevantChanged" 
+        checked="{{currentCondition.sizeRelevant}}"> Match size 
+      </paper-checkbox>
+      <paper-input class="number"
+        disabled={{!currentCondition.sizeRelevant}} 
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.sizeThreshold}}" on-change="_sizeThresholdChanged">
+      </paper-input> 
+    </div>
+
+    <div>
+      <h4>Absolute position/orientation </h4>
+    </div>
+    <div id="wrap">
+      <div id="left_col">
+        <div>
+          <paper-checkbox on-change="_positionRelevantChanged" 
+          checked="{{currentCondition.positionRelevant}}"> 
+          Position 
+        </paper-checkbox>
+        </div>
+        <paper-input class="number" 
+        disabled={{!currentCondition.positionRelevant}}
+        label="x"
+        value="[[_formatDec(currentCondition.landmark.pose_stamped.pose.position.x)]]"
+        on-change="_xChanged"
+      ></paper-input>
+        <paper-input class="number" 
+        disabled={{!currentCondition.positionRelevant}}
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.positionThreshold}}" on-change="_positionThresholdChanged">
+      </paper-input> 
+      <paper-input 
+        <paper-input class="number" 
+        disabled={{!currentCondition.positionRelevant}}
+        label="y"
+        value="[[_formatDec(currentCondition.landmark.pose_stamped.pose.position.y)]]"
+        on-change="_yChanged"
+      ></paper-input>
+        <paper-input class="number" 
+        disabled={{!currentCondition.positionRelevant}}
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.positionThreshold}}" on-change="_positionThresholdChanged">
+      </paper-input> 
+      <paper-input class="number" 
+        disabled={{!currentCondition.positionRelevant}}
+        label="z"
+        value="[[_formatDec(currentCondition.landmark.pose_stamped.pose.position.z)]]"
+        on-change="_zChanged"
+      ></paper-input>
+        <paper-input class="number" 
+        disabled={{!currentCondition.positionRelevant}}
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.positionThreshold}}" on-change="_positionThresholdChanged">
+      </paper-input> 
+      </div>
+    
+      <div id="right_col">
+        <div>
+          <paper-checkbox on-change="_orientationRelevantChanged" 
+          checked="{{currentCondition.orientationRelevant}}"> 
+          Orientation 
+        </paper-checkbox>
+        </div>
+        <paper-input class="number" 
+          disabled={{!currentCondition.orientationRelevant}}
+          label="x"
+          value="[[_formatDec(currentCondition.landmark.pose_stamped.pose.orientation.x)]]"
+          on-change="_xChanged"
+        ></paper-input>
+        <paper-input class="number" 
+          disabled={{!currentCondition.orientationRelevant}}
+          type="number" step="1" min="0" max="100"
+          label="Variance"
+          value="{{currentCondition.orientationThreshold}}" on-change="_orientationThresholdChanged">
+      </paper-input> 
+      <paper-input class="number" 
+        disabled={{!currentCondition.orientationRelevant}}
+        label="y"
+        value="[[_formatDec(currentCondition.landmark.pose_stamped.pose.orientation.y)]]"
+        on-change="_yChanged"
+      ></paper-input>
+        <paper-input class="number" 
+        disabled={{!currentCondition.orientationRelevant}}
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.orientationThreshold}}" on-change="_orientationThresholdChanged">
+      </paper-input> 
+      <paper-input class="number" 
+        disabled={{!currentCondition.orientationRelevant}}
+        label="z"
+        value="[[_formatDec(currentCondition.landmark.pose_stamped.pose.orientation.z)]]"
+        on-change="_zChanged"
+      ></paper-input>
+        <paper-input class="number" 
+        disabled={{!currentCondition.orientationRelevant}}
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.orientationThreshold}}" on-change="_orientationThresholdChanged">
+      </paper-input> 
+    </div>
+    </div>
+    <div> 
+       <h4>Relative position/orientation</h4>
+     </div>
+    <div>  
+      <paper-dropdown-menu label="Relative landmark">
+        <paper-listbox slot="dropdown-content" selected="[[_landmarkName(currentCondition.reference)]]" attr-for-selected="name">
+          <template is="dom-repeat" items="[[_objectLandmarks(landmarks,currentCondition.landmark)]]">
+            <paper-item name="[[_landmarkName(item)]]" on-tap="_updateReference">[[_landmarkName(item)]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+    </div>
+    
+    <div id="wrap">
+      <div id="left_col">
+        <div>
+          <paper-checkbox on-change="_contDisplacementRelevantChanged" 
+          checked="{{currentCondition.contDisplacementRelevant}}"> 
+          Continuous 
+        </paper-checkbox>
+        </div>
+        <paper-input class="number" 
+        disabled={{!currentCondition.contDisplacementRelevant}}
+        label="x"
+        value="[[_formatDec(currentCondition.displacement.position.x)]]"
+        on-change="_xChanged"
+      ></paper-input>
+        <paper-input class="number" 
+        disabled={{!currentCondition.contDisplacementRelevant}}
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.positionThreshold}}" on-change="_positionThresholdChanged">
+      </paper-input> 
+      <paper-input 
+        <paper-input class="number" 
+        disabled={{!currentCondition.contDisplacementRelevant}}
+        label="y"
+        value="[[_formatDec(currentCondition.displacement.position.y)]]"
+        on-change="_yChanged"
+      ></paper-input>
+        <paper-input class="number" 
+        disabled={{!currentCondition.contDisplacementRelevant}}
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.positionThreshold}}" on-change="_positionThresholdChanged">
+      </paper-input> 
+      <paper-input class="number" 
+        disabled={{!currentCondition.contDisplacementRelevant}}
+        label="z"
+        value="[[_formatDec(currentCondition.displacement.position.z)]]"
+        on-change="_zChanged"
+      ></paper-input>
+        <paper-input class="number" 
+        disabled={{!currentCondition.contDisplacementRelevant}}
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.positionThreshold}}" on-change="_positionThresholdChanged">
+      </paper-input> 
+      </div>
+<!--     
+      <div id="right_col">
+        <div>
+          <paper-checkbox on-change="_orientationRelevantChanged" 
+          checked="{{currentCondition.orientationRelevant}}"> 
+          Orientation 
+        </paper-checkbox>
+        </div>
+        <paper-input class="number" 
+          disabled={{!currentCondition.orientationRelevant}}
+          label="x"
+          value="[[_formatDec(currentCondition.displacement.orientation.x)]]"
+          on-change="_xChanged"
+        ></paper-input>
+        <paper-input class="number" 
+          disabled={{!currentCondition.orientationRelevant}}
+          type="number" step="1" min="0" max="100"
+          label="Variance"
+          value="{{currentCondition.orientationThreshold}}" on-change="_orientationThresholdChanged">
+      </paper-input> 
+      <paper-input class="number" 
+        disabled={{!currentCondition.orientationRelevant}}
+        label="y"
+        value="[[_formatDec(currentCondition.displacement.orientation.y)]]"
+        on-change="_yChanged"
+      ></paper-input>
+        <paper-input class="number" 
+        disabled={{!currentCondition.orientationRelevant}}
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.orientationThreshold}}" on-change="_orientationThresholdChanged">
+      </paper-input> 
+      <paper-input class="number" 
+        disabled={{!currentCondition.orientationRelevant}}
+        label="z"
+        value="[[_formatDec(currentCondition.displacement.orientation.z)]]"
+        on-change="_zChanged"
+      ></paper-input>
+        <paper-input class="number" 
+        disabled={{!currentCondition.orientationRelevant}}
+        type="number" step="1" min="0" max="100"
+        label="Variance"
+        value="{{currentCondition.orientationThreshold}}" on-change="_orientationThresholdChanged">
+      </paper-input> 
+    </div> -->
+  </div>
+     <!-- 
+    <div> 
+      [[currentCondition.landmark.name]]
+      <paper-dropdown-menu label=" relative to">
+        <paper-listbox slot="dropdown-content" selected="[[_relationName(currentCondition.spatial_relation)]]" attr-for-selected="name" width="10">
+          <template is="dom-repeat" items="[[spatial_relations]]">
+            <paper-item name="[[_relationName(item)]]" on-tap="_updateSpatialRelation">
+             [[_relationName(item)]]
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      [[currentCondition.reference.name]]
+    </div>
+    <div>
+      <paper-input type="number" step="1" min="0" max="100"
+        label="Distance to [[currentCondition.reference.name]]"
+        value="{{_getDistance(currentCondition.displacement)}}" on-change="_distanceChanged"></paper-input>
+    </div> -->
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'pbd-check-conditions-action',
+
+      properties: {
+        action: {
+          notify: true,
+          type: Object,
+        },
+        index: Number,
+        stepIndex: Number,        
+        programId: String,
+        ros: Object,
+        step: Object,
+        landmarks: Array,
+        spatial_relations: Array,
+        showConditions: false,
+        currentCondition: Object,
+        conditionIndex: 0,
+        conditions: Array,
+      },
+
+      observers: [
+        //'_computeSpatialRelations(program)',
+        '_computeCondition(index, conditionIndex)',
+      ],
+
+      _generate: function() {
+        var msg = {
+          type: 'generate conditions',
+          program_info: {
+            db_id: this.programId
+          },
+          step_num: this.stepIndex
+        };
+        this.$.eventPub.publish(msg);
+        this.currentCondition = 
+        console.debug('_generate: ', this.currentCondition);
+      },
+      _computeCondition(index, conditionIndex) {
+
+         if (!conditionIndex || conditionIndex < 0) {
+          conditionIndex = 0;
+        } 
+         console.debug('_computeCondition: ', conditionIndex);
+         if (this.conditions.length > 0) {
+          this.currentCondition = this.conditions[conditionIndex];
+          console.debug('_computeCondition ', this.currentCondition);
+         }
+      },
+      _updateCondition: function() {
+        var msg = {
+          type: 'update conditions',
+          program_info: {
+            db_id: this.programId
+          },
+          step_num: this.stepIndex,
+          conditions: this.conditions
+        };
+        this.$.eventPub.publish(msg);
+      },
+
+      _updateLandmark: function(evt) {
+        // If selected Main landmark is None, no condition is assigned
+        this.set('conditionIndex', evt.model.index);
+        console.debug('_updateLandmark: conditionIndex', this.conditionIndex);
+        // if landmark selected and not Robot base/torso
+        if ( this.conditionIndex > 0 ){
+          this.conditions[this.conditionIndex-1].relevant = true;
+          this.currentCondition = this.conditions[this.conditionIndex-1];
+          this.$.conditionProperties.style.display = "inline";
+        } else {
+          this.currentCondition = {};
+          this.$.conditionProperties.style.display = "none";
+        }
+        console.debug('_updateLandmark: currentCondition', this.currentCondition);
+        
+        this._updateCondition();
+      },
+
+      _updateReference: function(evt) {
+        this.currentCondition.reference = evt.model.item;
+        //this._updateCondition();
+      },
+
+      _computeSpatialRelations: function(action) {
+        var spatial_relations = [
+          'is_left_of', 'is_right_of', 'is_in_front_of', 'is_behind_of',
+          'none'];
+        //landmarks = landmarks.concat(surfaceLandmarks);
+        this.set('spatial_relations', spatial_relations);
+        console.debug('_computeSpatialRelations: ', spatial_relations.length);
+        //return spatial_relations;
+      },
+      
+      _positionRelevantChanged: function(evt) {
+          this.currentCondition.positionRelevant = evt.target.checked;
+          console.debug("_positionRelevantChanged: ", evt.target.checked);
+      },
+      _orientationRelevantChanged: function(evt) {
+          this.currentCondition.orientationRelevant = evt.target.checked;
+          console.debug("_orientationRelevantChanged: ", evt.target.checked);
+      },
+      _sizeRelevantChanged: function(evt) {
+          this.currentCondition.sizeRelevant = evt.target.checked;
+          console.debug("_sizeRelevantChanged: ", evt.target.checked);
+      },
+
+      // _updateSpatialRelation: function(evt) {
+      //   this.set('spatial_relation', evt.model.item);
+      //   this.currentCondition.spatial_relation = evt.model.item;
+      //   this._updatePose();
+      // },
+      // _getDistance: function(dispmnt) {
+      //   var x = parseFloat(dispmnt.position.x);
+      //   var y = parseFloat(dispmnt.position.y);
+      //   var squared_dist = x*x + y*y;
+        
+      //   console.debug('_getDistance: ', Math.sqrt(squared_dist));
+      //   return Math.sqrt(squared_dist);
+      // },
+
+      _relationName: function(spatial_relation) {
+        // console.debug('_relationName: ', spatial_relation);
+        if (spatial_relation === 'is_right_of') {
+          return 'is right of';
+        } if (spatial_relation === 'is_left_of') {
+          return 'is left of';
+        } if (spatial_relation === 'is_behind_of') {
+          return 'is behind of';
+        } if (spatial_relation === 'is_in_front_of') {
+          return 'is in front of';
+        } 
+        return ' not relevant to ';
+      },
+      _objectLandmarks: function(landmarks,main){
+        var objects = ['None'];
+        for (var i=0; i<landmarks.length; ++i){
+          if (landmarks[i].type === 'surface box'){
+              objects.push(landmarks[i]); 
+          }
+        }
+        return objects;
+      },
+      _landmarkName: function(landmark) {
+        if (!landmark || !landmark.type) {
+          return 'None';
+        }
+        if (landmark.type === 'tf frame') {
+          // if (landmark.name === 'base_link' || landmark.name === 'base_footprint') {
+          //   return 'Robot base';
+          // } else if (landmark.name === 'torso_lift_link') {
+          //   return 'Robot torso';
+          // } else {
+          //   return landmark.name;
+          // }
+          return 'None';
+        } else if (landmark.type === 'surface box') {
+          return landmark.name;
+        }
+
+        return 'Unknown landmark';
+      },
+      _formatDec: function(decimal) {
+        return decimal.toFixed(2);
+      },
+      _parseString: function(s, key) {
+        if (typeof s === 'string') {
+          var f = parseFloat(s);
+          if (!isNaN(f) && s !== '0.') {
+            this.set(key, f);
+          }
+        } else {
+          this.set(key, s);
+        }
+      },
+
+      _clear: function(){
+        this.currentCondition = {};
+        this.$.conditionProperties.style.display = "none";
+      },
+    });
+  </script>
+</dom-module>
