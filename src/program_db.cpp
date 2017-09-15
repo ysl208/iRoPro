@@ -148,7 +148,7 @@ void ProgramDb::PublishList() {
   for (size_t i = 0; i < results.size(); ++i) {
     ProgramInfo info;
     info.name = results[i].first->name;
-    info.db_id = results[i].second.getField("_id").OID().str();
+    info.db_id = results[i].second.getField("_id").OID().toString();
     msg.programs.push_back(info);
   }
   list_pub_->publish(msg);
