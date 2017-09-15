@@ -2,8 +2,8 @@
 Changelog for package rapid_pbd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.4 (2017-09-15)
+------------------
 * Changed str to toString, which compiles on ROS buildfarm.
 * Contributors: Justin Huang
 
