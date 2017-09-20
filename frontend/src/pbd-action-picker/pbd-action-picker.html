@@ -121,6 +121,7 @@
         <h3>Perception</h3>
         <paper-button class="normal" on-tap="selectMoveHead">Move head</paper-button>
         <paper-button class="normal" on-tap="selectDetectTabletopObjects">Detect tabletop objects</paper-button>
+        <paper-button class="normal" on-tap="selectCheckConditions">Check world conditions</paper-button>
         <!--paper-button class="normal" on-tap="selectFindCustomLandmark">Find custom landmark</paper-button-->
       </div>
       <template is="dom-if" if="[[params.hasTwoArms]]">
@@ -194,6 +195,13 @@
         this.fire('iron-select', action);
       },
 
+      selectCheckConditions: function() {
+        var action = {
+          type: 'check world conditions'
+        };
+        this.fire('iron-select', action);
+      },
+
       selectFindCustomLandmark: function() {
         var action = {
           type: 'find custom landmark'
@@ -259,11 +267,11 @@
       _selectActuateGripper: function(actuatorGroup, command) {
         var gripperCommand = {
           position: 0.1,
-          max_effort: 100
+          max_effort: 0
         };
         if (command === 'close') {
           gripperCommand.position = 0;
-          gripperCommand.max_effort = 75.0;
+          gripperCommand.max_effort = 100.0;
         }
 
         var goal = { command: gripperCommand };

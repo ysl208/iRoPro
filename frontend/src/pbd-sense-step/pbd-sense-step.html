@@ -7,7 +7,7 @@
 <link rel="import" href="../pbd-action-picker/pbd-action-picker.html">
 <link rel="import" href="../shared-styles/shared-styles.html">
 
-<dom-module id="pbd-step">
+<dom-module id="pbd-sense-step">
   <template>
     <style include="shared-styles"></style>
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
@@ -28,11 +28,6 @@
         margin: auto 0px;
         display: inline-block;
       }
-      p {
-        margin: auto 0px;
-        display: block;
-        font-size: 80%;
-      }
     </style>
     <ros-topic auto
       id="eventPub"
@@ -41,13 +36,10 @@
       ros="[[ros]]"
     ></ros-topic>
     <div class="center horizontal layout title">
-      <h3>[[_title(index)]]</h3>
-      <span class="flex"> </span>
+      <h3>Add Sense actions</h3>
+      <span class="flex"></span>
       <paper-button class="add important" on-tap="_togglePicker">+ Add parallel action</paper-button>
-      <paper-button class="delete" hidden$="[[isSenseStep(index)]]" on-tap="_maybeDeleteStep">Delete</paper-button>
-    </div>
-    <div>
-      <p>[[_description(index)]]</p>
+      <paper-button class="delete" on-tap="_maybeDeleteStep">Delete</paper-button>
     </div>
     <iron-collapse id="picker">
       <pbd-action-picker class="dropdown-content" params="[[params]]" ros="[[ros]]" on-iron-select="_addAction" on-iron-deselect="closeActionPicker"></pbd-action-picker>
@@ -70,7 +62,7 @@
   </template>
   <script>
     Polymer({
-      is: 'pbd-step',
+      is: 'pbd-sense-step',
 
       properties: {
         index: Number,
@@ -123,10 +115,6 @@
         ];
         landmarks = landmarks.concat(surfaceLandmarks);
         this.set('landmarks', landmarks);
-      },
-
-      isSenseStep: function(index) {
-        return parseInt(index) < 3;
       },
 
       hasActions: function(actions) {
@@ -185,21 +173,6 @@
 
       closeActionPicker: function() {
         this.$.picker.opened = false;
-      },
-
-      _title: function(index) {
-        if ( this.isSenseStep(index) ) {
-          return "Step: " + this._stepNum(index) + " (Sense)";
-        } else{
-          return "Step " + this._stepNum(index);
-        }
-      },
-      _description: function(index){
-        if ( this.isSenseStep(index) ) {
-          return "Sense steps are required to check the world conditions";
-        } else{
-          return "Customized robot actions";
-        }
       }
     });
   </script>
