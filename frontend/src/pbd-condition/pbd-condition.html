@@ -8,14 +8,14 @@
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 <link rel="import" href="../shared-styles/shared-styles.html">
+<link rel="import" href="../pbd-relation-condition/pbd-relation-condition.html">
 <link rel="import" href="../pbd-arm-cart-action/pbd-arm-cart-action.html">
 <link rel="import" href="../pbd-detect-surface-objects-action/pbd-detect-surface-objects-action.html">
-<link rel="import" href="../pbd-check-conditions-action/pbd-check-conditions-action.html">
 <link rel="import" href="../pbd-gripper-action/pbd-gripper-action.html">
 <link rel="import" href="../pbd-head-action/pbd-head-action.html">
 <link rel="import" href="../pbd-joint-angle-action/pbd-joint-angle-action.html">
 
-<dom-module id="pbd-action">
+<dom-module id="pbd-condition">
   <template>
     <style include="shared-styles"></style>
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
@@ -48,11 +48,10 @@
           <paper-listbox slot="dropdown-content" attr-for-selected="data-type" selected="{{_displayActionType}}">
             <paper-item data-type="open gripper">Open gripper</paper-item>
             <paper-item data-type="close gripper">Close gripper</paper-item>
-            <paper-item data-type="move to cartesian goal">Move to gripper pose</paper-item>
+            <paper-item data-type="spatial relation">Relation</paper-item>
             <paper-item data-type="move to joint goal">Move to joint angles</paper-item>
             <paper-item data-type="move head">Move head</paper-item>
             <paper-item data-type="detect tabletop objects">Detect tabletop objects</paper-item>
-            <paper-item data-type="check world conditions">Check world conditions</paper-item>
             <!--paper-item data-type="find custom landmark">Find custom landmark</paper-item-->
           </paper-listbox>
         </paper-dropdown-menu>
@@ -62,10 +61,10 @@
         <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'close gripper')]]">
           <pbd-gripper-action id="gripperAction" action="{{action}}" params="[[params]]" ros="[[ros]]"></pbd-gripper-action>
         </template>
-        <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'move to cartesian goal')]]">
-          <pbd-arm-cart-action action="{{action}}" params="[[params]]"
+        <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'spatial relation')]]">
+          <pbd-relation-condition action="{{condition}}" params="[[params]]" 
             program-id="[[programId]]" step-index="[[stepNum]]" index="[[index]]"
-            landmarks="[[landmarks]]" ros="[[ros]]"></pbd-arm-cart-action>
+            landmarks="[[landmarks]]" ros="[[ros]]"></pbd-relation-condition>
         </template>
         <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'move to joint goal')]]">
           <pbd-joint-angle-action action="{{action}}" program-id="[[programId]]" step-index="[[stepNum]]" index="[[index]]" params="[[params]]" ros="[[ros]]"></pbd-joint-angle-action>
@@ -76,12 +75,6 @@
         <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'detect tabletop objects')]]">
           <pbd-detect-surface-objects-action action="{{action}}" program-id="[[programId]]" step-num="[[stepNum]]" ros="[[ros]]"></pbd-detect-surface-objects-action>
         </template>
-        <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'check world conditions')]]">
-           <pbd-check-conditions-action action="{{action}}" params="[[params]]"
-          program-id="[[programId]]" step-index="[[stepNum]]" index="[[index]]" 
-          landmarks="[[landmarks]]" ros="[[ros]]"
-            ></pbd-check-conditions-action> 
-        </template>
         <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'find custom landmark')]]">
           CustomLandmarks options
         </template>
@@ -90,16 +83,18 @@
   </template>
   <script>
     Polymer({
-      is: 'pbd-action',
+      is: 'pbd-condition',
 
       properties: {
-        action: {
+        condition: {
           notify: true,
           type: Object,
         },
         params: Object,
         landmarks: Array,
-        conditions: Array,
+        //type: String,
+        landmark: Object,
+        reference: Object,
         stepNum: Number,
         index: Number,
         programId: String,
@@ -111,8 +106,8 @@
       },
 
       observers: [
-        '_computeActionDescription(action.*, index)',
-        '_actionTypeChanged(action.type)',
+        '_computeActionDescription(condition.*, index)',
+        '_actionTypeChanged(condition.type)',
         '_displayActionTypeChanged(_displayActionType)',
       ],
 
@@ -121,44 +116,46 @@
       },
 
       _computeActionDescription(changeRecord, index) {
-        this._actionDescription = 'Action ' + (index+1);
-        if (this.action.type === 'move to cartesian goal') {
-          this._actionDescription = 'Move arm';
-          if (this.action.actuator_group === 'arm'
-              || this.action.actuator_group === 'left arm'
-              || this.action.actuator_group === 'right arm') {
-            this._actionDescription = 'Move ' + this.action.actuator_group;
+          console.debug('Landmarks: ', this.landmarks.length );
+        this._actionDescription = 'Condition ' + (index+1);
+        this.landmark = this.condition.landmark;
+        this.type = this.condition.type;
+          console.debug('Condition ', index+1, this.landmark.name, this.type );
+        if (this.condition.type === 'landmark is visible') {
+          console.debug('Visibility: ', index+1 );
+          // this._actionDescription = 'Move arm';
+          // if (this.condition.actuator_group === 'arm'
+          //     || this.condition.actuator_group === 'left arm'
+          //     || this.condition.actuator_group === 'right arm') {
+          //   this._actionDescription = 'Move ' + this.condition.actuator_group;
+          // }
+        } else if (this.condition.type === 'property of the landmark') {
+          console.debug('Property :', this.condition.property, this.condition.threshold);
+          if (this.condition.property === 'landmark position') {
+
           }
-        } else if (this.action.type === 'move to joint goal') {
-          this._actionDescription = 'Move joints';
-          if (this.action.actuator_group === 'arm'
-              || this.action.actuator_group === 'left arm'
-              || this.action.actuator_group === 'right arm') {
-            this._actionDescription = 'Move ' + this.action.actuator_group;
-          } else if (this.action.actuator_group === 'head') {
+          this._actionDescription = this.landmark.name + ' properties';
+          if (this.condition.actuator_group === 'arm'
+              || this.condition.actuator_group === 'left arm'
+              || this.condition.actuator_group === 'right arm') {
+            this._actionDescription = 'Move ' + this.condition.actuator_group;
+          } else if (this.condition.actuator_group === 'head') {
             this._actionDescription = 'Move head';
           }
-        } else if (this.action.type === 'actuate gripper') {
-          var action = 'Actuate';
-          var actuator = 'gripper';
-          if (this.action.gripper_command.position > 0) {
-            action = 'Open';
-          } else {
-            action = 'Close';
+        } else if (this.condition.type === 'spatial relation with a reference landmark') {
+          this.reference = this.condition.reference;
+          var displacement = this.condition.displacement;
+          var spatial_relation = this.condition.spatial_relation;
+          console.debug('Relation : ', this.landmark.name,  spatial_relation, this.reference.name );
+          this._actionDescription = this.landmark.name + ' relative to ' + this.reference.name;
+          if (this.condition.actuator_group === 'arm'
+              || this.condition.actuator_group === 'left arm'
+              || this.condition.actuator_group === 'right arm') {
+            this._actionDescription = 'Move ' + this.condition.actuator_group;
+          } else if (this.condition.actuator_group === 'head') {
+            this._actionDescription = 'Move head';
           }
-          if (this.action.actuator_group === 'gripper'
-              || this.action.actuator_group === 'left gripper'
-              || this.action.actuator_group === 'right gripper') {
-            actuator = this.action.actuator_group;
-          }
-          this._actionDescription = action + ' ' + actuator;
-        } else if (this.action.type === 'detect tabletop objects') {
-          this._actionDescription = 'Detect tabletop objects';
-        } else if (this.action.type === 'check world conditions') {
-          this._actionDescription = 'Check world conditions';
-        } else if (this.action.type === 'find custom landmark') {
-          this._actionDescription = 'Find custom landmark';
-        }
+        } 
       },
 
       _delete: function() {
@@ -167,13 +164,13 @@
 
       _actionTypeChanged: function(actionType) {
         if (actionType === 'actuate gripper') {
-          if (this.action.gripper_command.position > 0) {
+          if (this.condition.gripper_command.position > 0) {
             this._displayActionType = 'open gripper';
           } else {
             this._displayActionType = 'close gripper';
           }
         } else if (actionType === 'move to joint goal') {
-          if (this.action.actuator_group === 'head') {
+          if (this.condition.actuator_group === 'head') {
             this._displayActionType = 'move head';
           } else {
             this._displayActionType = 'move to joint goal';
@@ -187,21 +184,21 @@
 
       _displayActionTypeChanged: function(displayActionType) {
         if (displayActionType === 'open gripper') {
-          this.set('action.type', 'actuate gripper');
-          this.set('action.gripper_command.position', 0.1);
-          this.set('action.gripper_command.max_effort', 0);
+          this.set('condition.type', 'actuate gripper');
+          this.set('condition.gripper_command.position', 0.1);
+          this.set('condition.gripper_command.max_effort', 0);
         } else if (displayActionType === 'close gripper') {
-          this.set('action.type', 'actuate gripper');
-          this.set('action.gripper_command.position', 0);
-          if (!this.action.gripper_command.max_effort) {
-            this.set('action.gripper_command.max_effort', 75);
+          this.set('condition.type', 'actuate gripper');
+          this.set('condition.gripper_command.position', 0);
+          if (!this.condition.gripper_command.max_effort) {
+            this.set('condition.gripper_command.max_effort', 75);
           }
         } else if (displayActionType === 'move head') {
-          this.set('action.type', 'move to joint goal');
-          this.set('action.actuator_group', 'head');
+          this.set('condition.type', 'move to joint goal');
+          this.set('condition.actuator_group', 'head');
         } else {
-          if (this.action.type !== displayActionType) {
-            this.set('action.type', displayActionType);
+          if (this.condition.type !== displayActionType) {
+            this.set('condition.type', displayActionType);
           }
         }
       },

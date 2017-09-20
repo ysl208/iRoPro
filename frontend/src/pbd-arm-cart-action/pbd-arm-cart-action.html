@@ -129,6 +129,19 @@
         this._updatePose();
       },
 
+      _updatePose: function() {
+        var msg = {
+          type: 'get pose',
+          program_info: {
+            db_id: this.programId
+          },
+          step_num: this.stepIndex,
+          action_num: this.index,
+          action: this.action
+        };
+        this.$.eventPub.publish(msg);
+      },
+
       _landmarkName: function(landmark) {
         if (!landmark || !landmark.type) {
           return 'Unknown landmark';
@@ -145,19 +158,6 @@
           return landmark.name;
         }
         return 'Unknown landmark';
-      },
-
-      _updatePose: function() {
-        var msg = {
-          type: 'get pose',
-          program_info: {
-            db_id: this.programId
-          },
-          step_num: this.stepIndex,
-          action_num: this.index,
-          action: this.action
-        };
-        this.$.eventPub.publish(msg);
       },
 
       _maxSpeedChanged: function(evt) {
