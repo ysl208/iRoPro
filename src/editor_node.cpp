@@ -9,8 +9,10 @@
 #include "rapid_pbd_msgs/ProgramInfoList.h"
 #include "robot_markers/builder.h"
 #include "ros/ros.h"
+#include "std_msgs/Bool.h"
 #include "urdf/model.h"
 #include "visualization_msgs/MarkerArray.h"
+#include "rapid_pbd/condition_generator.h"
 
 namespace pbd = rapid::pbd;
 
@@ -64,10 +66,15 @@ int main(int argc, char** argv) {
   pbd::Visualizer visualizer(scene_db, marker_builder, *robot_config);
   visualizer.Init();
 
+  pbd::ConditionGenerator cond_gen(*robot_config);
+  ros::Publisher pre_check_pub =
+      nh.advertise<std_msgs::Bool>("pre_check", 5, true);
+
   // Build editor.
   pbd::JointStateReader joint_state_reader;
   pbd::Editor editor(db, scene_db, joint_state_reader, visualizer,
-                     &action_clients, *robot_config);
+                     &action_clients, cond_gen, *robot_config,
+                     pre_check_pub);
   editor.Start();
 
   ros::Subscriber editor_sub = nh.subscribe(pbd::kEditorEventsTopic, 10,

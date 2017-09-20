@@ -5,6 +5,9 @@
 
 #include "rapid_pbd_msgs/Landmark.h"
 #include "rapid_pbd_msgs/Program.h"
+#include "rapid_pbd_msgs/Condition.h"
+#include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/Point.h"
 
 #include "rapid_pbd/joint_state.h"
 #include "rapid_pbd/robot_config.h"
@@ -16,6 +19,8 @@ struct World {
   std::string scene_id;
   JointState joint_state;
   std::vector<rapid_pbd_msgs::Landmark> surface_box_landmarks;
+  std::vector<rapid_pbd_msgs::Condition> conditions;
+    
 };
 
 void GetWorld(const RobotConfig& robot_config,
@@ -23,7 +28,10 @@ void GetWorld(const RobotConfig& robot_config,
               World* world);
 
 bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
-                   rapid_pbd_msgs::Landmark* match);
+                   rapid_pbd_msgs::Landmark* match, const double& variance);
+
+void GetRPY(const geometry_msgs::Quaternion& q, geometry_msgs::Vector3* rpy);
+void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v);
 }  // namespace pbd
 }  // namespace rapid
 
