@@ -193,10 +193,12 @@ void SurfaceSegmentationAction::Execute(
       landmark.pose_stamped = object.pose_stamped;
       landmark.surface_box_dims = object.dimensions;
       result.landmarks.push_back(landmark);
+  
     }
   }
   ROS_INFO("Detected %ld objects, smallest: %ld points, largest: %ld points",
            num_objects, min_size, max_size);
+  
   viz_.set_surface_objects(surface_objects);
   viz_.Show();
   as_.setSucceeded(result);

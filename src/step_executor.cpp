@@ -12,6 +12,7 @@
 #include "rapid_pbd/action_executor.h"
 #include "rapid_pbd/errors.h"
 #include "rapid_pbd/motion_planning.h"
+#include "rapid_pbd/condition_checker.h"
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
 
@@ -26,15 +27,14 @@ StepExecutor::StepExecutor(const rapid_pbd_msgs::Step& step,
                            const RobotConfig& robot_config, World* world,
                            const RuntimeVisualizer& runtime_viz,
                            const tf::TransformListener& tf_listener,
-                           const ros::Publisher& planning_scene_pub,
-                           const JointStateReader& js_reader)
+                           const ros::Publisher& planning_scene_pub)
     : step_(step),
       action_clients_(action_clients),
       robot_config_(robot_config),
       world_(world),
       runtime_viz_(runtime_viz),
-      motion_planning_(robot_config, world, tf_listener, planning_scene_pub,
-                       js_reader),
+      motion_planning_(robot_config, world, tf_listener, planning_scene_pub),
+      condition_checker_(world),
       executors_() {}
 
 bool StepExecutor::IsValid(const rapid_pbd_msgs::Step& step) {
@@ -52,7 +52,8 @@ void StepExecutor::Init() {
   for (size_t i = 0; i < step_.actions.size(); ++i) {
     Action action = step_.actions[i];
     shared_ptr<ActionExecutor> ae(
-        new ActionExecutor(action, action_clients_, &motion_planning_, world_,
+        new ActionExecutor(action, action_clients_, &motion_planning_, 
+                           &condition_checker_, world_,
                            robot_config_, runtime_viz_));
     executors_.push_back(ae);
   }

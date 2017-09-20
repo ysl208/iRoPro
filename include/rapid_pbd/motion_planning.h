@@ -13,7 +13,6 @@
 #include "ros/ros.h"
 #include "tf/transform_listener.h"
 
-#include "rapid_pbd/joint_state_reader.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/world.h"
 
@@ -23,8 +22,7 @@ class MotionPlanning {
  public:
   MotionPlanning(const RobotConfig& robot_config, World* world,
                  const tf::TransformListener& tf_listener,
-                 const ros::Publisher& planning_scene_pub,
-                 const JointStateReader& js_reader);
+                 const ros::Publisher& planning_scene_pub);
   // Returns an error message, or empty string if no error.
   // Set seed_joint_names and seed_joint_positions to empty vectors if you do
   // not want to specify an IK seed.
@@ -46,9 +44,6 @@ class MotionPlanning {
   ros::Publisher planning_scene_pub_;
   moveit_goal_builder::Builder builder_;
   int num_goals_;
-  // All motions are expressed as joint angle goals.
-  std::map<std::string, double> current_joint_goal_;
-  const JointStateReader& joint_state_reader_;
 };
 
 std::string ErrorCodeToString(const moveit_msgs::MoveItErrorCodes& code);

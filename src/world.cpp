@@ -11,10 +11,10 @@
 #include "rapid_pbd_msgs/Program.h"
 #include "rapid_pbd_msgs/Step.h"
 #include "transform_graph/graph.h"
+#include "geometry_msgs/Pose.h"
 
 #include "rapid_pbd/action_utils.h"
 #include "rapid_pbd/joint_state.h"
-#include "rapid_pbd/landmarks.h"
 #include "rapid_pbd/robot_config.h"
 
 #include "ros/ros.h"
@@ -187,8 +187,9 @@ double BoxDissimilarity(const std::vector<double>& a,
 }
 
 bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
-                   rapid_pbd_msgs::Landmark* match) {
-  const double kMaxDistance = 0.075 * 0.075;
+                   rapid_pbd_msgs::Landmark* match, const double& variance) {
+    ROS_INFO("Landmark %s", landmark.name.c_str());
+  const double kMaxDistance = variance * variance;
   std::vector<double> landmark_dims;
   GetDims(landmark, &landmark_dims);
   if (landmark.type == msgs::Landmark::SURFACE_BOX) {
@@ -207,6 +208,23 @@ bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
   } else {
     return false;
   }
+
 }
+
+void GetRPY(const geometry_msgs::Quaternion& q, geometry_msgs::Vector3* rpy){
+  // Returns roll, pitch, yaw
+  tf::Quaternion tfQuat;
+  tf::quaternionMsgToTF(q, tfQuat);
+  rpy->x = 0;
+  rpy->y = 0;
+  rpy->z = tf::getYaw(tfQuat);
+}
+
+void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v){
+  v->x = p.x;
+  v->y = p.y;
+  v->z = p.z;
+}
+
 }  // namespace pbd
 }  // namespace rapid

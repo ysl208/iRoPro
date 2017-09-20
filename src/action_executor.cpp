@@ -13,7 +13,6 @@
 #include "rapid_pbd/action_names.h"
 #include "rapid_pbd/action_utils.h"
 #include "rapid_pbd/errors.h"
-#include "rapid_pbd/landmarks.h"
 #include "rapid_pbd/motion_planning.h"
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
@@ -29,12 +28,14 @@ namespace rapid {
 namespace pbd {
 ActionExecutor::ActionExecutor(const Action& action,
                                ActionClients* action_clients,
-                               MotionPlanning* motion_planning, World* world,
+                               MotionPlanning* motion_planning,
+                               ConditionChecker* condition_checker, World* world,
                                const RobotConfig& robot_config,
                                const RuntimeVisualizer& runtime_viz)
     : action_(action),
       clients_(action_clients),
       motion_planning_(motion_planning),
+      condition_checker_(condition_checker),
       world_(world),
       robot_config_(robot_config),
       runtime_viz_(runtime_viz) {}
@@ -71,6 +72,7 @@ bool ActionExecutor::IsValid(const Action& action) {
     }
   } else if (action.type == Action::DETECT_TABLETOP_OBJECTS) {
   } else if (action.type == Action::FIND_CUSTOM_LANDMARK) {
+  } else if (action.type == Action::CHECK_CONDITIONS) {
   } else {
     ROS_ERROR("Invalid action type: \"%s\"", action.type.c_str());
     return false;
@@ -85,18 +87,7 @@ std::string ActionExecutor::Start() {
     std::vector<std::string> joint_names;
     std::vector<double> joint_positions;
     GetJointPositions(action_, &joint_names, &joint_positions);
-    if (action_.actuator_group == msgs::Action::ARM || action_.actuator_group == msgs::Action::LEFT_ARM || action_.actuator_group == msgs::Action::RIGHT_ARM) {
-      return motion_planning_->AddJointGoal(joint_names, joint_positions);
-    } else if (action_.actuator_group == Action::HEAD) {
-      control_msgs::FollowJointTrajectoryGoal joint_goal;
-      joint_goal.trajectory = action_.joint_trajectory;
-      joint_goal.trajectory.header.stamp = ros::Time::now();
-			SimpleActionClient<FollowJointTrajectoryAction>* client;
-  		  client = &clients_->head_client;
-  		client->sendGoal(joint_goal);
-    } else {
-      return "Invalid actuator group";
-    }
+    return motion_planning_->AddJointGoal(joint_names, joint_positions);
   } else if (action_.type == Action::MOVE_TO_CARTESIAN_GOAL) {
     std::vector<std::string> joint_names;
     std::vector<double> joint_positions;
@@ -108,6 +99,16 @@ std::string ActionExecutor::Start() {
                                          joint_positions);
   } else if (action_.type == Action::DETECT_TABLETOP_OBJECTS) {
     DetectTabletopObjects();
+  } else if (action_.type == Action::CHECK_CONDITIONS) {
+    bool success = condition_checker_->CheckConditions(action_.condition);
+    if(success){
+      ROS_INFO("All conditions passed ");
+    } else {
+      ROS_INFO("Condition check failed");
+    }
+
+    
+
   }
   return "";
 }
@@ -137,13 +138,8 @@ bool ActionExecutor::IsDone(std::string* error) const {
         if (result->landmarks.size() == 0) {
           *error = errors::kNoLandmarksDetected;
         }
-        world_->surface_box_landmarks.clear();
-        for (size_t i=0; i<result->landmarks.size(); ++i) {
-          msgs::Landmark landmark;
-          ProcessSurfaceBox(result->landmarks[i], &landmark);
-          world_->surface_box_landmarks.push_back(landmark);
-        }
-        runtime_viz_.PublishSurfaceBoxes(world_->surface_box_landmarks);
+        world_->surface_box_landmarks = result->landmarks;
+        runtime_viz_.PublishSurfaceBoxes(result->landmarks);
       } else {
         ROS_ERROR("Surface segmentation result pointer was null!");
         *error = "Surface segmentation result pointer was null!";
@@ -151,8 +147,12 @@ bool ActionExecutor::IsDone(std::string* error) const {
       }
     }
     return done;
+  } else if (action_.type == Action::CHECK_CONDITIONS) {
+    // handled by check_condition
+    
   }
   return true;
+
 }
 
 void ActionExecutor::Cancel() {
@@ -172,6 +172,8 @@ void ActionExecutor::Cancel() {
     }
   } else if (action_.type == Action::DETECT_TABLETOP_OBJECTS) {
     clients_->surface_segmentation_client.cancelAllGoals();
+  } else if (action_.type == Action::CHECK_CONDITIONS) {
+    //clients_->condition_checker_client.cancelAllGoals();
   }
 }
 

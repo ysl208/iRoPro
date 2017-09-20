@@ -17,6 +17,8 @@
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
+#include "rapid_pbd/condition_generator.h"
+
 
 namespace rapid {
 namespace pbd {
@@ -28,7 +30,10 @@ class Editor {
   Editor(const ProgramDb& db, const SceneDb& scene_db,
          const JointStateReader& joint_state_reader,
          const Visualizer& visualizer, ActionClients* action_clients,
-         const RobotConfig& robot_config);
+         const ConditionGenerator& cond_gen,
+         const RobotConfig& robot_config,
+         const ros::Publisher& pre_check_pub
+         );
   void Start();
   void HandleEvent(const rapid_pbd_msgs::EditorEvent& event);
 
@@ -36,6 +41,10 @@ class Editor {
   void Create(const std::string& name);
   void Update(const std::string& db_id, const rapid_pbd_msgs::Program& program);
   void Delete(const std::string& db_id);
+  void GenerateConditions(const std::string& db_id, size_t step_id, size_t action_id,
+                     const rapid_pbd_msgs::Landmark& landmark);
+  
+  void ViewCondition(const std::string& db_id, const std::string& condition);
   void AddStep(const std::string& db_id);
   void DeleteStep(const std::string& db_id, size_t step_id);
   void AddAction(const std::string& db_id, size_t step_id,
@@ -75,15 +84,31 @@ class Editor {
   // The types are defined in Landmark.msg.
   void DeleteLandmarks(const std::string& landmark_type,
                        rapid_pbd_msgs::Step* step);
-
+  void AddDetectTTObjectsAction(const std::string& db_id, 
+                                    size_t step_id);
+  void AddCheckConditionsAction(const std::string& db_id,
+                                    size_t step_id);
+  void AddMoveHeadAction(const std::string& db_id, size_t step_id,
+                              size_t pan, size_t tilt);
+  void AddOpenGripperAction(const std::string& db_id, size_t step_id,
+                              size_t position, size_t max_effort);
+  void AddJointStates(rapid_pbd_msgs::Action* action,
+                      const std::vector<double>& default_pose);       
+  void AddGripperPoseAction(const std::string& db_id, size_t step_id,
+                              const std::vector<double>& default_pose);
+  void PublishPreCheck(bool pre_check);
+  
   ProgramDb db_;
   SceneDb scene_db_;
   JointStateReader joint_state_reader_;
   Visualizer viz_;
   ActionClients* action_clients_;
+  ConditionGenerator cond_gen_;
   const RobotConfig& robot_config_;
   tf::TransformListener tf_listener_;
   std::map<std::string, size_t> last_viewed_;
+  ros::Publisher pre_check_pub_;
+
 };
 }  // namespace pbd
 }  // namespace rapid

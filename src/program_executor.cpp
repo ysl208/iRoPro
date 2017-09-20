@@ -32,7 +32,7 @@ ProgramExecutionServer::ProgramExecutionServer(
     ActionClients* action_clients, const RobotConfig& robot_config,
     const tf::TransformListener& tf_listener,
     const RuntimeVisualizer& runtime_viz, const ProgramDb& program_db,
-    const ros::Publisher& planning_scene_pub, const JointStateReader& js_reader)
+    const ros::Publisher& planning_scene_pub)
     : nh_(),
       server_(action_name,
               boost::bind(&ProgramExecutionServer::Execute, this, _1), false),
@@ -43,12 +43,10 @@ ProgramExecutionServer::ProgramExecutionServer(
       tf_listener_(tf_listener),
       runtime_viz_(runtime_viz),
       program_db_(program_db),
-      planning_scene_pub_(planning_scene_pub),
-      js_reader_(js_reader) {}
+      planning_scene_pub_(planning_scene_pub) {}
 
 void ProgramExecutionServer::Start() {
   server_.start();
-  js_reader_.Start();
   PublishIsRunning(false);
 }
 
@@ -99,12 +97,13 @@ void ProgramExecutionServer::Execute(
 
   World world;
   runtime_viz_.PublishSurfaceBoxes(world.surface_box_landmarks);
+  ROS_INFO_STREAM("World: " << world.surface_box_landmarks.size());
   std::vector<boost::shared_ptr<StepExecutor> > executors;
   for (size_t i = 0; i < program.steps.size(); ++i) {
     const Step& step = program.steps[i];
-    boost::shared_ptr<StepExecutor> executor(new StepExecutor(
-        step, action_clients_, robot_config_, &world, runtime_viz_,
-        tf_listener_, planning_scene_pub_, js_reader_));
+    boost::shared_ptr<StepExecutor> executor(
+        new StepExecutor(step, action_clients_, robot_config_, &world,
+                         runtime_viz_, tf_listener_, planning_scene_pub_));
     executors.push_back(executor);
     executors.back()->Init();
   }
@@ -144,6 +143,7 @@ void ProgramExecutionServer::Execute(
       return;
     }
   }
+  
   PublishIsRunning(false);
   server_.setSucceeded();
 }
