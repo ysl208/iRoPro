@@ -61,8 +61,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     } else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
       GenerateConditions(event.program_info.db_id, event.step_num,
         event.action_num, event.landmark_name);
-    } else if (event.type == msgs::EditorEvent::CHECK_CONDITIONS) {
-      //CheckConditions(event.program_info.db_id, event.step_num);
+    } else if (event.type == msgs::EditorEvent::ADD_SENSE_STEPS) {
+      AddSenseSteps(event.program_info.db_id, event.step_num);
     } else if (event.type == msgs::EditorEvent::UPDATE_CONDITIONS) {
       //ViewCondition(event.program_info.db_id, event.condition);
     } else if (event.type == msgs::EditorEvent::ADD_STEP) {
@@ -102,10 +102,11 @@ void Editor::Create(const std::string& name) {
   World world;
   GetWorld(robot_config_, program, 0, &world);
   viz_.Publish(db_id, world);
-  ros::Duration(2).sleep(); // sleep for 2 seconds
+  
+}
+void Editor::AddSenseSteps(const std::string& db_id, size_t step_id){
   ROS_INFO("Add default SENSE steps");
   AddStep(db_id);
-  size_t step_id = 0;
   AddMoveHeadAction(db_id, step_id, 20, 0);
   AddOpenGripperAction(db_id, step_id, 0.1, 0);
   std::vector<double> poses;
@@ -115,10 +116,10 @@ void Editor::Create(const std::string& name) {
   AddStep(db_id);
   ++step_id;
   AddDetectTTObjectsAction(db_id, step_id);
-  AddStep(db_id);
-  ++step_id;
-  AddCheckConditionsAction(db_id, step_id);
-  
+  //AddStep(db_id);
+  //++step_id;
+  //AddCheckConditionsAction(db_id, step_id);
+
 }
 
 void Editor::AddDetectTTObjectsAction(const std::string& db_id, size_t step_id) {
@@ -130,6 +131,7 @@ void Editor::AddDetectTTObjectsAction(const std::string& db_id, size_t step_id) 
 void Editor::AddCheckConditionsAction(const std::string& db_id, size_t step_id) {
   msgs::Action check_action;
   check_action.type = msgs::Action::CHECK_CONDITIONS;
+  check_action.condition.relevant = false;
   AddAction(db_id, step_id, check_action);
 }
 
