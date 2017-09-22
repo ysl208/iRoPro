@@ -24,7 +24,8 @@ class ProgramExecutionServer {
                          const tf::TransformListener& tf_listener,
                          const RuntimeVisualizer& runtime_viz,
                          const ProgramDb& program_db,
-                         const ros::Publisher& planning_scene_pub);
+                         const ros::Publisher& planning_scene_pub,
+                         const ros::Publisher& condition_check_pub);
   void Start();
 
  private:
@@ -38,11 +39,13 @@ class ProgramExecutionServer {
   RuntimeVisualizer runtime_viz_;
   const ProgramDb& program_db_;
   ros::Publisher planning_scene_pub_;
+  ros::Publisher condition_check_pub_;
 
   void Execute(const rapid_pbd_msgs::ExecuteProgramGoalConstPtr& goal);
   static bool IsValid(const rapid_pbd_msgs::Program& program);
   void PublishIsRunning(bool is_running);
   void Cancel(const std::string& error);
+  void PublishConditionCheck(bool condition_check);
 };
 }  // namespace pbd
 }  // namespace rapid

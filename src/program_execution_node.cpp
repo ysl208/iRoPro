@@ -4,6 +4,7 @@
 #include "moveit_msgs/PlanningScene.h"
 #include "rapid_pbd/action_executor.h"
 #include "rapid_pbd/action_names.h"
+#include "rapid_pbd_msgs/ConditionCheckInfo.h"
 #include "rapid_pbd/program_executor.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/visualizer.h"
@@ -25,6 +26,9 @@ int main(int argc, char** argv) {
 
   ros::Publisher planning_scene_pub =
       nh.advertise<moveit_msgs::PlanningScene>("/planning_scene", 5);
+
+  ros::Publisher condition_check_pub =
+      nh.advertise<rapid_pbd_msgs::ConditionCheckInfo>("condition_check", 5, true);
 
   std::string robot("");
   bool is_robot_specified = ros::param::get("robot", robot);
@@ -111,7 +115,8 @@ int main(int argc, char** argv) {
 
   rapid::pbd::ProgramExecutionServer server(
       rapid::pbd::kProgramActionName, is_running_pub, &action_clients,
-      *robot_config, tf_listener, runtime_viz, program_db, planning_scene_pub);
+      *robot_config, tf_listener, runtime_viz, program_db, planning_scene_pub,
+      condition_check_pub);
   server.Start();
   ROS_INFO("RapidPbD program executor ready.");
   ros::spin();

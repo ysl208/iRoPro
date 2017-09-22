@@ -111,6 +111,7 @@ void ConditionGenerator::GetRelativeConditions(const msgs::Landmark& landmark,
 
   msgs::Landmark reference;
 
+  condition->referenceRelevant = false;
   if (ReferencedLandmark(landmark, world, squared_cutoff, &reference))
   {
 /*     ROS_INFO("%s  references landmark %s with threshold %f", 

@@ -31,8 +31,7 @@ class Editor {
          const JointStateReader& joint_state_reader,
          const Visualizer& visualizer, ActionClients* action_clients,
          const ConditionGenerator& cond_gen,
-         const RobotConfig& robot_config,
-         const ros::Publisher& pre_check_pub
+         const RobotConfig& robot_config
          );
   void Start();
   void HandleEvent(const rapid_pbd_msgs::EditorEvent& event);
@@ -42,7 +41,7 @@ class Editor {
   void Update(const std::string& db_id, const rapid_pbd_msgs::Program& program);
   void Delete(const std::string& db_id);
   void GenerateConditions(const std::string& db_id, size_t step_id, size_t action_id,
-                     const rapid_pbd_msgs::Landmark& landmark);
+                     const std::string& landmark_name);
   
   void ViewCondition(const std::string& db_id, const std::string& condition);
   void AddStep(const std::string& db_id);
@@ -96,7 +95,6 @@ class Editor {
                       const std::vector<double>& default_pose);       
   void AddGripperPoseAction(const std::string& db_id, size_t step_id,
                               const std::vector<double>& default_pose);
-  void PublishPreCheck(bool pre_check);
   
   ProgramDb db_;
   SceneDb scene_db_;
@@ -107,7 +105,6 @@ class Editor {
   const RobotConfig& robot_config_;
   tf::TransformListener tf_listener_;
   std::map<std::string, size_t> last_viewed_;
-  ros::Publisher pre_check_pub_;
 
 };
 }  // namespace pbd
