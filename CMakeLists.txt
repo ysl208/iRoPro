@@ -7,8 +7,10 @@ project(rapid_pbd)
 find_package(catkin REQUIRED COMPONENTS
   actionlib
   control_msgs
+  geometry_msgs
   mongodb_store
   moveit_core
+  moveit_msgs
   moveit_ros_planning
   moveit_ros_planning_interface
   moveit_goal_builder
@@ -16,17 +18,23 @@ find_package(catkin REQUIRED COMPONENTS
   pr2_controllers_msgs
   pr2_mechanism_msgs
   rapid_pbd_msgs
+  robot_controllers_msgs
   robot_markers
   roscpp
   rospy
+  sensor_msgs
   shape_msgs
+  std_msgs
   surface_perception
+  tf
   transform_graph
+  urdf
+  visualization_msgs
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(Boost REQUIRED COMPONENTS system)
+find_package(PCL REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -125,6 +133,7 @@ catkin_package(
     rapid_pbd_fetch_actions
     rapid_pbd_joint_state
     rapid_pbd_joint_state_reader
+    rapid_pbd_landmarks
     rapid_pbd_motion_planning
     rapid_pbd_pr2_actions
     rapid_pbd_program_db
@@ -137,18 +146,32 @@ catkin_package(
   CATKIN_DEPENDS
     actionlib
     control_msgs
+    geometry_msgs
     mongodb_store
+    moveit_core
+    moveit_msgs
+    moveit_ros_planning
+    moveit_ros_planning_interface
     moveit_goal_builder
     pcl_ros
     pr2_controllers_msgs
     pr2_mechanism_msgs
     rapid_pbd_msgs
+    robot_controllers_msgs
     robot_markers
     roscpp
     rospy
+    sensor_msgs
+    shape_msgs
+    std_msgs
     surface_perception
+    tf
     transform_graph
-#  DEPENDS system_lib
+    urdf
+    visualization_msgs
+  DEPENDS
+    Boost
+    PCL
 )
 
 ###########
@@ -173,6 +196,7 @@ add_dependencies(rapid_pbd_action_executor ${${PROJECT_NAME}_EXPORTED_TARGETS} $
 target_link_libraries(rapid_pbd_action_executor
   rapid_pbd_action_clients
   rapid_pbd_condition_checker
+  rapid_pbd_landmarks
   rapid_pbd_motion_planning
   rapid_pbd_visualizer
   rapid_pbd_world
@@ -182,18 +206,6 @@ add_library(rapid_pbd_action_utils src/action_utils.cpp)
 add_dependencies(rapid_pbd_action_utils ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_action_utils ${catkin_LIBRARIES})
 
-add_library(rapid_pbd_editor src/editor.cpp)
-add_dependencies(rapid_pbd_editor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(rapid_pbd_editor
-  rapid_pbd_action_clients
-  rapid_pbd_action_utils
-  rapid_pbd_program_db
-  rapid_pbd_joint_state_reader
-  rapid_pbd_robot_config
-  rapid_pbd_visualizer
-  rapid_pbd_world
-  ${catkin_LIBRARIES})
-
 add_library(rapid_pbd_condition_checker src/condition_checker.cpp)
 add_dependencies(rapid_pbd_condition_checker ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_condition_checker ${catkin_LIBRARIES})
@@ -201,6 +213,19 @@ target_link_libraries(rapid_pbd_condition_checker ${catkin_LIBRARIES})
 add_library(rapid_pbd_condition_generator src/condition_generator.cpp)
 add_dependencies(rapid_pbd_condition_generator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_condition_generator ${catkin_LIBRARIES})
+
+add_library(rapid_pbd_editor src/editor.cpp)
+add_dependencies(rapid_pbd_editor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_editor
+  rapid_pbd_action_clients
+  rapid_pbd_action_utils
+  rapid_pbd_landmarks
+  rapid_pbd_program_db
+  rapid_pbd_joint_state_reader
+  rapid_pbd_robot_config
+  rapid_pbd_visualizer
+  rapid_pbd_world
+  ${catkin_LIBRARIES})
 
 add_library(rapid_pbd_fetch_actions src/fetch_actions.cpp)
 add_dependencies(rapid_pbd_fetch_actions ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -214,9 +239,16 @@ add_library(rapid_pbd_joint_state_reader src/joint_state_reader.cpp)
 add_dependencies(rapid_pbd_joint_state_reader ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_joint_state_reader rapid_pbd_joint_state ${catkin_LIBRARIES})
 
+add_library(rapid_pbd_landmarks src/landmarks.cpp)
+add_dependencies(rapid_pbd_landmarks ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_landmarks ${catkin_LIBRARIES})
+
 add_library(rapid_pbd_motion_planning src/motion_planning.cpp)
 add_dependencies(rapid_pbd_motion_planning ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_motion_planning
+  rapid_pbd_joint_state
+  rapid_pbd_joint_state_reader
+  rapid_pbd_landmarks
   rapid_pbd_robot_config
   rapid_pbd_world
   ${catkin_LIBRARIES})
@@ -233,6 +265,7 @@ add_library(rapid_pbd_program_executor src/program_executor.cpp)
 add_dependencies(rapid_pbd_program_executor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_program_executor
   rapid_pbd_action_clients
+  rapid_pbd_joint_state_reader
   rapid_pbd_program_db
   rapid_pbd_robot_config
   rapid_pbd_step_executor
@@ -250,6 +283,7 @@ target_link_libraries(rapid_pbd_step_executor
   rapid_pbd_action_clients
   rapid_pbd_action_executor
   rapid_pbd_condition_checker
+  rapid_pbd_joint_state_reader
   rapid_pbd_motion_planning
   rapid_pbd_robot_config
   rapid_pbd_visualizer
@@ -276,6 +310,7 @@ add_dependencies(rapid_pbd_world ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 target_link_libraries(rapid_pbd_world
   rapid_pbd_action_utils
   rapid_pbd_joint_state
+  rapid_pbd_landmarks
   rapid_pbd_robot_config
   ${catkin_LIBRARIES})
 
@@ -307,6 +342,7 @@ add_executable(rapid_pbd_program_execution_node src/program_execution_node.cpp)
 set_target_properties(rapid_pbd_program_execution_node PROPERTIES OUTPUT_NAME program_execution_node PREFIX "")
 add_dependencies(rapid_pbd_program_execution_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_program_execution_node
+  rapid_pbd_joint_state_reader
   rapid_pbd_program_db
   rapid_pbd_program_executor
   rapid_pbd_robot_config
@@ -355,31 +391,77 @@ target_link_libraries(rapid_pbd_pr2_arm_joint_demo
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(PROGRAMS
+  scripts/open_frontend
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts
+)
+# Install frontend
+install(DIRECTORY frontend/build/es6-bundled/
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/www
+)
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS rapid_pbd rapid_pbd_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS 
+  # Libraries
+  rapid_pbd_action_clients
+  rapid_pbd_action_executor
+  rapid_pbd_action_utils
+  rapid_pbd_editor
+  rapid_pbd_fetch_actions
+  rapid_pbd_joint_state
+  rapid_pbd_joint_state_reader
+  rapid_pbd_landmarks
+  rapid_pbd_motion_planning
+  rapid_pbd_pr2_actions
+  rapid_pbd_program_db
+  rapid_pbd_program_executor
+  rapid_pbd_robot_config
+  rapid_pbd_step_executor
+  rapid_pbd_surface_segmentation_action
+  rapid_pbd_visualizer
+  rapid_pbd_world
+  # Executables
+  rapid_pbd_editor_node
+  rapid_pbd_fetch_action_node
+  rapid_pbd_program_execution_demo
+  rapid_pbd_program_execution_node
+  rapid_pbd_pr2_action_node
+  rapid_pbd_surface_segmentation_node
+  rapid_pbd_pr2_gripper_demo
+  rapid_pbd_pr2_arm_joint_demo
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(FILES
+  config/kinematics.yaml
+  config/pr2_sim.rviz
+  config/pr2.srdf
+  config/sensors_dummy.yaml
+  config/surface_segmentation.yaml
+  launch/editor.launch
+  launch/fetch_app.launch
+  launch/fetch.launch
+  launch/fetch_moveit.launch
+  launch/fetch_planning_context.launch
+  launch/open_frontend.launch
+  launch/pr2_app.launch
+  launch/pr2.launch
+  launch/pr2_moveit.launch
+  launch/pr2_planning_context.launch
+  launch/pr2_sim.launch
+  launch/web_prereqs.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 #############
 ## Testing ##
