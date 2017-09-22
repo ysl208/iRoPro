@@ -14,7 +14,6 @@
     <style>
       :host {
         display: block;
-
       }
       .title {
         border-top: 1px solid var(--paper-grey-300);
@@ -56,9 +55,11 @@
       No actions
     </div>
     <template is="dom-repeat" items="{{step.actions}}" as="action" index-as="stepIndex">
-      <pbd-action action="{{action}}" params="[[params]]" program-id="[[programId]]"
-        step-num="[[index]]" index="[[stepIndex]]" landmarks="[[landmarks]]"
-        on-delete="_handleDeleteAction" ros="[[ros]]"></pbd-action>
+      <div>
+        <pbd-action action="{{action}}" params="[[params]]" program-id="[[programId]]"
+          step-num="[[index]]" index="[[stepIndex]]" landmarks="[[landmarks]]"
+          on-delete="_handleDeleteAction" ros="[[ros]]"></pbd-action>
+      </div>
     </template>
     <paper-dialog id="deleteDialog" modal>
       <h2>Delete step [[_stepNum(index)]]?</h2>
@@ -126,7 +127,7 @@
       },
 
       isSenseStep: function(index) {
-        return parseInt(index) < 3;
+        return parseInt(index) < 1;
       },
 
       hasActions: function(actions) {

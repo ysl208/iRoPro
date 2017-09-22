@@ -1,9 +1,9 @@
-<link rel="import" href="././bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="././bower_components/polymer/polymer.html">
-<link rel="import" href="././bower_components/paper-button/paper-button.html">
-<link rel="import" href="././bower_components/paper-styles/color.html">
-<link rel="import" href="././bower_components/ros-topic/ros-topic.html">
-<link rel="import" href="./shared-styles/shared-styles.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../shared-styles/shared-styles.html">
 
 <dom-module id="pbd-check-conditions-action">
   <template>
@@ -11,7 +11,7 @@
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
     <style>
       :host {
-        display: block;
+        display: block;        
       }
       paper-button {
         margin-left: 10px;
@@ -23,10 +23,6 @@
       }
       .title paper-button {
         height: 30px;
-      }
-      .conditionDiv {
-        margin: 0;
-        padding: 0;
       }
       paper-input {
         display: inline-block;
@@ -40,6 +36,7 @@
       paper-dropdown-menu {
         max-width: 200px;
         margin-left: 10px; 
+        margin-top: 0px;
       }
       h3 {
         margin: auto 0px;
@@ -65,7 +62,8 @@
       ros="[[ros]]"
     ></ros-topic>
     <div class="layout horizontal center">
-      <p>World conditions can be used to specify landmark properties required for a step.</p>
+      <p>Specify landmark properties required for this step.</p>
+      <paper-button class="normal" on-tap="_generate">Generate</paper-button>
       <!-- <paper-button class="normal" on-tap="_generate">Generate Conditions</paper-button> -->
      </div>
     <div> 
@@ -76,12 +74,12 @@
           </template>
         </paper-listbox>
       </paper-dropdown-menu>
-      <paper-button class="normal" on-tap="_clear">Remove</paper-button>
+      <!-- <paper-button class="normal" on-tap="_clear">Remove</paper-button> -->
     </div>
-    <div id="conditionProperties">
-      <div>
+    <div id="conditionProperties" hidden="[[!action.condition.relevant]]">
+      <!-- <div>
         <h3>[[action.condition.landmark.name]] properties </h3>
-      </div>
+      </div> -->
       <div>
         <paper-checkbox on-change="_sizeRelevantChanged" 
           checked="{{action.condition.sizeRelevant}}"> Match size 
@@ -90,13 +88,13 @@
           disabled={{!action.condition.sizeRelevant}} 
           type="number" step="1" min="0" max="100"
           label="Variance"
-          value="{{action.condition.sizeVariance.x}}"
+          value="[[action.condition.sizeVariance.x]]"
           on-change="_valueChanged" data-args="action.condition.sizeVariance.x">
         </paper-input> 
       </div>
 
       <div>
-        <h4>Absolute position/orientation </h4>
+        <b>Absolute position/orientation </b>
       </div>
       <div id="wrap">
         <div id="left_col">
@@ -109,7 +107,7 @@
           <paper-input class="number" 
           disabled={{!action.condition.positionRelevant}}
           label="x"
-          value="{{action.condition.position.x}}"
+          value="[[action.condition.position.x]]"
           on-change="_valueChanged" data-args="action.condition.position.x"
         ></paper-input>
           <paper-input class="number" 
@@ -196,7 +194,7 @@
       </div>
       </div>
       <div> 
-        <h4>Relative position/orientation</h4>
+        <b>Relative position/orientation</b>
       </div>
       <div>  
         <paper-dropdown-menu label="Relative landmark">
@@ -208,7 +206,7 @@
         </paper-dropdown-menu>
       </div>
       
-    <div id="relativeProperties" hidden=true>
+    <div id="relativeProperties" hidden=[[!action.condition.referenceRelevant]]>
       <div id="wrap">
         <div id="left_col">
           <div>
@@ -336,16 +334,18 @@
           type: Object,
         },
         index: Number,
-        stepIndex: Number,        
+        stepIndex: Number,  
+        params: Object,      
         programId: String,
         ros: Object,
         step: Object,
         landmarks: Array,
-        main_landmark: String,
         spatial_relations: Array,
-        showConditions: false,
         currentCondition: Object,
-        conditionIndex: 0,
+        conditionIndex: {
+          type: Number,
+          value: 1,
+        },
         conditions: Array,
       },
 
@@ -375,12 +375,14 @@
           },
           step_num: this.stepIndex,
           action_num: this.index,
-          action_name: this.action.condition.landmark.name
+          //to do: change condition variable to landmark name in EditorEvent.msg
+          landmark_name: this.action.condition.landmark.name
         };
         this.$.eventPub.publish(msg);
 
         console.debug('_generate: action index', this.index);
-        console.debug('_generate: ', this.action);
+        console.debug('_generate: msg ', msg);
+        
       },
       _computeCondition(index, conditionIndex) {
 
@@ -422,9 +424,9 @@
           // this.currentCondition = this.conditions[this.conditionIndex-1];
           this.$.conditionProperties.style.display = "inline";
           this.set('action.condition.landmark', evt.model.item);
-        
+          console.debug(this.action.condition.landmark);
           this.set('action.condition.relevant', true);
-          this._generate();
+          //this._generate();
         } else {
           this._clear();
           
@@ -512,7 +514,7 @@
       },
       _referenceLandmarks: function(landmarks){
         var objects = ['None'];
-        console.debug('_referenceLandmarks', this.action.condition.landmark);
+        // console.debug('_referenceLandmarks', this.action.condition.landmark);
         for (var i=0; i<landmarks.length; ++i){
           if (landmarks[i].type === 'surface box'){
             if (this.action.condition.landmark && landmarks[i].name != this.action.condition.landmark.name){

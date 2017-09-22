@@ -204,18 +204,6 @@
           <paper-button class="add important" on-tap="addStep">+ Add Step</paper-button>
       </div>
       <div class="content">
-         <!-- <div class="conditionDiv" id="preconditionContent"><div class="conditionDivInner">
-           <pbd-condition-generator
-            id="precondition"
-            index="[[currentCondition]]"
-            params="[[params]]"
-            program-id="[[routeData.id]]"
-            program="[[program]]"
-            conditionIndex="0"
-            conditions="{{conditionArray}}"
-            ros="[[ros]]"
-          ></pbd-condition-generator> 
-          </div></div> -->
          <array-selector id="selector" items="{{program.steps}}" selected="{{currentStep}}"></array-selector>
          <div id="stepContent" class="stepDiv" hidden$="[[!_hasSteps(program.steps)]]"><div class="stepDivInner">
           <pbd-step
@@ -228,19 +216,6 @@
             ros="[[ros]]"
           ></pbd-step>
           </div></div>
-         <!-- <div class="conditionDiv" id="postconditionContent"><div class="conditionDivInner">
-           <pbd-condition-generator
-            id="postcondition"
-            index="[[currentCondition]]"
-            params="[[params]]"
-            program-id="[[routeData.id]]"
-            program="[[program]]"
-            conditionIndex="0"
-            conditions="{{conditionArray}}"
-            ros="[[ros]]"
-            on-delete="_deleteStep"
-          ></pbd-condition-generator> 
-          </div></div> -->
         <ros-rviz id="rviz" global-options="{{globalOptions}}" ros="[[ros]]"></ros-rviz>
       </div>
     </div>
@@ -313,7 +288,7 @@
         '_currentConditionChanged(currentCondition)',
         '_conditionChanged(ros, currentCondition)',
         //'selectCondition(submitted)',
-        '_preCheckChanged(preCheck.data)',
+        // '_preCheckChanged(preCheck.data)',
       ],
 
       load: function(db_id) {
@@ -446,7 +421,7 @@
         // console.debug('run: main steps...', mainProgram);
         // var mainProgram = Object.assign({},this.program);
         // mainProgram.steps = mainProgram.steps.slice(2,mainProgram.steps.length);
-        debug.console('run: ', this.program);
+        console.debug('run: ', this.program);
         
         var goal = {
           program: this.program
