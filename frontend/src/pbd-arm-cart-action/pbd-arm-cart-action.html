@@ -54,7 +54,7 @@
       ></paper-input-->
       <paper-input label="x"
         value="[[action.pose.position.x]]"
-        on-change="_xChanged"
+        on-change="_valueChanged" data-args="action.pose.position.x"
       ></paper-input>
       <paper-input label="y"
         value="[[action.pose.position.y]]"
@@ -173,6 +173,12 @@
         this._parseString(evt.target.value, 'action.pose.position.z');
       },
 
+      _valueChanged: function(evt){
+        var args = evt.target.getAttribute('data-args');
+        console.debug("_valueChanged: ",args, " set to ", evt.target.value);
+        // console.debug("_valueChanged: args ", args);
+        this._parseString(evt.target.value, args);
+      },
       _parseString: function(s, key) {
         if (typeof s === 'string') {
           var f = parseFloat(s);
