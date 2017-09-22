@@ -24,7 +24,8 @@ class StepExecutor {
                const RobotConfig& robot_config, World* world,
                const RuntimeVisualizer& runtime_viz,
                const tf::TransformListener& tf_listener,
-               const ros::Publisher& planning_scene_pub);
+               const ros::Publisher& planning_scene_pub,
+               const ros::Publisher& condition_check_pub);
 
   // Returns true if the Step message is valid, false otherwise.
   // You should call this method to verify the step message before executing it.

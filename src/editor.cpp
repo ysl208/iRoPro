@@ -33,8 +33,7 @@ Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
                const JointStateReader& joint_state_reader,
                const Visualizer& visualizer, ActionClients* action_clients,
                const ConditionGenerator& cond_gen,
-               const RobotConfig& robot_config,
-               const ros::Publisher& pre_check_pub)
+               const RobotConfig& robot_config)
     : db_(db),
       scene_db_(scene_db),
       joint_state_reader_(joint_state_reader),
@@ -42,7 +41,6 @@ Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
       action_clients_(action_clients),
       cond_gen_(cond_gen),
       robot_config_(robot_config),
-      pre_check_pub_(pre_check_pub),
       tf_listener_(),
       last_viewed_() {}
 
@@ -50,13 +48,6 @@ void Editor::Start() {
   db_.Start();
   joint_state_reader_.Start();
   viz_.Init();
-  PublishPreCheck(false);
-}
-
-void Editor::PublishPreCheck(bool pre_check) {
-  std_msgs::Bool msg;
-  msg.data = pre_check;
-  pre_check_pub_.publish(msg);
 }
 
 void Editor::HandleEvent(const msgs::EditorEvent& event) {
@@ -68,9 +59,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     } else if (event.type == msgs::EditorEvent::DELETE) {
       Delete(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
-      ROS_INFO("Generate conditions...");
       GenerateConditions(event.program_info.db_id, event.step_num,
-        event.action_num, event.action.landmark);
+        event.action_num, event.landmark_name);
     } else if (event.type == msgs::EditorEvent::CHECK_CONDITIONS) {
       //CheckConditions(event.program_info.db_id, event.step_num);
     } else if (event.type == msgs::EditorEvent::UPDATE_CONDITIONS) {
@@ -128,7 +118,7 @@ void Editor::Create(const std::string& name) {
   AddStep(db_id);
   ++step_id;
   AddCheckConditionsAction(db_id, step_id);
-
+  
 }
 
 void Editor::AddDetectTTObjectsAction(const std::string& db_id, size_t step_id) {
@@ -283,7 +273,7 @@ void Editor::Delete(const std::string& db_id) {
 }
 
 void Editor::GenerateConditions(const std::string& db_id, size_t step_id, size_t action_id,
-                     const rapid_pbd_msgs::Landmark& landmark) {
+                     const std::string& landmark_name) {
   // Generates Pre-/Postconditions
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
@@ -307,21 +297,13 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id, size_t
          initial_world.surface_box_landmarks.size());
   //cond_gen_.AssignConditions(&initial_world);
   msgs::Condition action_condition = step->actions[action_id].condition;
-  std::string landmark_name = landmark.name;
   cond_gen_.AssignLandmarkCondition(initial_world, landmark_name, 
                             &action_condition);
-
+  step->actions[action_id].condition = action_condition;
   ROS_INFO("Condition for program step %lu, action %lu :%s",
           step_id, action_id,
-          landmark_name.c_str());
-          // program.steps[step_id].actions[action_id].condition.landmark.name);
-
-  // int first_index = 0;  
-  // program.steps[step_id].conditions.clear();
-  // program.steps[step_id].conditions.insert(
-  //   program.steps[step_id].conditions.end(), initial_world.conditions.begin(),
-  //   initial_world.conditions.end());
-  
+          step->actions[action_id].condition.landmark.name.c_str());
+          std::cout << step->actions[action_id].condition;
   Update(db_id,program);
 }
 

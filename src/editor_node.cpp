@@ -67,14 +67,10 @@ int main(int argc, char** argv) {
   visualizer.Init();
 
   pbd::ConditionGenerator cond_gen(*robot_config);
-  ros::Publisher pre_check_pub =
-      nh.advertise<std_msgs::Bool>("pre_check", 5, true);
-
   // Build editor.
   pbd::JointStateReader joint_state_reader;
   pbd::Editor editor(db, scene_db, joint_state_reader, visualizer,
-                     &action_clients, cond_gen, *robot_config,
-                     pre_check_pub);
+                     &action_clients, cond_gen, *robot_config);
   editor.Start();
 
   ros::Subscriber editor_sub = nh.subscribe(pbd::kEditorEventsTopic, 10,

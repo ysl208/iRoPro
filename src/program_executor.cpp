@@ -32,7 +32,8 @@ ProgramExecutionServer::ProgramExecutionServer(
     ActionClients* action_clients, const RobotConfig& robot_config,
     const tf::TransformListener& tf_listener,
     const RuntimeVisualizer& runtime_viz, const ProgramDb& program_db,
-    const ros::Publisher& planning_scene_pub)
+    const ros::Publisher& planning_scene_pub,
+    const ros::Publisher& condition_check_pub)
     : nh_(),
       server_(action_name,
               boost::bind(&ProgramExecutionServer::Execute, this, _1), false),
@@ -43,7 +44,8 @@ ProgramExecutionServer::ProgramExecutionServer(
       tf_listener_(tf_listener),
       runtime_viz_(runtime_viz),
       program_db_(program_db),
-      planning_scene_pub_(planning_scene_pub) {}
+      planning_scene_pub_(planning_scene_pub),
+      condition_check_pub_(condition_check_pub) {}
 
 void ProgramExecutionServer::Start() {
   server_.start();
@@ -103,7 +105,8 @@ void ProgramExecutionServer::Execute(
     const Step& step = program.steps[i];
     boost::shared_ptr<StepExecutor> executor(
         new StepExecutor(step, action_clients_, robot_config_, &world,
-                         runtime_viz_, tf_listener_, planning_scene_pub_));
+                         runtime_viz_, tf_listener_, planning_scene_pub_,
+                         condition_check_pub_));
     executors.push_back(executor);
     executors.back()->Init();
   }
@@ -162,6 +165,12 @@ void ProgramExecutionServer::PublishIsRunning(bool is_running) {
   std_msgs::Bool msg;
   msg.data = is_running;
   is_running_pub_.publish(msg);
+}
+
+void ProgramExecutionServer::PublishConditionCheck(bool condition_check) {
+  std_msgs::Bool msg;
+  msg.data = condition_check;
+  condition_check_pub_.publish(msg);
 }
 
 void ProgramExecutionServer::Cancel(const std::string& error) {

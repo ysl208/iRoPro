@@ -6,6 +6,7 @@
 #include "actionlib/server/simple_action_server.h"
 #include "control_msgs/FollowJointTrajectoryAction.h"
 #include "control_msgs/GripperCommandAction.h"
+#include "rapid_pbd_msgs/ConditionCheckInfo.h"
 #include "rapid_pbd_msgs/SegmentSurfacesAction.h"
 #include "ros/ros.h"
 #include "visualization_msgs/MarkerArray.h"
@@ -29,7 +30,9 @@ namespace pbd {
 ActionExecutor::ActionExecutor(const Action& action,
                                ActionClients* action_clients,
                                MotionPlanning* motion_planning,
-                               ConditionChecker* condition_checker, World* world,
+                               ConditionChecker* condition_checker, 
+
+                               World* world,
                                const RobotConfig& robot_config,
                                const RuntimeVisualizer& runtime_viz)
     : action_(action),
@@ -100,15 +103,7 @@ std::string ActionExecutor::Start() {
   } else if (action_.type == Action::DETECT_TABLETOP_OBJECTS) {
     DetectTabletopObjects();
   } else if (action_.type == Action::CHECK_CONDITIONS) {
-    bool success = condition_checker_->CheckConditions(action_.condition);
-    if(success){
-      ROS_INFO("All conditions passed ");
-    } else {
-      ROS_INFO("Condition check failed");
-    }
-
-    
-
+    return condition_checker_->CheckConditions(action_.condition);
   }
   return "";
 }
@@ -126,7 +121,7 @@ bool ActionExecutor::IsDone(std::string* error) const {
     if (action_.actuator_group == Action::HEAD) {
       return clients_->head_client.getState().isDone();
     } else {
-      // Arm motions are controlled by motion planning in the step executor.
+      // Arm motions are controlled by motion_planning in the step executor.
       return true;
     }
   } else if (action_.type == Action::DETECT_TABLETOP_OBJECTS) {
@@ -148,8 +143,10 @@ bool ActionExecutor::IsDone(std::string* error) const {
     }
     return done;
   } else if (action_.type == Action::CHECK_CONDITIONS) {
-    // handled by check_condition
+    // handled by check_condition: return array of failed conditions?
+    //return only earliest failed condition?
     
+    condition_checker_->PublishConditionCheck();
   }
   return true;
 
@@ -173,7 +170,7 @@ void ActionExecutor::Cancel() {
   } else if (action_.type == Action::DETECT_TABLETOP_OBJECTS) {
     clients_->surface_segmentation_client.cancelAllGoals();
   } else if (action_.type == Action::CHECK_CONDITIONS) {
-    //clients_->condition_checker_client.cancelAllGoals();
+
   }
 }
 
@@ -195,7 +192,7 @@ void ActionExecutor::ActuateGripper() {
 }
 
 void ActionExecutor::DetectTabletopObjects() {
-  rapid_pbd_msgs::SegmentSurfacesGoal goal;
+  msgs::SegmentSurfacesGoal goal;
   goal.save_cloud = false;
   clients_->surface_segmentation_client.sendGoal(goal);
 }

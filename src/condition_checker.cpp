@@ -25,15 +25,20 @@ namespace tg = transform_graph;
 
 namespace rapid {
 namespace pbd {
-ConditionChecker::ConditionChecker(World* world)
+ConditionChecker::ConditionChecker(World* world,
+                                  const ros::Publisher& condition_check_pub
+                                  )
     : world_(world),
       //conditions_(conditions),
-      num_goals_(0) {}
+      num_goals_(0),
+      condition_check_pub_(condition_check_pub) {}
 
 
-bool ConditionChecker::CheckConditions(const msgs::Condition& condition) {
+std::string ConditionChecker::CheckConditions(const msgs::Condition& condition) {
     // Checks if the given condition holds in a world
     ROS_INFO("Landmark %s", condition.landmark.name.c_str());
+
+    info_.passed = false;
     // Find matched landmark
     msgs::Landmark match;
     double sizeVariance = 0.075;
@@ -41,21 +46,29 @@ bool ConditionChecker::CheckConditions(const msgs::Condition& condition) {
        sizeVariance = condition.sizeVariance.x;
     }
 
-    bool visible = MatchLandmark(*world_, condition.landmark, &match, sizeVariance);
+    info_.mainFound = MatchLandmark(*world_, condition.landmark, &match, sizeVariance);
     // If there is a landmark that has similar dimensions, check its conditions
-    if(visible) {
+    if(info_.mainFound) {
       ROS_INFO("Landmark found in new configuration: %s", match.name.c_str());
-      if (!CheckPropertyConditions(condition, match)) {
-        return false;
+      std::string propertyCheck = CheckPropertyConditions(condition, match);
+      if ( propertyCheck != "") {
+        return propertyCheck;
       } 
-      if(condition.referenceRelevant && !CheckRelativeConditions(condition)) {
-        return false;
-      }
+      std::string relativeCheck = CheckRelativeConditions(condition);
+      if ( relativeCheck != "") {
+        return relativeCheck;
+      } 
+      
+    } else{
+      ROS_ERROR("No landmark visible for %s", condition.landmark.name.c_str());
+      return ("No landmark visible for %s", condition.landmark.name.c_str());
     }
-    ROS_INFO("No landmark visible for %s", condition.landmark.name.c_str());
-    return false;
-  
-  return true;
+  info_.passed = true;
+  return "";
+}
+
+rapid_pbd_msgs::ConditionCheckInfo ConditionChecker::GetConditionCheckMsg() {
+  return info_;
 }
 
 int ConditionChecker::num_goals() const { return num_goals_; }
@@ -82,22 +95,24 @@ bool ConditionChecker::VectorDissimilarity(const geometry_msgs::Vector3& actual,
   }
 }
 
-bool ConditionChecker::CheckPropertyConditions(const msgs::Condition& condition,
+std::string ConditionChecker::CheckPropertyConditions(const msgs::Condition& condition,
                   const msgs::Landmark& match){
-  bool posMatched = true;
+  info_.posMatched = true;
   if(condition.positionRelevant){
     geometry_msgs::Vector3 actualPos;
     PointToVector3(condition.position, &actualPos);
     geometry_msgs::Vector3 matchPos;
     PointToVector3(match.pose_stamped.pose.position, &matchPos);
     geometry_msgs::Vector3 variancePos = condition.positionVariance;
-    posMatched = VectorDissimilarity(
-                  actualPos, 
-                  matchPos,
-                  variancePos);
+    info_.posMatched = VectorDissimilarity(actualPos, matchPos, variancePos);
   }
-  ROS_INFO("All position condition: passed");
-  bool oriMatched = true;
+  if (!info_.posMatched) {
+    ROS_ERROR("Absolute position of %s doesn't match condition",
+              match.name.c_str());
+    return ("Absolute position of %s doesn't match condition",
+              match.name);
+  }
+  info_.oriMatched = true;
   if(condition.orientationRelevant){
 
     geometry_msgs::Vector3 actualOri;
@@ -105,27 +120,27 @@ bool ConditionChecker::CheckPropertyConditions(const msgs::Condition& condition,
     geometry_msgs::Vector3 matchOri;
     GetRPY(match.pose_stamped.pose.orientation, &matchOri);
     geometry_msgs::Vector3 varianceOri = condition.orientationVariance;
-    oriMatched = VectorDissimilarity(
-                  actualOri, 
-                  matchOri,
-                  varianceOri);
+    info_.oriMatched = VectorDissimilarity(actualOri, matchOri, varianceOri);
   }
-  ROS_INFO("All orientation condition: passed");
-
-      
+  if (!info_.oriMatched) {
+    ROS_ERROR("Absolute orientation of %s doesn't match condition",
+              match.name.c_str());
+    return ("Absolute orientation of %s doesn't match condition",
+              match.name);
+  }
   ROS_INFO("All absolute conditions: passed");
-  return posMatched && oriMatched;
+  return "";
 }
 
-bool ConditionChecker::CheckRelativeConditions(const msgs::Condition& condition){
-    bool disMatched = true;
-  
+std::string ConditionChecker::CheckRelativeConditions(const msgs::Condition& condition){
+  info_.referenceFound = true;
   if(condition.reference.name != ""){
+    //condition->referenceRelevant = true;
     msgs::Landmark match;
     double variance = 0.075;
-    bool visible = MatchLandmark(*world_, condition.reference, &match, variance);
+    info_.referenceFound = MatchLandmark(*world_, condition.reference, &match, variance);
   
-    if(visible){
+    if(info_.referenceFound){
       ROS_INFO("Reference found %s", match.name.c_str());
 
       geometry_msgs::Point landmark_pose = condition.landmark.pose_stamped.pose.position;
@@ -137,28 +152,36 @@ bool ConditionChecker::CheckRelativeConditions(const msgs::Condition& condition)
       matchDis.x = reference_pose.x - landmark_pose.x;
       matchDis.y = reference_pose.y - landmark_pose.y;
       matchDis.z = reference_pose.z - landmark_pose.z;
-
+      info_.contDisMatched = true;
       if(condition.contDisplacementRelevant){
-        disMatched = VectorDissimilarity(actualDis, 
-                            matchDis,
-                            varianceDis);
-        ROS_INFO("Relative displacement vector doesn't meet condition");
+        info_.contDisMatched = VectorDissimilarity(actualDis,matchDis,varianceDis);
+        ROS_ERROR("Relative displacement vector doesn't meet condition");
+        return "Relative displacement vector doesn't meet condition";
       }
+      info_.contOriMatched = true;
       if(condition.contOrientationRelevant){
         // TO DO
       }
+      
       if(condition.discDisplacementRelevant){
         // TO DO
       }
     } else {
-      ROS_INFO("No matching landmark found for reference %s",
-        condition.reference.name.c_str());
-      return false;
+      ROS_ERROR("No reference landmark found that matches %s", 
+                condition.reference.name.c_str());
+      return "No matching landmark found for reference";  
     }
-    // Check orientationRelevant
+    // TO DO: Check orientationRelevant
+  } else{
+    ROS_INFO("No reference landmark specified, setting referenceRelevant to false ");
+    //condition.referenceRelevant = false;
   }
-  ROS_INFO("No reference specified");
-  return disMatched;
+  return "";
+}
+
+void ConditionChecker::PublishConditionCheck() {
+  
+  condition_check_pub_.publish(info_);
 }
 
 std::string ErrorCodeToString(const MoveItErrorCodes& code) {
