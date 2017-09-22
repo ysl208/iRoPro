@@ -38,6 +38,7 @@ class Editor {
 
  private:
   void Create(const std::string& name);
+  void AddSenseSteps(const std::string& db_id, size_t step_id);
   void Update(const std::string& db_id, const rapid_pbd_msgs::Program& program);
   void Delete(const std::string& db_id);
   void GenerateConditions(const std::string& db_id, size_t step_id, size_t action_id,

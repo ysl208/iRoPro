@@ -116,6 +116,7 @@ void ConditionGenerator::GetRelativeConditions(const msgs::Landmark& landmark,
   {
 /*     ROS_INFO("%s  references landmark %s with threshold %f", 
       landmark.name.c_str(), reference.name.c_str(), distance_cutoff); */
+    condition->contDisplacementRelevant = true;
     condition->referenceRelevant = true;
     condition->reference = reference;
     GetDisplacementVector(landmark, reference, condition);
