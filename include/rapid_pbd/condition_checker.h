@@ -34,6 +34,7 @@ class ConditionChecker {
     //                       const std::vector<std::string>& seed_joint_names,
     //                       const std::vector<double>& seed_joint_positions);
   int num_goals() const;
+
   std::string CheckPropertyConditions(const rapid_pbd_msgs::Condition& conditions,
                               const rapid_pbd_msgs::Landmark& match);
   std::string CheckRelativeConditions(const rapid_pbd_msgs::Condition& conditions);

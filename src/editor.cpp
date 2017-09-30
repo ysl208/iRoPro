@@ -63,8 +63,12 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
         event.action_num, event.landmark_name);
     } else if (event.type == msgs::EditorEvent::ADD_SENSE_STEPS) {
       AddSenseSteps(event.program_info.db_id, event.step_num);
+    } else if (event.type == msgs::EditorEvent::VIEW_CONDITIONS) {
+      ViewConditions(event.program_info.db_id, event.step_num, event.action_num);
     } else if (event.type == msgs::EditorEvent::UPDATE_CONDITIONS) {
-      //ViewCondition(event.program_info.db_id, event.condition);
+      ROS_INFO("update condtiions");
+      UpdateConditions(event.program_info.db_id, event.step_num, event.action_num,
+                        event.action.condition.reference);
     } else if (event.type == msgs::EditorEvent::ADD_STEP) {
       AddStep(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::DELETE_STEP) {
@@ -297,7 +301,6 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id, size_t
   GetWorld(robot_config_, program, step_id, &initial_world);
   ROS_INFO("Assigning conditions to initial world with %lu landmarks",
          initial_world.surface_box_landmarks.size());
-  //cond_gen_.AssignConditions(&initial_world);
   msgs::Condition action_condition = step->actions[action_id].condition;
   cond_gen_.AssignLandmarkCondition(initial_world, landmark_name, 
                             &action_condition);
@@ -305,24 +308,92 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id, size_t
   ROS_INFO("Condition for program step %lu, action %lu :%s",
           step_id, action_id,
           step->actions[action_id].condition.landmark.name.c_str());
-          std::cout << step->actions[action_id].condition;
-  Update(db_id,program);
+  // publish condition markers
+  db_.Update(db_id, program);
+  if (last_viewed_.find(db_id) != last_viewed_.end()) {
+    World world;
+    GetWorld(robot_config_, program, last_viewed_[db_id], &world);
+    viz_.PublishConditionMarkers(db_id, world,action_condition);
+  } else {
+    ROS_ERROR("Unable to publish visualization: unknown step");
+  }
 }
 
-void Editor::ViewCondition(const std::string& db_id, const std::string& condition) {
-  // TO DO: Publish relevant conditions from the program
-   db_.StartPublishingProgramById(db_id);
-  //last_viewed_[db_id] = condition;
-
+void Editor::ViewConditions(const std::string& db_id, size_t step_id, size_t action_id) {
+  
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
-    ROS_ERROR("Unable to view program \"%s\"", db_id.c_str());
+    ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
     return;
   }
+  if (step_id >= program.steps.size()) {
+    ROS_ERROR(
+        "Unable to get action from step %ld from program \"%s\", which has "
+        "%ld steps",
+        step_id, db_id.c_str(), program.steps.size());
+    return;
+  }
+  msgs::Step* step = &program.steps[step_id];
+  msgs::Condition action_condition = step->actions[action_id].condition;
+
+  db_.Update(db_id, program);
+  if (last_viewed_.find(db_id) != last_viewed_.end()) {
+    World world;
+    GetWorld(robot_config_, program, last_viewed_[db_id], &world);
+    viz_.PublishConditionMarkers(db_id,world,action_condition);
+  } else {
+    ROS_ERROR("Unable to publish visualization: unknown step");
+  }
+}
+
+void Editor::UpdateConditions(const std::string& db_id, size_t step_id, 
+                              size_t action_id, const msgs::Landmark& reference){
+  msgs::Program program;
+  bool success = db_.Get(db_id, &program);
+  if (!success) {
+    ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
+    return;
+  }
+  if (step_id >= program.steps.size()) {
+    ROS_ERROR(
+        "Unable to get action from step %ld from program \"%s\", which has "
+        "%ld steps",
+        step_id, db_id.c_str(), program.steps.size());
+    return;
+  }
+  msgs::Step* step = &program.steps[step_id];
+
   World world;
-  GetWorld(robot_config_, program, last_viewed_[db_id], &world);
-  viz_.Publish(db_id, world); 
+  GetWorld(robot_config_, program, step_id, &world);
+  msgs::Condition action_condition = step->actions[action_id].condition;
+  std::cout << "Reference relevant " << action_condition.referenceRelevant << std::endl;
+  std::cout << "Reference object: " << reference.name << std::endl;
+  if (action_condition.referenceRelevant && reference.name != "") {
+    ROS_INFO("Update condition for program step %lu, action %lu, reference %s",
+          step_id, action_id,
+          reference.name.c_str());
+    cond_gen_.UpdateReferenceLandmark(world, &action_condition, reference);
+    step->actions[action_id].condition = action_condition;
+    ROS_INFO("Update condition for program step %lu, action %lu, reference %s",
+            step_id, action_id,
+            step->actions[action_id].condition.reference.name.c_str());
+    ROS_INFO("displacement: %f %f %f",
+            step->actions[action_id].condition.contDisplacement.x,
+            step->actions[action_id].condition.contDisplacement.y,
+            step->actions[action_id].condition.contDisplacement.z);
+  } else {
+    step->actions[action_id].condition.referenceRelevant = false;
+  }
+  
+  db_.Update(db_id, program);
+  if (last_viewed_.find(db_id) != last_viewed_.end()) {
+    World world;
+    GetWorld(robot_config_, program, last_viewed_[db_id], &world);
+    viz_.PublishConditionMarkers(db_id, world, step->actions[action_id].condition);
+  } else {
+    ROS_ERROR("Unable to publish visualization: unknown step");
+  }
 }
 
 void Editor::AddStep(const std::string& db_id) {

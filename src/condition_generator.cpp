@@ -12,6 +12,8 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>    // std::min
+#include <tf/transform_datatypes.h>
+
 
 #include "rapid_pbd/spatial_relations.h"
 #include "transform_graph/graph.h"
@@ -63,6 +65,18 @@ void ConditionGenerator::AssignConditions(World* world){
   }
 }
 
+void ConditionGenerator::UpdateReferenceLandmark(const World& world,
+                                              msgs::Condition* condition,
+                                              const msgs::Landmark& reference){
+  float defaultVariance = 0.075;
+  geometry_msgs::Vector3 defaultVarVector;
+  defaultVarVector.x = defaultVariance;
+  defaultVarVector.y = defaultVariance;
+  defaultVarVector.z = defaultVariance;
+  SetReferenceConditions(condition, reference,
+                          condition->landmark, defaultVarVector);
+}
+
 bool ConditionGenerator::IsLandmarkName(const msgs::Landmark& landmark, const std::string& landmark_name)
 {
   return landmark.name == landmark_name;
@@ -90,6 +104,29 @@ void ConditionGenerator::GetPropertyConditions(const msgs::Landmark& landmark,
   condition->orientationRelevant = true;
   condition->orientationVariance = defaultVarVector;
   condition->orientation = landmark.pose_stamped.pose.orientation;
+
+  condition->eulerAngles = QuaternionToRPY(condition->orientation);
+
+}
+
+geometry_msgs::Vector3 ConditionGenerator::QuaternionToRPY(const geometry_msgs::Quaternion& msg)
+{
+    // the incoming geometry_msgs::Quaternion is transformed to a tf::Quaterion
+    tf::Quaternion quat;
+    tf::quaternionMsgToTF(msg, quat);
+
+    // the tf::Quaternion has a method to acess roll pitch and yaw
+    double roll, pitch, yaw;
+    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+
+    // the found angles are written in a geometry_msgs::Vector3
+    geometry_msgs::Vector3 rpy;
+    rpy.x = roll;
+    rpy.y = pitch;
+    rpy.z = yaw;
+
+    // ROS_INFO("published rpy angles: roll=%f pitch=%f yaw=%f", rpy.x, rpy.y, rpy.z);
+    return rpy;
 }
 
 void ConditionGenerator::GetRelativeConditions(const msgs::Landmark& landmark,
@@ -114,8 +151,16 @@ void ConditionGenerator::GetRelativeConditions(const msgs::Landmark& landmark,
   condition->referenceRelevant = false;
   if (ReferencedLandmark(landmark, world, squared_cutoff, &reference))
   {
-/*     ROS_INFO("%s  references landmark %s with threshold %f", 
-      landmark.name.c_str(), reference.name.c_str(), distance_cutoff); */
+    SetReferenceConditions(condition, reference,
+                           landmark, defaultVarVector);
+  }
+}
+
+void ConditionGenerator::SetReferenceConditions(msgs::Condition* condition,
+                                          const msgs::Landmark& reference,
+                                          const msgs::Landmark& landmark,
+                                          const geometry_msgs::Vector3& defaultVarVector){
+
     condition->contDisplacementRelevant = true;
     condition->referenceRelevant = true;
     condition->reference = reference;
@@ -124,10 +169,10 @@ void ConditionGenerator::GetRelativeConditions(const msgs::Landmark& landmark,
 
     condition->contOrientationRelevant = true;
     condition->contOrientationVariance = defaultVarVector;
-
+//    condition->contEulerAngles = QuaternionToRPY(condition->orientation);
+    
     condition->discDisplacementRelevant = false;
     GetSpatialRelation(condition);
-  }
 }
 
 bool ConditionGenerator::ReferencedLandmark(const msgs::Landmark& landmark,
@@ -136,16 +181,13 @@ bool ConditionGenerator::ReferencedLandmark(const msgs::Landmark& landmark,
                                             msgs::Landmark* reference)
 {
   // This is copied from editor.cpp ClosestLandmark but excludes the given landmark
-  
   bool success = false;
   double closest_distance = std::numeric_limits<double>::max();
 
   for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i)
   {
     const msgs::Landmark &world_landmark = world.surface_box_landmarks[i];
-
     if(landmark.name != world_landmark.name){
-
       geometry_msgs::Point world_pose;
       world_pose.x = world_landmark.pose_stamped.pose.position.x;
       world_pose.y = world_landmark.pose_stamped.pose.position.y;
@@ -295,7 +337,7 @@ void ConditionGenerator::GetSpatialRelation(msgs::Condition* condition)
     condition->landmark.name.c_str(), spatial_relation.c_str(),
     condition->reference.name.c_str());
   condition->spatial_relation = spatial_relation;
-}
+  }
 
 } // namespace pbd
 } // namespace rapid

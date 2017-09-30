@@ -29,6 +29,7 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
   JointState js(program.start_joint_state);
   world->joint_state = js;
   world->surface_box_landmarks.clear();
+  world->world_conditions.clear();
 
   // TODO: If this gets noticeably slow, change it so that it searches backward
   // instead of simulating forward. The channels to search are:
@@ -145,6 +146,10 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
         for (size_t i = 0; i < joint_names.size(); ++i) {
           world->joint_state.SetPosition(joint_names[i], joint_positions[i]);
         }
+      } else if (action.type == msgs::Action::CHECK_CONDITIONS){
+        std::vector<msgs::Condition> world_conditions;
+        world_conditions.push_back(action.condition);
+        world->world_conditions = world_conditions;
       }
     }
 

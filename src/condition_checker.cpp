@@ -125,7 +125,9 @@ std::string ConditionChecker::CheckPropertyConditions(const msgs::Condition& con
   if(condition.orientationRelevant){
 
     geometry_msgs::Vector3 actualOri;
-    GetRPY(condition.orientation, &actualOri);
+    //GetRPY(condition.orientation, &actualOri);
+    actualOri = condition.eulerAngles;
+
     geometry_msgs::Vector3 matchOri;
     GetRPY(match.pose_stamped.pose.orientation, &matchOri);
     geometry_msgs::Vector3 varianceOri = condition.orientationVariance;

@@ -40,7 +40,9 @@ class Visualizer {
 
   // Publish the visualization for a particular step.
   void Publish(const std::string& program_id, const World& world);
-
+  void PublishConditionMarkers(const std::string& program_id,
+                                const World& world,
+                                const rapid_pbd_msgs::Condition& condition);
   void StopPublishing(const std::string& program_id);
 
  private:
@@ -66,7 +68,9 @@ class RuntimeVisualizer {
   const RobotConfig& robot_config_;
   ros::Publisher surface_box_pub_;
 };
-
+void GetConditionMarker(const rapid_pbd_msgs::Condition& condition,
+                           const RobotConfig& robot_config,
+                           visualization_msgs::MarkerArray* scene_markers);
 void GetSegmentationMarker(
     const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
     const RobotConfig& robot_config,

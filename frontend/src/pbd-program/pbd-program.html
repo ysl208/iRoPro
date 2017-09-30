@@ -162,12 +162,6 @@
       topic="rapid_pbd/is_running"
       ros="[[ros]]"
     ></ros-topic>
-    <ros-topic auto
-      last-message="{{preCheck}}"
-      msg-type="std_msgs/Bool"
-      topic="rapid_pbd/pre_check"
-      ros="[[ros]]"
-    ></ros-topic>
     <div id="layout" class="layout vertical">
       <div class="layout horizontal center">
         <a href="#/" class="self-end"><paper-button class="back clear"><iron-icon icon="arrow-back"></iron-icon> Back</paper-button></a>
@@ -265,12 +259,12 @@
             return { data: false };
           }
         },
-        preCheck: {
-          type: Object,
-          value: function() {
-            return { data: false };
-          }
-        },
+        // preCheck: {
+        //   type: Object,
+        //   value: function() {
+        //     return { data: false };
+        //   }
+        // },
         
         submitted:{
           type: Boolean,
@@ -371,41 +365,41 @@
           },
           program: this.program
         };
-        console.debug('Saving', this.program);
         this.$.eventPub.publish(msg);
+        console.debug('Saving', this.program);
       },
 
       _conditionCheck: function(step_id) {
-        this.save();
-        // Run Sense actions only 
-        var senseProgram = Object.assign({},this.program);
-        senseProgram.steps = senseProgram.steps.slice(0,2);
-        var goal = {
-          program: senseProgram
-        }
-        console.debug('_conditionCheck: Sense steps...', senseProgram);
-        this.$.programAction.send(goal);
+        // this.save();
+        // // Run Sense actions only 
+        // var senseProgram = Object.assign({},this.program);
+        // senseProgram.steps = senseProgram.steps.slice(0,2);
+        // var goal = {
+        //   program: senseProgram
+        // }
+        // console.debug('_conditionCheck: Sense steps...', senseProgram);
+        // this.$.programAction.send(goal);
         
-        do {
-          console.debug('Waiting for Sense steps to finish...');
-          setTimeout(this._wait, 2000);
-        }
-        while (this.isRunning.data)
+        // do {
+        //   console.debug('Waiting for Sense steps to finish...');
+        //   setTimeout(this._wait, 2000);
+        // }
+        // while (this.isRunning.data)
 
-        // Check preconditions
-        console.debug('Check conditions...', this.program);
-        if ( this.program.preconditions.length > 0){
-          var msg = {
-            type: 'check conditions',
-            program_info: {
-              db_id: this.routeData.id,
-              name: this.program.name,
-            },
-            //program: this.program.steps.slice(1,2),
-            step_num: step_id
-          };
-          this.$.eventPub.publish(msg);
-        }
+        // // Check preconditions
+        // console.debug('Check conditions...', this.program);
+        // if ( this.program.preconditions.length > 0){
+        //   var msg = {
+        //     type: 'check conditions',
+        //     program_info: {
+        //       db_id: this.routeData.id,
+        //       name: this.program.name,
+        //     },
+        //     //program: this.program.steps.slice(1,2),
+        //     step_num: step_id
+        //   };
+        //   this.$.eventPub.publish(msg);
+        // }
       },
 
       _preCheck: function() {
