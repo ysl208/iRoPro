@@ -31,6 +31,9 @@ public:
   void AssignLandmarkCondition(const World& world, 
                               const std::string& landmark_name, 
                               rapid_pbd_msgs::Condition* condition);
+  void UpdateReferenceLandmark(const World& world, rapid_pbd_msgs::Condition* condition,
+                              const rapid_pbd_msgs::Landmark& reference);
+
 private:
   World* world_;
   const RobotConfig& robot_config_;
@@ -41,7 +44,11 @@ private:
   void GetRelativeConditions(const rapid_pbd_msgs::Landmark& landmark,
                             const World& world, rapid_pbd_msgs::Condition* condition,
                             const float& defaultVariance);
-
+  geometry_msgs::Vector3 QuaternionToRPY(const geometry_msgs::Quaternion& msg);
+  void SetReferenceConditions(rapid_pbd_msgs::Condition* condition,
+                              const rapid_pbd_msgs::Landmark& reference,
+                              const rapid_pbd_msgs::Landmark& landmark,
+                              const geometry_msgs::Vector3& defaultVarVector);
   bool ReferencedLandmark(const rapid_pbd_msgs::Landmark& landmark,
                                             const World& world,
                                             const double squared_distance_cutoff,
@@ -49,7 +56,7 @@ private:
   void GetDisplacementVector(const rapid_pbd_msgs::Landmark& landmark,
                                                const rapid_pbd_msgs::Landmark& reference,
                                             rapid_pbd_msgs::Condition* condition);
-
+  
   void GetSpatialRelation(rapid_pbd_msgs::Condition* condition);
 };
 } // namespace pbd

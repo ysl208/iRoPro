@@ -19,7 +19,7 @@ struct World {
   std::string scene_id;
   JointState joint_state;
   std::vector<rapid_pbd_msgs::Landmark> surface_box_landmarks;
-  std::vector<rapid_pbd_msgs::Condition> conditions;
+  std::vector<rapid_pbd_msgs::Condition> world_conditions;
     
 };
 

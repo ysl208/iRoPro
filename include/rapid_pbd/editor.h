@@ -43,8 +43,9 @@ class Editor {
   void Delete(const std::string& db_id);
   void GenerateConditions(const std::string& db_id, size_t step_id, size_t action_id,
                      const std::string& landmark_name);
-  
-  void ViewCondition(const std::string& db_id, const std::string& condition);
+  void UpdateConditions(const std::string& db_id, size_t step_id, size_t action_id,
+                        const rapid_pbd_msgs::Landmark& reference);
+  void ViewConditions(const std::string& db_id, size_t step_id, size_t action_id);
   void AddStep(const std::string& db_id);
   void DeleteStep(const std::string& db_id, size_t step_id);
   void AddAction(const std::string& db_id, size_t step_id,

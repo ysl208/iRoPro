@@ -55,6 +55,12 @@
         width:50%;
       }
     </style>
+    <!-- <ros-topic auto
+      last-message="{{conditionCheck}}"
+      msg-type="std_msgs/ConditionCheckInfo"
+      topic="rapid_pbd/condition_check"
+      ros="[[ros]]"
+    ></ros-topic> -->
     <ros-topic auto
       id="eventPub"
       msg-type="rapid_pbd_msgs/EditorEvent"
@@ -63,9 +69,7 @@
     ></ros-topic>
     <div class="layout horizontal center">
       <p>Specify landmark properties required for this step.</p>
-      <paper-button class="normal" on-tap="_generate">Generate</paper-button>
-      <!-- <paper-button class="normal" on-tap="_generate">Generate Conditions</paper-button> -->
-     </div>
+    </div>
     <div> 
       <paper-dropdown-menu label="Main landmark">
         <paper-listbox slot="dropdown-content" selected="[[_landmarkName(action.condition.landmark)]]" attr-for-selected="name">
@@ -74,6 +78,8 @@
           </template>
         </paper-listbox>
       </paper-dropdown-menu>
+      <paper-button class="normal" on-tap="_generate">Generate</paper-button>
+      <paper-button class="normal" on-tap="_save">View</paper-button>
       <!-- <paper-button class="normal" on-tap="_clear">Remove</paper-button> -->
     </div>
     <div id="conditionProperties" hidden="[[!action.condition.relevant]]">
@@ -94,7 +100,7 @@
       </div>
 
       <div>
-        <b>Absolute position/orientation </b>
+        <b>Absolute properties </b>
       </div>
       <div id="wrap">
         <div id="left_col">
@@ -102,7 +108,7 @@
             <paper-checkbox on-change="_positionRelevantChanged" 
             checked="{{action.condition.positionRelevant}}"> 
             Position 
-          </paper-checkbox>
+            </paper-checkbox>
           </div>
           <paper-input class="number" 
           disabled={{!action.condition.positionRelevant}}
@@ -155,8 +161,8 @@
           <paper-input class="number" 
             disabled={{!action.condition.orientationRelevant}}
             label="x"
-            value="[[action.condition.orientation.x]]"
-            on-change="_valueChanged" data-args="action.condition.orientation.x"
+            value="[[action.condition.eulerAngles.x]]"
+            on-change="_valueChanged" data-args="action.condition.eulerAngles.x"
         ></paper-input>
           <paper-input class="number" 
             disabled={{!action.condition.orientationRelevant}}
@@ -168,8 +174,8 @@
         <paper-input class="number" 
           disabled={{!action.condition.orientationRelevant}}
           label="y"
-          value="[[action.condition.orientation.y]]"
-            on-change="_valueChanged" data-args="action.condition.orientation.y"
+          value="[[action.condition.eulerAngles.y]]"
+            on-change="_valueChanged" data-args="action.condition.eulerAngles.y"
         ></paper-input>
           <paper-input class="number" 
           disabled={{!action.condition.orientationRelevant}}
@@ -181,8 +187,8 @@
         <paper-input class="number" 
           disabled={{!action.condition.orientationRelevant}}
           label="z"
-          value="[[action.condition.orientation.z]]"
-            on-change="_valueChanged" data-args="action.condition.orientation.z"
+          value="[[action.condition.eulerAngles.z]]"
+            on-change="_valueChanged" data-args="action.condition.eulerAngles.z"
         ></paper-input>
           <paper-input class="number" 
           disabled={{!action.condition.orientationRelevant}}
@@ -194,10 +200,10 @@
       </div>
       </div>
       <div> 
-        <b>Relative position/orientation</b>
+        <b>Relative position</b>
       </div>
       <div>  
-        <paper-dropdown-menu label="Relative landmark">
+        <paper-dropdown-menu label="Reference landmark">
           <paper-listbox slot="dropdown-content" selected="[[_landmarkName(action.condition.reference)]]" attr-for-selected="name">
             <template is="dom-repeat" items="[[_referenceLandmarks(landmarks,action.condition.landmark)]]">
               <paper-item name="[[_landmarkName(item)]]" on-tap="_updateReference">[[_landmarkName(item)]]</paper-item>
@@ -255,8 +261,44 @@
             on-change="_valueChanged" data-args="action.condition.contDisplacementVariance.z"
         ></paper-input>
         </div>
+        <div id="right_col">  
+          <!-- <div>
+            <paper-checkbox
+            checked="{{action.condition.discDisplacementRelevant}}">
+            Discrete 
+          </paper-checkbox> 
+          </div> -->
+          <!-- <div 
+          hidden={{!action.condition.discDisplacementRelevant}}>  -->
+            <div>
+            [[action.condition.landmark.name]]
+            </div>
+            <paper-dropdown-menu label="preposition">
+              <paper-listbox slot="dropdown-content" selected="[[_relationName(action.condition.spatial_relation)]]" attr-for-selected="name" width="10">
+                <template is="dom-repeat" items="[[spatial_relations]]">
+                  <paper-item name="[[_relationName(item)]]" 
+                  on-tap="_updateSpatialRelation">
+                  [[_relationName(item)]]
+                  </paper-item>
+                </template>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            [[action.condition.reference.name]]
+          <!-- <div>
+            <paper-input type="number" step="1" min="0" max="100"
+              label="Distance to [[action.condition.reference.name]]"
+              value="{{_getDistance(action.condition.contDisplacement)}}"
+          ></paper-input>
+            <paper-input type="number" step="1" min="0" max="100"
+              label="Variance"
+              value="{{_getDistance(action.condition.contDisplacementVariance)}}"
+              on-change="_discDisplacementVarianceChanged"
+          ></paper-input>
+          </div>  -->
+         <!-- </div> -->
+        </div>
+
   <!--     
-        <div id="right_col">
           <div>
             <paper-checkbox on-change="_orientationRelevantChanged" 
             checked="{{action.condition.orientationRelevant}}"> 
@@ -301,29 +343,13 @@
         </paper-input> 
       </div> -->
     <!-- </div> -->
-      <!-- 
-      <div> 
-        [[action.condition.landmark.name]]
-        <paper-dropdown-menu label=" relative to">
-          <paper-listbox slot="dropdown-content" selected="[[_relationName(action.condition.spatial_relation)]]" attr-for-selected="name" width="10">
-            <template is="dom-repeat" items="[[spatial_relations]]">
-              <paper-item name="[[_relationName(item)]]" on-tap="_updateSpatialRelation">
-              [[_relationName(item)]]
-              </paper-item>
-            </template>
-          </paper-listbox>
-        </paper-dropdown-menu>
-        [[action.condition.reference.name]]
-      </div>
-      <div>
-        <paper-input type="number" step="1" min="0" max="100"
-          label="Distance to [[action.condition.reference.name]]"
-          value="{{_getDistance(action.condition.displacement)}}" on-change="_distanceChanged"></paper-input>
-      </div> -->
+     
     
     </div>
     </div>
   </template>
+  <script src="quaternion.js"></script>
+
   <script>
     Polymer({
       is: 'pbd-check-conditions-action',
@@ -350,14 +376,15 @@
       },
 
       observers: [
-        //'_computeSpatialRelations(program)',
-        '_updateCondition(action.*, index)',
+        '_computeSpatialRelations(program, index)',
+        //'_updateCondition(action.*, index)',
         '_computeCondition(index, conditionIndex)',
+        //'_save(action.condition.*)'
       ],
 
-      _updatePose: function() {
+      _save: function() {
         var msg = {
-          type: 'get pose',
+          type: 'view conditions',
           program_info: {
             db_id: this.programId
           },
@@ -379,7 +406,7 @@
           landmark_name: this.action.condition.landmark.name
         };
         this.$.eventPub.publish(msg);
-
+        this._computeSpatialRelations(this.action);
         console.debug('_generate: action index', this.index);
         console.debug('_generate: msg ', msg);
         
@@ -395,7 +422,6 @@
           console.debug('_computeCondition ', this.currentCondition);
          } else {
           console.debug('_computeCondition: None ');
-
          }
       },
       _updateCondition: function() {
@@ -406,10 +432,11 @@
           },
           step_num: this.stepIndex,
           action_num: this.index,
-          action: this.action.condition
+          action: this.action
           
         };
         this.$.eventPub.publish(msg);
+        console.debug('_updateCondition ', this.action.condition);
       },
 
       _updateLandmark: function(evt) {
@@ -451,7 +478,7 @@
           
         }
         //this.currentCondition.reference = evt.model.item;
-        //this._updateCondition();
+        this._updateCondition();
       },
 
       _computeSpatialRelations: function(action) {
@@ -466,19 +493,19 @@
       
       _positionRelevantChanged: function(evt) {
           //this.currentCondition.positionRelevant = evt.target.checked;
-          console.debug("_positionRelevantChanged: ", evt.target.checked);
+          //console.debug("_positionRelevantChanged: ", evt.target.checked);
       },
       _orientationRelevantChanged: function(evt) {
           //this.currentCondition.orientationRelevant = evt.target.checked;
-          console.debug("_orientationRelevantChanged: ", evt.target.checked);
+          //console.debug("_orientationRelevantChanged: ", evt.target.checked);
       },
       _sizeRelevantChanged: function(evt) {
           //this.currentCondition.sizeRelevant = evt.target.checked;
-          console.debug("_sizeRelevantChanged: ", evt.target.checked);
+          //console.debug("_sizeRelevantChanged: ", evt.target.checked);
       },
       _contDisplacementRelevantChanged: function(evt) {
           //this.currentCondition.sizeRelevant = evt.target.checked;
-          console.debug("_contDisplacementRelevantChanged: ", evt.target.checked);
+          //console.debug("_contDisplacementRelevantChanged: ", evt.target.checked);
       },
 
       _valueChanged: function(evt){
@@ -487,19 +514,28 @@
         // console.debug("_valueChanged: args ", args);
         this._parseString(evt.target.value, args);
       },
-      // _updateSpatialRelation: function(evt) {
-      //   this.set('spatial_relation', evt.model.item);
-      //   this.currentCondition.spatial_relation = evt.model.item;
-      //   this._updatePose();
-      // },
-      // _getDistance: function(dispmnt) {
-      //   var x = parseFloat(dispmnt.position.x);
-      //   var y = parseFloat(dispmnt.position.y);
-      //   var squared_dist = x*x + y*y;
+      _updateSpatialRelation: function(evt) {
+        // Automatically set the displacement vector values
+        //this._updateCondition();
+        this.set('spatial_relation', evt.model.item);
+        this.action.condition.spatial_relation = evt.model.item;
+        // update continuous displacement values
+        if ( evt.model.item === 'is_in_front_of' ||  evt.model.item === 'is_behind_of') {
+          this.set('action.condition.contDisplacement.y',0);
+          this.set('action.condition.contDisplacementVariance.y',0.5);
+        } else if ( evt.model.item === 'is_left_of' || evt.model.item === 'is_right_of') {
+          this.set('action.condition.contDisplacement.x',0);
+          this.set('action.condition.contDisplacementVariance.x',0.5);
+        } 
+      },
+      _getDistance: function(dispmnt) {
+        var x = parseFloat(dispmnt.x);
+        var y = parseFloat(dispmnt.y);
+        var squared_dist = x*x + y*y;
         
-      //   console.debug('_getDistance: ', Math.sqrt(squared_dist));
-      //   return Math.sqrt(squared_dist);
-      // },
+        console.debug('_getDistance: ', Math.sqrt(squared_dist));
+        return Math.sqrt(squared_dist);
+      },
 
       _relationName: function(spatial_relation) {
         // console.debug('_relationName: ', spatial_relation);

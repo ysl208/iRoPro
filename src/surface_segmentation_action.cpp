@@ -188,7 +188,7 @@ void SurfaceSegmentationAction::Execute(
       rapid_pbd_msgs::Landmark landmark;
       landmark.type = rapid_pbd_msgs::Landmark::SURFACE_BOX;
       std::stringstream ss;
-      ss << "Object " << obj_count;
+      ss << "Obj " << obj_count;
       landmark.name = ss.str();
       landmark.pose_stamped = object.pose_stamped;
       landmark.surface_box_dims = object.dimensions;
