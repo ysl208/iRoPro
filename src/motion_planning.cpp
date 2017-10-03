@@ -120,6 +120,10 @@ string MotionPlanning::AddPoseGoal(
       ik_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
   if (!success) {
     std::string error("No IK solution found");
+    //std::cout << pose_in_base << std::endl;
+    ROS_INFO("%f %f %f",  pose_in_base.position.x, 
+                          pose_in_base.position.y,
+                          pose_in_base.position.z);
     ROS_ERROR("%s", error.c_str());
     return error;
   }
