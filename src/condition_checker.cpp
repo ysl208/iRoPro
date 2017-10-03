@@ -61,7 +61,7 @@ std::string ConditionChecker::CheckConditions(const msgs::Condition& condition) 
       
     } else{
       ROS_ERROR("No landmark visible for %s", condition.landmark.name.c_str());
-      return ("No landmark visible for %s", condition.landmark.name.c_str());
+      return "No landmark visible for " + condition.landmark.name;
     }
   info_.passed = true;
   ROS_INFO("All conditions passed!");
@@ -78,8 +78,8 @@ bool ConditionChecker::PointDissimilarity(const float& value, const float& match
                        const float& variance){
 
   ROS_INFO("Checking fabs(%f-%f) = %f < %f ",
-            match, value,fabs(match-value), variance);
-  return fabs(match-value) < variance;
+            match, value,fabs(match)-fabs(value), variance);
+  return (fabs(match)-fabs(value)) < variance;
 }
 
 bool ConditionChecker::VectorDissimilarity(const geometry_msgs::Vector3& actual,
@@ -117,13 +117,12 @@ std::string ConditionChecker::CheckPropertyConditions(const msgs::Condition& con
   if (!info_.posMatched) {
     ROS_ERROR("Absolute position of %s doesn't match condition",
               match.name.c_str());
-    return ("Absolute position of %s doesn't match condition",
-              match.name);
+    
+    return "Absolute position doesn't match condition: " + match.name;
   }
 
   info_.oriMatched = true;
   if(condition.orientationRelevant){
-
     geometry_msgs::Vector3 actualOri;
     //GetRPY(condition.orientation, &actualOri);
     actualOri = condition.eulerAngles;
@@ -136,8 +135,8 @@ std::string ConditionChecker::CheckPropertyConditions(const msgs::Condition& con
   if (!info_.oriMatched) {
     ROS_ERROR("Absolute orientation of %s doesn't match condition",
               match.name.c_str());
-    return ("Absolute orientation of %s doesn't match condition",
-              match.name);
+    
+    return "Absolute orientation doesn't match condition: " + match.name;
   }
   ROS_INFO("All absolute conditions: passed");
   return "";
@@ -198,7 +197,7 @@ std::string ConditionChecker::CheckRelativeConditions(const msgs::Condition& con
 }
 
 void ConditionChecker::PublishConditionCheck() {
-  
+  ROS_INFO("Publish condition check results..");
   condition_check_pub_.publish(info_);
 }
 

@@ -111,7 +111,7 @@ void Editor::Create(const std::string& name) {
 void Editor::AddSenseSteps(const std::string& db_id, size_t step_id){
   ROS_INFO("Add default SENSE steps");
   AddStep(db_id);
-  AddMoveHeadAction(db_id, step_id, 20, 0);
+  AddMoveHeadAction(db_id, step_id, 45, 0);
   AddOpenGripperAction(db_id, step_id, 0.1, 0);
   std::vector<double> poses;
   robot_config_.default_gripper_poses(&poses);
@@ -120,9 +120,9 @@ void Editor::AddSenseSteps(const std::string& db_id, size_t step_id){
   AddStep(db_id);
   ++step_id;
   AddDetectTTObjectsAction(db_id, step_id);
-  //AddStep(db_id);
-  //++step_id;
-  //AddCheckConditionsAction(db_id, step_id);
+  AddStep(db_id);
+  ++step_id;
+  AddCheckConditionsAction(db_id, step_id);
 
 }
 

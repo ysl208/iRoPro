@@ -204,7 +204,6 @@ bool ConditionGenerator::ReferencedLandmark(const msgs::Landmark& landmark,
         success = true;
       }
     }
-    
   }
   return success;
 }

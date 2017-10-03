@@ -186,7 +186,7 @@
         <iron-selector attr-for-selected="name" selected="{{currentStepNum}}">
           <template is="dom-repeat" id="stepList" items="[[program.steps]]" as="step">
             <template is="dom-if" if="[[_isSenseStep(index)]]">
-              <paper-button class="condition" name="[[index]]" on-tap="selectStep">{{_stepNum(index)}}</paper-button>
+              <paper-button class="step" name="[[index]]" on-tap="selectStep">{{_stepNum(index)}}</paper-button>
             </template>
             <template is="dom-if" if="[[!_isSenseStep(index)]]">
               <paper-button class="step" name="[[index]]" on-tap="selectStep">{{_stepNum(index)}}</paper-button>
@@ -589,7 +589,6 @@
 
       _currentStepNumChanged: function(program, currentStepNum) {
       // Load step form content
-
         console.log("_currentStepNumChanged to" + this.currentStepNum);
         if (program && program.steps && currentStepNum >= 0) {
           this.$.selector.select(program.steps[currentStepNum]);
@@ -597,7 +596,6 @@
       },
       _stepChanged(ros, db_id, currentStepNum) {
        // Load robot visualization
-
         console.log("_stepChanged to" + currentStepNum);
        if (!ros || !db_id || (!currentStepNum && currentStepNum !== 0)
         || (currentStepNum && currentStepNum < 0)) {

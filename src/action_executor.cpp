@@ -90,7 +90,18 @@ std::string ActionExecutor::Start() {
     std::vector<std::string> joint_names;
     std::vector<double> joint_positions;
     GetJointPositions(action_, &joint_names, &joint_positions);
-    return motion_planning_->AddJointGoal(joint_names, joint_positions);
+    if (action_.actuator_group == msgs::Action::ARM || action_.actuator_group == msgs::Action::LEFT_ARM || action_.actuator_group == msgs::Action::RIGHT_ARM) {
+      return motion_planning_->AddJointGoal(joint_names, joint_positions);
+    } else if (action_.actuator_group == Action::HEAD) {
+      control_msgs::FollowJointTrajectoryGoal joint_goal;
+      joint_goal.trajectory = action_.joint_trajectory;
+      joint_goal.trajectory.header.stamp = ros::Time::now();
+			SimpleActionClient<FollowJointTrajectoryAction>* client;
+  		  client = &clients_->head_client;
+  		client->sendGoal(joint_goal);
+    } else {
+      return "Invalid actuator group";
+    }
   } else if (action_.type == Action::MOVE_TO_CARTESIAN_GOAL) {
     std::vector<std::string> joint_names;
     std::vector<double> joint_positions;
@@ -103,7 +114,9 @@ std::string ActionExecutor::Start() {
   } else if (action_.type == Action::DETECT_TABLETOP_OBJECTS) {
     DetectTabletopObjects();
   } else if (action_.type == Action::CHECK_CONDITIONS) {
-    return condition_checker_->CheckConditions(action_.condition);
+    std::string result = condition_checker_->CheckConditions(action_.condition);
+    ROS_INFO("CheckConditions result: %s", result.c_str());
+    return result;
   }
   return "";
 }
@@ -145,11 +158,11 @@ bool ActionExecutor::IsDone(std::string* error) const {
   } else if (action_.type == Action::CHECK_CONDITIONS) {
     // handled by check_condition: return array of failed conditions?
     //return only earliest failed condition?
-    
     condition_checker_->PublishConditionCheck();
+    bool done = condition_checker_->GetConditionCheckMsg().passed;
+    return done;
   }
   return true;
-
 }
 
 void ActionExecutor::Cancel() {
