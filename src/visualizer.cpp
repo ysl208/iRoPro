@@ -253,7 +253,8 @@ void GetConditionMarker(const msgs::Condition& condition,
       reference.ns = "displacement_cube";
       reference.pose.orientation = condition.reference.pose_stamped.pose.orientation;
       reference.pose.position = condition.reference.pose_stamped.pose.position;
-      reference.pose.position.z = 0.7072; // same as table height
+      reference.pose.position.z -= condition.reference.surface_box_dims.z/2; // same as table height
+      ROS_INFO("Marker z-position set to : %f", reference.pose.position.z);
       reference.scale.x = condition.reference.surface_box_dims.x + condition.contDisplacementVariance.x;//2*fabs(condition.contDisplacement.x+condition.contDisplacementVariance.x);
       reference.scale.y = condition.reference.surface_box_dims.y + condition.contDisplacementVariance.y;//2*fabs(condition.contDisplacement.y+condition.contDisplacementVariance.y); // head diameter
       reference.scale.z = 0.005; // head length
