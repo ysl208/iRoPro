@@ -26,6 +26,7 @@ void ProcessSurfaceBox(const rapid_pbd_msgs::Landmark& landmark_in,
   }
   double cylinder_ratio;
   ros::param::param<double>("cylinder_ratio", cylinder_ratio, 0.85);
+  ROS_INFO("x/y cylinder ratio %f %f", x/y, cylinder_ratio);
   if (x / y > cylinder_ratio) {
     landmark_out->pose_stamped.pose.orientation.w = 1;
     landmark_out->pose_stamped.pose.orientation.x = 0;

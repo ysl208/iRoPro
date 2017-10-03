@@ -167,11 +167,6 @@ void ProgramExecutionServer::PublishIsRunning(bool is_running) {
   is_running_pub_.publish(msg);
 }
 
-void ProgramExecutionServer::PublishConditionCheck(bool condition_check) {
-  std_msgs::Bool msg;
-  msg.data = condition_check;
-  condition_check_pub_.publish(msg);
-}
 
 void ProgramExecutionServer::Cancel(const std::string& error) {
   ExecuteProgramResult result;

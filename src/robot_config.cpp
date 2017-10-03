@@ -78,26 +78,6 @@ void Pr2RobotConfig::default_gripper_poses(
   poses->push_back(-0.5032);
   poses->push_back(0.5116);
 
-// left
-// position
- // 0.3251;
- // 0.4936;
- // 0.0489;
- // orientation 
- // 0.9313;
- // -0.0018;
- // -0.3641;
- // 0.0007;
- //right
- //position
- // 0.3516;
- // -0.4498;
- // 0.0506;
- //orientation
- // 0.5231;
- // 0.4598;
- // -0.5032;
- // 0.5116;
 }
 void Pr2RobotConfig::joints_for_group(
     const std::string& actuator_group,
