@@ -28,6 +28,8 @@ int main(int argc, char** argv) {
     robot_config = new pbd::Pr2RobotConfig();
   } else if (robot == "fetch") {
     robot_config = new pbd::FetchRobotConfig();
+  } else if (robot == "baxter") {
+    robot_config = new pbd::BaxterRobotConfig();
   } else {
     ROS_ERROR("Unsupported robot \"%s\"", robot.c_str());
     return 1;
