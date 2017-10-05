@@ -96,52 +96,52 @@ void ArmControllerManager::Start() { Update(); }
 
 bool ArmControllerManager::HandleFreeze(msgs::FreezeArmRequest& request,
                                         msgs::FreezeArmResponse& response) {
-  baxter_mechanism_msgs::SwitchControllerRequest req;
-  req.strictness = baxter_mechanism_msgs::SwitchControllerRequest::BEST_EFFORT;
-  baxter_mechanism_msgs::SwitchControllerResponse res;
-  if (request.actuator_group == msgs::Action::LEFT_ARM) {
-    req.start_controllers.push_back("l_arm_controller");
-  } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
-    req.start_controllers.push_back("r_arm_controller");
-  } else {
-    response.error =
-        "Invalid actuator group \"" + request.actuator_group + "\"";
-    ROS_ERROR("%s", response.error.c_str());
-    return true;
-  }
-  bool success = switch_client_.call(req, res);
-  if (!success) {
-    response.error = "Failed to freeze \"" + request.actuator_group + "\"";
-    ROS_ERROR("%s", response.error.c_str());
-    return true;
-  }
-  Update();
+  // baxter_mechanism_msgs::SwitchControllerRequest req;
+  // req.strictness = baxter_mechanism_msgs::SwitchControllerRequest::BEST_EFFORT;
+  // baxter_mechanism_msgs::SwitchControllerResponse res;
+  // if (request.actuator_group == msgs::Action::LEFT_ARM) {
+  //   req.start_controllers.push_back("l_arm_controller");
+  // } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
+  //   req.start_controllers.push_back("r_arm_controller");
+  // } else {
+  //   response.error =
+  //       "Invalid actuator group \"" + request.actuator_group + "\"";
+  //   ROS_ERROR("%s", response.error.c_str());
+  //   return true;
+  // }
+  // bool success = switch_client_.call(req, res);
+  // if (!success) {
+  //   response.error = "Failed to freeze \"" + request.actuator_group + "\"";
+  //   ROS_ERROR("%s", response.error.c_str());
+  //   return true;
+  // }
+  // Update();
 
   return true;
 }
 
 bool ArmControllerManager::HandleRelax(msgs::RelaxArmRequest& request,
                                        msgs::RelaxArmResponse& response) {
-  baxter_mechanism_msgs::SwitchControllerRequest req;
-  req.strictness = baxter_mechanism_msgs::SwitchControllerRequest::BEST_EFFORT;
-  baxter_mechanism_msgs::SwitchControllerResponse res;
-  if (request.actuator_group == msgs::Action::LEFT_ARM) {
-    req.stop_controllers.push_back("l_arm_controller");
-  } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
-    req.stop_controllers.push_back("r_arm_controller");
-  } else {
-    response.error =
-        "Invalid actuator group \"" + request.actuator_group + "\"";
-    ROS_ERROR("%s", response.error.c_str());
-    return true;
-  }
-  bool success = switch_client_.call(req, res);
-  if (!success) {
-    response.error = "Failed to relax \"" + request.actuator_group + "\"";
-    ROS_ERROR("%s", response.error.c_str());
-    return true;
-  }
-  Update();
+  // baxter_mechanism_msgs::SwitchControllerRequest req;
+  // req.strictness = baxter_mechanism_msgs::SwitchControllerRequest::BEST_EFFORT;
+  // baxter_mechanism_msgs::SwitchControllerResponse res;
+  // if (request.actuator_group == msgs::Action::LEFT_ARM) {
+  //   req.stop_controllers.push_back("l_arm_controller");
+  // } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
+  //   req.stop_controllers.push_back("r_arm_controller");
+  // } else {
+  //   response.error =
+  //       "Invalid actuator group \"" + request.actuator_group + "\"";
+  //   ROS_ERROR("%s", response.error.c_str());
+  //   return true;
+  // }
+  // bool success = switch_client_.call(req, res);
+  // if (!success) {
+  //   response.error = "Failed to relax \"" + request.actuator_group + "\"";
+  //   ROS_ERROR("%s", response.error.c_str());
+  //   return true;
+  // }
+  // Update();
 
   return true;
 }
