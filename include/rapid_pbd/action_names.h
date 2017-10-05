@@ -42,6 +42,20 @@ static const char kHeadActionName[] =
 namespace fetch {
 static const char kControllerActionName[] = "/query_controller_states";
 }  // namespace fetch
+
+namespace baxter {
+static const char kLeftGripperActionName[] =
+    "/l_gripper_controller/gripper_action";
+static const char kRightGripperActionName[] =
+    "/r_gripper_controller/gripper_action";
+static const char kListControllersService[] =
+    "/baxter_controller_manager/list_controllers";
+static const char kSwitchControllerService[] =
+    "/baxter_controller_manager/switch_controller";
+static const char kHeadActionName[] =
+    "/head_traj_controller/follow_joint_trajectory";
+}  // namespace baxter
+
 }  // namespace pbd
 }  // namespace rapid
 
