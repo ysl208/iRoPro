@@ -1,7 +1,7 @@
 // Node that runs Baxter action servers using the control_msgs API.
 
-#include "baxter_mechanism_msgs/ListControllers.h"
-#include "baxter_mechanism_msgs/SwitchController.h"
+#include "controller_manager_msgs/ListControllers.h"
+#include "controller_manager_msgs/SwitchController.h"
 #include "rapid_pbd/action_names.h"
 #include "rapid_pbd/baxter_actions.h"
 #include "rapid_pbd_msgs/ArmControllerState.h"
@@ -25,10 +25,10 @@ int main(int argc, char** argv) {
       nh.advertise<msgs::ArmControllerState>(pbd::kArmControllerStateTopic, 5,
                                              true);
   ros::ServiceClient list_client =
-      nh.serviceClient<baxter_mechanism_msgs::ListControllers>(
+      nh.serviceClient<controller_manager_msgs::ListControllers>(
           pbd::baxter::kListControllersService);
   ros::ServiceClient switch_client =
-      nh.serviceClient<baxter_mechanism_msgs::SwitchController>(
+      nh.serviceClient<controller_manager_msgs::SwitchController>(
           pbd::baxter::kSwitchControllerService);
   pbd::baxter::ArmControllerManager arm_controller_manager(
       arm_controller_state_pub, list_client, switch_client);
