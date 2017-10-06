@@ -7,6 +7,7 @@ project(rapid_pbd)
 find_package(catkin REQUIRED COMPONENTS
   actionlib
   control_msgs
+  controller_manager_msgs
   geometry_msgs
   mongodb_store
   moveit_core
@@ -144,6 +145,7 @@ catkin_package(
   CATKIN_DEPENDS
     actionlib
     control_msgs
+    controller_manager_msgs
     geometry_msgs
     mongodb_store
     moveit_core
