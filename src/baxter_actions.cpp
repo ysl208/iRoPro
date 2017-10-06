@@ -5,9 +5,8 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/server/simple_action_server.h"
 #include "control_msgs/GripperCommandAction.h"
-#include "baxter_controllers_msgs/BaxterGripperCommandAction.h"
-#include "baxter_mechanism_msgs/ListControllers.h"
-#include "baxter_mechanism_msgs/SwitchController.h"
+#include "controller_manager_msgs/ListControllers.h"
+#include "controller_manager_msgs/SwitchController.h"
 
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/ArmControllerState.h"
@@ -15,8 +14,8 @@
 #include "rapid_pbd_msgs/RelaxArm.h"
 
 using actionlib::SimpleClientGoalState;
-using baxter_controllers_msgs::BaxterGripperCommandFeedback;
-using baxter_controllers_msgs::BaxterGripperCommandResult;
+using control_msgs::GripperCommandFeedback;
+using control_msgs::GripperCommandResult;
 namespace msgs = rapid_pbd_msgs;
 
 namespace rapid {
@@ -37,13 +36,13 @@ void GripperAction::Start() {
 
 void GripperAction::Execute(
     const control_msgs::GripperCommandGoalConstPtr& goal) {
-  baxter_controllers_msgs::BaxterGripperCommandGoal baxter_goal;
+  control_msgs::GripperCommandGoal baxter_goal;
   baxter_goal.command.position = goal->command.position;
   baxter_goal.command.max_effort = goal->command.max_effort;
   baxter_client_.sendGoal(
       baxter_goal,
       boost::function<void(const SimpleClientGoalState&,
-                           const BaxterGripperCommandResult::ConstPtr&)>(),
+                           const GripperCommandResult::ConstPtr&)>(),
       boost::function<void()>(),
       boost::bind(&GripperAction::HandleFeedback, this, _1));
   while (!baxter_client_.getState().isDone()) {
@@ -64,7 +63,7 @@ void GripperAction::Execute(
     return;
   }
 
-  BaxterGripperCommandResult::ConstPtr baxter_result = baxter_client_.getResult();
+  GripperCommandResult::ConstPtr baxter_result = baxter_client_.getResult();
   control_msgs::GripperCommandResult result;
   result.effort = baxter_result->effort;
   result.position = baxter_result->position;
@@ -74,7 +73,7 @@ void GripperAction::Execute(
 }
 
 void GripperAction::HandleFeedback(
-    const BaxterGripperCommandFeedback::ConstPtr& baxter_feedback) {
+    const GripperCommandFeedback::ConstPtr& baxter_feedback) {
   control_msgs::GripperCommandFeedback feedback;
   feedback.effort = baxter_feedback->effort;
   feedback.position = baxter_feedback->position;
@@ -96,9 +95,9 @@ void ArmControllerManager::Start() { Update(); }
 
 bool ArmControllerManager::HandleFreeze(msgs::FreezeArmRequest& request,
                                         msgs::FreezeArmResponse& response) {
-  // baxter_mechanism_msgs::SwitchControllerRequest req;
-  // req.strictness = baxter_mechanism_msgs::SwitchControllerRequest::BEST_EFFORT;
-  // baxter_mechanism_msgs::SwitchControllerResponse res;
+  // controller_manager_msgs::SwitchControllerRequest req;
+  // req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
+  // controller_manager_msgs::SwitchControllerResponse res;
   // if (request.actuator_group == msgs::Action::LEFT_ARM) {
   //   req.start_controllers.push_back("l_arm_controller");
   // } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
@@ -122,9 +121,9 @@ bool ArmControllerManager::HandleFreeze(msgs::FreezeArmRequest& request,
 
 bool ArmControllerManager::HandleRelax(msgs::RelaxArmRequest& request,
                                        msgs::RelaxArmResponse& response) {
-  // baxter_mechanism_msgs::SwitchControllerRequest req;
-  // req.strictness = baxter_mechanism_msgs::SwitchControllerRequest::BEST_EFFORT;
-  // baxter_mechanism_msgs::SwitchControllerResponse res;
+  // controller_manager_msgs::SwitchControllerRequest req;
+  // req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
+  // controller_manager_msgs::SwitchControllerResponse res;
   // if (request.actuator_group == msgs::Action::LEFT_ARM) {
   //   req.stop_controllers.push_back("l_arm_controller");
   // } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
@@ -147,8 +146,8 @@ bool ArmControllerManager::HandleRelax(msgs::RelaxArmRequest& request,
 }
 
 void ArmControllerManager::Update() {
-  baxter_mechanism_msgs::ListControllersRequest req;
-  baxter_mechanism_msgs::ListControllersResponse res;
+  controller_manager_msgs::ListControllersRequest req;
+  controller_manager_msgs::ListControllersResponse res;
   while (!list_client_.waitForExistence(ros::Duration(5))) {
     ROS_WARN("Waiting for baxter_controller_manager list service...");
   }
@@ -156,9 +155,9 @@ void ArmControllerManager::Update() {
   if (!success) {
     ROS_ERROR("baxter_controller_manager list service call failed.");
   }
-  for (size_t i = 0; i < res.controllers.size(); ++i) {
-    const std::string& name = res.controllers[i];
-    const std::string& state = res.state[i];
+  for (size_t i = 0; i < res.controller.size(); ++i) {
+    const std::string& name = res.controller[i].name;
+    const std::string& state = res.controller[i].state;
     bool is_running = (state == "running");
     if (name == "l_arm_controller") {
       is_l_arm_active_ = is_running;
