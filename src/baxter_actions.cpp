@@ -149,11 +149,11 @@ void ArmControllerManager::Update() {
   controller_manager_msgs::ListControllersRequest req;
   controller_manager_msgs::ListControllersResponse res;
   while (!list_client_.waitForExistence(ros::Duration(5))) {
-    ROS_WARN("Waiting for baxter_controller_manager list service...");
+    ROS_WARN("Waiting for controller_manager_msgs list service...");
   }
   bool success = list_client_.call(req, res);
   if (!success) {
-    ROS_ERROR("baxter_controller_manager list service call failed.");
+    ROS_ERROR("controller_manager_msgs list service call failed.");
   }
   for (size_t i = 0; i < res.controller.size(); ++i) {
     const std::string& name = res.controller[i].name;

@@ -49,9 +49,9 @@ static const char kLeftGripperActionName[] =
 static const char kRightGripperActionName[] =
     "/r_gripper_controller/gripper_action";
 static const char kListControllersService[] =
-    "/baxter_controller_manager/list_controllers";
+    "/controller_manager_msgs/list_controllers";
 static const char kSwitchControllerService[] =
-    "/baxter_controller_manager/switch_controller";
+    "/controller_manager_msgs/switch_controller";
 static const char kHeadActionName[] =
     "/head_traj_controller/follow_joint_trajectory";
 }  // namespace baxter
