@@ -9,7 +9,6 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/server/simple_action_server.h"
 #include "control_msgs/GripperCommandAction.h"
-#include "baxter_controllers_msgs/BaxterGripperCommandAction.h"
 
 #include "rapid_pbd_msgs/ArmControllerState.h"
 #include "rapid_pbd_msgs/FreezeArm.h"
@@ -17,10 +16,10 @@
 
 namespace {
 typedef actionlib::SimpleActionClient<
-    baxter_controllers_msgs::BaxterGripperCommandAction>
+    control_msgs::GripperCommandAction>
     BaxterGripperClient;
-using baxter_controllers_msgs::BaxterGripperCommandFeedback;
-using baxter_controllers_msgs::BaxterGripperCommandResultConstPtr;
+using control_msgs::GripperCommandFeedback;
+using control_msgs::GripperCommandResultConstPtr;
 }  // namespace
 
 namespace rapid {
@@ -32,7 +31,7 @@ class GripperAction {
 
   void Start();
   void Execute(const control_msgs::GripperCommandGoalConstPtr& goal);
-  void HandleFeedback(const BaxterGripperCommandFeedback::ConstPtr& baxter_feedback);
+  void HandleFeedback(const GripperCommandFeedback::ConstPtr& baxter_feedback);
 
  private:
   actionlib::SimpleActionServer<control_msgs::GripperCommandAction> server_;
