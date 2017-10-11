@@ -221,13 +221,19 @@
         this.$.programSub.subscribe();
         this.currentStepNum = 0;
         this.currentCondition = "";
-<<<<<<< HEAD
-=======
-// to do: add robot depends
->>>>>>> bb8dfa1... More baxter changes
+
+         var fixedFrame = '';
+          if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+            fixedFrame = '/base_link';
+          } else if (this.params.robot === "baxter") {
+            fixedFrame = '/base';
+          } else {
+            console.error('Unknown robot type', this.params.robot);
+          }
+
         var config = {
           globalOptions: {
-            fixedFrame: '/base',
+            fixedFrame: fixedFrame,
             background: '#113344',
           },
           displays: [
@@ -433,6 +439,9 @@
           if (this.params.robot === "pr2") {
             frameId = '/head_mount_kinect_rgb_optical_frame';
           } else if (this.params.robot === "fetch") {
+            frameId = '/head_camera_rgb_optical_frame';
+          } else if (this.params.robot === "baxter") {
+            // to do
             frameId = '/head_camera_rgb_optical_frame';
           } else {
             console.error('Unknown robot type', this.params.robot);
