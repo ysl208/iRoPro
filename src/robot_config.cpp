@@ -164,6 +164,100 @@ void FetchRobotConfig::joints_for_group(
   }
 }
 int FetchRobotConfig::num_arms() const { return 1; }
+
+BaxterRobotConfig::BaxterRobotConfig() {}
+
+std::string BaxterRobotConfig::planning_frame() const { return "base_footprint"; }
+std::string BaxterRobotConfig::planning_group() const { return "arms"; }
+std::string BaxterRobotConfig::base_link() const { return "base_footprint"; }
+std::string BaxterRobotConfig::torso_link() const { return "torso_lift_link"; }
+std::string BaxterRobotConfig::ee_frame_for_group(
+    const std::string& actuator_group) const {
+  if (actuator_group == Action::LEFT_ARM) {
+    return "left_gripper";
+  } else if (actuator_group == Action::RIGHT_ARM) {
+    return "right_gripper";
+  } else {
+    return "";
+  }
+}
+
+void BaxterRobotConfig::gripper_joints_for_group(
+    const std::string& actuator_group,
+    std::vector<std::string>* joint_names) const {
+  joint_names->clear();
+  if (actuator_group == Action::LEFT_GRIPPER) {
+    joint_names->push_back("left_hand");
+    joint_names->push_back("left_gripper_base");
+    joint_names->push_back("left_gripper");
+  } else if (actuator_group == Action::RIGHT_GRIPPER) {
+    joint_names->push_back("right_hand");
+    joint_names->push_back("right_gripper_base");
+    joint_names->push_back("right_gripper");
+  }
+}
+void BaxterRobotConfig::gripper_open_positions(
+    std::vector<double>* positions) const {
+  positions->clear();
+  positions->push_back(0.088);
+  positions->push_back(0.514);
+  positions->push_back(0.514);
+  positions->push_back(0.514);
+  positions->push_back(0.514);
+}
+void BaxterRobotConfig::gripper_close_positions(
+    std::vector<double>* positions) const {
+  positions->clear();
+  positions->push_back(0.0);
+  positions->push_back(0.0069);
+  positions->push_back(0.0069);
+  positions->push_back(0.0069);
+  positions->push_back(0.0069);
+}
+void BaxterRobotConfig::default_gripper_poses(
+    std::vector<double>* poses) const {
+  poses->clear();
+ //left
+  poses->push_back(0.00);
+  poses->push_back(0.75);
+  poses->push_back(0.0);
+  poses->push_back(-0.55);
+  poses->push_back(0.0);
+  poses->push_back(1.26);
+  poses->push_back(0.0);
+ //right
+  poses->push_back(0.00);
+  poses->push_back(0.75);
+  poses->push_back(0.0);
+  poses->push_back(-0.55);
+  poses->push_back(0.0);
+  poses->push_back(1.26);
+  poses->push_back(0.0);
+
+}
+void BaxterRobotConfig::joints_for_group(
+    const std::string& actuator_group,
+    std::vector<std::string>* joint_names) const {
+  joint_names->clear();
+  if (actuator_group == Action::LEFT_ARM) {
+    joint_names->push_back("left_e0");
+    joint_names->push_back("left_e1");
+    joint_names->push_back("left_s0");
+    joint_names->push_back("left_s1");
+    joint_names->push_back("left_w0");
+    joint_names->push_back("left_w1");
+    joint_names->push_back("left_w2");
+  } else if (actuator_group == Action::RIGHT_ARM) {
+    joint_names->push_back("right_e0");
+    joint_names->push_back("right_e1");
+    joint_names->push_back("right_s0");
+    joint_names->push_back("right_s1");
+    joint_names->push_back("right_w0");
+    joint_names->push_back("right_w1");
+    joint_names->push_back("right_w2");
+  }
+}
+int BaxterRobotConfig::num_arms() const { return 2; }
 }  // namespace pbd
 }  // namespace rapid
 
