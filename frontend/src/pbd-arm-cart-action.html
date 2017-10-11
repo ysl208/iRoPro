@@ -135,9 +135,10 @@
         }
         if (landmark.type === 'tf frame') {
           // to do
-          if (landmark.name === 'base_link' || landmark.name === 'base_footprint') {
+          if (landmark.name === 'base_link' || landmark.name === 'base_footprint'
+              || landmark.name === 'base') {
             return 'Robot base';
-          } else if (landmark.name === 'torso_lift_link') {
+          } else if (landmark.name === 'torso_lift_link' || landmark.name === 'torso') {
             return 'Robot torso';
           } else {
             return landmark.name;
