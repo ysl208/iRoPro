@@ -156,7 +156,7 @@ void GetConditionMarker(const msgs::Condition& condition,
     std::string base_link(robot_config.base_link());
     if (condition.positionRelevant){
 
-      Marker cylinder; // describes the main object's allowed positions
+      Marker cylinder; // describes the main object's allowed position
       cylinder.header.frame_id = base_link;
       cylinder.type = Marker::CUBE;
       cylinder.ns = "displacement_cylinder";
@@ -168,21 +168,20 @@ void GetConditionMarker(const msgs::Condition& condition,
                             condition.eulerAngles.y, condition.eulerAngles.z);
       pose.orientation = quat;
       cylinder.pose = pose;
-      cylinder.pose.position.z = 0.7072; // same as table height
+      cylinder.pose.position.z -= condition.surface_box_dims.z/2; // same as table height
       cylinder.scale.x = condition.surface_box_dims.x + condition.positionVariance.x;//2*fabs(condition.contDisplacement.x+condition.contDisplacementVariance.x);
       cylinder.scale.y = condition.surface_box_dims.y + condition.positionVariance.y;//2*fabs(condition.contDisplacement.y+condition.contDisplacementVariance.y); // head diameter
       cylinder.scale.z = 0.005; // head length
 
-      cylinder.color.r = 0;
+      cylinder.color.r = 0; // pink
       cylinder.color.g = 0;
       cylinder.color.b = 1;
       cylinder.color.a = 1;
       scene_markers->markers.push_back(cylinder);
     }
-    if (condition.referenceRelevant && condition.reference.name != "") {
-      ROS_INFO("Reference with name: %s", condition.reference.name.c_str());
-      std::cout << condition.referenceRelevant << std::endl;
+    if (condition.contDisplacementRelevant){
 
+    // if (condition.referenceRelevant && condition.reference.name != "") {
       Marker arrow; // displacement arrow
       arrow.type = Marker::ARROW;
       arrow.header.frame_id = base_link;
@@ -197,15 +196,13 @@ void GetConditionMarker(const msgs::Condition& condition,
       arrow.scale.x = 0.005; // shaft diameter
       arrow.scale.y = 0.02; // head diameter
       arrow.scale.z = 0.02; // head length
-      arrow.color.r = 1;
+      arrow.color.r = 1; // red
       arrow.color.g = 0;
       arrow.color.b = 0;
       arrow.color.a = 1;
       scene_markers->markers.push_back(arrow);
 
-    }
-    if (condition.contDisplacementRelevant){
-
+      // three lines indicating the allowed variances
       Marker line_strip;
       line_strip.header.frame_id = base_link;
       line_strip.type = Marker::LINE_STRIP;
@@ -232,7 +229,7 @@ void GetConditionMarker(const msgs::Condition& condition,
       y_bound2.z = condition.position.z + condition.contDisplacement.z;
 
       line_strip.scale.x = 0.01; // width of line segments
-      line_strip.color.r = 1;
+      line_strip.color.r = 1; // red
       line_strip.color.g = 0;
       line_strip.color.b = 0;
       line_strip.color.a = 1;
@@ -247,20 +244,19 @@ void GetConditionMarker(const msgs::Condition& condition,
       line_strip.points.push_back(condition.position);
       scene_markers->markers.push_back(line_strip);
 
-      Marker reference; // describes the main object's allowed positions
+      Marker reference; // describes the reference's allowed positions
       reference.header.frame_id = base_link;
       reference.type = Marker::CUBE;
       reference.ns = "displacement_cube";
       reference.pose.orientation = condition.reference.pose_stamped.pose.orientation;
       reference.pose.position = condition.reference.pose_stamped.pose.position;
       reference.pose.position.z -= condition.reference.surface_box_dims.z/2; // same as table height
-      ROS_INFO("Marker z-position set to : %f", reference.pose.position.z);
       reference.scale.x = condition.reference.surface_box_dims.x + condition.contDisplacementVariance.x;//2*fabs(condition.contDisplacement.x+condition.contDisplacementVariance.x);
       reference.scale.y = condition.reference.surface_box_dims.y + condition.contDisplacementVariance.y;//2*fabs(condition.contDisplacement.y+condition.contDisplacementVariance.y); // head diameter
       reference.scale.z = 0.005; // head length
 
-      reference.color.r = 0.5;
-      reference.color.g = 0;
+      reference.color.r = 0.5; // violet
+      reference.color.g = 0; 
       reference.color.b = 1;
       reference.color.a = 1;
       scene_markers->markers.push_back(reference);
