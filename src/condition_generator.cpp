@@ -167,12 +167,16 @@ void ConditionGenerator::SetReferenceConditions(msgs::Condition* condition,
     GetDisplacementVector(landmark, reference, condition);
     condition->contDisplacementVariance = defaultVarVector;
 
-    condition->contOrientationRelevant = true;
-    condition->contOrientationVariance = defaultVarVector;
-//    condition->contEulerAngles = QuaternionToRPY(condition->orientation);
-    
     condition->discDisplacementRelevant = false;
     GetSpatialRelation(condition);
+
+    condition->contOrientationRelevant = true;
+    condition->contOrientationVariance = defaultVarVector;
+    condition->contEulerAngles = QuaternionToRPY(condition->contOrientation);
+  
+    condition->discOrientationRelevant = false;
+    GetRelativeAlignment(condition);
+    
 }
 
 bool ConditionGenerator::ReferencedLandmark(const msgs::Landmark& landmark,
@@ -256,12 +260,27 @@ void ConditionGenerator::GetDisplacementVector(const msgs::Landmark& landmark,
     condition->contDisplacement.x = reference_pose.x - landmark_pose.x;
     condition->contDisplacement.y = reference_pose.y - landmark_pose.y;
     condition->contDisplacement.z = reference_pose.z - landmark_pose.z;
-    
+}
 
-/*   ROS_INFO("Displacement vector position = (%f,%f,%f), orientation = (%f,%f,%f,%f)",
-           condition->contDisplacement.x, condition->contDisplacement.y, condition->contDisplacement.z,
-           condition->contDisplacement.orientation.x, condition->contDisplacement.orientation.y, 
-           condition->contDisplacement.orientation.z, condition->contDisplacement.orientation.w); */
+void ConditionGenerator::GetRelativeAlignment(msgs::Condition* condition)
+{
+  // if theta_z + 90 = 90 mod 180 then orthogonal
+  // if              = 0 mod 180 then parallel
+  // theta_x, _y do not need to be taken into account
+  std::string alignment;
+  alignment = "None";
+  int theta_z = static_cast<int>(condition->contEulerAngles.z);
+  // float orient = ( theta_z ) % 180;
+  float defaultVariance = 0.075;
+
+  if ( (theta_z % 180) < defaultVariance * 100 ) {
+    alignment = "parallel";
+    condition->discOrientationRelevant = true;
+  } else if ( (theta_z % 90) < defaultVariance * 100 ) {
+    alignment = "orthogonal";
+    condition->discOrientationRelevant = true;
+  }
+  condition->alignment = alignment;
 }
 
 void ConditionGenerator::GetSpatialRelation(msgs::Condition* condition)
@@ -329,9 +348,6 @@ void ConditionGenerator::GetSpatialRelation(msgs::Condition* condition)
       }
     }
   }
-/*   ROS_INFO("%s has dimensions %f, %f, %f", 
-    condition->landmark.name.c_str(), dims.x, dims.y, dims.z); */
-
   ROS_INFO("%s %s %s\n", 
     condition->landmark.name.c_str(), spatial_relation.c_str(),
     condition->reference.name.c_str());

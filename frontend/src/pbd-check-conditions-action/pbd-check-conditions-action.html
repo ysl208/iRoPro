@@ -213,6 +213,7 @@
       </div>
       
     <div id="relativeProperties" hidden=[[!action.condition.referenceRelevant]]>
+     <div id="relativePosition">
       <div id="wrap">
         <div id="left_col">
           <div>
@@ -295,58 +296,104 @@
               on-change="_discDisplacementVarianceChanged"
           ></paper-input>
           </div>  -->
-         <!-- </div> -->
+          <!-- </div>  -->
         </div>
-
-  <!--     
+      </div>
+     </div>
+    <div> 
+      <b>Relative orientation</b>
+    </div>      
+    <div id="relativeOrientation" hidden=[[!action.condition.referenceRelevant]]>
+      <div id="wrap">
+        <div id="left_col">
           <div>
-            <paper-checkbox on-change="_orientationRelevantChanged" 
-            checked="{{action.condition.orientationRelevant}}"> 
-            Orientation 
+            <paper-checkbox on-change="_contEulerAnglesRelevantChanged" 
+            checked="{{action.condition.contOrientationRelevant}}"> 
+            Continuous 
           </paper-checkbox>
           </div>
+         <paper-input class="number" 
+          disabled={{!action.condition.contEulerAnglesRelevant}}
+          label="x"
+          value="[[action.condition.contEulerAngles.x]]"
+            on-change="_valueChanged" data-args="action.condition.contEulerAngles.x"
+        ></paper-input>
           <paper-input class="number" 
-            disabled={{!action.condition.orientationRelevant}}
-            label="x"
-            value="[[action.condition.displacement.orientation.x]]"
-            on-change="_xChanged"
-          ></paper-input>
+          disabled={{!action.condition.contEulerAnglesRelevant}}
+          type="number" step="1" min="0" max="100"
+          label="Variance"
+          value="[[action.condition.contOrientationVariance.x]]"
+            on-change="_valueChanged" data-args="action.condition.contOrientationVariance.x"
+        ></paper-input>
           <paper-input class="number" 
-            disabled={{!action.condition.orientationRelevant}}
-            type="number" step="1" min="0" max="100"
-            label="Variance"
-            value="[[action.condition.orientationVariance}}">
-        </paper-input> 
-        <paper-input class="number" 
-          disabled={{!action.condition.orientationRelevant}}
+          disabled={{!action.condition.contEulerAnglesRelevant}}
           label="y"
-          value="[[action.condition.displacement.orientation.y]]"
-          on-change="_yChanged"
+          value="[[action.condition.contEulerAngles.y]]"
+            on-change="_valueChanged" data-args="action.condition.contEulerAngles.y"
         ></paper-input>
           <paper-input class="number" 
-          disabled={{!action.condition.orientationRelevant}}
+          disabled={{!action.condition.contEulerAnglesRelevant}}
           type="number" step="1" min="0" max="100"
           label="Variance"
-          value="[[action.condition.orientationVariance]]">
-        </paper-input> 
+          value="[[action.condition.contOrientationVariance.y]]"
+            on-change="_valueChanged" data-args="action.condition.contOrientationVariance.y"
+        ></paper-input>
         <paper-input class="number" 
-          disabled={{!action.condition.orientationRelevant}}
+          disabled={{!action.condition.contEulerAnglesRelevant}}
           label="z"
-          value="[[action.condition.displacement.orientation.z]]"
-          on-change="_zChanged"
+          value="[[action.condition.contEulerAngles.z]]"
+            on-change="_valueChanged" data-args="action.condition.contEulerAngles.z"
         ></paper-input>
           <paper-input class="number" 
-          disabled={{!action.condition.orientationRelevant}}
+          disabled={{!action.condition.contEulerAnglesRelevant}}
           type="number" step="1" min="0" max="100"
           label="Variance"
-          value="[[action.condition.orientationVariance]]">
-        </paper-input> 
-      </div> -->
-    <!-- </div> -->
-     
+          value="[[action.condition.contOrientationVariance.z]]"
+            on-change="_valueChanged" data-args="action.condition.contOrientationVariance.z"
+        ></paper-input>
+        </div>
+        <div id="right_col">  
+          <!-- <div>
+            <paper-checkbox
+            checked="{{action.condition.discOrientationRelevant}}">
+            Discrete 
+          </paper-checkbox> 
+          </div> -->
+          <!-- <div 
+          hidden={{!action.condition.discOrientationRelevant}}>  -->
+            <div>
+            [[action.condition.landmark.name]]
+            </div>
+            <paper-dropdown-menu label="alignment">
+              <paper-listbox slot="dropdown-content" selected="[[_relationName(action.condition.alignment)]]" attr-for-selected="name" width="10">
+                <template is="dom-repeat" items="[[alignments]]">
+                  <paper-item name="[[_relationName(item)]]" 
+                  on-tap="_updateSpatialRelation">
+                  [[_relationName(item)]]
+                  </paper-item>
+                </template>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            [[action.condition.reference.name]]
+          <!-- <div>
+            <paper-input type="number" step="1" min="0" max="100"
+              label="Distance to [[action.condition.reference.name]]"
+              value="{{_getDistance(action.condition.contEulerAngles)}}"
+          ></paper-input>
+            <paper-input type="number" step="1" min="0" max="100"
+              label="Variance"
+              value="{{_getDistance(action.condition.contOrientationVariance)}}"
+              on-change="_discOrientationVarianceChanged"
+          ></paper-input>
+          </div>  -->
+         <!-- </div> -->
+        </div>     
     
     </div>
     </div>
+    </div>
+    </div>
+  
   </template>
   <script>
     Polymer({

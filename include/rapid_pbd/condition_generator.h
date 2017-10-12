@@ -56,8 +56,8 @@ private:
   void GetDisplacementVector(const rapid_pbd_msgs::Landmark& landmark,
                                                const rapid_pbd_msgs::Landmark& reference,
                                             rapid_pbd_msgs::Condition* condition);
-  
   void GetSpatialRelation(rapid_pbd_msgs::Condition* condition);
+  void GetRelativeAlignment(rapid_pbd_msgs::Condition* condition);
 };
 } // namespace pbd
 } // namespace rapid
