@@ -6,6 +6,7 @@ project(rapid_pbd)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   actionlib
+  baxter_core_msgs
   control_msgs
   controller_manager_msgs
   geometry_msgs
@@ -144,6 +145,7 @@ catkin_package(
     rapid_pbd_world
   CATKIN_DEPENDS
     actionlib
+    baxter_core_msgs
     control_msgs
     controller_manager_msgs
     geometry_msgs
@@ -438,6 +440,10 @@ install(FILES
   config/sensors_dummy.yaml
   config/surface_segmentation.yaml
   launch/editor.launch
+  launch/baxter_app.launch
+  launch/baxter.launch
+  ## launch/baxter_moveit.launch
+  launch/baxter_planning_context.launch
   launch/fetch_app.launch
   launch/fetch.launch
   launch/fetch_moveit.launch

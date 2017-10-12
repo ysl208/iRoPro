@@ -220,10 +220,10 @@
         }
         this.$.programSub.subscribe();
         this.currentStepNum = 0;
-
+        this.currentCondition = "";
         var config = {
           globalOptions: {
-            fixedFrame: '/base_link',
+            fixedFrame: '/base',
             background: '#113344',
           },
           displays: [

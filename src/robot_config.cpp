@@ -134,16 +134,16 @@ int FetchRobotConfig::num_arms() const { return 1; }
 
 BaxterRobotConfig::BaxterRobotConfig() {}
 
-std::string BaxterRobotConfig::planning_frame() const { return "base_footprint"; }
-std::string BaxterRobotConfig::planning_group() const { return "arms"; }
-std::string BaxterRobotConfig::base_link() const { return "base_footprint"; }
-std::string BaxterRobotConfig::torso_link() const { return "torso_lift_link"; }
+std::string BaxterRobotConfig::planning_frame() const { return "base"; }
+std::string BaxterRobotConfig::planning_group() const { return "both_arms"; }
+std::string BaxterRobotConfig::base_link() const { return "base"; }
+std::string BaxterRobotConfig::torso_link() const { return "torso"; }
 std::string BaxterRobotConfig::ee_frame_for_group(
     const std::string& actuator_group) const {
   if (actuator_group == Action::LEFT_ARM) {
-    return "left_gripper";
+    return "left_wrist";
   } else if (actuator_group == Action::RIGHT_ARM) {
-    return "right_gripper";
+    return "right_wrist";
   } else {
     return "";
   }
