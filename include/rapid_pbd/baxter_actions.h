@@ -9,6 +9,7 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/server/simple_action_server.h"
 #include "control_msgs/GripperCommandAction.h"
+#include "baxter_core_msgs/EndEffectorCommand.h"
 
 #include "rapid_pbd_msgs/ArmControllerState.h"
 #include "rapid_pbd_msgs/FreezeArm.h"

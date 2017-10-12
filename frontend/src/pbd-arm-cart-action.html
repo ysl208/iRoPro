@@ -134,6 +134,7 @@
           return 'Unknown landmark';
         }
         if (landmark.type === 'tf frame') {
+          // to do
           if (landmark.name === 'base_link' || landmark.name === 'base_footprint') {
             return 'Robot base';
           } else if (landmark.name === 'torso_lift_link') {
