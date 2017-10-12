@@ -6,6 +6,7 @@ project(rapid_pbd)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   actionlib
+  baxter_core_msgs
   control_msgs
   controller_manager_msgs
   geometry_msgs
@@ -129,8 +130,6 @@ catkin_package(
     rapid_pbd_action_executor
     rapid_pbd_action_utils
     rapid_pbd_baxter_actions
-    rapid_pbd_condition_checker
-    rapid_pbd_condition_generator
     rapid_pbd_editor
     rapid_pbd_fetch_actions
     rapid_pbd_joint_state
@@ -147,6 +146,7 @@ catkin_package(
     rapid_pbd_world
   CATKIN_DEPENDS
     actionlib
+    baxter_core_msgs
     control_msgs
     controller_manager_msgs
     geometry_msgs
@@ -467,7 +467,7 @@ install(FILES
   launch/editor.launch
   launch/baxter_app.launch
   launch/baxter.launch
-  launch/baxter_moveit.launch
+  ## launch/baxter_moveit.launch
   launch/baxter_planning_context.launch
   launch/fetch_app.launch
   launch/fetch.launch

@@ -147,6 +147,9 @@
         } else if (robot === 'fetch') {
           this.set('params.robot', robot);
           this.set('params.hasTwoArms', false);
+        } else if (robot === 'baxter') {
+          this.set('params.robot', robot);
+          this.set('params.hasTwoArms', false);
         } else {
           console.error('Unknown robot type:', robot);
         }

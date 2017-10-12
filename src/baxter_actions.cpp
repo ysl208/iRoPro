@@ -95,6 +95,7 @@ void ArmControllerManager::Start() { Update(); }
 
 bool ArmControllerManager::HandleFreeze(msgs::FreezeArmRequest& request,
                                         msgs::FreezeArmResponse& response) {
+<<<<<<< HEAD
   // controller_manager_msgs::SwitchControllerRequest req;
   // req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
   // controller_manager_msgs::SwitchControllerResponse res;
@@ -115,12 +116,35 @@ bool ArmControllerManager::HandleFreeze(msgs::FreezeArmRequest& request,
   //   return true;
   // }
   // Update();
+=======
+  controller_manager_msgs::SwitchControllerRequest req;
+  req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
+  controller_manager_msgs::SwitchControllerResponse res;
+  if (request.actuator_group == msgs::Action::LEFT_ARM) {
+    req.start_controllers.push_back("l_arm_controller");
+  } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
+    req.start_controllers.push_back("r_arm_controller");
+  } else {
+    response.error =
+        "Invalid actuator group \"" + request.actuator_group + "\"";
+    ROS_ERROR("%s", response.error.c_str());
+    return true;
+  }
+  bool success = switch_client_.call(req, res);
+  if (!success) {
+    response.error = "Failed to freeze \"" + request.actuator_group + "\"";
+    ROS_ERROR("%s", response.error.c_str());
+    return true;
+  }
+  Update();
+>>>>>>> baxter
 
   return true;
 }
 
 bool ArmControllerManager::HandleRelax(msgs::RelaxArmRequest& request,
                                        msgs::RelaxArmResponse& response) {
+<<<<<<< HEAD
   // controller_manager_msgs::SwitchControllerRequest req;
   // req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
   // controller_manager_msgs::SwitchControllerResponse res;
@@ -141,6 +165,28 @@ bool ArmControllerManager::HandleRelax(msgs::RelaxArmRequest& request,
   //   return true;
   // }
   // Update();
+=======
+  controller_manager_msgs::SwitchControllerRequest req;
+  req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
+  controller_manager_msgs::SwitchControllerResponse res;
+  if (request.actuator_group == msgs::Action::LEFT_ARM) {
+    req.stop_controllers.push_back("l_arm_controller");
+  } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
+    req.stop_controllers.push_back("r_arm_controller");
+  } else {
+    response.error =
+        "Invalid actuator group \"" + request.actuator_group + "\"";
+    ROS_ERROR("%s", response.error.c_str());
+    return true;
+  }
+  bool success = switch_client_.call(req, res);
+  if (!success) {
+    response.error = "Failed to relax \"" + request.actuator_group + "\"";
+    ROS_ERROR("%s", response.error.c_str());
+    return true;
+  }
+  Update();
+>>>>>>> baxter
 
   return true;
 }
@@ -149,11 +195,19 @@ void ArmControllerManager::Update() {
   controller_manager_msgs::ListControllersRequest req;
   controller_manager_msgs::ListControllersResponse res;
   while (!list_client_.waitForExistence(ros::Duration(5))) {
+<<<<<<< HEAD
     ROS_WARN("Waiting for controller_manager_msgs list service...");
   }
   bool success = list_client_.call(req, res);
   if (!success) {
     ROS_ERROR("controller_manager_msgs list service call failed.");
+=======
+    ROS_WARN("Waiting for baxter_controller_manager list service...");
+  }
+  bool success = list_client_.call(req, res);
+  if (!success) {
+    ROS_ERROR("baxter_controller_manager list service call failed.");
+>>>>>>> baxter
   }
   for (size_t i = 0; i < res.controller.size(); ++i) {
     const std::string& name = res.controller[i].name;
