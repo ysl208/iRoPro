@@ -313,7 +313,7 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id, size_t
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
     World world;
     GetWorld(robot_config_, program, last_viewed_[db_id], &world);
-    viz_.PublishConditionMarkers(db_id, world,action_condition);
+    viz_.PublishConditionMarkers(db_id, world, action_condition);
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
   }
