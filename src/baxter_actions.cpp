@@ -42,11 +42,11 @@ void GripperAction::Start() {
 
 void GripperAction::Execute(
     const control_msgs::GripperCommandGoalConstPtr& goal) {
-  control_msgs::GripperCommandGoal baxter_head_goal;
-  baxter_head_goal.command.position = goal->command.position;
-  baxter_head_goal.command.max_effort = goal->command.max_effort;
+  control_msgs::GripperCommandGoal baxter_goal;
+  baxter_goal.command.position = goal->command.position;
+  baxter_goal.command.max_effort = goal->command.max_effort;
   baxter_client_.sendGoal(
-      baxter_head_goal,
+      baxter_goal,
       boost::function<void(const SimpleClientGoalState&,
                            const GripperCommandResult::ConstPtr&)>(),
       boost::function<void()>(),
