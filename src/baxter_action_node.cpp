@@ -21,6 +21,9 @@ int main(int argc, char** argv) {
   pbd::baxter::GripperAction right_gripper(pbd::kRightGripperActionName,
                                         pbd::baxter::kRightGripperActionName);
 
+  pbd::baxter::HeadAction head_action(pbd::kHeadActionName,
+                                      pbd::baxter::kHeadActionName);
+
   ros::Publisher arm_controller_state_pub =
       nh.advertise<msgs::ArmControllerState>(pbd::kArmControllerStateTopic, 5,
                                              true);
@@ -41,6 +44,7 @@ int main(int argc, char** argv) {
 
   left_gripper.Start();
   right_gripper.Start();
+  head_action.Start();
   arm_controller_manager.Start();
   ros::spin();
   return 0;

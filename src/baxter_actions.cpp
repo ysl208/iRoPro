@@ -4,8 +4,9 @@
 
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/server/simple_action_server.h"
+#include "control_msgs/FollowJointTrajectoryAction.h"
 #include "control_msgs/GripperCommandAction.h"
-#include "baxter_core_msgs/EndEffectorCommand.h"
+#include "control_msgs/SingleJointPositionAction.h"
 #include "controller_manager_msgs/ListControllers.h"
 #include "controller_manager_msgs/SwitchController.h"
 
@@ -15,8 +16,12 @@
 #include "rapid_pbd_msgs/RelaxArm.h"
 
 using actionlib::SimpleClientGoalState;
+using control_msgs::FollowJointTrajectoryFeedback;
+using control_msgs::FollowJointTrajectoryResult;
 using control_msgs::GripperCommandFeedback;
 using control_msgs::GripperCommandResult;
+using control_msgs::SingleJointPositionFeedback;
+using control_msgs::SingleJointPositionResult;
 namespace msgs = rapid_pbd_msgs;
 
 namespace rapid {
@@ -37,11 +42,11 @@ void GripperAction::Start() {
 
 void GripperAction::Execute(
     const control_msgs::GripperCommandGoalConstPtr& goal) {
-  control_msgs::GripperCommandGoal baxter_goal;
-  baxter_goal.command.position = goal->command.position;
-  baxter_goal.command.max_effort = goal->command.max_effort;
+  control_msgs::GripperCommandGoal baxter_head_goal;
+  baxter_head_goal.command.position = goal->command.position;
+  baxter_head_goal.command.max_effort = goal->command.max_effort;
   baxter_client_.sendGoal(
-      baxter_goal,
+      baxter_head_goal,
       boost::function<void(const SimpleClientGoalState&,
                            const GripperCommandResult::ConstPtr&)>(),
       boost::function<void()>(),
@@ -180,6 +185,73 @@ void ArmControllerManager::Update() {
   }
   state_pub_.publish(msg);
 }
+
+HeadAction::HeadAction(const std::string& head_server_name, 
+                        const std::string& head_client_name)
+    : server_(head_server_name, boost::bind(&HeadAction::Execute, this, _1),
+              false),
+      baxter_client_(head_client_name, true) {}
+
+void HeadAction::Start() {
+  while (!baxter_client_.waitForServer(ros::Duration(5))) {
+    ROS_WARN("Waiting for Baxter head server to come up.");
+  }
+  server_.start();
+}
+
+void HeadAction::Execute(
+    const control_msgs::FollowJointTrajectoryGoalConstPtr& goal) {
+      // baxter head action uses SingleJointPositionAction instead of FollowJointTrajectoryAction
+  control_msgs::SingleJointPositionGoal baxter_head_goal;
+  baxter_head_goal.position = goal->trajectory.points[0].positions[0];
+  baxter_head_goal.max_velocity = 1.0;
+
+  baxter_client_.sendGoal(
+      baxter_head_goal,
+      boost::function<void(const SimpleClientGoalState&,
+                           const SingleJointPositionResult::ConstPtr&)>(),
+      boost::function<void()>(),
+      boost::bind(&HeadAction::HandleFeedback, this, _1));
+  while (!baxter_client_.getState().isDone()) {
+    if (server_.isPreemptRequested() || !ros::ok()) {
+      baxter_client_.cancelAllGoals();
+      server_.setPreempted();
+      return;
+    }
+    ros::spinOnce();
+  }
+  if (baxter_client_.getState() == SimpleClientGoalState::PREEMPTED) {
+    baxter_client_.cancelAllGoals();
+    server_.setPreempted();
+    return;
+  } else if (baxter_client_.getState() == SimpleClientGoalState::ABORTED) {
+    baxter_client_.cancelAllGoals();
+    server_.setAborted();
+    return;
+  }
+
+  SingleJointPositionResult::ConstPtr baxter_result = baxter_client_.getResult();
+  // convert baxter client result to FollowJointTrajectory again
+  control_msgs::FollowJointTrajectoryResult result;
+  // result.effort = baxter_result->effort;
+  // result.position = baxter_result->position;
+  // result.reached_goal = baxter_result->reached_goal;
+  // result.stalled = baxter_result->stalled;
+  server_.setSucceeded(result);
+}
+
+void HeadAction::HandleFeedback(
+    const SingleJointPositionFeedback::ConstPtr& baxter_feedback) {
+  control_msgs::FollowJointTrajectoryFeedback feedback;
+  // feedback.effort = baxter_feedback->effort;
+  feedback.actual.positions[0] = baxter_feedback->position;
+  feedback.actual.velocities[0] = baxter_feedback->velocity;
+  
+  // feedback.reached_goal = baxter_feedback->reached_goal;
+  // feedback.stalled = baxter_feedback->stalled;
+  server_.publishFeedback(feedback);
+}
+
 }  // namespace baxter
 }  // namespace pbd
 }  // namespace rapid

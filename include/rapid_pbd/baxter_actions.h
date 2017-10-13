@@ -8,8 +8,9 @@
 
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/server/simple_action_server.h"
+#include "control_msgs/FollowJointTrajectoryAction.h"
 #include "control_msgs/GripperCommandAction.h"
-#include "baxter_core_msgs/EndEffectorCommand.h"
+#include "control_msgs/SingleJointPositionAction.h"
 
 #include "rapid_pbd_msgs/ArmControllerState.h"
 #include "rapid_pbd_msgs/FreezeArm.h"
@@ -21,6 +22,14 @@ typedef actionlib::SimpleActionClient<
     BaxterGripperClient;
 using control_msgs::GripperCommandFeedback;
 using control_msgs::GripperCommandResultConstPtr;
+}  // namespace
+
+namespace {
+typedef actionlib::SimpleActionClient<
+    control_msgs::SingleJointPositionAction>
+    BaxterHeadClient;
+using control_msgs::SingleJointPositionFeedback;
+using control_msgs::SingleJointPositionResultConstPtr;
 }  // namespace
 
 namespace rapid {
@@ -64,6 +73,22 @@ class ArmControllerManager {
   bool is_l_arm_active_;
   bool is_r_arm_active_;
 };
+
+// HeadAction manages the controllers running on the BAXTER head.
+class HeadAction {
+ public:
+  HeadAction(const std::string& head_server_name, 
+                        const std::string& head_client_name);
+
+  void Start();
+  void Execute(const control_msgs::FollowJointTrajectoryGoalConstPtr& goal);
+  void HandleFeedback(const SingleJointPositionFeedback::ConstPtr& baxter_feedback);
+
+ private:
+  actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> server_;
+  BaxterHeadClient baxter_client_;
+};
+
 }  // namespace baxter
 }  // namespace pbd
 }  // namespace rapid
