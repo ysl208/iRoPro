@@ -6,6 +6,7 @@
 
 namespace rapid {
 namespace pbd {
+// will be preprended with /rapid_pbd/
 static const char kProgramActionName[] = "execute_program_action";
 
 static const char kGripperActionName[] = "gripper_action";
@@ -59,25 +60,18 @@ static const char kControllerActionName[] = "/query_controller_states";
 
 namespace baxter {
 static const char kLeftGripperActionName[] =
-    "/l_gripper_controller/gripper_action/command";
-// could be /robot/end_effector/left_gripper/
-// type: baxter_core_msgs/EndEffectorCommand
-
-// /robot/end_effector/left_gripper/command
-// /robot/end_effector/left_gripper/properties
-// /robot/end_effector/left_gripper/state
+    "/robot/end_effector/left_gripper/gripper_action";
+// rosrun baxter_interface gripper_action_server.py
+// to get this topic
 static const char kRightGripperActionName[] =
-    "/r_gripper_controller/gripper_action";
+    "/robot/end_effector/right_gripper/gripper_action";
 static const char kListControllersService[] =
-    "/controller_manager_msgs/list_controllers";
+    "/robot/controller_manager/list_controllers";
 static const char kSwitchControllerService[] =
-    "/controller_manager_msgs/switch_controller";
+    "/robot/controller_manager/switch_controller";
 static const char kHeadActionName[] =
-    "/head_traj_controller/follow_joint_trajectory";
-// not sure?
-// /robot/head_position_controller/joints/head_controller/command
-// Type: std_msgs/Float64
-// 
+    "/robot/head/head_action";
+// rosrun baxter_interface head_action_server.py 
 
 }  // namespace baxter
 
