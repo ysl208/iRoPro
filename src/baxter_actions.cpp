@@ -1,6 +1,7 @@
 #include "rapid_pbd/baxter_actions.h"
 
 #include <string>
+#include <typeinfo>
 
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/server/simple_action_server.h"
@@ -101,52 +102,52 @@ void ArmControllerManager::Start() { Update(); }
 
 bool ArmControllerManager::HandleFreeze(msgs::FreezeArmRequest& request,
                                         msgs::FreezeArmResponse& response) {
-  controller_manager_msgs::SwitchControllerRequest req;
-  req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
-  controller_manager_msgs::SwitchControllerResponse res;
-  if (request.actuator_group == msgs::Action::LEFT_ARM) {
-    req.start_controllers.push_back("l_arm_controller");
-  } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
-    req.start_controllers.push_back("r_arm_controller");
-  } else {
-    response.error =
-        "Invalid actuator group \"" + request.actuator_group + "\"";
-    ROS_ERROR("%s", response.error.c_str());
-    return true;
-  }
-  bool success = switch_client_.call(req, res);
-  if (!success) {
-    response.error = "Failed to freeze \"" + request.actuator_group + "\"";
-    ROS_ERROR("%s", response.error.c_str());
-    return true;
-  }
-  Update();
+  // controller_manager_msgs::SwitchControllerRequest req;
+  // req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
+  // controller_manager_msgs::SwitchControllerResponse res;
+  // if (request.actuator_group == msgs::Action::LEFT_ARM) {
+  //   req.start_controllers.push_back("l_arm_controller");
+  // } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
+  //   req.start_controllers.push_back("r_arm_controller");
+  // } else {
+  //   response.error =
+  //       "Invalid actuator group \"" + request.actuator_group + "\"";
+  //   ROS_ERROR("%s", response.error.c_str());
+  //   return true;
+  // }
+  // bool success = switch_client_.call(req, res);
+  // if (!success) {
+  //   response.error = "Failed to freeze \"" + request.actuator_group + "\"";
+  //   ROS_ERROR("%s", response.error.c_str());
+  //   return true;
+  // }
+  // Update();
 
   return true;
 }
 
 bool ArmControllerManager::HandleRelax(msgs::RelaxArmRequest& request,
                                        msgs::RelaxArmResponse& response) {
-  controller_manager_msgs::SwitchControllerRequest req;
-  req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
-  controller_manager_msgs::SwitchControllerResponse res;
-  if (request.actuator_group == msgs::Action::LEFT_ARM) {
-    req.stop_controllers.push_back("l_arm_controller");
-  } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
-    req.stop_controllers.push_back("r_arm_controller");
-  } else {
-    response.error =
-        "Invalid actuator group \"" + request.actuator_group + "\"";
-    ROS_ERROR("%s", response.error.c_str());
-    return true;
-  }
-  bool success = switch_client_.call(req, res);
-  if (!success) {
-    response.error = "Failed to relax \"" + request.actuator_group + "\"";
-    ROS_ERROR("%s", response.error.c_str());
-    return true;
-  }
-  Update();
+  // controller_manager_msgs::SwitchControllerRequest req;
+  // req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
+  // controller_manager_msgs::SwitchControllerResponse res;
+  // if (request.actuator_group == msgs::Action::LEFT_ARM) {
+  //   req.stop_controllers.push_back("l_arm_controller");
+  // } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
+  //   req.stop_controllers.push_back("r_arm_controller");
+  // } else {
+  //   response.error =
+  //       "Invalid actuator group \"" + request.actuator_group + "\"";
+  //   ROS_ERROR("%s", response.error.c_str());
+  //   return true;
+  // }
+  // bool success = switch_client_.call(req, res);
+  // if (!success) {
+  //   response.error = "Failed to relax \"" + request.actuator_group + "\"";
+  //   ROS_ERROR("%s", response.error.c_str());
+  //   return true;
+  // }
+  // Update();
 
   return true;
 }
@@ -205,13 +206,13 @@ void HeadAction::Execute(
   control_msgs::SingleJointPositionGoal baxter_head_goal;
   baxter_head_goal.position = goal->trajectory.points[0].positions[0];
   baxter_head_goal.max_velocity = 1.0;
-
   baxter_client_.sendGoal(
       baxter_head_goal,
       boost::function<void(const SimpleClientGoalState&,
                            const SingleJointPositionResult::ConstPtr&)>(),
       boost::function<void()>(),
       boost::bind(&HeadAction::HandleFeedback, this, _1));
+  ROS_INFO("Sending SingleJointPositionGoal to baxter_head_client");
   while (!baxter_client_.getState().isDone()) {
     if (server_.isPreemptRequested() || !ros::ok()) {
       baxter_client_.cancelAllGoals();
@@ -223,20 +224,20 @@ void HeadAction::Execute(
   if (baxter_client_.getState() == SimpleClientGoalState::PREEMPTED) {
     baxter_client_.cancelAllGoals();
     server_.setPreempted();
+    ROS_INFO("Sending PREEMPTED to baxter_head_client");
     return;
   } else if (baxter_client_.getState() == SimpleClientGoalState::ABORTED) {
     baxter_client_.cancelAllGoals();
     server_.setAborted();
+    ROS_INFO("Sending ABORTED to baxter_head_client");
     return;
   }
 
   SingleJointPositionResult::ConstPtr baxter_result = baxter_client_.getResult();
   // convert baxter client result to FollowJointTrajectory again
   control_msgs::FollowJointTrajectoryResult result;
-  // result.effort = baxter_result->effort;
-  // result.position = baxter_result->position;
-  // result.reached_goal = baxter_result->reached_goal;
-  // result.stalled = baxter_result->stalled;
+  ROS_INFO("Sending FollowJointTrajectoryResult to baxter_head_client");
+  // To Do: generate correct result
   server_.setSucceeded(result);
 }
 
@@ -247,8 +248,7 @@ void HeadAction::HandleFeedback(
   feedback.actual.positions[0] = baxter_feedback->position;
   feedback.actual.velocities[0] = baxter_feedback->velocity;
   
-  // feedback.reached_goal = baxter_feedback->reached_goal;
-  // feedback.stalled = baxter_feedback->stalled;
+  ROS_INFO("Sending SingleJointPositionFeedback %f", feedback.actual.positions[0]);
   server_.publishFeedback(feedback);
 }
 
