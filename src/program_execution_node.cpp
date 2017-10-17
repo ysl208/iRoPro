@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
 
   planning_scene_pub.publish(scene);
 
-  pbd::JointStateReader js_reader;
+  pbd::JointStateReader js_reader(robot_config->joint_states_topic());
   js_reader.Start();
 
   pbd::RuntimeRobotState robot_state(*robot_config, tf_listener, js_reader);
