@@ -94,7 +94,13 @@
           }
         }
 
-        var joint_names = ['head_pan_joint', 'head_tilt_joint'];
+        var joint_names = [];
+        if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+          joint_names = ['head_pan_joint', 'head_tilt_joint'];
+        }
+        else if (this.params.robot === "baxter") {
+          joint_names = ['head_pan'];
+        }
         if (!_.isEqual(this.action.joint_trajectory.joint_names, joint_names)) {
           this.set('action.joint_trajectory.joint_names', joint_names);
         }
@@ -118,7 +124,14 @@
         if (!this.action.joint_trajectory) {
           this.set('action.joint_trajectory', {points: []});
         }
-        var joint_names = ['head_pan_joint', 'head_tilt_joint'];
+
+        var joint_names = [];
+        if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+          joint_names = ['head_pan_joint', 'head_tilt_joint'];
+        }
+        else if (this.params.robot === "baxter") {
+          joint_names = ['head_pan'];
+        }
         var point = {
           positions: [panRadians, tiltRadians],
           time_from_start: {
