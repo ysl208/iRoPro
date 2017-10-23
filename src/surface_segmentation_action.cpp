@@ -174,6 +174,7 @@ void SurfaceSegmentationAction::Execute(
   int obj_count = 0;
   for (size_t i = 0; i < surface_objects.size(); ++i) {
     const SurfaceObjects& surface_scene = surface_objects[i];
+  // get tabletop objects as landmarks
     num_objects += surface_scene.objects.size();
     for (size_t j = 0; j < surface_scene.objects.size(); ++j) {
       const Object& object = surface_scene.objects[j];
@@ -195,6 +196,16 @@ void SurfaceSegmentationAction::Execute(
       result.landmarks.push_back(landmark);
   
     }
+
+    // return table as separate landmark
+    rapid_pbd_msgs::Landmark table;
+    const Surface& surface = surface_scene.surface;
+    table.type = rapid_pbd_msgs::Landmark::SURFACE_BOX;
+    table.name = "Table";
+    table.pose_stamped = surface.pose_stamped;
+    table.surface_box_dims = surface.dimensions;
+    result.table = table;
+
   }
   ROS_INFO("Detected %ld objects, smallest: %ld points, largest: %ld points",
            num_objects, min_size, max_size);
