@@ -30,6 +30,7 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
   world->joint_state = js;
   world->surface_box_landmarks.clear();
   world->world_conditions.clear();
+  world->grid.clear();
 
   // TODO: If this gets noticeably slow, change it so that it searches backward
   // instead of simulating forward. The channels to search are:
@@ -229,6 +230,22 @@ void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v){
   v->x = p.x;
   v->y = p.y;
   v->z = p.z;
+}
+
+void UpdateGrid(const rapid_pbd_msgs::Landmark& landmark,
+                std::vector<std::vector<std::string> >* grid){
+  float64 lm_length, lm_width; // no. of cells for landmark
+   
+  geometry_msgs::Point position = landmark.position;
+  geometry_msgs::Vector3 lm_dims = landmark.surface_box_dims;
+
+  lm_length = table_dims.x/lm_dims.x;
+  lm_width = table_dims.y/lm_dims.y;
+
+  // displacement from table_center to lm_center
+  geometry_msgs::Point displacement;
+  displacement.x = 
+
 }
 
 }  // namespace pbd

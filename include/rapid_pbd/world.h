@@ -20,7 +20,13 @@ struct World {
   JointState joint_state;
   std::vector<rapid_pbd_msgs::Landmark> surface_box_landmarks;
   std::vector<rapid_pbd_msgs::Condition> world_conditions;
-    
+  std::vector<std::vector<std::string> > grid;
+
+ private:
+  geometry_msgs::Pose table_pose;
+  geometry_msgs::Vector3 table_dims;
+  size_t table_length;
+  size_t table_width;
 };
 
 void GetWorld(const RobotConfig& robot_config,
@@ -32,6 +38,10 @@ bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
 
 void GetRPY(const geometry_msgs::Quaternion& q, geometry_msgs::Vector3* rpy);
 void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v);
+
+void UpdateGrid(const rapid_pbd_msgs::Landmark& landmark,
+                std::vector<std::vector<std::string> >* grid);
+
 }  // namespace pbd
 }  // namespace rapid
 
