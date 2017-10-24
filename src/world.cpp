@@ -234,17 +234,20 @@ void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v){
 
 void UpdateGrid(const rapid_pbd_msgs::Landmark& landmark,
                 std::vector<std::vector<std::string> >* grid){
-  float64 lm_length, lm_width; // no. of cells for landmark
+  float lm_length, lm_width; // no. of cells for landmark
    
-  geometry_msgs::Point position = landmark.position;
+  geometry_msgs::Point lm_pos = landmark.pose_stamped.pose.position;
   geometry_msgs::Vector3 lm_dims = landmark.surface_box_dims;
+  
+  // geometry_msgs::Point table_pos = table_pose.position;
 
-  lm_length = table_dims.x/lm_dims.x;
-  lm_width = table_dims.y/lm_dims.y;
+  // lm_length = std::ceil(table_dims.x/lm_dims.x);
+  // lm_width = std::ceil(table_dims.y/lm_dims.y);
 
   // displacement from table_center to lm_center
   geometry_msgs::Point displacement;
-  displacement.x = 
+  // displacement.x = table_pos.x = lm_pos.x;
+  // displacement.y = table_pos.y = lm_pos.y;
 
 }
 

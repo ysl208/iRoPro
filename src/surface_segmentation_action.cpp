@@ -199,11 +199,11 @@ void SurfaceSegmentationAction::Execute(
 
     // return table as separate landmark
     rapid_pbd_msgs::Landmark table;
-    const Surface& surface = surface_scene.surface;
+    // const Surface& surface = surface_scene.surface;
     table.type = rapid_pbd_msgs::Landmark::SURFACE_BOX;
     table.name = "Table";
-    table.pose_stamped = surface.pose_stamped;
-    table.surface_box_dims = surface.dimensions;
+    table.pose_stamped = surface_scene.surface.pose_stamped;
+    table.surface_box_dims = surface_scene.surface.dimensions;
     result.table = table;
 
   }
