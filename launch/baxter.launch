@@ -34,5 +34,5 @@
     <param unless="$(arg sim)" name="depth" value="$(arg depth_topic)_float" />
     <param name="camera_frame_id" value="$(arg camera_frame)" />
   </node>
-
+  <include file="$(find rapid_pbd)/launch/tf_frames.launch" />
 </launch>

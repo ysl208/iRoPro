@@ -202,17 +202,19 @@ void HeadAction::Start() {
 
 void HeadAction::Execute(
     const control_msgs::FollowJointTrajectoryGoalConstPtr& goal) {
-      // baxter head action uses SingleJointPositionAction instead of FollowJointTrajectoryAction
+  // baxter head action uses SingleJointPositionAction instead of FollowJointTrajectoryAction
   control_msgs::SingleJointPositionGoal baxter_head_goal;
   baxter_head_goal.position = goal->trajectory.points[0].positions[0];
   baxter_head_goal.max_velocity = 1.0;
+  ROS_INFO("Sending SingleJointPositionGoal to baxter_head_client: %f",
+    baxter_head_goal.position);
   baxter_client_.sendGoal(
       baxter_head_goal,
       boost::function<void(const SimpleClientGoalState&,
                            const SingleJointPositionResult::ConstPtr&)>(),
       boost::function<void()>(),
       boost::bind(&HeadAction::HandleFeedback, this, _1));
-  ROS_INFO("Sending SingleJointPositionGoal to baxter_head_client");
+  ROS_INFO("Goal sent. get state...");
   while (!baxter_client_.getState().isDone()) {
     if (server_.isPreemptRequested() || !ros::ok()) {
       baxter_client_.cancelAllGoals();
@@ -221,6 +223,7 @@ void HeadAction::Execute(
     }
     ros::spinOnce();
   }
+  ROS_INFO("Check for preemption...");
   if (baxter_client_.getState() == SimpleClientGoalState::PREEMPTED) {
     baxter_client_.cancelAllGoals();
     server_.setPreempted();
@@ -232,12 +235,16 @@ void HeadAction::Execute(
     ROS_INFO("Sending ABORTED to baxter_head_client");
     return;
   }
+  ROS_INFO("Getting result...");
 
   SingleJointPositionResult::ConstPtr baxter_result = baxter_client_.getResult();
   // convert baxter client result to FollowJointTrajectory again
   control_msgs::FollowJointTrajectoryResult result;
-  ROS_INFO("Sending FollowJointTrajectoryResult to baxter_head_client");
-  // To Do: generate correct result
+  result.error_code = 0;
+  ROS_INFO("Sending FollowJointTrajectoryResult to baxter_head_client: %d", 
+            result.error_code);
+  // std::cout << baxter_result << std::endl;
+  // To Do: generate correct result, but SingleJointPositionResult msg seems to be empty
   server_.setSucceeded(result);
 }
 

@@ -61,8 +61,7 @@ static const char kControllerActionName[] = "/query_controller_states";
 namespace baxter {
 static const char kLeftGripperActionName[] =
     "/robot/end_effector/left_gripper/gripper_action";
-// rosrun baxter_interface gripper_action_server.py
-// to get this topic
+// don't forget to run rosrun baxter_interface gripper_action_server.py
 static const char kRightGripperActionName[] =
     "/robot/end_effector/right_gripper/gripper_action";
 static const char kListControllersService[] =
@@ -71,7 +70,7 @@ static const char kSwitchControllerService[] =
     "/robot/controller_manager/switch_controller";
 static const char kHeadActionName[] =
     "/robot/head/head_action";
-// rosrun baxter_interface head_action_server.py 
+// don't forget to run rosrun baxter_interface head_action_server.py 
 
 }  // namespace baxter
 
