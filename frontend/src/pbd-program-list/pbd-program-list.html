@@ -3,6 +3,7 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 <link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../../bower_components/ros-service/ros-service.html">
 <link rel="import" href="../shared-styles/shared-styles.html">
 
 <dom-module id="pbd-program-list">
@@ -46,6 +47,14 @@
       topic="rapid_pbd/editor_events"
       ros="[[ros]]"
     ></ros-topic>
+    <ros-service auto
+      id="createSrv"
+      on-fail="_handleServiceError"
+      on-response="_handleServiceResponse"
+      name="/rapid_pbd/create_program"
+      ros="[[ros]]"
+      service-type="rapid_pbd_msgs/CreateProgram"
+    ></ros-service>
     <paper-button id="createButton" class="important" raised on-tap="_handleCreate">+ Create new program</paper-button>
     <div class="paper-material">
       <table>
@@ -111,13 +120,20 @@
       _handleCreate: function(evt) {
         var now = new Date();
         var name = 'Untitled program ' + now.toLocaleString();
-        var msg = {
-          type: 'create program',
-          program_info: {
-            name: name
-          },
+        var request = {
+          name: name,
         };
-        this.$.eventPub.publish(msg);
+        this.$.createSrv.call(request);
+      },
+
+      _handleServiceResponse(evt) {
+        var id = evt.detail.db_id;
+        window.history.pushState({}, null, "#/program/" + id);
+        window.dispatchEvent(new CustomEvent("location-changed"));
+      },
+
+      _handleServiceError: function(evt) {
+        console.error(evt.detail);
       },
     });
   </script>

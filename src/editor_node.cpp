@@ -73,6 +73,9 @@ int main(int argc, char** argv) {
   ros::Subscriber editor_sub = nh.subscribe(pbd::kEditorEventsTopic, 10,
                                             &pbd::Editor::HandleEvent, &editor);
 
+  ros::ServiceServer editor_server = nh.advertiseService(
+      "create_program", &pbd::Editor::HandleCreateProgram, &editor);
+
   ROS_INFO("RapidPBD editor ready.");
   ros::spin();
   if (robot_config) {

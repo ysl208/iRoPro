@@ -46,9 +46,7 @@ void Editor::Start() {
 
 void Editor::HandleEvent(const msgs::EditorEvent& event) {
   try {
-    if (event.type == msgs::EditorEvent::CREATE) {
-      Create(event.program_info.name);
-    } else if (event.type == msgs::EditorEvent::UPDATE) {
+    if (event.type == msgs::EditorEvent::UPDATE) {
       Update(event.program_info.db_id, event.program);
     } else if (event.type == msgs::EditorEvent::DELETE) {
       Delete(event.program_info.db_id);
@@ -79,7 +77,13 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
   }
 }
 
-void Editor::Create(const std::string& name) {
+bool Editor::HandleCreateProgram(msgs::CreateProgram::Request& request,
+                                 msgs::CreateProgram::Response& response) {
+  response.db_id = Create(request.name);
+  return true;
+}
+
+std::string Editor::Create(const std::string& name) {
   msgs::Program program;
   program.name = name;
   joint_state_reader_.ToMsg(&program.start_joint_state);
@@ -88,6 +92,8 @@ void Editor::Create(const std::string& name) {
   World world;
   GetWorld(robot_config_, program, 0, &world);
   viz_.Publish(id, world);
+
+  return id;
 }
 
 void Editor::Update(const std::string& db_id, const msgs::Program& program) {
@@ -257,10 +263,10 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   DeleteScene(program.steps[step_id].scene_id);
   program.steps[step_id].scene_id = result->cloud_db_id;
   DeleteLandmarks(msgs::Landmark::SURFACE_BOX, &program.steps[step_id]);
-  for (size_t i=0; i<result->landmarks.size(); ++i) {
+  for (size_t i = 0; i < result->landmarks.size(); ++i) {
     msgs::Landmark landmark;
     ProcessSurfaceBox(result->landmarks[i], &landmark);
-   program.steps[step_id].landmarks.push_back(landmark); 
+    program.steps[step_id].landmarks.push_back(landmark);
   }
   Update(db_id, program);
 }
