@@ -48,31 +48,6 @@ class GripperAction {
   BaxterGripperClient baxter_client_;
 };
 
-// ArmControllerManager manages the controllers running on the BAXTER arms.
-class ArmControllerManager {
- public:
-  ArmControllerManager(const ros::Publisher& state_pub,
-                       const ros::ServiceClient& list_client,
-                       const ros::ServiceClient& switch_client);
-
-  // Publishes an initial state message.
-  void Start();
-
-  bool HandleFreeze(rapid_pbd_msgs::FreezeArmRequest& request,
-                    rapid_pbd_msgs::FreezeArmResponse& response);
-  bool HandleRelax(rapid_pbd_msgs::RelaxArmRequest& request,
-                   rapid_pbd_msgs::RelaxArmResponse& response);
-
- private:
-  void Update();
-
-  ros::Publisher state_pub_;
-  ros::ServiceClient list_client_;
-  ros::ServiceClient switch_client_;
-
-  bool is_l_arm_active_;
-  bool is_r_arm_active_;
-};
 
 // HeadAction manages the controllers running on the BAXTER head.
 class HeadAction {

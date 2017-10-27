@@ -24,28 +24,9 @@ int main(int argc, char** argv) {
   pbd::baxter::HeadAction head_action(pbd::kHeadActionName,
                                       pbd::baxter::kHeadActionName);
 
-  ros::Publisher arm_controller_state_pub =
-      nh.advertise<msgs::ArmControllerState>(pbd::kArmControllerStateTopic, 5,
-                                             true);
-  ros::ServiceClient list_client =
-      nh.serviceClient<controller_manager_msgs::ListControllers>(
-          pbd::baxter::kListControllersService);
-  ros::ServiceClient switch_client =
-      nh.serviceClient<controller_manager_msgs::SwitchController>(
-          pbd::baxter::kSwitchControllerService);
-  pbd::baxter::ArmControllerManager arm_controller_manager(
-      arm_controller_state_pub, list_client, switch_client);
-  ros::ServiceServer freeze_srv = nh.advertiseService(
-      pbd::kFreezeArmService, &pbd::baxter::ArmControllerManager::HandleFreeze,
-      &arm_controller_manager);
-  ros::ServiceServer relax_srv = nh.advertiseService(
-      pbd::kRelaxArmService, &pbd::baxter::ArmControllerManager::HandleRelax,
-      &arm_controller_manager);
-
   left_gripper.Start();
   right_gripper.Start();
   head_action.Start();
-  arm_controller_manager.Start();
   ros::spin();
   return 0;
 }
