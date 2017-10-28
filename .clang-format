@@ -1,0 +1,7 @@
+BasedOnStyle: Google
+---
+Language: Cpp
+---
+Language: JavaScript
+DisableFormat: true
+---
