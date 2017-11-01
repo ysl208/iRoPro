@@ -6,13 +6,11 @@
 #include "boost/shared_ptr.hpp"
 #include "rapid_pbd_msgs/Step.h"
 #include "ros/ros.h"
-#include "tf/transform_listener.h"
 
 #include "rapid_pbd/action_clients.h"
 #include "rapid_pbd/action_executor.h"
-#include "rapid_pbd/joint_state_reader.h"
 #include "rapid_pbd/motion_planning.h"
-#include "rapid_pbd/robot_config.h"
+#include "rapid_pbd/runtime_robot_state.h"
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
 
@@ -21,11 +19,9 @@ namespace pbd {
 class StepExecutor {
  public:
   StepExecutor(const rapid_pbd_msgs::Step& step, ActionClients* action_clients,
-               const RobotConfig& robot_config, World* world,
+               const RuntimeRobotState& robot_state, World* world,
                const RuntimeVisualizer& runtime_viz,
-               const tf::TransformListener& tf_listener,
-               const ros::Publisher& planning_scene_pub,
-               const JointStateReader& js_reader);
+               const ros::Publisher& planning_scene_pub);
 
   // Returns true if the Step message is valid, false otherwise.
   // You should call this method to verify the step message before executing it.
@@ -47,7 +43,7 @@ class StepExecutor {
  private:
   rapid_pbd_msgs::Step step_;
   ActionClients* action_clients_;
-  const RobotConfig& robot_config_;
+  const RuntimeRobotState& robot_state_;
   World* world_;
   RuntimeVisualizer runtime_viz_;
   MotionPlanning motion_planning_;

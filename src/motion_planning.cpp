@@ -13,11 +13,11 @@
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Landmark.h"
 #include "ros/ros.h"
-#include "tf/transform_listener.h"
 #include "transform_graph/graph.h"
 
 #include "rapid_pbd/errors.h"
 #include "rapid_pbd/landmarks.h"
+#include "rapid_pbd/runtime_robot_state.h"
 #include "rapid_pbd/world.h"
 
 using moveit_msgs::MoveItErrorCodes;
@@ -27,17 +27,15 @@ namespace tg = transform_graph;
 
 namespace rapid {
 namespace pbd {
-MotionPlanning::MotionPlanning(const RobotConfig& robot_config, World* world,
-                               const tf::TransformListener& tf_listener,
-                               const ros::Publisher& planning_scene_pub,
-                               const JointStateReader& js_reader)
-    : robot_config_(robot_config),
+MotionPlanning::MotionPlanning(const RuntimeRobotState& robot_state,
+                               World* world,
+                               const ros::Publisher& planning_scene_pub)
+    : robot_state_(robot_state),
       world_(world),
-      tf_listener_(tf_listener),
       planning_scene_pub_(planning_scene_pub),
-      builder_(robot_config.planning_frame(), robot_config.planning_group()),
-      num_goals_(0),
-      joint_state_reader_(js_reader) {
+      builder_(robot_state.config.planning_frame(),
+               robot_state.config.planning_group()),
+      num_goals_(0) {
   builder_.can_replan = true;
   builder_.num_planning_attempts = 10;
   builder_.replan_attempts = 2;
@@ -49,7 +47,8 @@ string MotionPlanning::AddPoseGoal(
     const rapid_pbd_msgs::Landmark& landmark,
     const std::vector<std::string>& seed_joint_names,
     const std::vector<double>& seed_joint_positions) {
-  string ee_link = robot_config_.ee_frame_for_group(actuator_group);
+  const string& base_link(robot_state_.config.base_link());
+  const string& ee_link(robot_state_.config.ee_frame_for_group(actuator_group));
   if (ee_link == "") {
     ROS_ERROR("Unable to look up EE link for actuator group \"%s\"",
               actuator_group.c_str());
@@ -61,22 +60,22 @@ string MotionPlanning::AddPoseGoal(
   if (landmark.type == msgs::Landmark::TF_FRAME) {
     tf::StampedTransform st;
     try {
-      tf_listener_.lookupTransform(robot_config_.base_link(), landmark.name,
-                                   ros::Time(0), st);
+      robot_state_.tf_listener.lookupTransform(base_link, landmark.name,
+                                               ros::Time(0), st);
     } catch (const tf::TransformException& ex) {
       ROS_ERROR(
           "Unable to get TF transform from \"%s\" to landmark frame \"%s\"",
-          robot_config_.base_link().c_str(), landmark.name.c_str());
+          base_link.c_str(), landmark.name.c_str());
       return "Unable to get TF transform";
     }
-    graph.Add("landmark", tg::RefFrame(robot_config_.base_link()), st);
+    graph.Add("landmark", tg::RefFrame(base_link), st);
   } else if (landmark.type == msgs::Landmark::SURFACE_BOX) {
     msgs::Landmark match;
     bool success = MatchLandmark(*world_, landmark, &match);
     if (!success) {
       return errors::kNoLandmarksMatch;
     }
-    if (match.pose_stamped.header.frame_id != robot_config_.base_link()) {
+    if (match.pose_stamped.header.frame_id != base_link) {
       ROS_ERROR("Landmark not in base frame: \"%s\"",
                 match.pose_stamped.header.frame_id.c_str());
       return "Landmark not in base frame.";
@@ -90,8 +89,7 @@ string MotionPlanning::AddPoseGoal(
 
   // Transform pose into base frame
   tg::Transform landmark_transform;
-  graph.ComputeDescription(tg::LocalFrame("ee"),
-                           tg::RefFrame(robot_config_.base_link()),
+  graph.ComputeDescription(tg::LocalFrame("ee"), tg::RefFrame(base_link),
                            &landmark_transform);
   geometry_msgs::Pose pose_in_base;
   landmark_transform.ToPose(&pose_in_base);
@@ -111,13 +109,13 @@ string MotionPlanning::AddPoseGoal(
   } else if (actuator_group == msgs::Action::RIGHT_ARM) {
     ik_req.ik_request.group_name = "right_arm";
   }
-  ik_req.ik_request.pose_stamped.header.frame_id = robot_config_.base_link();
+  ik_req.ik_request.pose_stamped.header.frame_id = base_link;
   ik_req.ik_request.pose_stamped.pose = pose_in_base;
   ik_req.ik_request.avoid_collisions = true;
   ik_req.ik_request.attempts = 5;
   ik_req.ik_request.timeout = ros::Duration(2);
-  robot_config_.joints_for_group(actuator_group,
-                                 &ik_req.ik_request.ik_link_names);
+  robot_state_.config.joints_for_group(actuator_group,
+                                       &ik_req.ik_request.ik_link_names);
   moveit_msgs::GetPositionIKResponse ik_res;
   ros::service::call("/compute_ik", ik_req, ik_res);
   bool success =
@@ -175,13 +173,13 @@ void MotionPlanning::ClearGoals() {
   // If two-arm robot, then save the current joint angles for both arms
   // This is because if you leave the joint goal for an arm unspecified, it can
   // be random.
-  int num_arms = robot_config_.num_arms();
+  int num_arms = robot_state_.config.num_arms();
   if (num_arms == 2) {
     std::vector<std::string> joints;
-    robot_config_.joints_for_group(msgs::Action::LEFT_ARM, &joints);
-    robot_config_.joints_for_group(msgs::Action::RIGHT_ARM, &joints);
+    robot_state_.config.joints_for_group(msgs::Action::LEFT_ARM, &joints);
+    robot_state_.config.joints_for_group(msgs::Action::RIGHT_ARM, &joints);
     std::vector<double> joint_values;
-    joint_state_reader_.get_positions(joints, &joint_values);
+    robot_state_.js_reader.get_positions(joints, &joint_values);
     current_joint_goal_.clear();
     for (size_t i = 0; i < joints.size(); ++i) {
       current_joint_goal_[joints[i]] = joint_values[i];
