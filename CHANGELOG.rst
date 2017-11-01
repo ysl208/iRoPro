@@ -2,8 +2,8 @@
 Changelog for package rapid_pbd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.5 (2017-10-31)
+------------------
 * Added a service to create a new program (`#22 <https://github.com/jstnhuang/rapid_pbd/issues/22>`_)
 * Upgraded to ros-rviz v3.
 * Added rosbridge_server as a runtime dependency.

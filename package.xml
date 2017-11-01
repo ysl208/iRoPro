@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>rapid_pbd</name>
-  <version>0.1.4</version>
+  <version>0.1.5</version>
   <description>Programming by demonstration for 1 or 2 arm robots</description>
   <maintainer email="jstn@cs.washington.edu">Justin Huang</maintainer>
   <license>MIT</license>
