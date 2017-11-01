@@ -7,6 +7,7 @@
 #include "rapid_pbd/joint_state_reader.h"
 #include "rapid_pbd/program_executor.h"
 #include "rapid_pbd/robot_config.h"
+#include "rapid_pbd/runtime_robot_state.h"
 #include "rapid_pbd/visualizer.h"
 #include "ros/ros.h"
 #include "shape_msgs/SolidPrimitive.h"
@@ -111,11 +112,14 @@ int main(int argc, char** argv) {
   planning_scene_pub.publish(scene);
 
   rapid::pbd::JointStateReader js_reader;
+  js_reader.Start();
+
+  rapid::pbd::RuntimeRobotState robot_state(*robot_config, tf_listener,
+                                            js_reader);
 
   rapid::pbd::ProgramExecutionServer server(
       rapid::pbd::kProgramActionName, is_running_pub, &action_clients,
-      *robot_config, tf_listener, runtime_viz, program_db, planning_scene_pub,
-      js_reader);
+      robot_state, runtime_viz, program_db, planning_scene_pub);
   server.Start();
   ROS_INFO("RapidPbD program executor ready.");
   ros::spin();

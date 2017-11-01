@@ -7,11 +7,11 @@
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Step.h"
 #include "ros/ros.h"
-#include "tf/transform_listener.h"
 
 #include "rapid_pbd/action_executor.h"
 #include "rapid_pbd/errors.h"
 #include "rapid_pbd/motion_planning.h"
+#include "rapid_pbd/runtime_robot_state.h"
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
 
@@ -23,18 +23,15 @@ namespace rapid {
 namespace pbd {
 StepExecutor::StepExecutor(const rapid_pbd_msgs::Step& step,
                            ActionClients* action_clients,
-                           const RobotConfig& robot_config, World* world,
+                           const RuntimeRobotState& robot_state, World* world,
                            const RuntimeVisualizer& runtime_viz,
-                           const tf::TransformListener& tf_listener,
-                           const ros::Publisher& planning_scene_pub,
-                           const JointStateReader& js_reader)
+                           const ros::Publisher& planning_scene_pub)
     : step_(step),
       action_clients_(action_clients),
-      robot_config_(robot_config),
+      robot_state_(robot_state),
       world_(world),
       runtime_viz_(runtime_viz),
-      motion_planning_(robot_config, world, tf_listener, planning_scene_pub,
-                       js_reader),
+      motion_planning_(robot_state_, world, planning_scene_pub),
       executors_() {}
 
 bool StepExecutor::IsValid(const rapid_pbd_msgs::Step& step) {
@@ -53,7 +50,7 @@ void StepExecutor::Init() {
     Action action = step_.actions[i];
     shared_ptr<ActionExecutor> ae(
         new ActionExecutor(action, action_clients_, &motion_planning_, world_,
-                           robot_config_, runtime_viz_));
+                           robot_state_.config, runtime_viz_));
     executors_.push_back(ae);
   }
 }
