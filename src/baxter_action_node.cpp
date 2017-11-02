@@ -16,16 +16,16 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "baxter_actuator_server");
   ros::NodeHandle nh;
 
-//   pbd::baxter::GripperAction left_gripper(pbd::kLeftGripperActionName,
-//                                        pbd::baxter::kLeftGripperActionName);
-//   pbd::baxter::GripperAction right_gripper(pbd::kRightGripperActionName,
-//                                         pbd::baxter::kRightGripperActionName);
+  pbd::baxter::GripperAction left_gripper(pbd::kLeftGripperActionName,
+                                       pbd::baxter::kLeftGripperActionName);
+  pbd::baxter::GripperAction right_gripper(pbd::kRightGripperActionName,
+                                        pbd::baxter::kRightGripperActionName);
 
   pbd::baxter::HeadAction head_action(pbd::kHeadActionName,
                                       pbd::baxter::kHeadActionName);
 
-//   left_gripper.Start();
-//   right_gripper.Start();
+  left_gripper.Start();
+  right_gripper.Start();
   head_action.Start();
   ros::spin();
   return 0;
