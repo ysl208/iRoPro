@@ -30,12 +30,6 @@ static const char kSurfaceSegmentationActionName[] = "segment_surfaces_action";
 namespace pr2 {
 static const char kLeftGripperActionName[] =
     "/l_gripper_controller/gripper_action";
-// rostopics for l_gripper controller - same as head
-// Type: pr2_controllers_msgs/Pr2GripperCommandActionGoal
-// subscribers: /l_gripper_controller/gripper_action_node
-// node publishes:  /l_gripper_controller/command [pr2_controllers_msgs/Pr2GripperCommand]
-
-
 static const char kRightGripperActionName[] =
     "/r_gripper_controller/gripper_action";
 static const char kListControllersService[] =
@@ -44,14 +38,6 @@ static const char kSwitchControllerService[] =
     "/pr2_controller_manager/switch_controller";
 static const char kHeadActionName[] =
     "/head_traj_controller/follow_joint_trajectory";
-// rostopics for head traj when loading sim
-// type: control_msgs/FollowJointTrajectoryActionGoal
-
-// /head_traj_controller/follow_joint_trajectory/cancel
-// /head_traj_controller/follow_joint_trajectory/feedback
-// /head_traj_controller/follow_joint_trajectory/goal
-// /head_traj_controller/follow_joint_trajectory/result
-// /head_traj_controller/follow_joint_trajectory/status
 }  // namespace pr2
 
 namespace fetch {
@@ -59,19 +45,15 @@ static const char kControllerActionName[] = "/query_controller_states";
 }  // namespace fetch
 
 namespace baxter {
+// don't forget to run rosrun baxter_interface gripper_action_server.py
 static const char kLeftGripperActionName[] =
     "/robot/end_effector/left_gripper/gripper_action";
-// don't forget to run rosrun baxter_interface gripper_action_server.py
 static const char kRightGripperActionName[] =
     "/robot/end_effector/right_gripper/gripper_action";
-static const char kListControllersService[] =
-    "/robot/controller_manager/list_controllers";
-static const char kSwitchControllerService[] =
-    "/robot/controller_manager/switch_controller";
+
+// don't forget to run rosrun baxter_interface head_action_server.py 
 static const char kHeadActionName[] =
     "/robot/head/head_action";
-// don't forget to run rosrun baxter_interface head_action_server.py 
-
 }  // namespace baxter
 
 }  // namespace pbd

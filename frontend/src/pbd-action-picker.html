@@ -76,6 +76,7 @@
       ros="[[ros]]"
     ></ros-action-client>
     <div class="paper-material">
+      <template is="dom-if" if="[[params.manualFreeze]]">
       <div class="layout horizontal center">
         <h3>Temporary actions</h3>
         <div class="flex"></div>
@@ -116,6 +117,7 @@
             data-actuator-group="arm"
           >Freeze arm</paper-button>
         </div>
+      </template>
       </template>
       <div class="group">
         <h3>Perception</h3>

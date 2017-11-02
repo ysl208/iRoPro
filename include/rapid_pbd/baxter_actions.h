@@ -16,13 +16,13 @@
 #include "rapid_pbd_msgs/FreezeArm.h"
 #include "rapid_pbd_msgs/RelaxArm.h"
 
-namespace {
-typedef actionlib::SimpleActionClient<
-    control_msgs::GripperCommandAction>
-    BaxterGripperClient;
-using control_msgs::GripperCommandFeedback;
-using control_msgs::GripperCommandResultConstPtr;
-}  // namespace
+// namespace {
+// typedef actionlib::SimpleActionClient<
+//     control_msgs::GripperCommandAction>
+//     BaxterGripperClient;
+// using control_msgs::GripperCommandFeedback;
+// using control_msgs::GripperCommandResultConstPtr;
+// }  // namespace
 
 namespace {
 typedef actionlib::SimpleActionClient<
@@ -35,18 +35,18 @@ using control_msgs::SingleJointPositionResultConstPtr;
 namespace rapid {
 namespace pbd {
 namespace baxter {
-class GripperAction {
- public:
-  GripperAction(const std::string& name, const std::string& baxter_action_name);
+// class GripperAction {
+//  public:
+//   GripperAction(const std::string& name, const std::string& baxter_action_name);
 
-  void Start();
-  void Execute(const control_msgs::GripperCommandGoalConstPtr& goal);
-  void HandleFeedback(const GripperCommandFeedback::ConstPtr& baxter_feedback);
+//   void Start();
+//   void Execute(const control_msgs::GripperCommandGoalConstPtr& goal);
+//   void HandleFeedback(const GripperCommandFeedback::ConstPtr& baxter_feedback);
 
- private:
-  actionlib::SimpleActionServer<control_msgs::GripperCommandAction> server_;
-  BaxterGripperClient baxter_client_;
-};
+//  private:
+//   actionlib::SimpleActionServer<control_msgs::GripperCommandAction> server_;
+//   BaxterGripperClient baxter_client_;
+// };
 
 
 // HeadAction manages the controllers running on the BAXTER head.

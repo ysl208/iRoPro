@@ -28,66 +28,66 @@ namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 namespace baxter {
-GripperAction::GripperAction(const std::string& action_name,
-                             const std::string& baxter_action_name)
-    : server_(action_name, boost::bind(&GripperAction::Execute, this, _1),
-              false),
-      baxter_client_(baxter_action_name, true) {}
+// GripperAction::GripperAction(const std::string& action_name,
+//                              const std::string& baxter_action_name)
+//     : server_(action_name, boost::bind(&GripperAction::Execute, this, _1),
+//               false),
+//       baxter_client_(baxter_action_name, true) {}
 
-void GripperAction::Start() {
-  while (!baxter_client_.waitForServer(ros::Duration(5))) {
-    ROS_WARN("Waiting for Baxter gripper server to come up.");
-  }
-  server_.start();
-}
+// void GripperAction::Start() {
+//   while (!baxter_client_.waitForServer(ros::Duration(5))) {
+//     ROS_WARN("Waiting for Baxter gripper server to come up.");
+//   }
+//   server_.start();
+// }
 
-void GripperAction::Execute(
-    const control_msgs::GripperCommandGoalConstPtr& goal) {
-  control_msgs::GripperCommandGoal baxter_goal;
-  baxter_goal.command.position = goal->command.position;
-  baxter_goal.command.max_effort = goal->command.max_effort;
-  baxter_client_.sendGoal(
-      baxter_goal,
-      boost::function<void(const SimpleClientGoalState&,
-                           const GripperCommandResult::ConstPtr&)>(),
-      boost::function<void()>(),
-      boost::bind(&GripperAction::HandleFeedback, this, _1));
-  while (!baxter_client_.getState().isDone()) {
-    if (server_.isPreemptRequested() || !ros::ok()) {
-      baxter_client_.cancelAllGoals();
-      server_.setPreempted();
-      return;
-    }
-    ros::spinOnce();
-  }
-  if (baxter_client_.getState() == SimpleClientGoalState::PREEMPTED) {
-    baxter_client_.cancelAllGoals();
-    server_.setPreempted();
-    return;
-  } else if (baxter_client_.getState() == SimpleClientGoalState::ABORTED) {
-    baxter_client_.cancelAllGoals();
-    server_.setAborted();
-    return;
-  }
+// void GripperAction::Execute(
+//     const control_msgs::GripperCommandGoalConstPtr& goal) {
+//   control_msgs::GripperCommandGoal baxter_goal;
+//   baxter_goal.command.position = goal->command.position;
+//   baxter_goal.command.max_effort = goal->command.max_effort;
+//   baxter_client_.sendGoal(
+//       baxter_goal,
+//       boost::function<void(const SimpleClientGoalState&,
+//                            const GripperCommandResult::ConstPtr&)>(),
+//       boost::function<void()>(),
+//       boost::bind(&GripperAction::HandleFeedback, this, _1));
+//   while (!baxter_client_.getState().isDone()) {
+//     if (server_.isPreemptRequested() || !ros::ok()) {
+//       baxter_client_.cancelAllGoals();
+//       server_.setPreempted();
+//       return;
+//     }
+//     ros::spinOnce();
+//   }
+//   if (baxter_client_.getState() == SimpleClientGoalState::PREEMPTED) {
+//     baxter_client_.cancelAllGoals();
+//     server_.setPreempted();
+//     return;
+//   } else if (baxter_client_.getState() == SimpleClientGoalState::ABORTED) {
+//     baxter_client_.cancelAllGoals();
+//     server_.setAborted();
+//     return;
+//   }
 
-  GripperCommandResult::ConstPtr baxter_result = baxter_client_.getResult();
-  control_msgs::GripperCommandResult result;
-  result.effort = baxter_result->effort;
-  result.position = baxter_result->position;
-  result.reached_goal = baxter_result->reached_goal;
-  result.stalled = baxter_result->stalled;
-  server_.setSucceeded(result);
-}
+//   GripperCommandResult::ConstPtr baxter_result = baxter_client_.getResult();
+//   control_msgs::GripperCommandResult result;
+//   result.effort = baxter_result->effort;
+//   result.position = baxter_result->position;
+//   result.reached_goal = baxter_result->reached_goal;
+//   result.stalled = baxter_result->stalled;
+//   server_.setSucceeded(result);
+// }
 
-void GripperAction::HandleFeedback(
-    const GripperCommandFeedback::ConstPtr& baxter_feedback) {
-  control_msgs::GripperCommandFeedback feedback;
-  feedback.effort = baxter_feedback->effort;
-  feedback.position = baxter_feedback->position;
-  feedback.reached_goal = baxter_feedback->reached_goal;
-  feedback.stalled = baxter_feedback->stalled;
-  server_.publishFeedback(feedback);
-}
+// void GripperAction::HandleFeedback(
+//     const GripperCommandFeedback::ConstPtr& baxter_feedback) {
+//   control_msgs::GripperCommandFeedback feedback;
+//   feedback.effort = baxter_feedback->effort;
+//   feedback.position = baxter_feedback->position;
+//   feedback.reached_goal = baxter_feedback->reached_goal;
+//   feedback.stalled = baxter_feedback->stalled;
+//   server_.publishFeedback(feedback);
+// }
 
 HeadAction::HeadAction(const std::string& head_server_name, 
                         const std::string& head_client_name)

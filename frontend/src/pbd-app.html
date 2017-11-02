@@ -144,12 +144,15 @@
         if (robot === 'pr2') {
           this.set('params.robot', robot);
           this.set('params.hasTwoArms', true);
+          this.set('params.manualFreeze', true);
         } else if (robot === 'fetch') {
           this.set('params.robot', robot);
           this.set('params.hasTwoArms', false);
+          this.set('params.manualFreeze', true);
         } else if (robot === 'baxter') {
           this.set('params.robot', robot);
           this.set('params.hasTwoArms', true);
+          this.set('params.manualFreeze', false);
         } else {
           console.error('Unknown robot type:', robot);
         }
