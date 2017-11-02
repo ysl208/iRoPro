@@ -29,7 +29,7 @@
       <paper-input type="number" step="1" min="-160" max="160"
         label="Pan angle (degrees, positive value looks left)"
         value="{{panDegrees}}" on-change="_save"></paper-input>
-      <paper-input type="number" step="1" min="-30" max="60"
+      <paper-input hidden$=[[!_canTilt(params.robot)]] type="number" step="1" min="-30" max="60"
         label="Tilt angle (degrees, positive value looks down)"
         value="{{tiltDegrees}}" on-change="_save"></paper-input>
       <paper-button class="normal" on-tap="_moveHead">Move now</paper-button>
@@ -179,6 +179,16 @@
         var tiltDegrees = this._radToDeg(tiltRadians);
         if (this.tiltDegrees !== tiltDegrees) {
           this.tiltDegrees = tiltDegrees;
+        }
+      },
+
+      _canTilt(robot){
+        if (robot === "pr2" || robot === "fetch") {
+          return true;
+        } else if (robot === "baxter") {
+          return false;
+        } else {
+          return false;
         }
       },
 
