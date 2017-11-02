@@ -45,7 +45,8 @@ void GripperAction::Start() {
 void GripperAction::Execute(
     const control_msgs::GripperCommandGoalConstPtr& goal) {
   control_msgs::GripperCommandGoal baxter_goal;
-  baxter_goal.command.position = goal->command.position;
+  // Baxter uses 0-100% corresponding to 0-0.1m
+  baxter_goal.command.position = goal->command.position * 1000;
   baxter_goal.command.max_effort = goal->command.max_effort;
   baxter_client_.sendGoal(
       baxter_goal,

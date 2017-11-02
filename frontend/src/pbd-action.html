@@ -177,13 +177,13 @@
       _displayActionTypeChanged: function(displayActionType) {
         if (displayActionType === 'open gripper') {
           this.set('action.type', 'actuate gripper');
-          if (this.params.robot === "baxter") {
-            // baxter position (float) - in % 0=close 100=open
-            this.set('action.gripper_command.position', 100);
-          } else if (this.params.robot === "pr2" || this.params.robot === "fetch"){
+          // if (this.params.robot === "baxter") {
+          //   // baxter position (float) - in % 0=close 100=open
+          //   this.set('action.gripper_command.position', 100);
+          // } else if (this.params.robot === "pr2" || this.params.robot === "fetch"){
             // fetch/pr2 position (float) - in meters
             this.set('action.gripper_command.position', 0.1);
-          }
+          //}
           this.set('action.gripper_command.max_effort', 100);
         } else if (displayActionType === 'close gripper') {
           this.set('action.type', 'actuate gripper');

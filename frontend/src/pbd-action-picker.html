@@ -263,10 +263,6 @@
           position: 0.1,
           max_effort: 100
         };
-        if (this.params.robot === "baxter") {
-          // baxter position (float) - in % 0=close 100=open
-          gripperCommand.position = 100;
-        }
         if (command === 'close') {
           gripperCommand.position = 0;
           gripperCommand.max_effort = 75.0;
