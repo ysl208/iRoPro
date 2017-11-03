@@ -2,6 +2,13 @@
 Changelog for package rapid_pbd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add detected surfaces as collision objects (`#25 <https://github.com/jstnhuang/rapid_pbd/issues/25>`_)
+* Small refactoring of runtime code.
+* Changed editor web page title.
+* Contributors: Justin Huang, pengy25
+
 0.1.5 (2017-10-31)
 ------------------
 * Added a service to create a new program (`#22 <https://github.com/jstnhuang/rapid_pbd/issues/22>`_)
