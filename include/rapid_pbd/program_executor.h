@@ -40,6 +40,9 @@ class ProgramExecutionServer {
   static bool IsValid(const rapid_pbd_msgs::Program& program);
   void PublishIsRunning(bool is_running);
   void Cancel(const std::string& error);
+
+  // Runs all necessary steps to finish up a program execution, regardless of whether it succeeded or failed.
+  void Finish();
 };
 }  // namespace pbd
 }  // namespace rapid

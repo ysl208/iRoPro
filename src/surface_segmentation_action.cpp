@@ -24,8 +24,8 @@
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
 
-using surface_perception::SurfaceObjects;
 using surface_perception::Object;
+using surface_perception::SurfaceObjects;
 
 namespace rapid {
 namespace pbd {
@@ -175,6 +175,14 @@ void SurfaceSegmentationAction::Execute(
   for (size_t i = 0; i < surface_objects.size(); ++i) {
     const SurfaceObjects& surface_scene = surface_objects[i];
     num_objects += surface_scene.objects.size();
+
+    if (i == 0) {
+      rapid_pbd_msgs::Surface surface;
+      surface.dimensions = surface_objects[i].surface.dimensions;
+      surface.pose_stamped = surface_objects[i].surface.pose_stamped;
+      result.surface = surface;
+    }
+
     for (size_t j = 0; j < surface_scene.objects.size(); ++j) {
       const Object& object = surface_scene.objects[j];
       size_t cloud_size = object.indices->indices.size();

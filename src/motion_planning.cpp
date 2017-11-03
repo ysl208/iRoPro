@@ -271,5 +271,12 @@ std::string ErrorCodeToString(const MoveItErrorCodes& code) {
   ss << "Unknown error code " << code.val;
   return ss.str();
 }
+
+void MotionPlanning::PublishCollisionObject(const moveit_msgs::CollisionObject& obj) {
+  moveit_msgs::PlanningScene scene;
+  scene.world.collision_objects.push_back(obj);
+  scene.is_diff = true;
+  planning_scene_pub_.publish(scene);
+}
 }  // namespace pbd
 }  // namespace rapid
