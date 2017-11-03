@@ -2,8 +2,8 @@
 Changelog for package rapid_pbd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.6 (2017-11-03)
+------------------
 * Add detected surfaces as collision objects (`#25 <https://github.com/jstnhuang/rapid_pbd/issues/25>`_)
 * Small refactoring of runtime code.
 * Changed editor web page title.
