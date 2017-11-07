@@ -204,7 +204,6 @@ void BaxterRobotConfig::default_gripper_poses(
 void BaxterRobotConfig::joints_for_group(
     const std::string& actuator_group,
     std::vector<std::string>* joint_names) const {
-  joint_names->clear();
   if (actuator_group == Action::LEFT_ARM) {
     joint_names->push_back("left_e0");
     joint_names->push_back("left_e1");

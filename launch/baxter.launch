@@ -16,13 +16,13 @@
     <node pkg="rapid_pbd" type="program_execution_node" name="program_executor">
       <remap from="l_arm_joint_action" to="/robot/limb/left/follow_joint_trajectory" />
       <remap from="r_arm_joint_action" to="/robot/limb/right/follow_joint_trajectory" />
-      <remap from="l_gripper_action" to="/robot/end_effector/left_gripper/gripper_action" />
-      <remap from="r_gripper_action" to="/robot/end_effector/right_gripper/gripper_action" />
       <remap from="move_group" to="/move_group" />
     </node>
     <rosparam command="load" file="$(find rapid_pbd)/config/surface_segmentation.yaml" />
     <node pkg="rapid_pbd" type="surface_segmentation_node" name="surface_segmentation_node" args="$(arg point_cloud_topic)" />
   </group>
+
+  <node pkg="tf" type="static_transform_publisher" name="world_to_camera" args="0 0 1 0 0 0 base camera_link 10" />
 
   <!-- Depth cloud -->
   <node pkg="nodelet" type="nodelet" name="rapid_pbd_convert_metric" args="standalone depth_image_proc/convert_metric" if="$(arg sim)">
@@ -35,5 +35,4 @@
     <param unless="$(arg sim)" name="depth" value="$(arg depth_topic)_float" />
     <param name="camera_frame_id" value="$(arg camera_frame)" />
   </node>
-  <include file="$(find rapid_pbd)/launch/tf_frames.launch" />
 </launch>
