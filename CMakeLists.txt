@@ -129,12 +129,7 @@ catkin_package(
     rapid_pbd_action_clients
     rapid_pbd_action_executor
     rapid_pbd_action_utils
-<<<<<<< HEAD
-=======
     rapid_pbd_baxter_actions
-    rapid_pbd_condition_checker
-    rapid_pbd_condition_generator
->>>>>>> f3fb1e6... added launch files and baxter pkgs to CMakeList
     rapid_pbd_editor
     rapid_pbd_fetch_actions
     rapid_pbd_joint_state
