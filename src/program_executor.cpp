@@ -8,11 +8,11 @@
 #include "rapid_pbd_msgs/Program.h"
 #include "ros/ros.h"
 #include "std_msgs/Bool.h"
-#include "tf/transform_listener.h"
 
 #include "rapid_pbd/action_names.h"
+#include "rapid_pbd/motion_planning_constants.h"
 #include "rapid_pbd/program_db.h"
-#include "rapid_pbd/robot_config.h"
+#include "rapid_pbd/runtime_robot_state.h"
 #include "rapid_pbd/step_executor.h"
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
@@ -29,8 +29,7 @@ namespace rapid {
 namespace pbd {
 ProgramExecutionServer::ProgramExecutionServer(
     const std::string& action_name, const ros::Publisher& is_running_pub,
-    ActionClients* action_clients, const RobotConfig& robot_config,
-    const tf::TransformListener& tf_listener,
+    ActionClients* action_clients, const RuntimeRobotState& robot_state,
     const RuntimeVisualizer& runtime_viz, const ProgramDb& program_db,
     const ros::Publisher& planning_scene_pub,
     const ros::Publisher& condition_check_pub)
@@ -40,11 +39,10 @@ ProgramExecutionServer::ProgramExecutionServer(
       freeze_arm_client_(nh_.serviceClient<FreezeArm>(kFreezeArmService)),
       is_running_pub_(is_running_pub),
       action_clients_(action_clients),
-      robot_config_(robot_config),
-      tf_listener_(tf_listener),
+      robot_state_(robot_state),
       runtime_viz_(runtime_viz),
       program_db_(program_db),
-      planning_scene_pub_(planning_scene_pub),
+      planning_scene_pub_(planning_scene_pub,
       condition_check_pub_(condition_check_pub) {}
 
 void ProgramExecutionServer::Start() {
@@ -60,6 +58,7 @@ void ProgramExecutionServer::Execute(
     if (!success) {
       std::string error("Unable to find program with db_id: " + goal->db_id);
       Cancel(error);
+      Finish();
       ros::spinOnce();
       return;
     }
@@ -68,6 +67,7 @@ void ProgramExecutionServer::Execute(
     if (!success) {
       std::string error("Unable to find program with name: " + goal->name);
       Cancel(error);
+      Finish();
       ros::spinOnce();
       return;
     }
@@ -103,10 +103,9 @@ void ProgramExecutionServer::Execute(
   std::vector<boost::shared_ptr<StepExecutor> > executors;
   for (size_t i = 0; i < program.steps.size(); ++i) {
     const Step& step = program.steps[i];
-    boost::shared_ptr<StepExecutor> executor(
-        new StepExecutor(step, action_clients_, robot_config_, &world,
-                         runtime_viz_, tf_listener_, planning_scene_pub_,
-                         condition_check_pub_));
+    boost::shared_ptr<StepExecutor> executor(new StepExecutor(
+        step, action_clients_, robot_state_, &world, runtime_viz_,
+        planning_scene_pub_, condition_check_pub_));
     executors.push_back(executor);
     executors.back()->Init();
   }
@@ -121,6 +120,7 @@ void ProgramExecutionServer::Execute(
     if (error != "") {
       executors[i]->Cancel();
       Cancel(error);
+      Finish();
       ros::spinOnce();
       return;
     }
@@ -129,12 +129,14 @@ void ProgramExecutionServer::Execute(
         executors[i]->Cancel();
         std::string msg("Program \"" + program.name + "\" was preempted.");
         Cancel(msg);
+        Finish();
         ros::spinOnce();
         return;
       }
       if (error != "") {
         executors[i]->Cancel();
         Cancel(error);
+        Finish();
         ros::spinOnce();
         return;
       }
@@ -142,12 +144,13 @@ void ProgramExecutionServer::Execute(
     }
     if (error != "") {
       Cancel(error);
+      Finish();
       ros::spinOnce();
       return;
     }
   }
-  
-  PublishIsRunning(false);
+
+  Finish();
   server_.setSucceeded();
 }
 
@@ -172,6 +175,18 @@ void ProgramExecutionServer::Cancel(const std::string& error) {
   ExecuteProgramResult result;
   result.error = error;
   server_.setAborted(result, error);
+}
+
+void ProgramExecutionServer::Finish() {
+  moveit_msgs::CollisionObject surface;
+  surface.id = kCollisionSurfaceName;
+  surface.operation = moveit_msgs::CollisionObject::REMOVE;
+
+  moveit_msgs::PlanningScene scene;
+  scene.world.collision_objects.push_back(surface);
+  scene.is_diff = true;
+  planning_scene_pub_.publish(scene);
+
   PublishIsRunning(false);
 }
 }  // namespace pbd

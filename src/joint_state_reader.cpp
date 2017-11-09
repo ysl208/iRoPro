@@ -32,7 +32,7 @@ void JointStateReader::get_positions(const std::vector<std::string>& names,
   }
 }
 
-void JointStateReader::ToMsg(sensor_msgs::JointState* msg) {
+void JointStateReader::ToMsg(sensor_msgs::JointState* msg) const {
   joint_state_.ToMsg(msg);
 }
 

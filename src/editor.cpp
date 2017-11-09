@@ -1,29 +1,29 @@
 #include "rapid_pbd/editor.h"
 
+#include <cmath>
 #include <exception>
 #include <string>
 #include <vector>
-#include <cmath>
 
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Condition.h"
 #include "rapid_pbd_msgs/EditorEvent.h"
 #include "rapid_pbd_msgs/Landmark.h"
 #include "rapid_pbd_msgs/Program.h"
-#include "ros/ros.h"
-#include "std_msgs/Bool.h"
 #include "rapid_pbd_msgs/SegmentSurfacesGoal.h"
 #include "rapid_pbd_msgs/Step.h"
+#include "ros/ros.h"
+#include "std_msgs/Bool.h"
 #include "tf/transform_listener.h"
 #include "transform_graph/graph.h"
 
 #include "rapid_pbd/action_clients.h"
 #include "rapid_pbd/action_utils.h"
+#include "rapid_pbd/condition_generator.h"
 #include "rapid_pbd/joint_state_reader.h"
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/visualizer.h"
-#include "rapid_pbd/condition_generator.h"
 #include "rapid_pbd/world.h"
 
 namespace msgs = rapid_pbd_msgs;
@@ -52,23 +52,22 @@ void Editor::Start() {
 
 void Editor::HandleEvent(const msgs::EditorEvent& event) {
   try {
-    if (event.type == msgs::EditorEvent::CREATE) {
-      Create(event.program_info.name);
-    } else if (event.type == msgs::EditorEvent::UPDATE) {
+    if (event.type == msgs::EditorEvent::UPDATE) {
       Update(event.program_info.db_id, event.program);
     } else if (event.type == msgs::EditorEvent::DELETE) {
       Delete(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
       GenerateConditions(event.program_info.db_id, event.step_num,
-        event.action_num, event.landmark_name);
+                         event.action_num, event.landmark_name);
     } else if (event.type == msgs::EditorEvent::ADD_SENSE_STEPS) {
       AddSenseSteps(event.program_info.db_id, event.step_num);
     } else if (event.type == msgs::EditorEvent::VIEW_CONDITIONS) {
-      ViewConditions(event.program_info.db_id, event.step_num, event.action_num);
+      ViewConditions(event.program_info.db_id, event.step_num,
+                     event.action_num);
     } else if (event.type == msgs::EditorEvent::UPDATE_CONDITIONS) {
       ROS_INFO("update condtiions");
-      UpdateConditions(event.program_info.db_id, event.step_num, event.action_num,
-                        event.action.condition.reference);
+      UpdateConditions(event.program_info.db_id, event.step_num,
+                       event.action_num, event.action.condition.reference);
     } else if (event.type == msgs::EditorEvent::ADD_STEP) {
       AddStep(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::DELETE_STEP) {
@@ -96,19 +95,27 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
   }
 }
 
-void Editor::Create(const std::string& name) {
+bool Editor::HandleCreateProgram(msgs::CreateProgram::Request& request,
+                                 msgs::CreateProgram::Response& response) {
+  response.db_id = Create(request.name);
+  return true;
+}
+
+std::string Editor::Create(const std::string& name) {
   msgs::Program program;
   program.name = name;
-  
+
   ROS_INFO("Create new program");
   joint_state_reader_.ToMsg(&program.start_joint_state);
-  std::string db_id = db_.Insert(program);
+  std::string id = db_.Insert(program);
   World world;
   GetWorld(robot_config_, program, 0, &world);
-  viz_.Publish(db_id, world);
-  
+  viz_.Publish(id, world);
+
+  return id;
 }
-void Editor::AddSenseSteps(const std::string& db_id, size_t step_id){
+
+void Editor::AddSenseSteps(const std::string& db_id, size_t step_id) {
   ROS_INFO("Add default SENSE steps");
   AddStep(db_id);
   AddMoveHeadAction(db_id, step_id, 45, 0);
@@ -123,16 +130,17 @@ void Editor::AddSenseSteps(const std::string& db_id, size_t step_id){
   AddStep(db_id);
   ++step_id;
   AddCheckConditionsAction(db_id, step_id);
-
 }
 
-void Editor::AddDetectTTObjectsAction(const std::string& db_id, size_t step_id) {
+void Editor::AddDetectTTObjectsAction(const std::string& db_id,
+                                      size_t step_id) {
   msgs::Action detect_action;
   detect_action.type = msgs::Action::DETECT_TABLETOP_OBJECTS;
   AddAction(db_id, step_id, detect_action);
 }
 
-void Editor::AddCheckConditionsAction(const std::string& db_id, size_t step_id) {
+void Editor::AddCheckConditionsAction(const std::string& db_id,
+                                      size_t step_id) {
   msgs::Action check_action;
   check_action.type = msgs::Action::CHECK_CONDITIONS;
   check_action.condition.relevant = false;
@@ -140,28 +148,27 @@ void Editor::AddCheckConditionsAction(const std::string& db_id, size_t step_id) 
 }
 
 void Editor::AddMoveHeadAction(const std::string& db_id, size_t step_id,
-                              size_t pan, size_t tilt){
+                               size_t pan, size_t tilt) {
   msgs::Action head_action;
   head_action.type = msgs::Action::MOVE_TO_JOINT_GOAL;
   head_action.actuator_group = msgs::Action::HEAD;
   trajectory_msgs::JointTrajectory joint_trajectory;
-  head_action.joint_trajectory.joint_names.insert(head_action.joint_trajectory.joint_names.begin(),
-                                              "head_pan_joint");
-  head_action.joint_trajectory.joint_names.insert(head_action.joint_trajectory.joint_names.begin(),
-                                              "head_tilt_joint");
+  head_action.joint_trajectory.joint_names.insert(
+      head_action.joint_trajectory.joint_names.begin(), "head_pan_joint");
+  head_action.joint_trajectory.joint_names.insert(
+      head_action.joint_trajectory.joint_names.begin(), "head_tilt_joint");
   trajectory_msgs::JointTrajectoryPoint point;
-  point.positions.insert(point.positions.begin(), pan * M_PI / 180); 
-  point.positions.insert(point.positions.begin(), tilt * M_PI / 180); 
-  //std::duration data = {secs: 2, nsecs: 0};
-  //point.time_from_start = data;
+  point.positions.insert(point.positions.begin(), pan * M_PI / 180);
+  point.positions.insert(point.positions.begin(), tilt * M_PI / 180);
+  // std::duration data = {secs: 2, nsecs: 0};
+  // point.time_from_start = data;
   head_action.joint_trajectory.points.insert(
-                                            head_action.joint_trajectory.points.begin(),
-                                            point);
+      head_action.joint_trajectory.points.begin(), point);
   AddAction(db_id, step_id, head_action);
 }
 
 void Editor::AddOpenGripperAction(const std::string& db_id, size_t step_id,
-                              size_t position, size_t max_effort){
+                                  size_t position, size_t max_effort) {
   if (robot_config_.num_arms() == 1) {
     msgs::Action open_gripper_action;
     open_gripper_action.type = msgs::Action::ACTUATE_GRIPPER;
@@ -186,49 +193,49 @@ void Editor::AddOpenGripperAction(const std::string& db_id, size_t step_id,
   }
 }
 
-void Editor::AddJointStates(msgs::Action* move_arm_action, 
-                            const std::vector<double>& default_pose){
-    move_arm_action->pose.position.x = default_pose[0];
-    move_arm_action->pose.position.y = default_pose[1];
-    move_arm_action->pose.position.z = default_pose[2];
-    move_arm_action->pose.orientation.w = default_pose[3];
-    move_arm_action->pose.orientation.x = default_pose[4];
-    move_arm_action->pose.orientation.y = default_pose[5];
-    move_arm_action->pose.orientation.z = default_pose[6];
+void Editor::AddJointStates(msgs::Action* move_arm_action,
+                            const std::vector<double>& default_pose) {
+  move_arm_action->pose.position.x = default_pose[0];
+  move_arm_action->pose.position.y = default_pose[1];
+  move_arm_action->pose.position.z = default_pose[2];
+  move_arm_action->pose.orientation.w = default_pose[3];
+  move_arm_action->pose.orientation.x = default_pose[4];
+  move_arm_action->pose.orientation.y = default_pose[5];
+  move_arm_action->pose.orientation.z = default_pose[6];
 
-    msgs::Landmark landmark;
-    landmark.type = msgs::Landmark::TF_FRAME;
-    landmark.name = robot_config_.torso_link();
-    move_arm_action->landmark = landmark;
-    // Set joint angles as a seed.
-    std::vector<std::string> joint_names;
-    robot_config_.joints_for_group(move_arm_action->actuator_group, &joint_names);
-    if (joint_names.size() == 0) {
-      ROS_ERROR("Can't get joint angles for actuator group \"%s\"",
-                move_arm_action->actuator_group.c_str());
-      return;
-    }
+  msgs::Landmark landmark;
+  landmark.type = msgs::Landmark::TF_FRAME;
+  landmark.name = robot_config_.torso_link();
+  move_arm_action->landmark = landmark;
+  // Set joint angles as a seed.
+  std::vector<std::string> joint_names;
+  robot_config_.joints_for_group(move_arm_action->actuator_group, &joint_names);
+  if (joint_names.size() == 0) {
+    ROS_ERROR("Can't get joint angles for actuator group \"%s\"",
+              move_arm_action->actuator_group.c_str());
+    return;
+  }
 
-    std::vector<double> joint_positions;
-    for (size_t i = 0; i < joint_names.size(); ++i) {
-      const std::string& name = joint_names[i];
-      double pos = joint_state_reader_.get_position(name);
-      if (pos == kNoJointValue) {
-        ROS_ERROR("Could not get angle for joint \"%s\"", name.c_str());
-        joint_positions.push_back(0);
-      } else {
-        joint_positions.push_back(pos);
-      }
+  std::vector<double> joint_positions;
+  for (size_t i = 0; i < joint_names.size(); ++i) {
+    const std::string& name = joint_names[i];
+    double pos = joint_state_reader_.get_position(name);
+    if (pos == kNoJointValue) {
+      ROS_ERROR("Could not get angle for joint \"%s\"", name.c_str());
+      joint_positions.push_back(0);
+    } else {
+      joint_positions.push_back(pos);
     }
-    SetJointPositions(joint_names, joint_positions, move_arm_action);
+  }
+  SetJointPositions(joint_names, joint_positions, move_arm_action);
 }
 void Editor::AddGripperPoseAction(const std::string& db_id, size_t step_id,
-                              const std::vector<double>& default_pose){
+                                  const std::vector<double>& default_pose) {
   if (robot_config_.num_arms() == 1) {
     msgs::Action move_arm_action;
     move_arm_action.type = msgs::Action::MOVE_TO_CARTESIAN_GOAL;
     move_arm_action.actuator_group = msgs::Action::ARM;
-    
+
     AddJointStates(&move_arm_action, default_pose);
     AddAction(db_id, step_id, move_arm_action);
 
@@ -247,7 +254,6 @@ void Editor::AddGripperPoseAction(const std::string& db_id, size_t step_id,
 
     AddJointStates(&move_r_arm_action, r_default_pose);
     AddAction(db_id, step_id, move_r_arm_action);
-
   }
 }
 
@@ -278,8 +284,9 @@ void Editor::Delete(const std::string& db_id) {
   viz_.StopPublishing(db_id);
 }
 
-void Editor::GenerateConditions(const std::string& db_id, size_t step_id, size_t action_id,
-                     const std::string& landmark_name) {
+void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
+                                size_t action_id,
+                                const std::string& landmark_name) {
   // Generates Pre-/Postconditions
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
@@ -295,19 +302,18 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id, size_t
     return;
   }
   msgs::Step* step = &program.steps[step_id];
-  
+
   // Get preconditions from world state in Step 2 (= step_id 1)
   World initial_world;
   GetWorld(robot_config_, program, step_id, &initial_world);
   ROS_INFO("Assigning conditions to initial world with %lu landmarks",
-         initial_world.surface_box_landmarks.size());
+           initial_world.surface_box_landmarks.size());
   msgs::Condition action_condition = step->actions[action_id].condition;
-  cond_gen_.AssignLandmarkCondition(initial_world, landmark_name, 
-                            &action_condition);
+  cond_gen_.AssignLandmarkCondition(initial_world, landmark_name,
+                                    &action_condition);
   step->actions[action_id].condition = action_condition;
-  ROS_INFO("Condition for program step %lu, action %lu :%s",
-          step_id, action_id,
-          step->actions[action_id].condition.landmark.name.c_str());
+  ROS_INFO("Condition for program step %lu, action %lu :%s", step_id, action_id,
+           step->actions[action_id].condition.landmark.name.c_str());
   // publish condition markers
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
@@ -319,8 +325,8 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id, size_t
   }
 }
 
-void Editor::ViewConditions(const std::string& db_id, size_t step_id, size_t action_id) {
-  
+void Editor::ViewConditions(const std::string& db_id, size_t step_id,
+                            size_t action_id) {
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
@@ -341,14 +347,15 @@ void Editor::ViewConditions(const std::string& db_id, size_t step_id, size_t act
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
     World world;
     GetWorld(robot_config_, program, last_viewed_[db_id], &world);
-    viz_.PublishConditionMarkers(db_id,world,action_condition);
+    viz_.PublishConditionMarkers(db_id, world, action_condition);
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
   }
 }
 
-void Editor::UpdateConditions(const std::string& db_id, size_t step_id, 
-                              size_t action_id, const msgs::Landmark& reference){
+void Editor::UpdateConditions(const std::string& db_id, size_t step_id,
+                              size_t action_id,
+                              const msgs::Landmark& reference) {
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
@@ -367,30 +374,31 @@ void Editor::UpdateConditions(const std::string& db_id, size_t step_id,
   World world;
   GetWorld(robot_config_, program, step_id, &world);
   msgs::Condition action_condition = step->actions[action_id].condition;
-  std::cout << "Reference relevant " << action_condition.referenceRelevant << std::endl;
+  std::cout << "Reference relevant " << action_condition.referenceRelevant
+            << std::endl;
   std::cout << "Reference object: " << reference.name << std::endl;
   if (action_condition.referenceRelevant && reference.name != "") {
     ROS_INFO("Update condition for program step %lu, action %lu, reference %s",
-          step_id, action_id,
-          reference.name.c_str());
+             step_id, action_id, reference.name.c_str());
     cond_gen_.UpdateReferenceLandmark(world, &action_condition, reference);
     step->actions[action_id].condition = action_condition;
     ROS_INFO("Update condition for program step %lu, action %lu, reference %s",
-            step_id, action_id,
-            step->actions[action_id].condition.reference.name.c_str());
+             step_id, action_id,
+             step->actions[action_id].condition.reference.name.c_str());
     ROS_INFO("displacement: %f %f %f",
-            step->actions[action_id].condition.contDisplacement.x,
-            step->actions[action_id].condition.contDisplacement.y,
-            step->actions[action_id].condition.contDisplacement.z);
+             step->actions[action_id].condition.contDisplacement.x,
+             step->actions[action_id].condition.contDisplacement.y,
+             step->actions[action_id].condition.contDisplacement.z);
   } else {
     step->actions[action_id].condition.referenceRelevant = false;
   }
-  
+
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
     World world;
     GetWorld(robot_config_, program, last_viewed_[db_id], &world);
-    viz_.PublishConditionMarkers(db_id, world, step->actions[action_id].condition);
+    viz_.PublishConditionMarkers(db_id, world,
+                                 step->actions[action_id].condition);
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
   }
@@ -535,10 +543,11 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   DeleteScene(program.steps[step_id].scene_id);
   program.steps[step_id].scene_id = result->cloud_db_id;
   DeleteLandmarks(msgs::Landmark::SURFACE_BOX, &program.steps[step_id]);
-  program.steps[step_id].landmarks.insert(
-      program.steps[step_id].landmarks.end(), result->landmarks.begin(),
-      result->landmarks.end());
-
+  for (size_t i = 0; i < result->landmarks.size(); ++i) {
+    msgs::Landmark landmark;
+    ProcessSurfaceBox(result->landmarks[i], &landmark);
+    program.steps[step_id].landmarks.push_back(landmark);
+  }
   Update(db_id, program);
 }
 

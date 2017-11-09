@@ -140,6 +140,7 @@ catkin_package(
     rapid_pbd_program_db
     rapid_pbd_program_executor
     rapid_pbd_robot_config
+    rapid_pbd_runtime_robot_state
     rapid_pbd_step_executor
     rapid_pbd_surface_segmentation_action
     rapid_pbd_visualizer
@@ -253,10 +254,8 @@ target_link_libraries(rapid_pbd_landmarks ${catkin_LIBRARIES})
 add_library(rapid_pbd_motion_planning src/motion_planning.cpp)
 add_dependencies(rapid_pbd_motion_planning ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_motion_planning
-  rapid_pbd_joint_state
-  rapid_pbd_joint_state_reader
   rapid_pbd_landmarks
-  rapid_pbd_robot_config
+  rapid_pbd_runtime_robot_state
   rapid_pbd_world
   ${catkin_LIBRARIES})
 
@@ -272,9 +271,8 @@ add_library(rapid_pbd_program_executor src/program_executor.cpp)
 add_dependencies(rapid_pbd_program_executor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_program_executor
   rapid_pbd_action_clients
-  rapid_pbd_joint_state_reader
   rapid_pbd_program_db
-  rapid_pbd_robot_config
+  rapid_pbd_runtime_robot_state
   rapid_pbd_step_executor
   rapid_pbd_visualizer
   rapid_pbd_world
@@ -284,15 +282,25 @@ add_library(rapid_pbd_robot_config src/robot_config.cpp)
 add_dependencies(rapid_pbd_robot_config ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_robot_config ${catkin_LIBRARIES})
 
+add_library(rapid_pbd_runtime_robot_state src/runtime_robot_state.cpp)
+add_dependencies(rapid_pbd_runtime_robot_state ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_runtime_robot_state
+  rapid_pbd_joint_state_reader
+  rapid_pbd_robot_config
+  ${catkin_LIBRARIES})
+
 add_library(rapid_pbd_step_executor src/step_executor.cpp)
 add_dependencies(rapid_pbd_step_executor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_step_executor
   rapid_pbd_action_clients
   rapid_pbd_action_executor
+<<<<<<< HEAD
   rapid_pbd_condition_checker
   rapid_pbd_joint_state_reader
+=======
+>>>>>>> indigo-devel
   rapid_pbd_motion_planning
-  rapid_pbd_robot_config
+  rapid_pbd_runtime_robot_state
   rapid_pbd_visualizer
   rapid_pbd_world
   ${catkin_LIBRARIES})
@@ -360,6 +368,7 @@ target_link_libraries(rapid_pbd_program_execution_node
   rapid_pbd_program_db
   rapid_pbd_program_executor
   rapid_pbd_robot_config
+  rapid_pbd_runtime_robot_state
   rapid_pbd_visualizer
   ${catkin_LIBRARIES}
 )

@@ -6,11 +6,10 @@
 #include "actionlib/server/simple_action_server.h"
 #include "rapid_pbd_msgs/ExecuteProgramAction.h"
 #include "rapid_pbd_msgs/Program.h"
-#include "tf/transform_listener.h"
 
 #include "rapid_pbd/action_clients.h"
 #include "rapid_pbd/program_db.h"
-#include "rapid_pbd/robot_config.h"
+#include "rapid_pbd/runtime_robot_state.h"
 #include "rapid_pbd/visualizer.h"
 
 namespace rapid {
@@ -20,8 +19,7 @@ class ProgramExecutionServer {
   ProgramExecutionServer(const std::string& action_name,
                          const ros::Publisher& is_running_pub,
                          ActionClients* action_clients,
-                         const RobotConfig& robot_config,
-                         const tf::TransformListener& tf_listener,
+                         const RuntimeRobotState& robot_state,
                          const RuntimeVisualizer& runtime_viz,
                          const ProgramDb& program_db,
                          const ros::Publisher& planning_scene_pub,
@@ -34,8 +32,7 @@ class ProgramExecutionServer {
   ros::ServiceClient freeze_arm_client_;
   ros::Publisher is_running_pub_;
   ActionClients* action_clients_;
-  const RobotConfig& robot_config_;
-  const tf::TransformListener& tf_listener_;
+  const RuntimeRobotState& robot_state_;
   RuntimeVisualizer runtime_viz_;
   const ProgramDb& program_db_;
   ros::Publisher planning_scene_pub_;
@@ -45,6 +42,10 @@ class ProgramExecutionServer {
   static bool IsValid(const rapid_pbd_msgs::Program& program);
   void PublishIsRunning(bool is_running);
   void Cancel(const std::string& error);
+
+  // Runs all necessary steps to finish up a program execution, regardless of
+  // whether it succeeded or failed.
+  void Finish();
 };
 }  // namespace pbd
 }  // namespace rapid

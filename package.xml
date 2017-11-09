@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>rapid_pbd</name>
-  <version>0.1.4</version>
+  <version>0.1.6</version>
   <description>Programming by demonstration for 1 or 2 arm robots</description>
   <maintainer email="jstn@cs.washington.edu">Justin Huang</maintainer>
   <license>MIT</license>
@@ -41,6 +41,7 @@
   <run_depend>controller_manager_msgs</run_depend>
   <run_depend>depthcloud_encoder</run_depend>
   <run_depend>geometry_msgs</run_depend>
+  <run_depend>interactive_marker_proxy</run_depend>
   <run_depend>mongodb_store</run_depend>
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_msgs</run_depend>
@@ -53,6 +54,7 @@
   <run_depend>rapid_pbd_msgs</run_depend>
   <run_depend>robot_controllers_msgs</run_depend>
   <run_depend>robot_markers</run_depend>
+  <run_depend>rosbridge_server</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>ros_web_video</run_depend>
@@ -60,6 +62,7 @@
   <run_depend>shape_msgs</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>surface_perception</run_depend>
+  <run_depend>tf2_web_republisher</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>transform_graph</run_depend>
