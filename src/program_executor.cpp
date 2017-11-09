@@ -42,7 +42,7 @@ ProgramExecutionServer::ProgramExecutionServer(
       robot_state_(robot_state),
       runtime_viz_(runtime_viz),
       program_db_(program_db),
-      planning_scene_pub_(planning_scene_pub,
+      planning_scene_pub_(planning_scene_pub),
       condition_check_pub_(condition_check_pub) {}
 
 void ProgramExecutionServer::Start() {
@@ -169,7 +169,6 @@ void ProgramExecutionServer::PublishIsRunning(bool is_running) {
   msg.data = is_running;
   is_running_pub_.publish(msg);
 }
-
 
 void ProgramExecutionServer::Cancel(const std::string& error) {
   ExecuteProgramResult result;

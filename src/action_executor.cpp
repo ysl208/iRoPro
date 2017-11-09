@@ -14,6 +14,7 @@
 #include "rapid_pbd/action_names.h"
 #include "rapid_pbd/action_utils.h"
 #include "rapid_pbd/errors.h"
+#include "rapid_pbd/landmarks.h"
 #include "rapid_pbd/motion_planning.h"
 #include "rapid_pbd/motion_planning_constants.h"
 #include "rapid_pbd/visualizer.h"

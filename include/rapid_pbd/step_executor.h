@@ -9,13 +9,9 @@
 
 #include "rapid_pbd/action_clients.h"
 #include "rapid_pbd/action_executor.h"
-#include "rapid_pbd/motion_planning.h"
-<<<<<<< HEAD
-#include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/condition_checker.h"
-=======
+#include "rapid_pbd/motion_planning.h"
 #include "rapid_pbd/runtime_robot_state.h"
->>>>>>> indigo-devel
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
 
@@ -26,13 +22,8 @@ class StepExecutor {
   StepExecutor(const rapid_pbd_msgs::Step& step, ActionClients* action_clients,
                const RuntimeRobotState& robot_state, World* world,
                const RuntimeVisualizer& runtime_viz,
-<<<<<<< HEAD
-               const tf::TransformListener& tf_listener,
                const ros::Publisher& planning_scene_pub,
                const ros::Publisher& condition_check_pub);
-=======
-               const ros::Publisher& planning_scene_pub);
->>>>>>> indigo-devel
 
   // Returns true if the Step message is valid, false otherwise.
   // You should call this method to verify the step message before executing it.

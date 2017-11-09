@@ -294,11 +294,7 @@ add_dependencies(rapid_pbd_step_executor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${c
 target_link_libraries(rapid_pbd_step_executor
   rapid_pbd_action_clients
   rapid_pbd_action_executor
-<<<<<<< HEAD
   rapid_pbd_condition_checker
-  rapid_pbd_joint_state_reader
-=======
->>>>>>> indigo-devel
   rapid_pbd_motion_planning
   rapid_pbd_runtime_robot_state
   rapid_pbd_visualizer

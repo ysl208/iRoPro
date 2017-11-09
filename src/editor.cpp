@@ -21,6 +21,7 @@
 #include "rapid_pbd/action_utils.h"
 #include "rapid_pbd/condition_generator.h"
 #include "rapid_pbd/joint_state_reader.h"
+#include "rapid_pbd/landmarks.h"
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/visualizer.h"
