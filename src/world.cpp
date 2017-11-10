@@ -5,13 +5,13 @@
 #include <string>
 #include <vector>
 
+#include "geometry_msgs/Pose.h"
 #include "moveit_msgs/GetPositionIK.h"
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Landmark.h"
 #include "rapid_pbd_msgs/Program.h"
 #include "rapid_pbd_msgs/Step.h"
 #include "transform_graph/graph.h"
-#include "geometry_msgs/Pose.h"
 
 #include "rapid_pbd/action_utils.h"
 #include "rapid_pbd/joint_state.h"
@@ -147,7 +147,7 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
         for (size_t i = 0; i < joint_names.size(); ++i) {
           world->joint_state.SetPosition(joint_names[i], joint_positions[i]);
         }
-      } else if (action.type == msgs::Action::CHECK_CONDITIONS){
+      } else if (action.type == msgs::Action::CHECK_CONDITIONS) {
         std::vector<msgs::Condition> world_conditions;
         world_conditions.push_back(action.condition);
         world->world_conditions = world_conditions;
@@ -167,6 +167,8 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
     if (surface_boxes.size() > 0) {
       world->surface_box_landmarks = surface_boxes;
     }
+    msgs::Surface surface = step.surface;
+    world->surface = surface;
   }
 }
 
@@ -194,7 +196,7 @@ double BoxDissimilarity(const std::vector<double>& a,
 
 bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
                    rapid_pbd_msgs::Landmark* match, const double& variance) {
-    ROS_INFO("Landmark %s", landmark.name.c_str());
+  ROS_INFO("Landmark %s", landmark.name.c_str());
   const double kMaxDistance = variance * variance;
   std::vector<double> landmark_dims;
   GetDims(landmark, &landmark_dims);
@@ -214,10 +216,9 @@ bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
   } else {
     return false;
   }
-
 }
 
-void GetRPY(const geometry_msgs::Quaternion& q, geometry_msgs::Vector3* rpy){
+void GetRPY(const geometry_msgs::Quaternion& q, geometry_msgs::Vector3* rpy) {
   // Returns roll, pitch, yaw
   tf::Quaternion tfQuat;
   tf::quaternionMsgToTF(q, tfQuat);
@@ -226,19 +227,23 @@ void GetRPY(const geometry_msgs::Quaternion& q, geometry_msgs::Vector3* rpy){
   rpy->z = tf::getYaw(tfQuat);
 }
 
-void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v){
+void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v) {
   v->x = p.x;
   v->y = p.y;
   v->z = p.z;
 }
 
+void CheckLandmarkProperties(const rapid_pbd_msgs::Landmark& landmark) {
+  // Given a landmark on the grid, check if
+}
+
 void UpdateGrid(const rapid_pbd_msgs::Landmark& landmark,
-                std::vector<std::vector<std::string> >* grid){
-  float lm_length, lm_width; // no. of cells for landmark
-   
+                std::vector<std::vector<std::string> >* grid) {
+  float lm_length, lm_width;  // no. of cells for landmark
+
   geometry_msgs::Point lm_pos = landmark.pose_stamped.pose.position;
   geometry_msgs::Vector3 lm_dims = landmark.surface_box_dims;
-  
+
   // geometry_msgs::Point table_pos = table_pose.position;
 
   // lm_length = std::ceil(table_dims.x/lm_dims.x);
@@ -248,7 +253,6 @@ void UpdateGrid(const rapid_pbd_msgs::Landmark& landmark,
   geometry_msgs::Point displacement;
   // displacement.x = table_pos.x = lm_pos.x;
   // displacement.y = table_pos.y = lm_pos.y;
-
 }
 
 }  // namespace pbd

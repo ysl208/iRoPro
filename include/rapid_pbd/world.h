@@ -3,11 +3,12 @@
 #include <string>
 #include <vector>
 
+#include "geometry_msgs/Point.h"
+#include "geometry_msgs/Quaternion.h"
+#include "rapid_pbd_msgs/Condition.h"
 #include "rapid_pbd_msgs/Landmark.h"
 #include "rapid_pbd_msgs/Program.h"
-#include "rapid_pbd_msgs/Condition.h"
-#include "geometry_msgs/Quaternion.h"
-#include "geometry_msgs/Point.h"
+#include "rapid_pbd_msgs/Surface.h"
 
 #include "rapid_pbd/joint_state.h"
 #include "rapid_pbd/robot_config.h"
@@ -19,6 +20,7 @@ struct World {
   std::string scene_id;
   JointState joint_state;
   std::vector<rapid_pbd_msgs::Landmark> surface_box_landmarks;
+  std::vector<rapid_pbd_msgs::Surface> surface;
   std::vector<rapid_pbd_msgs::Condition> world_conditions;
   std::vector<std::vector<std::string> > grid;
 
