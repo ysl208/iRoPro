@@ -31,6 +31,7 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
   world->surface_box_landmarks.clear();
   world->world_conditions.clear();
   world->grid.clear();
+  world->surface.clear();
 
   // TODO: If this gets noticeably slow, change it so that it searches backward
   // instead of simulating forward. The channels to search are:
@@ -167,8 +168,32 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
     if (surface_boxes.size() > 0) {
       world->surface_box_landmarks = surface_boxes;
     }
-    msgs::Surface surface = step.surface;
+
+    std::vector<msgs::Surface> surface;
+    surface.push_back(step.surface);
+
+    // msgs::Surface surface = step.surface;
     world->surface = surface;
+    ROS_INFO("Surface dimensions: (%f,%f,%f)", world->surface[0].dimensions.x,
+             world->surface[0].dimensions.y, world->surface[0].dimensions.z);
+    ROS_INFO("world->surface[0] position: (%f,%f,%f)",
+             world->surface[0].pose_stamped.pose.position.x,
+             world->surface[0].pose_stamped.pose.position.y,
+             world->surface[0].pose_stamped.pose.position.z);
+    ROS_INFO("world->surface[0] orientation: (%f,%f,%f,%f)",
+             world->surface[0].pose_stamped.pose.orientation.x,
+             world->surface[0].pose_stamped.pose.orientation.y,
+             world->surface[0].pose_stamped.pose.orientation.z,
+             world->surface[0].pose_stamped.pose.orientation.w);
+    // ROS_INFO(
+    //     "Getworld Surface orientation: (%f) step %d \n -- landmarks: (%d)
+    //     step "
+    //     "%d",
+    //     world->surface[0].pose_stamped.pose.orientation.x, step_i,
+    //     world->surface_box_landmarks.size(), step_i);
+    // ROS_INFO("-- landmarks: (%f) step %d",
+    // world->surface_box_landmarks.size(),
+    //          step_i);
   }
 }
 

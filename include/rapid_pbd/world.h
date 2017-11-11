@@ -21,12 +21,11 @@ struct World {
   JointState joint_state;
   std::vector<rapid_pbd_msgs::Landmark> surface_box_landmarks;
   std::vector<rapid_pbd_msgs::Surface> surface;
+
   std::vector<rapid_pbd_msgs::Condition> world_conditions;
   std::vector<std::vector<std::string> > grid;
 
  private:
-  geometry_msgs::Pose table_pose;
-  geometry_msgs::Vector3 table_dims;
   size_t table_length;
   size_t table_width;
 };
