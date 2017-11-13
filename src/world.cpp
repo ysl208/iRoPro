@@ -31,7 +31,7 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
   world->surface_box_landmarks.clear();
   world->world_conditions.clear();
   world->grid.clear();
-  world->surface.clear();
+  world->points.clear();
 
   // TODO: If this gets noticeably slow, change it so that it searches backward
   // instead of simulating forward. The channels to search are:
@@ -165,35 +165,28 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
       // Deal with other landmark types here
     }
     // Replace all surface objects if there are any.
+    // If there are none, then landmarks stay the same as in previous step
     if (surface_boxes.size() > 0) {
       world->surface_box_landmarks = surface_boxes;
     }
 
-    std::vector<msgs::Surface> surface;
-    surface.push_back(step.surface);
-
-    // msgs::Surface surface = step.surface;
-    world->surface = surface;
-    ROS_INFO("Surface dimensions: (%f,%f,%f)", world->surface[0].dimensions.x,
-             world->surface[0].dimensions.y, world->surface[0].dimensions.z);
-    ROS_INFO("world->surface[0] position: (%f,%f,%f)",
-             world->surface[0].pose_stamped.pose.position.x,
-             world->surface[0].pose_stamped.pose.position.y,
-             world->surface[0].pose_stamped.pose.position.z);
-    ROS_INFO("world->surface[0] orientation: (%f,%f,%f,%f)",
-             world->surface[0].pose_stamped.pose.orientation.x,
-             world->surface[0].pose_stamped.pose.orientation.y,
-             world->surface[0].pose_stamped.pose.orientation.z,
-             world->surface[0].pose_stamped.pose.orientation.w);
-    // ROS_INFO(
-    //     "Getworld Surface orientation: (%f) step %d \n -- landmarks: (%d)
-    //     step "
-    //     "%d",
-    //     world->surface[0].pose_stamped.pose.orientation.x, step_i,
-    //     world->surface_box_landmarks.size(), step_i);
-    // ROS_INFO("-- landmarks: (%f) step %d",
-    // world->surface_box_landmarks.size(),
-    //          step_i);
+    msgs::Surface surface = step.surface;
+    if (surface.dimensions.x > 0) {
+      world->surface = surface;
+    }
+    ROS_INFO("Surface dimensions: (%f,%f,%f)", world->surface.dimensions.x,
+             world->surface.dimensions.y, world->surface.dimensions.z);
+    std::cout << "landmarks: " << world->surface_box_landmarks.size() << " - "
+              << step.landmarks.size() << " for step " << step_id << "\n";
+    ROS_INFO("world->surface position: (%f,%f,%f)",
+             world->surface.pose_stamped.pose.position.x,
+             world->surface.pose_stamped.pose.position.y,
+             world->surface.pose_stamped.pose.position.z);
+    ROS_INFO("world->surface orientation: (%f,%f,%f,%f)",
+             world->surface.pose_stamped.pose.orientation.x,
+             world->surface.pose_stamped.pose.orientation.y,
+             world->surface.pose_stamped.pose.orientation.z,
+             world->surface.pose_stamped.pose.orientation.w);
   }
 }
 

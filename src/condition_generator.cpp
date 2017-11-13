@@ -30,26 +30,29 @@ ConditionGenerator::ConditionGenerator(const RobotConfig& robot_config)
 void ConditionGenerator::AssignLandmarkCondition(
     const World& world, const std::string& landmark_name,
     msgs::Condition* condition) {
+  World currentWorld = world;
   ROS_INFO("Assign landmarks: (%d) ", world.surface_box_landmarks.size());
-
   for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
     msgs::Landmark world_landmark = world.surface_box_landmarks[i];
-    ROS_INFO("landmark: (%s) ", world_landmark.name.c_str());
-    if (world.surface.size() > 0) {
-      // ROS_INFO("- : Surface orientation: %f for 1/%d surfaces",
-      //          world.surface[0].pose_stamped.pose.orientation.z,
-      //          world.surface.size());
+
+    msgs::Surface surface = world.surface;
+    if (surface.dimensions.x <= 0) {
+      ROS_ERROR("No surface found: (%f,%f,%f)", surface.dimensions.x,
+                surface.dimensions.y, surface.dimensions.z);
     }
+
     if (IsLandmarkName(world_landmark, landmark_name)) {
       condition->relevant = true;
       condition->landmark = world_landmark;
 
       float defaultVariance = 0.075;
-      GetPropertyConditions(world_landmark, world, condition, defaultVariance);
-      CheckRelevantProperties(world, condition);
-
+      GetPropertyConditions(world_landmark, currentWorld, condition,
+                            defaultVariance);
+      CheckRelevantProperties(currentWorld, condition);
+      GenerateGrid(currentWorld, condition);
       // Add relation condition for each landmark
-      GetRelativeConditions(world_landmark, world, condition, defaultVariance);
+      GetRelativeConditions(world_landmark, currentWorld, condition,
+                            defaultVariance);
       break;
     }
   }
@@ -76,36 +79,102 @@ void ConditionGenerator::UpdateReferenceLandmark(
                          defaultVarVector);
 }
 
-void ConditionGenerator::GenerateGrid(World* world,
-                                      const msgs::Condition& condition) {
-  msgs::Surface surface = world->surface[0];
-  if (surface.pose_stamped.pose.position.x <= 0) {
-    GetDefaultSurface(&surface);
+void ConditionGenerator::GenerateGrid(const World& world,
+                                      rapid_pbd_msgs::Condition* condition) {
+  msgs::Surface surface = world.surface;
+  // std::vector<std::vector<std::string> > grid;
+  // Given a range [min,max], a point in the range x_0, a subrange around x with
+  // width dim.x, (a distance d,) return an array of i points x_i in [min,max]
+  // such that all x_i are spread out evenly
+  // Note: min/max are the borders of the table
+
+  // start at x_0, move left until border, move right
+  // if (condition->positionRelevant) {
+  float distance;
+  if (condition->referenceRelevant) {
+    // distance = condition->contDisplacement;
   }
-  std::vector<std::vector<std::string> > grid;
+
+  geometry_msgs::Pose pose;
+  pose.position = condition->position;
+  pose.orientation = condition->orientation;
+  geometry_msgs::Vector3 dimensions = condition->surface_box_dims;
+  geometry_msgs::Point point = pose.position;
   std::vector<geometry_msgs::Point> positions;
-  positions.push_back(condition.position);
+  positions.push_back(point);  // x_0
+  ROS_INFO("No. of positions: %d", positions.size());
+  ROS_INFO("Added first point: (%f,%f) ", point.x, point.y);
+  // find spaces for x-coordinate
+  // move before x_0
+  float l_min = condition->min_pos.x;
+  float l_max = point.x - (dimensions.x * 0.5);
+  ROS_INFO("l_min/l_max: (%f,%f) ", l_min, l_max);
 
-  // divide the surface into cells, each cell has the size of the landmark
-  // dimension
-
-  if (condition.positionRelevant) {
+  // place new x closest to x_0 (i.e. closest to l_max)
+  geometry_msgs::Point new_point = condition->position;
+  while (l_max - dimensions.x > l_min) {
+    ROS_INFO("No. of positions: %d", positions.size());
+    new_point.x = l_max - (dimensions.x * 0.5);
+    l_max = new_point.x - (dimensions.x * 0.5);
+    positions.push_back(new_point);  // add new point
+    ROS_INFO("Added point: (%f,%f) ", new_point.x, new_point.y);
   }
+  // move after x_0
+  float r_min = point.x + (dimensions.x * 0.5);
+  float r_max = condition->max_pos.x;
+  ROS_INFO("r_min/r_max: (%f,%f) ", r_min, r_max);
+
+  while (r_min + dimensions.x < r_max) {
+    ROS_INFO("No. of positions: %d", positions.size());
+    new_point.x = r_min + (dimensions.x * 0.5);
+    r_min = new_point.x + (dimensions.x * 0.5);
+    positions.push_back(new_point);  // add new point
+    ROS_INFO("Added point: (%f,%f) ", new_point.x, new_point.y);
+  }
+  // find spaces for y-coordinate
+  // move before y_0
+  l_min = condition->min_pos.y;
+  l_max = point.y - (dimensions.y * 0.5);
+  ROS_INFO("spaces for y-position: l_min/l_max: (%f,%f) ", l_min, l_max);
+
+  // place new y closest to y_0 (i.e. closest to l_max)
+  new_point = condition->position;
+  while (l_max - dimensions.y > l_min) {
+    ROS_INFO("No. of positions: %d", positions.size());
+    new_point.y = l_max - (dimensions.y * 0.5);
+    l_max = new_point.y - (dimensions.y * 0.5);
+    positions.push_back(new_point);  // add new point
+    ROS_INFO("Added point: (%f,%f) ", new_point.x, new_point.y);
+  }
+  // move after y_0
+  r_min = point.y + (dimensions.y * 0.5);
+  r_max = condition->max_pos.y;
+  ROS_INFO("r_min/r_max: (%f,%f) ", r_min, r_max);
+
+  while (r_min + dimensions.y < r_max) {
+    ROS_INFO("No. of positions: %d", positions.size());
+    new_point.y = r_min + (dimensions.y * 0.5);
+    r_min = new_point.y + (dimensions.y * 0.5);
+    positions.push_back(new_point);  // add new point
+    ROS_INFO("Added point: (%f,%f) ", new_point.x, new_point.y);
+  }
+  //}
+  // condition->grid = positions;
 }
 
 void ConditionGenerator::GetDefaultSurface(msgs::Surface* surface) {
-  surface->dimensions.x = 0.426411;
-  surface->dimensions.y = 0.851767;
-  surface->dimensions.z = 0.009999;
+  surface->dimensions.x = 0.456164;
+  surface->dimensions.y = 0.899257;
+  surface->dimensions.z = 0.009994;
 
-  surface->pose_stamped.pose.position.x = 0.686756;
-  surface->pose_stamped.pose.position.y = 0.066172;
-  surface->pose_stamped.pose.position.z = 0.717414;
+  surface->pose_stamped.pose.position.x = 0.698007;
+  surface->pose_stamped.pose.position.y = 0.075515;
+  surface->pose_stamped.pose.position.z = 0.501755;
   // converted to zero degrees
-  surface->pose_stamped.pose.orientation.x = -0.007211;
-  surface->pose_stamped.pose.orientation.y = -0.007610;
-  surface->pose_stamped.pose.orientation.z = -0.005776;
-  surface->pose_stamped.pose.orientation.w = 0.999928;
+  surface->pose_stamped.pose.orientation.x = -0.011494;
+  surface->pose_stamped.pose.orientation.y = -0.005507;
+  surface->pose_stamped.pose.orientation.z = 0.036195;
+  surface->pose_stamped.pose.orientation.w = 0.999263;
   ROS_INFO(
       "Using default surface values - might not align with actual surface!");
 }
@@ -116,10 +185,8 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
   // relevant
   // TO DO: Check if object is cylinder, then no orientation
 
-  msgs::Surface surface = world.surface[0];
-  if (surface.pose_stamped.pose.position.x <= 0) {
-    GetDefaultSurface(&surface);
-  }
+  msgs::Surface surface = world.surface;
+
   ROS_INFO("Surface dimensions: (%f,%f,%f)", surface.dimensions.x,
            surface.dimensions.y, surface.dimensions.z);
   ROS_INFO("Surface position: (%f,%f,%f)", surface.pose_stamped.pose.position.x,
@@ -159,68 +226,112 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
   geometry_msgs::Point surface_position = surface.pose_stamped.pose.position;
   geometry_msgs::Vector3 surface_dims = surface.dimensions;
   float dx = fabs(condition->position.x - surface.pose_stamped.pose.position.x);
-  float dy = fabs(condition->position.y - surface.pose_stamped.pose.position.y);
-  float t_edge = surface_position.x - surface_dims.x * 0.5;
-  float b_edge = surface_position.x + surface_dims.x * 0.5;
+  float t_edge = surface_position.x + surface_dims.x * 0.5;
+  float b_edge = surface_position.x - surface_dims.x * 0.5;
   ROS_INFO("bottom edge 1 %f < %f", condition->position.x, surface_position.x);
   ROS_INFO("-- 2 %f < %f", fabs(b_edge - condition->position.x),
-           condition->surface_box_dims.x * 0.5);
-  if (dx < condition->surface_box_dims.y * 0.5) {
-    // half width, set x-coordinate to table center
-    condition->position.x = surface.pose_stamped.pose.position.x;
-    condition->positionVariance.x = 0.01;  // 0.01m
-    condition->positionRelevant = true;
-  } else if ((condition->position.x < surface_position.x) &&
-             (fabs(b_edge - condition->position.x) <
-              condition->surface_box_dims.x * 0.5)) {
-    // landmark on bottom edge of table, minimize variance
+           condition->surface_box_dims.x);
+  if ((condition->position.x < (b_edge + condition->surface_box_dims.x)) ||
+      (dx < condition->surface_box_dims.x) ||
+      (condition->position.x > (t_edge - condition->surface_box_dims.x))) {
+    // ((condition->position.x < surface_position.x) &&
+    //    (fabs(b_edge - condition->position.x) <
+    //     condition->surface_box_dims.x * 0.5)) ||
+    //   (dx < condition->surface_box_dims.y * 0.5) ||
+    //   ((condition->position.x > surface_position.x) &&
+    //    (fabs(t_edge - condition->position.x) <
+    //     condition->surface_box_dims.x * 0.5))) {
+    // bottom, center, or top of the table, set variance, min-max values
+    // condition->position.x = surface.pose_stamped.pose.position.x;
     condition->positionVariance.x = 0.01;
+    condition->min_pos.x =
+        condition->position.x - condition->positionVariance.x;
+    condition->max_pos.x =
+        condition->position.x + condition->positionVariance.x;
     condition->positionRelevant = true;
-  } else if ((condition->position.x > surface_position.x) &&
-             (fabs(t_edge - condition->position.x) <
-              condition->surface_box_dims.x * 0.5)) {
-    // landmark on top edge of table, minimize variance
-    condition->positionVariance.x = 0.01;
-    condition->positionRelevant = true;
+    // } else if ((condition->position.x < surface_position.x) &&
+    //            (fabs(b_edge - condition->position.x) <
+    //             condition->surface_box_dims.x * 0.5)) {
+    //   // landmark on bottom edge of table, minimize variance
+    //   condition->positionVariance.x = 0.01;
+    //   condition->min_pos.x =
+    //       condition->position.x - condition->positionVariance.x;
+    //   condition->max_pos.x =
+    //       condition->position.x + condition->positionVariance.x;
+    //   condition->positionRelevant = true;
+    // } else if ((condition->position.x > surface_position.x) &&
+    //            (fabs(t_edge - condition->position.x) <
+    //             condition->surface_box_dims.x * 0.5)) {
+    //   // landmark on top edge of table, minimize variance
+    //   condition->positionVariance.x = 0.01;
+    //   condition->min_pos.x =
+    //       condition->position.x - condition->positionVariance.x;
+    //   condition->max_pos.x =
+    //       condition->position.x + condition->positionVariance.x;
+    //   condition->positionRelevant = true;
   } else {
     ROS_INFO(
-        "x-coordinate does not seem relevant, set range to table width: %f",
+        "x-coordinate does not seem relevant, keep range at table width: %f",
         surface_dims.x);
-    condition->positionVariance.x = surface_dims.x * 0.5;
+    condition->positionVariance.x = fabs(surface_dims.x);
+    // condition->min_pos.x = b_edge;
+    // condition->max_pos.x = t_edge;
   }
+  ROS_INFO("set min_ max_ to %f , %f", condition->min_pos.x,
+           condition->max_pos.x);
 
   // horizontal zones (from the robot's perspective)
-  float l_edge = surface_position.y - surface_dims.y * 0.5;
-  float r_edge = surface_position.y + surface_dims.y * 0.5;
-  ROS_INFO("half length %f < %f", dy, (condition->surface_box_dims.x * 0.5));
-  ROS_INFO("left edge = %f - %f = %f", surface_position.y, surface_dims.y * 0.5,
+  float l_edge = surface_position.y + surface_dims.y * 0.5;
+  float r_edge = surface_position.y - surface_dims.y * 0.5;
+  float dy = fabs(condition->position.y - surface.pose_stamped.pose.position.y);
+  ROS_INFO("half length %f < %f", dy, (condition->surface_box_dims.x));
+  ROS_INFO("left edge = %f - %f = %f", surface_position.y, surface_dims.y,
            l_edge);
   ROS_INFO("left edge 1 %f < %f", condition->position.y, surface_position.y);
-  ROS_INFO("left edge 1 %f < %f", condition->position.y, surface_position.y);
   ROS_INFO("-- 2 %f < %f", fabs(l_edge - condition->position.y),
-           condition->surface_box_dims.y * 0.5);
-  if (dy < condition->surface_box_dims.x * 0.5) {
+           condition->surface_box_dims.y);
+  ROS_INFO("right edge  %f < %f", fabs(r_edge - condition->position.y),
+           condition->surface_box_dims.y);
+  if ((condition->position.y < (r_edge + condition->surface_box_dims.y)) ||
+      (dy < condition->surface_box_dims.y) ||
+      (condition->position.y > (l_edge - condition->surface_box_dims.y))
+
+      // ((condition->position.y <= surface_position.y) &&
+      //    (fabs(l_edge - condition->position.y) <
+      //     condition->surface_box_dims.y)) ||
+      //   (dy < condition->surface_box_dims.x) ||
+      //   ((condition->position.y > surface_position.y) &&
+      //    (fabs(r_edge - condition->position.y) <
+      //     condition->surface_box_dims.y))
+      ) {
     // half length
-    condition->position.y = surface.pose_stamped.pose.position.y;
-    condition->positionVariance.y = 0.01;  // 0.01m
-    condition->positionRelevant = true;
-  } else if ((condition->position.y <= surface_position.y) &&
-             (fabs(l_edge - condition->position.y) <
-              condition->surface_box_dims.y * 0.5)) {
-    // landmark on left edge of table
     condition->positionVariance.y = 0.01;
+    condition->min_pos.y =
+        condition->position.y - condition->positionVariance.y;
+    condition->max_pos.y =
+        condition->position.y + condition->positionVariance.y;
     condition->positionRelevant = true;
-  } else if ((condition->position.y > surface_position.y) &&
-             (fabs(r_edge - condition->position.y) <
-              condition->surface_box_dims.y * 0.5)) {
-    // landmark on left edge of table
-    condition->positionVariance.y = 0.01;
-    condition->positionRelevant = true;
+    //   condition->position.y = surface.pose_stamped.pose.position.y;
+    //   // condition->positionVariance.y = 0.01;  // 0.01m
+    //   condition->positionRelevant = true;
+    // } else if ((condition->position.y <= surface_position.y) &&
+    //            (fabs(l_edge - condition->position.y) <
+    //             condition->surface_box_dims.y * 0.5)) {
+    //   // landmark on left edge of table
+    //   // condition->positionVariance.y = 0.01;
+    //   condition->positionRelevant = true;
+    // } else if ((condition->position.y > surface_position.y) &&
+    //            (fabs(r_edge - condition->position.y) <
+    //             condition->surface_box_dims.y * 0.5)) {
+    //   // landmark on right edge of table
+    //   // condition->positionVariance.y = 0.01;
+    //   condition->positionRelevant = true;
   } else {
     ROS_INFO(
-        "y-coordinate does not seem relevant, set range to table width: %f",
+        "y-coordinate does not seem relevant, keep range at table width: %f",
         surface_dims.y);
-    condition->positionVariance.y = surface_dims.y * 0.5;
+    condition->positionVariance.y = fabs(surface_dims.y);
+    // condition->positionVariance.y = surface_dims.y * 0.5;
   }
 }
 
@@ -245,6 +356,18 @@ void ConditionGenerator::GetPropertyConditions(const msgs::Landmark& landmark,
   // position
   condition->positionRelevant = false;
   condition->positionVariance = defaultVarVector;
+  geometry_msgs::Point surface_position =
+      world.surface.pose_stamped.pose.position;
+  geometry_msgs::Vector3 surface_dims = world.surface.dimensions;
+
+  condition->min_pos.x = surface_position.x - surface_dims.x * 0.5;
+  condition->min_pos.y = surface_position.y - surface_dims.y * 0.5;
+  condition->max_pos.x = surface_position.x + surface_dims.x * 0.5;
+  condition->max_pos.y = surface_position.y + surface_dims.y * 0.5;
+  ROS_INFO("set min_ max_ to %f , %f", condition->min_pos.x,
+           condition->max_pos.x);
+  ROS_INFO("surface pos and dims %f , %f * 0.5 = %f", surface_position.x,
+           surface_dims.x, surface_dims.x * 0.5);
   condition->position = landmark.pose_stamped.pose.position;
   // orientation
   condition->orientationRelevant = false;

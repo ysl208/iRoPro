@@ -8,7 +8,7 @@
 
   <group ns="rapid_pbd">
     <param name="robot" value="$(arg robot)" />
-    <node name="editor_node" pkg="rapid_pbd" type="editor_node" output="screen" required="true">
+    <node name="editor_node" pkg="rapid_pbd" type="editor_node" output="screen" required="true" >
       <remap from="move_group" to="/move_group" />
     </node>
   </group>

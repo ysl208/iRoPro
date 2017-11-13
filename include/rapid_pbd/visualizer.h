@@ -9,6 +9,7 @@
 #include "rapid_pbd_msgs/EditorEvent.h"
 #include "rapid_pbd_msgs/Landmark.h"
 #include "rapid_pbd_msgs/Program.h"
+#include "rapid_pbd_msgs/Surface.h"
 #include "robot_markers/builder.h"
 #include "ros/ros.h"
 
@@ -41,8 +42,8 @@ class Visualizer {
   // Publish the visualization for a particular step.
   void Publish(const std::string& program_id, const World& world);
   void PublishConditionMarkers(const std::string& program_id,
-                                const World& world,
-                                const rapid_pbd_msgs::Condition& condition);
+                               const World& world,
+                               const rapid_pbd_msgs::Condition& condition);
   void StopPublishing(const std::string& program_id);
 
  private:
@@ -69,12 +70,19 @@ class RuntimeVisualizer {
   ros::Publisher surface_box_pub_;
 };
 void GetConditionMarker(const rapid_pbd_msgs::Condition& condition,
-                           const RobotConfig& robot_config,
-                           visualization_msgs::MarkerArray* scene_markers);
+                        const RobotConfig& robot_config,
+                        visualization_msgs::MarkerArray* scene_markers);
+void GetGridMarker(const rapid_pbd_msgs::Surface& surface,
+                   const rapid_pbd_msgs::Condition& condition,
+                   const RobotConfig& robot_config,
+                   visualization_msgs::MarkerArray* scene_markers);
 void GetSegmentationMarker(
     const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
     const RobotConfig& robot_config,
     visualization_msgs::MarkerArray* scene_markers);
+void GetSurfaceMarker(const rapid_pbd_msgs::Surface& surface,
+                      const RobotConfig& robot_config,
+                      visualization_msgs::MarkerArray* scene_markers);
 }  // namespace pbd
 }  // namespace rapid
 

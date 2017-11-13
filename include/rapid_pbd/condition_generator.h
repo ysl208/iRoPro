@@ -31,7 +31,7 @@ class ConditionGenerator {
   void UpdateReferenceLandmark(const World& world,
                                rapid_pbd_msgs::Condition* condition,
                                const rapid_pbd_msgs::Landmark& reference);
-  void GenerateGrid(World* world, const rapid_pbd_msgs::Condition& condition);
+  void GenerateGrid(const World& world, rapid_pbd_msgs::Condition* condition);
 
  private:
   World* world_;

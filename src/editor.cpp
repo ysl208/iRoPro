@@ -66,7 +66,6 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       ViewConditions(event.program_info.db_id, event.step_num,
                      event.action_num);
     } else if (event.type == msgs::EditorEvent::UPDATE_CONDITIONS) {
-      ROS_INFO("update condtiions");
       UpdateConditions(event.program_info.db_id, event.step_num,
                        event.action_num, event.action.condition.reference);
     } else if (event.type == msgs::EditorEvent::ADD_STEP) {
@@ -106,7 +105,6 @@ std::string Editor::Create(const std::string& name) {
   msgs::Program program;
   program.name = name;
 
-  ROS_INFO("Create new program");
   joint_state_reader_.ToMsg(&program.start_joint_state);
   std::string id = db_.Insert(program);
   World world;
@@ -117,7 +115,6 @@ std::string Editor::Create(const std::string& name) {
 }
 
 void Editor::AddSenseSteps(const std::string& db_id, size_t step_id) {
-  ROS_INFO("Add default SENSE steps");
   AddStep(db_id);
   AddMoveHeadAction(db_id, step_id, 45, 0);
   AddOpenGripperAction(db_id, step_id, 100, 0);
@@ -251,7 +248,6 @@ void Editor::AddGripperPoseAction(const std::string& db_id, size_t step_id,
     move_r_arm_action.type = msgs::Action::MOVE_TO_CARTESIAN_GOAL;
     move_r_arm_action.actuator_group = msgs::Action::RIGHT_ARM;
     std::vector<double> r_default_pose(&default_pose[7], &default_pose[11]);
-    ROS_INFO("First default pose: %f", r_default_pose[0]);
 
     AddJointStates(&move_r_arm_action, r_default_pose);
     AddAction(db_id, step_id, move_r_arm_action);
@@ -288,7 +284,7 @@ void Editor::Delete(const std::string& db_id) {
 void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
                                 size_t action_id,
                                 const std::string& landmark_name) {
-  // Generates Pre-/Postconditions
+  // Generates conditions for current step
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
@@ -304,17 +300,15 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
   }
   msgs::Step* step = &program.steps[step_id];
 
-  // Get preconditions from world state in Step 2 (= step_id 1)
   World initial_world;
   GetWorld(robot_config_, program, step_id, &initial_world);
-  ROS_INFO("Assigning conditions to initial world with %lu landmarks",
-           initial_world.surface_box_landmarks.size());
+
   msgs::Condition action_condition = step->actions[action_id].condition;
   cond_gen_.AssignLandmarkCondition(initial_world, landmark_name,
                                     &action_condition);
+  // geometry_msgs::PoseArray* grid = program.grid;
+  cond_gen_.GenerateGrid(initial_world, &action_condition);
   step->actions[action_id].condition = action_condition;
-  ROS_INFO("Condition for program step %lu, action %lu :%s", step_id, action_id,
-           step->actions[action_id].condition.landmark.name.c_str());
   // publish condition markers
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
@@ -375,21 +369,13 @@ void Editor::UpdateConditions(const std::string& db_id, size_t step_id,
   World world;
   GetWorld(robot_config_, program, step_id, &world);
   msgs::Condition action_condition = step->actions[action_id].condition;
-  std::cout << "Reference relevant " << action_condition.referenceRelevant
-            << std::endl;
-  std::cout << "Reference object: " << reference.name << std::endl;
+  // std::cout << "Reference relevant " << action_condition.referenceRelevant
+  //           << std::endl;
+  // std::cout << "Reference object: " << reference.name << std::endl;
   if (action_condition.referenceRelevant && reference.name != "") {
-    ROS_INFO("Update condition for program step %lu, action %lu, reference %s",
-             step_id, action_id, reference.name.c_str());
     cond_gen_.UpdateReferenceLandmark(world, &action_condition, reference);
     step->actions[action_id].condition = action_condition;
-    ROS_INFO("Update condition for program step %lu, action %lu, reference %s",
-             step_id, action_id,
-             step->actions[action_id].condition.reference.name.c_str());
-    ROS_INFO("displacement: %f %f %f",
-             step->actions[action_id].condition.contDisplacement.x,
-             step->actions[action_id].condition.contDisplacement.y,
-             step->actions[action_id].condition.contDisplacement.z);
+
   } else {
     step->actions[action_id].condition.referenceRelevant = false;
   }
@@ -549,6 +535,9 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
     ProcessSurfaceBox(result->landmarks[i], &landmark);
     program.steps[step_id].landmarks.push_back(landmark);
   }
+  program.steps[step_id].surface = result->surface;
+  // ROS_INFO("Surface orientation: (%f)",
+  //          program.steps[step_id].surface.pose_stamped.pose.orientation.x);
   Update(db_id, program);
 }
 
