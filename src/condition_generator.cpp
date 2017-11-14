@@ -63,6 +63,7 @@ void ConditionGenerator::AssignConditions(World* world) {
     msgs::Condition condition;
     msgs::Landmark world_landmark = world->surface_box_landmarks[i];
     std::string landmark_name = world_landmark.name;
+    condition.surface = world->surface;
     AssignLandmarkCondition(*world, landmark_name, &condition);
   }
 }

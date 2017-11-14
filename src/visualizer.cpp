@@ -209,16 +209,21 @@ void GetConditionMarker(const msgs::Condition& condition,
     quat = tf::createQuaternionMsgFromRollPitchYaw(condition.eulerAngles.x,
                                                    condition.eulerAngles.y,
                                                    condition.eulerAngles.z);
-    pose.orientation = quat;
+    pose.orientation =
+        condition.surface.pose_stamped.pose.orientation;  // quat;
     cylinder.pose = pose;
+    cylinder.pose.position.x =
+        condition.min_pos.x + (condition.max_pos.x - condition.min_pos.x) * 0.5;
+    cylinder.pose.position.y =
+        condition.min_pos.y + (condition.max_pos.y - condition.min_pos.y) * 0.5;
     cylinder.pose.position.z -=
         condition.surface_box_dims.z / 2;  // table height
-    cylinder.scale.x = condition.surface_box_dims.x +
-                       fabs(condition.max_pos.x - condition.min_pos.x);
+    cylinder.scale.x = fmax(condition.surface_box_dims.x + 0.01,
+                            condition.max_pos.x - condition.min_pos.x);
     ROS_INFO("max min x: %f %f", condition.max_pos.x, condition.min_pos.x);
 
-    cylinder.scale.y = condition.surface_box_dims.y +
-                       fabs(condition.max_pos.y - condition.min_pos.y);
+    cylinder.scale.y = fmax(condition.surface_box_dims.y + 0.01,
+                            condition.max_pos.y - condition.min_pos.y);
     ROS_INFO("max min y: %f %f", condition.max_pos.y, condition.min_pos.y);
     ROS_INFO("scale x y: %f %f", cylinder.scale.x, cylinder.scale.y);
 
@@ -389,7 +394,7 @@ void GetSurfaceMarker(const msgs::Surface& surface,
   pose.position = surface.pose_stamped.pose.position;
   pose.orientation = surface.pose_stamped.pose.orientation;
   table.pose = pose;
-  table.pose.position.z -= 0.02;
+  table.pose.position.z -= surface.dimensions.z;
   table.scale.x = surface.dimensions.x;
   table.scale.y = surface.dimensions.y;
   table.scale.z = surface.dimensions.z;
