@@ -307,7 +307,12 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
   cond_gen_.AssignLandmarkCondition(initial_world, landmark_name,
                                     &action_condition);
   // geometry_msgs::PoseArray* grid = program.grid;
-  cond_gen_.GenerateGrid(initial_world, &action_condition);
+  std::vector<geometry_msgs::PoseArray> grid;
+  cond_gen_.GenerateGrid(initial_world, &action_condition, &grid);
+  step->grid = grid;
+  // initial_world.grid = grid;
+  ROS_INFO("Grid: %d with %d", step->grid.size(),
+           step->grid[0].poses.size());
   step->actions[action_id].condition = action_condition;
   // publish condition markers
   db_.Update(db_id, program);

@@ -49,7 +49,7 @@ void ConditionGenerator::AssignLandmarkCondition(
       GetPropertyConditions(world_landmark, currentWorld, condition,
                             defaultVariance);
       CheckRelevantProperties(currentWorld, condition);
-      GenerateGrid(currentWorld, condition);
+      // GenerateGrid(currentWorld, condition, currentWorld.points);
       // Add relation condition for each landmark
       GetRelativeConditions(world_landmark, currentWorld, condition,
                             defaultVariance);
@@ -80,8 +80,9 @@ void ConditionGenerator::UpdateReferenceLandmark(
                          defaultVarVector);
 }
 
-void ConditionGenerator::GenerateGrid(const World& world,
-                                      rapid_pbd_msgs::Condition* condition) {
+void ConditionGenerator::GenerateGrid(
+    const World& world, rapid_pbd_msgs::Condition* condition,
+    std::vector<geometry_msgs::PoseArray>* grid) {
   msgs::Surface surface = world.surface;
   // std::vector<std::vector<std::string> > grid;
   // Given a range [min,max], a point in the range x_0, a subrange around x with
@@ -95,72 +96,77 @@ void ConditionGenerator::GenerateGrid(const World& world,
   if (condition->referenceRelevant) {
     // distance = condition->contDisplacement;
   }
+  geometry_msgs::PoseArray pose_array;
+  std::vector<geometry_msgs::Pose> positions;
 
   geometry_msgs::Pose pose;
+  // 1. Add the actual position of the object x_0
   pose.position = condition->position;
   pose.orientation = condition->orientation;
-  geometry_msgs::Vector3 dimensions = condition->surface_box_dims;
-  geometry_msgs::Point point = pose.position;
-  std::vector<geometry_msgs::Point> positions;
-  positions.push_back(point);  // x_0
+  positions.push_back(pose);
+  ROS_INFO("Added first point: (%f,%f) ", pose.position.x, pose.position.y);
   ROS_INFO("No. of positions: %d", positions.size());
-  ROS_INFO("Added first point: (%f,%f) ", point.x, point.y);
-  // find spaces for x-coordinate
-  // move before x_0
+
+  geometry_msgs::Vector3 object_dims = condition->surface_box_dims;
+  // geometry_msgs::Point point = pose.position;
+
+  // 2. Find spaces for x-coordinate
+  // 2.1 move x < x_0
   float l_min = condition->min_pos.x;
-  float l_max = point.x - (dimensions.x * 0.5);
-  ROS_INFO("l_min/l_max: (%f,%f) ", l_min, l_max);
+  float l_max = pose.position.x - (object_dims.x * 0.5);
+  ROS_INFO("l_min/l_max for x: (%f,%f) ", l_min, l_max);
 
-  // place new x closest to x_0 (i.e. closest to l_max)
-  geometry_msgs::Point new_point = condition->position;
-  while (l_max - dimensions.x > l_min) {
+  // generate pose closest to x_0 (i.e. closest to l_max)
+  // geometry_msgs::Point new_point = condition->position;
+  while (l_max - object_dims.x > l_min) {
+    pose.position.x = l_max - (object_dims.x * 0.5);
+    l_max = pose.position.x - (object_dims.x * 0.5);
+    positions.push_back(pose);  // add new point
+    ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
     ROS_INFO("No. of positions: %d", positions.size());
-    new_point.x = l_max - (dimensions.x * 0.5);
-    l_max = new_point.x - (dimensions.x * 0.5);
-    positions.push_back(new_point);  // add new point
-    ROS_INFO("Added point: (%f,%f) ", new_point.x, new_point.y);
   }
-  // move after x_0
-  float r_min = point.x + (dimensions.x * 0.5);
+  // 2.2 move x > x_0
+  float r_min = pose.position.x + (object_dims.x * 0.5);
   float r_max = condition->max_pos.x;
-  ROS_INFO("r_min/r_max: (%f,%f) ", r_min, r_max);
+  ROS_INFO("r_min/r_max for x: (%f,%f) ", r_min, r_max);
 
-  while (r_min + dimensions.x < r_max) {
+  while (r_min + object_dims.x < r_max) {
+    pose.position.x = r_min + (object_dims.x * 0.5);
+    r_min = pose.position.x + (object_dims.x * 0.5);
+    positions.push_back(pose);  // add new point
+    ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
     ROS_INFO("No. of positions: %d", positions.size());
-    new_point.x = r_min + (dimensions.x * 0.5);
-    r_min = new_point.x + (dimensions.x * 0.5);
-    positions.push_back(new_point);  // add new point
-    ROS_INFO("Added point: (%f,%f) ", new_point.x, new_point.y);
   }
-  // find spaces for y-coordinate
-  // move before y_0
+  // 3. find spaces for y-coordinate
+  // 3.1 move before y_0
   l_min = condition->min_pos.y;
-  l_max = point.y - (dimensions.y * 0.5);
+  l_max = pose.position.y - (object_dims.y * 0.5);
   ROS_INFO("spaces for y-position: l_min/l_max: (%f,%f) ", l_min, l_max);
 
   // place new y closest to y_0 (i.e. closest to l_max)
-  new_point = condition->position;
-  while (l_max - dimensions.y > l_min) {
+  pose.position = condition->position;  // reset pose.position to x_0
+  while (l_max - object_dims.y > l_min) {
+    pose.position.y = l_max - (object_dims.y * 0.5);
+    l_max = pose.position.y - (object_dims.y * 0.5);
+    positions.push_back(pose);  // add new point
+    ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
     ROS_INFO("No. of positions: %d", positions.size());
-    new_point.y = l_max - (dimensions.y * 0.5);
-    l_max = new_point.y - (dimensions.y * 0.5);
-    positions.push_back(new_point);  // add new point
-    ROS_INFO("Added point: (%f,%f) ", new_point.x, new_point.y);
   }
-  // move after y_0
-  r_min = point.y + (dimensions.y * 0.5);
+  // 3.2 move after y_0
+  r_min = pose.position.y + (object_dims.y * 0.5);
   r_max = condition->max_pos.y;
   ROS_INFO("r_min/r_max: (%f,%f) ", r_min, r_max);
 
-  while (r_min + dimensions.y < r_max) {
+  while (r_min + object_dims.y < r_max) {
+    pose.position.y = r_min + (object_dims.y * 0.5);
+    r_min = pose.position.y + (object_dims.y * 0.5);
+    positions.push_back(pose);  // add new point
+    ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
     ROS_INFO("No. of positions: %d", positions.size());
-    new_point.y = r_min + (dimensions.y * 0.5);
-    r_min = new_point.y + (dimensions.y * 0.5);
-    positions.push_back(new_point);  // add new point
-    ROS_INFO("Added point: (%f,%f) ", new_point.x, new_point.y);
   }
   //}
-  // condition->grid = positions;
+  pose_array.poses = positions;
+  grid->push_back(pose_array);
 }
 
 void ConditionGenerator::GetDefaultSurface(msgs::Surface* surface) {

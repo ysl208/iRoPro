@@ -117,7 +117,7 @@ void Visualizer::PublishConditionMarkers(const std::string& program_id,
   }
   MarkerArray scene_markers;
   GetConditionMarker(condition, robot_config_, &scene_markers);
-  GetGridMarker(world.surface, condition, robot_config_, &scene_markers);
+  GetGridMarker(world.surface, world.grid, robot_config_, &scene_markers);
   if (scene_markers.markers.size() > 0) {
     step_vizs_[program_id].surface_seg_pub.publish(scene_markers);
   } else {
@@ -150,7 +150,7 @@ void RuntimeVisualizer::PublishSurfaceBoxes(
 }
 
 void GetGridMarker(const msgs::Surface& surface,
-                   const msgs::Condition& condition,
+                   const std::vector<geometry_msgs::PoseArray>& grid,
                    const RobotConfig& robot_config,
                    visualization_msgs::MarkerArray* scene_markers) {
   Marker points;  // describes the main object's allowed position
@@ -173,22 +173,15 @@ void GetGridMarker(const msgs::Surface& surface,
   points.color.b = 1.0;
   points.color.a = 1.0;
 
-  // for (size_t i = 0; i < condition.grid.size(), ++i) {
-  //   for (size_t j = 0; j < condition.grid.size(), ++j) {
-  // geometry_msgs::Point p = condition.grid[i][j];
-  geometry_msgs::Point p;
-  p.x = 0.821929;
-  p.y - -0.113207;
-  p.z = 0.501502 + 0.02;
-  points.points.push_back(p);
-  p.x = 0.758341;
-  points.points.push_back(p);
-  p.x = 0.694752;
-  points.points.push_back(p);
-  p.x = 0.631163;
-  points.points.push_back(p);
-  //   }
-  // }
+  for (size_t i = 0; i < grid.size(); ++i) {
+    geometry_msgs::PoseArray pose_array = grid[i];
+
+    for (size_t j = 0; j < pose_array.poses.size(); ++j) {
+      geometry_msgs::Pose pose = pose_array.poses[j];
+      points.points.push_back(pose.position);
+    }
+  }
+  ROS_INFO("Grid markers: %d", points.points.size());
   scene_markers->markers.push_back(points);
 }
 

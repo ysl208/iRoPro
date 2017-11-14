@@ -31,7 +31,7 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
   world->surface_box_landmarks.clear();
   world->world_conditions.clear();
   world->grid.clear();
-  world->points.clear();
+  // world->points.clear();
 
   // TODO: If this gets noticeably slow, change it so that it searches backward
   // instead of simulating forward. The channels to search are:
@@ -174,6 +174,12 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
     if (surface.dimensions.x > 0) {
       world->surface = surface;
     }
+
+    std::vector<geometry_msgs::PoseArray> grid = step.grid;
+    if (grid.size() > 0) {
+      world->grid = grid;
+    }
+
     ROS_INFO("Surface dimensions: (%f,%f,%f)", world->surface.dimensions.x,
              world->surface.dimensions.y, world->surface.dimensions.z);
     std::cout << "landmarks: " << world->surface_box_landmarks.size() << " - "

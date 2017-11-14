@@ -23,8 +23,8 @@ struct World {
   rapid_pbd_msgs::Surface surface;
 
   std::vector<rapid_pbd_msgs::Condition> world_conditions;
-  std::vector<std::vector<std::string> > grid;
-  std::vector<std::vector<geometry_msgs::Point> > points;
+  // std::vector<std::vector<std::string> > grid;
+  std::vector<geometry_msgs::PoseArray> grid;
 };
 
 void GetWorld(const RobotConfig& robot_config,
@@ -38,7 +38,7 @@ void GetRPY(const geometry_msgs::Quaternion& q, geometry_msgs::Vector3* rpy);
 void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v);
 
 void UpdateGrid(const rapid_pbd_msgs::Landmark& landmark,
-                std::vector<std::vector<std::string> >* grid);
+                std::vector<geometry_msgs::PoseArray>* grid);
 
 }  // namespace pbd
 }  // namespace rapid

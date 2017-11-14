@@ -73,7 +73,7 @@ void GetConditionMarker(const rapid_pbd_msgs::Condition& condition,
                         const RobotConfig& robot_config,
                         visualization_msgs::MarkerArray* scene_markers);
 void GetGridMarker(const rapid_pbd_msgs::Surface& surface,
-                   const rapid_pbd_msgs::Condition& condition,
+                   const std::vector<geometry_msgs::PoseArray>& grid,
                    const RobotConfig& robot_config,
                    visualization_msgs::MarkerArray* scene_markers);
 void GetSegmentationMarker(
