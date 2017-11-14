@@ -194,10 +194,10 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
            surface.pose_stamped.pose.position.y,
            surface.pose_stamped.pose.position.z);
   ROS_INFO("Surface orientation: (%f,%f,%f,%f)",
+           surface.pose_stamped.pose.orientation.w,
            surface.pose_stamped.pose.orientation.x,
            surface.pose_stamped.pose.orientation.y,
-           surface.pose_stamped.pose.orientation.z,
-           surface.pose_stamped.pose.orientation.w);
+           surface.pose_stamped.pose.orientation.z);
   ROS_INFO("Object dimensions: (%f,%f,%f)", condition->surface_box_dims.x,
            condition->surface_box_dims.y, condition->surface_box_dims.z);
   ROS_INFO("Object position: (%f,%f,%f)", condition->position.x,
@@ -385,21 +385,16 @@ void ConditionGenerator::GetPropertyConditions(const msgs::Landmark& landmark,
 
 geometry_msgs::Vector3 ConditionGenerator::QuaternionToRPY(
     const geometry_msgs::Quaternion& msg) {
-  // the incoming geometry_msgs::Quaternion is transformed to a tf::Quaterion
-  tf::Quaternion quat;
-  tf::quaternionMsgToTF(msg, quat);
-
+  tf::Quaternion quat(msg.x, msg.y, msg.z, msg.w);
   // the tf::Quaternion has a method to access roll pitch and yaw
   double roll, pitch, yaw;
   tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-
   ROS_INFO("quaternion: %f,%f,%f,%f", msg.w, msg.x, msg.y, msg.z);
-
   // the found angles are written in a geometry_msgs::Vector3
   geometry_msgs::Vector3 rpy;
-  rpy.x = roll;
-  rpy.y = pitch;
-  rpy.z = yaw;
+  rpy.x = roll * 180.0 / M_PI;
+  rpy.y = pitch * 180.0 / M_PI;
+  rpy.z = yaw * 180.0 / M_PI;
 
   ROS_INFO("euler: %f,%f,%f", rpy.x, rpy.y, rpy.z);
   return rpy;
