@@ -209,8 +209,7 @@ void GetConditionMarker(const msgs::Condition& condition,
     quat = tf::createQuaternionMsgFromRollPitchYaw(condition.eulerAngles.x,
                                                    condition.eulerAngles.y,
                                                    condition.eulerAngles.z);
-    pose.orientation =
-        condition.surface.pose_stamped.pose.orientation;  // quat;
+    pose.orientation = condition.surface.pose_stamped.pose.orientation;
     cylinder.pose = pose;
     cylinder.pose.position.x =
         condition.min_pos.x + (condition.max_pos.x - condition.min_pos.x) * 0.5;
@@ -218,12 +217,19 @@ void GetConditionMarker(const msgs::Condition& condition,
         condition.min_pos.y + (condition.max_pos.y - condition.min_pos.y) * 0.5;
     cylinder.pose.position.z -=
         condition.surface_box_dims.z / 2;  // table height
-    cylinder.scale.x = fmax(condition.surface_box_dims.x + 0.01,
-                            condition.max_pos.x - condition.min_pos.x);
+
+    geometry_msgs::Vector3 object_dims = condition.surface_box_dims;
+    if (fabs(fmod(condition.eulerAngles.z, 180)) > 85) {
+      float temp = object_dims.x;
+      object_dims.x = object_dims.y;
+      object_dims.y = temp;
+    }
+    cylinder.scale.x =
+        fmax(object_dims.x + 0.01, condition.max_pos.x - condition.min_pos.x);
     ROS_INFO("max min x: %f %f", condition.max_pos.x, condition.min_pos.x);
 
-    cylinder.scale.y = fmax(condition.surface_box_dims.y + 0.01,
-                            condition.max_pos.y - condition.min_pos.y);
+    cylinder.scale.y =
+        fmax(object_dims.y + 0.01, condition.max_pos.y - condition.min_pos.y);
     ROS_INFO("max min y: %f %f", condition.max_pos.y, condition.min_pos.y);
     ROS_INFO("scale x y: %f %f", cylinder.scale.x, cylinder.scale.y);
 

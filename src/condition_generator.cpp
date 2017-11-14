@@ -188,6 +188,24 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
 
   msgs::Surface surface = world.surface;
 
+  geometry_msgs::Vector3 surface_orientation =
+      QuaternionToRPY(surface.pose_stamped.pose.orientation);
+  // check if orientation matches table
+  ROS_INFO("Surface orientation: %f", surface_orientation.z);
+  ROS_INFO("Landmark orientation: %f", condition->eulerAngles.z);
+  if (fabs(fmod(surface_orientation.z - condition->eulerAngles.z, 90)) < 5) {
+    int multiple = (int)condition->eulerAngles.z / 90;
+    condition->eulerAngles.z = multiple * 90.0;
+    condition->orientationRelevant = true;
+    ROS_INFO("new Landmark orientation: %f", condition->eulerAngles.z);
+  }
+  geometry_msgs::Vector3 object_dims = condition->surface_box_dims;
+  if (fabs(fmod(condition->eulerAngles.z, 180)) > 85) {
+    float temp = object_dims.x;
+    object_dims.x = object_dims.y;
+    object_dims.y = temp;
+  }
+
   ROS_INFO("Surface dimensions: (%f,%f,%f)", surface.dimensions.x,
            surface.dimensions.y, surface.dimensions.z);
   ROS_INFO("Surface position: (%f,%f,%f)", surface.pose_stamped.pose.position.x,
@@ -198,8 +216,8 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
            surface.pose_stamped.pose.orientation.x,
            surface.pose_stamped.pose.orientation.y,
            surface.pose_stamped.pose.orientation.z);
-  ROS_INFO("Object dimensions: (%f,%f,%f)", condition->surface_box_dims.x,
-           condition->surface_box_dims.y, condition->surface_box_dims.z);
+  ROS_INFO("Object dimensions: (%f,%f,%f)", object_dims.x, object_dims.y,
+           object_dims.z);
   ROS_INFO("Object position: (%f,%f,%f)", condition->position.x,
            condition->position.y, condition->position.z);
   ROS_INFO("Object euler: (%f,%f,%f)", condition->eulerAngles.x,
@@ -207,19 +225,6 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
   ROS_INFO("%s quaternion: (%f,%f,%f,%f)", condition->landmark.name.c_str(),
            condition->orientation.w, condition->orientation.x,
            condition->orientation.y, condition->orientation.z);
-
-  geometry_msgs::Vector3 surface_orientation =
-      QuaternionToRPY(surface.pose_stamped.pose.orientation);
-  // check if orientation matches table
-  ROS_INFO("Surface orientation: %f", surface_orientation.z);
-  ROS_INFO("Landmark orientation: %f", condition->eulerAngles.z);
-  if (fabs(fmod(surface_orientation.z, 90) -
-           fmod(condition->eulerAngles.z, 90)) < 5) {
-    int multiple = (int)condition->eulerAngles.z / 90;
-    condition->eulerAngles.z = multiple * 90.0;
-    condition->orientationRelevant = true;
-    ROS_INFO("new Landmark orientation: %f", condition->eulerAngles.z);
-  }
 
   // check if position on table is relevant for zones (borders and center)
   // TO DO: Double-check how to detect the edge of the whole surface
@@ -230,53 +235,21 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
   float t_edge = surface_position.x + surface_dims.x * 0.5;
   float b_edge = surface_position.x - surface_dims.x * 0.5;
   ROS_INFO("bottom edge 1 %f < %f", condition->position.x, surface_position.x);
-  ROS_INFO("-- 2 %f < %f", fabs(b_edge - condition->position.x),
-           condition->surface_box_dims.x);
-  if ((condition->position.x < (b_edge + condition->surface_box_dims.x)) ||
-      (dx < condition->surface_box_dims.x) ||
-      (condition->position.x > (t_edge - condition->surface_box_dims.x))) {
-    // ((condition->position.x < surface_position.x) &&
-    //    (fabs(b_edge - condition->position.x) <
-    //     condition->surface_box_dims.x * 0.5)) ||
-    //   (dx < condition->surface_box_dims.y * 0.5) ||
-    //   ((condition->position.x > surface_position.x) &&
-    //    (fabs(t_edge - condition->position.x) <
-    //     condition->surface_box_dims.x * 0.5))) {
-    // bottom, center, or top of the table, set variance, min-max values
-    // condition->position.x = surface.pose_stamped.pose.position.x;
+  ROS_INFO("-- 2 %f < %f", fabs(b_edge - condition->position.x), object_dims.x);
+  if ((condition->position.x < (b_edge + object_dims.x)) ||
+      (dx < object_dims.x) ||
+      (condition->position.x > (t_edge - object_dims.x))) {
     condition->positionVariance.x = 0.01;
     condition->min_pos.x =
         condition->position.x - condition->positionVariance.x;
     condition->max_pos.x =
         condition->position.x + condition->positionVariance.x;
     condition->positionRelevant = true;
-    // } else if ((condition->position.x < surface_position.x) &&
-    //            (fabs(b_edge - condition->position.x) <
-    //             condition->surface_box_dims.x * 0.5)) {
-    //   // landmark on bottom edge of table, minimize variance
-    //   condition->positionVariance.x = 0.01;
-    //   condition->min_pos.x =
-    //       condition->position.x - condition->positionVariance.x;
-    //   condition->max_pos.x =
-    //       condition->position.x + condition->positionVariance.x;
-    //   condition->positionRelevant = true;
-    // } else if ((condition->position.x > surface_position.x) &&
-    //            (fabs(t_edge - condition->position.x) <
-    //             condition->surface_box_dims.x * 0.5)) {
-    //   // landmark on top edge of table, minimize variance
-    //   condition->positionVariance.x = 0.01;
-    //   condition->min_pos.x =
-    //       condition->position.x - condition->positionVariance.x;
-    //   condition->max_pos.x =
-    //       condition->position.x + condition->positionVariance.x;
-    //   condition->positionRelevant = true;
   } else {
     ROS_INFO(
         "x-coordinate does not seem relevant, keep range at table width: %f",
         surface_dims.x);
-    condition->positionVariance.x = fabs(surface_dims.x);
-    // condition->min_pos.x = b_edge;
-    // condition->max_pos.x = t_edge;
+    object_dims.x = fabs(surface_dims.x);
   }
   ROS_INFO("set min_ max_ to %f , %f", condition->min_pos.x,
            condition->max_pos.x);
@@ -285,26 +258,16 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
   float l_edge = surface_position.y + surface_dims.y * 0.5;
   float r_edge = surface_position.y - surface_dims.y * 0.5;
   float dy = fabs(condition->position.y - surface.pose_stamped.pose.position.y);
-  ROS_INFO("half length %f < %f", dy, (condition->surface_box_dims.x));
+  ROS_INFO("half length %f < %f", dy, (object_dims.x));
   ROS_INFO("left edge = %f - %f = %f", surface_position.y, surface_dims.y,
            l_edge);
   ROS_INFO("left edge 1 %f < %f", condition->position.y, surface_position.y);
-  ROS_INFO("-- 2 %f < %f", fabs(l_edge - condition->position.y),
-           condition->surface_box_dims.y);
+  ROS_INFO("-- 2 %f < %f", fabs(l_edge - condition->position.y), object_dims.y);
   ROS_INFO("right edge  %f < %f", fabs(r_edge - condition->position.y),
-           condition->surface_box_dims.y);
-  if ((condition->position.y < (r_edge + condition->surface_box_dims.y)) ||
-      (dy < condition->surface_box_dims.y) ||
-      (condition->position.y > (l_edge - condition->surface_box_dims.y))
-
-      // ((condition->position.y <= surface_position.y) &&
-      //    (fabs(l_edge - condition->position.y) <
-      //     condition->surface_box_dims.y)) ||
-      //   (dy < condition->surface_box_dims.x) ||
-      //   ((condition->position.y > surface_position.y) &&
-      //    (fabs(r_edge - condition->position.y) <
-      //     condition->surface_box_dims.y))
-      ) {
+           object_dims.y);
+  if ((condition->position.y < (r_edge + object_dims.y)) ||
+      (dy < object_dims.y) ||
+      (condition->position.y > (l_edge - object_dims.y))) {
     // half length
     condition->positionVariance.y = 0.01;
     condition->min_pos.y =
@@ -312,27 +275,11 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
     condition->max_pos.y =
         condition->position.y + condition->positionVariance.y;
     condition->positionRelevant = true;
-    //   condition->position.y = surface.pose_stamped.pose.position.y;
-    //   // condition->positionVariance.y = 0.01;  // 0.01m
-    //   condition->positionRelevant = true;
-    // } else if ((condition->position.y <= surface_position.y) &&
-    //            (fabs(l_edge - condition->position.y) <
-    //             condition->surface_box_dims.y * 0.5)) {
-    //   // landmark on left edge of table
-    //   // condition->positionVariance.y = 0.01;
-    //   condition->positionRelevant = true;
-    // } else if ((condition->position.y > surface_position.y) &&
-    //            (fabs(r_edge - condition->position.y) <
-    //             condition->surface_box_dims.y * 0.5)) {
-    //   // landmark on right edge of table
-    //   // condition->positionVariance.y = 0.01;
-    //   condition->positionRelevant = true;
   } else {
     ROS_INFO(
         "y-coordinate does not seem relevant, keep range at table width: %f",
         surface_dims.y);
-    condition->positionVariance.y = fabs(surface_dims.y);
-    // condition->positionVariance.y = surface_dims.y * 0.5;
+    object_dims.y = fabs(surface_dims.y);
   }
 }
 
