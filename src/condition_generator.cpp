@@ -84,7 +84,6 @@ void ConditionGenerator::GenerateGrid(
     const World& world, rapid_pbd_msgs::Condition* condition,
     std::vector<geometry_msgs::PoseArray>* grid) {
   msgs::Surface surface = world.surface;
-  // std::vector<std::vector<std::string> > grid;
   // Given a range [min,max], a point in the range x_0, a subrange around x with
   // width dim.x, (a distance d,) return an array of i points x_i in [min,max]
   // such that all x_i are spread out evenly
@@ -92,10 +91,11 @@ void ConditionGenerator::GenerateGrid(
 
   // start at x_0, move left until border, move right
   // if (condition->positionRelevant) {
-  float distance;
-  if (condition->referenceRelevant) {
-    // distance = condition->contDisplacement;
-  }
+  geometry_msgs::Vector3 obj_distance;
+  obj_distance.x = fmax(condition->surface_box_dims.x, fabs(obj_distance.x));
+  obj_distance.y = fmax(condition->surface_box_dims.y, fabs(obj_distance.y));
+  obj_distance.z = fmax(condition->surface_box_dims.z, fabs(obj_distance.z));
+
   geometry_msgs::PoseArray pose_array;
   std::vector<geometry_msgs::Pose> positions;
 
@@ -118,9 +118,9 @@ void ConditionGenerator::GenerateGrid(
 
   // generate pose closest to x_0 (i.e. closest to l_max)
   // geometry_msgs::Point new_point = condition->position;
-  while (l_max - object_dims.x > l_min) {
-    pose.position.x = l_max - (object_dims.x * 0.5);
-    l_max = pose.position.x - (object_dims.x * 0.5);
+  while (l_max - obj_distance.x > l_min) {
+    pose.position.x = l_max - (obj_distance.x * 0.5);
+    l_max = pose.position.x - (obj_distance.x * 0.5);
     positions.push_back(pose);  // add new point
     ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
     ROS_INFO("No. of positions: %d", positions.size());
@@ -130,9 +130,9 @@ void ConditionGenerator::GenerateGrid(
   float r_max = condition->max_pos.x;
   ROS_INFO("r_min/r_max for x: (%f,%f) ", r_min, r_max);
 
-  while (r_min + object_dims.x < r_max) {
-    pose.position.x = r_min + (object_dims.x * 0.5);
-    r_min = pose.position.x + (object_dims.x * 0.5);
+  while (r_min + obj_distance.x < r_max) {
+    pose.position.x = r_min + (obj_distance.x * 0.5);
+    r_min = pose.position.x + (obj_distance.x * 0.5);
     positions.push_back(pose);  // add new point
     ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
     ROS_INFO("No. of positions: %d", positions.size());
@@ -145,9 +145,9 @@ void ConditionGenerator::GenerateGrid(
 
   // place new y closest to y_0 (i.e. closest to l_max)
   pose.position = condition->position;  // reset pose.position to x_0
-  while (l_max - object_dims.y > l_min) {
-    pose.position.y = l_max - (object_dims.y * 0.5);
-    l_max = pose.position.y - (object_dims.y * 0.5);
+  while (l_max - obj_distance.y > l_min) {
+    pose.position.y = l_max - (obj_distance.y * 0.5);
+    l_max = pose.position.y - (obj_distance.y * 0.5);
     positions.push_back(pose);  // add new point
     ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
     ROS_INFO("No. of positions: %d", positions.size());
@@ -157,9 +157,9 @@ void ConditionGenerator::GenerateGrid(
   r_max = condition->max_pos.y;
   ROS_INFO("r_min/r_max: (%f,%f) ", r_min, r_max);
 
-  while (r_min + object_dims.y < r_max) {
-    pose.position.y = r_min + (object_dims.y * 0.5);
-    r_min = pose.position.y + (object_dims.y * 0.5);
+  while (r_min + obj_distance.y < r_max) {
+    pose.position.y = r_min + (obj_distance.y * 0.5);
+    r_min = pose.position.y + (obj_distance.y * 0.5);
     positions.push_back(pose);  // add new point
     ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
     ROS_INFO("No. of positions: %d", positions.size());

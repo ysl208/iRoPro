@@ -153,31 +153,21 @@ void GetGridMarker(const msgs::Surface& surface,
                    const std::vector<geometry_msgs::PoseArray>& grid,
                    const RobotConfig& robot_config,
                    visualization_msgs::MarkerArray* scene_markers) {
-  Marker points;  // describes the main object's allowed position
+  Marker points;
   std::string base_link(robot_config.base_link());
   points.header.frame_id = base_link;
   points.type = Marker::POINTS;
   points.ns = "grid";
-  geometry_msgs::Pose pose;
-
-  // msgs::Surface surface = surfaces[0];
-  pose.position = surface.pose_stamped.pose.position;
-  pose.orientation = surface.pose_stamped.pose.orientation;
-  points.pose = pose;
-  points.pose.position.z += 0.02;
-
-  points.scale.x = 0.02;  // surface.dimensions.x;
-  points.scale.y = 0.02;  // surface.dimensions.y;
-  points.scale.z = 0.02;
-
+  points.scale.x = 0.05; // point width
+  points.scale.y = 0.05; // point height
   points.color.b = 1.0;
   points.color.a = 1.0;
 
   for (size_t i = 0; i < grid.size(); ++i) {
     geometry_msgs::PoseArray pose_array = grid[i];
-
     for (size_t j = 0; j < pose_array.poses.size(); ++j) {
       geometry_msgs::Pose pose = pose_array.poses[j];
+      pose.position.z = surface.pose_stamped.pose.position.z;
       points.points.push_back(pose.position);
     }
   }
@@ -228,9 +218,9 @@ void GetConditionMarker(const msgs::Condition& condition,
 
     cylinder.scale.z = 0.005;  // head length
 
-    cylinder.color.r = 0;  // violet
+    cylinder.color.r = 1;  // violet
     cylinder.color.g = 0;
-    cylinder.color.b = 1;
+    cylinder.color.b = 0;
     cylinder.color.a = 1;
     scene_markers->markers.push_back(cylinder);
   }
@@ -250,9 +240,9 @@ void GetConditionMarker(const msgs::Condition& condition,
     arrow.scale.x = 0.005;  // shaft diameter
     arrow.scale.y = 0.02;   // head diameter
     arrow.scale.z = 0.02;   // head length
-    arrow.color.r = 1;      // red
+    arrow.color.r = 0;      // violet
     arrow.color.g = 0;
-    arrow.color.b = 0;
+    arrow.color.b = 1;
     arrow.color.a = 1;
     scene_markers->markers.push_back(arrow);
 
