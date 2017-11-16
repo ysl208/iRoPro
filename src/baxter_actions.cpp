@@ -38,7 +38,8 @@ void GripperAction::Execute(
     const control_msgs::GripperCommandGoalConstPtr& goal) {
   control_msgs::GripperCommandGoal baxter_goal;
   // Baxter uses 0-100% corresponding to 0-0.1m
-  baxter_goal.command.position = goal->command.position * 1000;
+  const float kMaxWidth = 0.1;
+  baxter_goal.command.position = goal->command.position / kMaxWidth * 100;
   baxter_goal.command.max_effort = goal->command.max_effort;
   baxter_client_.sendGoal(
       baxter_goal,
@@ -65,22 +66,12 @@ void GripperAction::Execute(
   }
 
   GripperCommandResult::ConstPtr baxter_result = baxter_client_.getResult();
-  control_msgs::GripperCommandResult result;
-  result.effort = baxter_result->effort;
-  result.position = baxter_result->position;
-  result.reached_goal = baxter_result->reached_goal;
-  result.stalled = baxter_result->stalled;
-  server_.setSucceeded(result);
+  server_.setSucceeded(*baxter_result);
 }
 
 void GripperAction::HandleFeedback(
     const GripperCommandFeedback::ConstPtr& baxter_feedback) {
-  control_msgs::GripperCommandFeedback feedback;
-  feedback.effort = baxter_feedback->effort;
-  feedback.position = baxter_feedback->position;
-  feedback.reached_goal = baxter_feedback->reached_goal;
-  feedback.stalled = baxter_feedback->stalled;
-  server_.publishFeedback(feedback);
+  server_.publishFeedback(*baxter_feedback);
 }
 
 HeadAction::HeadAction(const std::string& head_server_name,
