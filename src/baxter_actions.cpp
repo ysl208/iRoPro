@@ -1,21 +1,21 @@
 #include "rapid_pbd/baxter_actions.h"
 
-#include <string>
-
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/server/simple_action_server.h"
+#include "control_msgs/FollowJointTrajectoryAction.h"
 #include "control_msgs/GripperCommandAction.h"
-#include "controller_manager_msgs/ListControllers.h"
-#include "controller_manager_msgs/SwitchController.h"
+#include "control_msgs/SingleJointPositionAction.h"
 
 #include "rapid_pbd_msgs/Action.h"
-#include "rapid_pbd_msgs/ArmControllerState.h"
-#include "rapid_pbd_msgs/FreezeArm.h"
-#include "rapid_pbd_msgs/RelaxArm.h"
 
 using actionlib::SimpleClientGoalState;
+using control_msgs::FollowJointTrajectoryFeedback;
+using control_msgs::FollowJointTrajectoryResult;
 using control_msgs::GripperCommandFeedback;
 using control_msgs::GripperCommandResult;
+using control_msgs::SingleJointPositionFeedback;
+using control_msgs::SingleJointPositionGoal;
+using control_msgs::SingleJointPositionResult;
 namespace msgs = rapid_pbd_msgs;
 
 namespace rapid {
@@ -37,7 +37,9 @@ void GripperAction::Start() {
 void GripperAction::Execute(
     const control_msgs::GripperCommandGoalConstPtr& goal) {
   control_msgs::GripperCommandGoal baxter_goal;
-  baxter_goal.command.position = goal->command.position;
+  // Baxter uses 0-100% corresponding to 0-0.1m
+  const float kMaxWidth = 0.1;
+  baxter_goal.command.position = goal->command.position / kMaxWidth * 100;
   baxter_goal.command.max_effort = goal->command.max_effort;
   baxter_client_.sendGoal(
       baxter_goal,
@@ -64,121 +66,68 @@ void GripperAction::Execute(
   }
 
   GripperCommandResult::ConstPtr baxter_result = baxter_client_.getResult();
-  control_msgs::GripperCommandResult result;
-  result.effort = baxter_result->effort;
-  result.position = baxter_result->position;
-  result.reached_goal = baxter_result->reached_goal;
-  result.stalled = baxter_result->stalled;
-  server_.setSucceeded(result);
+  server_.setSucceeded(*baxter_result);
 }
 
 void GripperAction::HandleFeedback(
     const GripperCommandFeedback::ConstPtr& baxter_feedback) {
-  control_msgs::GripperCommandFeedback feedback;
-  feedback.effort = baxter_feedback->effort;
-  feedback.position = baxter_feedback->position;
-  feedback.reached_goal = baxter_feedback->reached_goal;
-  feedback.stalled = baxter_feedback->stalled;
-  server_.publishFeedback(feedback);
+  server_.publishFeedback(*baxter_feedback);
 }
 
-ArmControllerManager::ArmControllerManager(
-    const ros::Publisher& state_pub, const ros::ServiceClient& list_client,
-    const ros::ServiceClient& switch_client)
-    : state_pub_(state_pub),
-      list_client_(list_client),
-      switch_client_(switch_client),
-      is_l_arm_active_(true),
-      is_r_arm_active_(true) {}
+HeadAction::HeadAction(const std::string& head_server_name,
+                       const std::string& head_client_name)
+    : server_(head_server_name, boost::bind(&HeadAction::Execute, this, _1),
+              false),
+      baxter_client_(head_client_name, true) {}
 
-void ArmControllerManager::Start() { Update(); }
-
-bool ArmControllerManager::HandleFreeze(msgs::FreezeArmRequest& request,
-                                        msgs::FreezeArmResponse& response) {
-  // controller_manager_msgs::SwitchControllerRequest req;
-  // req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
-  // controller_manager_msgs::SwitchControllerResponse res;
-  // if (request.actuator_group == msgs::Action::LEFT_ARM) {
-  //   req.start_controllers.push_back("l_arm_controller");
-  // } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
-  //   req.start_controllers.push_back("r_arm_controller");
-  // } else {
-  //   response.error =
-  //       "Invalid actuator group \"" + request.actuator_group + "\"";
-  //   ROS_ERROR("%s", response.error.c_str());
-  //   return true;
-  // }
-  // bool success = switch_client_.call(req, res);
-  // if (!success) {
-  //   response.error = "Failed to freeze \"" + request.actuator_group + "\"";
-  //   ROS_ERROR("%s", response.error.c_str());
-  //   return true;
-  // }
-  // Update();
-
-  return true;
-}
-
-bool ArmControllerManager::HandleRelax(msgs::RelaxArmRequest& request,
-                                       msgs::RelaxArmResponse& response) {
-  // controller_manager_msgs::SwitchControllerRequest req;
-  // req.strictness = controller_manager_msgs::SwitchControllerRequest::BEST_EFFORT;
-  // controller_manager_msgs::SwitchControllerResponse res;
-  // if (request.actuator_group == msgs::Action::LEFT_ARM) {
-  //   req.stop_controllers.push_back("l_arm_controller");
-  // } else if (request.actuator_group == msgs::Action::RIGHT_ARM) {
-  //   req.stop_controllers.push_back("r_arm_controller");
-  // } else {
-  //   response.error =
-  //       "Invalid actuator group \"" + request.actuator_group + "\"";
-  //   ROS_ERROR("%s", response.error.c_str());
-  //   return true;
-  // }
-  // bool success = switch_client_.call(req, res);
-  // if (!success) {
-  //   response.error = "Failed to relax \"" + request.actuator_group + "\"";
-  //   ROS_ERROR("%s", response.error.c_str());
-  //   return true;
-  // }
-  // Update();
-
-  return true;
-}
-
-void ArmControllerManager::Update() {
-  controller_manager_msgs::ListControllersRequest req;
-  controller_manager_msgs::ListControllersResponse res;
-  while (!list_client_.waitForExistence(ros::Duration(5))) {
-    ROS_WARN("Waiting for controller_manager_msgs list service...");
+void HeadAction::Start() {
+  while (!baxter_client_.waitForServer(ros::Duration(5))) {
+    ROS_WARN("Waiting for Baxter head server to come up.");
   }
-  bool success = list_client_.call(req, res);
-  if (!success) {
-    ROS_ERROR("controller_manager_msgs list service call failed.");
-  }
-  for (size_t i = 0; i < res.controller.size(); ++i) {
-    const std::string& name = res.controller[i].name;
-    const std::string& state = res.controller[i].state;
-    bool is_running = (state == "running");
-    if (name == "l_arm_controller") {
-      is_l_arm_active_ = is_running;
-    } else if (name == "r_arm_controller") {
-      is_r_arm_active_ = is_running;
+  server_.start();
+}
+
+void HeadAction::Execute(
+    const control_msgs::FollowJointTrajectoryGoalConstPtr& goal) {
+  // baxter head action uses SingleJointPositionAction instead of
+  // FollowJointTrajectoryAction
+  control_msgs::SingleJointPositionGoal baxter_head_goal;
+  baxter_head_goal.position = goal->trajectory.points[0].positions[0];
+  baxter_head_goal.max_velocity = 1.0;
+  ROS_INFO("Sending SingleJointPositionGoal to baxter_head_client: %f",
+           baxter_head_goal.position);
+  baxter_client_.sendGoal(baxter_head_goal);
+  ROS_INFO("Goal sent. Getting state...");
+  while (!baxter_client_.getState().isDone()) {
+    if (server_.isPreemptRequested() || !ros::ok()) {
+      baxter_client_.cancelAllGoals();
+      server_.setPreempted();
+      return;
     }
+    ros::spinOnce();
+  }
+  if (baxter_client_.getState() == SimpleClientGoalState::PREEMPTED) {
+    baxter_client_.cancelAllGoals();
+    server_.setPreempted();
+    return;
+  } else if (baxter_client_.getState() == SimpleClientGoalState::ABORTED) {
+    baxter_client_.cancelAllGoals();
+    server_.setAborted();
+    return;
   }
 
-  msgs::ArmControllerState msg;
-  if (is_l_arm_active_) {
-    msg.l_arm_controller = msgs::ArmControllerState::FROZEN;
-  } else {
-    msg.l_arm_controller = msgs::ArmControllerState::RELAXED;
-  }
-  if (is_r_arm_active_) {
-    msg.r_arm_controller = msgs::ArmControllerState::FROZEN;
-  } else {
-    msg.r_arm_controller = msgs::ArmControllerState::RELAXED;
-  }
-  state_pub_.publish(msg);
+  SingleJointPositionResult::ConstPtr baxter_result =
+      baxter_client_.getResult();
+  // convert baxter client result to FollowJointTrajectory again
+  control_msgs::FollowJointTrajectoryResult result;
+  result.error_code = 0;
+  ROS_INFO("Sending FollowJointTrajectoryResult to baxter_head_client ");
+
+  // To Do: generate correct result, but SingleJointPositionResult msg seems to
+  // be empty
+  server_.setSucceeded();
 }
+
 }  // namespace baxter
 }  // namespace pbd
 }  // namespace rapid

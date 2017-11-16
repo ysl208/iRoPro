@@ -8,18 +8,22 @@
 
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/server/simple_action_server.h"
+#include "control_msgs/FollowJointTrajectoryAction.h"
 #include "control_msgs/GripperCommandAction.h"
-
-#include "rapid_pbd_msgs/ArmControllerState.h"
-#include "rapid_pbd_msgs/FreezeArm.h"
-#include "rapid_pbd_msgs/RelaxArm.h"
+#include "control_msgs/SingleJointPositionAction.h"
 
 namespace {
-typedef actionlib::SimpleActionClient<
-    control_msgs::GripperCommandAction>
+typedef actionlib::SimpleActionClient<control_msgs::GripperCommandAction>
     BaxterGripperClient;
 using control_msgs::GripperCommandFeedback;
 using control_msgs::GripperCommandResultConstPtr;
+}  // namespace
+
+namespace {
+typedef actionlib::SimpleActionClient<control_msgs::SingleJointPositionAction>
+    BaxterHeadClient;
+using control_msgs::SingleJointPositionFeedback;
+using control_msgs::SingleJointPositionResultConstPtr;
 }  // namespace
 
 namespace rapid {
@@ -38,31 +42,23 @@ class GripperAction {
   BaxterGripperClient baxter_client_;
 };
 
-// ArmControllerManager manages the controllers running on the BAXTER arms.
-class ArmControllerManager {
+// HeadAction manages the controllers running on the BAXTER head.
+class HeadAction {
  public:
-  ArmControllerManager(const ros::Publisher& state_pub,
-                       const ros::ServiceClient& list_client,
-                       const ros::ServiceClient& switch_client);
+  HeadAction(const std::string& head_server_name,
+             const std::string& head_client_name);
 
-  // Publishes an initial state message.
   void Start();
-
-  bool HandleFreeze(rapid_pbd_msgs::FreezeArmRequest& request,
-                    rapid_pbd_msgs::FreezeArmResponse& response);
-  bool HandleRelax(rapid_pbd_msgs::RelaxArmRequest& request,
-                   rapid_pbd_msgs::RelaxArmResponse& response);
+  void Execute(const control_msgs::FollowJointTrajectoryGoalConstPtr& goal);
+  void HandleFeedback(
+      const SingleJointPositionFeedback::ConstPtr& baxter_feedback);
 
  private:
-  void Update();
-
-  ros::Publisher state_pub_;
-  ros::ServiceClient list_client_;
-  ros::ServiceClient switch_client_;
-
-  bool is_l_arm_active_;
-  bool is_r_arm_active_;
+  actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction>
+      server_;
+  BaxterHeadClient baxter_client_;
 };
+
 }  // namespace baxter
 }  // namespace pbd
 }  // namespace rapid

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- By default we DO overwrite the URDF in order to get the grippers. -->
+  <arg name="load_robot_description" default="true"/>
+  <!-- Left and right electric gripper params. Set to true to check for collisions for their links -->
+  <arg name="right_electric_gripper" default="true"/>
+  <arg name="left_electric_gripper" default="true"/>
+  <!-- Set the kinematic tips for the left_arm and right_arm move_groups -->
+  <arg name="left_tip_name" default="left_gripper"/>
+  <arg name="right_tip_name" default="right_gripper"/>
+  <include file="$(find baxter_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="$(arg load_robot_description)"/>
+    <arg name="left_electric_gripper" value="$(arg left_electric_gripper)"/>
+    <arg name="right_electric_gripper" value="$(arg right_electric_gripper)"/>
+    <arg name="left_tip_name" value="$(arg left_tip_name)"/>
+    <arg name="right_tip_name" value="$(arg right_tip_name)"/>
+  </include>
+
+  <arg name="kinect" default="false" />
+  <arg name="xtion" default="false" />
+  <arg name="camera_link_pose" default="0.15 0.075 0.5 0.0 0.7854 0.0"/>
+  <include file="$(find baxter_moveit_config)/launch/move_group.launch">
+    <arg name="kinect" value="$(arg kinect)" />
+    <arg name="xtion" value="$(arg xtion)" />
+    <arg name="camera_link_pose" default="$(arg camera_link_pose)"/>
+    <arg name="allow_trajectory_execution" value="true"/>
+  </include>
+</launch>
