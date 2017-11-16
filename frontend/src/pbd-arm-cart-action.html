@@ -10,25 +10,23 @@
     <style include="shared-styles"></style>
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
     <style>
-      :host {
+       :host {
         display: block;
       }
+
       paper-dropdown-menu {
         max-width: 150px;
       }
+
       .read {
         margin-left: 10px;
       }
+
       paper-input {
         max-width: 250px;
       }
     </style>
-    <ros-topic auto
-      id="eventPub"
-      msg-type="rapid_pbd_msgs/EditorEvent"
-      topic="rapid_pbd/editor_events"
-      ros="[[ros]]"
-    ></ros-topic>
+    <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
     <div class="layout horizontal center">
       <paper-dropdown-menu label="Arm to move" hidden$="[[!params.hasTwoArms]]">
         <paper-listbox slot="dropdown-content" attr-for-selected="data-actuator-group" selected="{{action.actuator_group}}">
@@ -52,18 +50,9 @@
         value="[[action.control_strategy.max_speed]]"
         on-change="_maxSpeedChanged"
       ></paper-input-->
-      <paper-input label="x"
-        value="[[action.pose.position.x]]"
-        on-change="_xChanged"
-      ></paper-input>
-      <paper-input label="y"
-        value="[[action.pose.position.y]]"
-        on-change="_yChanged"
-      ></paper-input>
-      <paper-input label="z"
-        value="[[action.pose.position.z]]"
-        on-change="_zChanged"
-      ></paper-input>
+      <paper-input label="x" value="[[action.pose.position.x]]" on-change="_xChanged"></paper-input>
+      <paper-input label="y" value="[[action.pose.position.y]]" on-change="_yChanged"></paper-input>
+      <paper-input label="z" value="[[action.pose.position.z]]" on-change="_zChanged"></paper-input>
     </div>
   </template>
   <script>
@@ -87,12 +76,12 @@
         '_actionChanged(action)',
       ],
 
-      _actionChanged: function(action) {
+      _actionChanged: function (action) {
         if (action.type !== 'move to cartesian goal') {
           return;
         }
         if (action.actuator_group !== 'arm' && action.actuator_group !== 'left arm'
-            && action.actuator_group !== 'right arm') {
+          && action.actuator_group !== 'right arm') {
           return;
         }
         if (!action.control_strategy) {
@@ -103,20 +92,20 @@
           this.set('action.control_strategy', control_strategy);
         }
         if (!action.control_strategy.max_speed
-              || action.control_strategy.max_speed === 0) {
+          || action.control_strategy.max_speed === 0) {
           this.set('action.control_strategy.max_speed', 0.2);
         }
 
         if (this.action.pose.orientation.w === 0 && this.action.pose.orientation.x === 0
-            && this.action.pose.orientation.y === 0 && this.action.pose.orientation.z === 0) {
+          && this.action.pose.orientation.y === 0 && this.action.pose.orientation.z === 0) {
           var that = this;
-          this.debounce('get_ee_pose', function() {
+          this.debounce('get_ee_pose', function () {
             that._updatePose();
           }, 100);
         }
       },
 
-      _updateActuatorGroup: function(evt) {
+      _updateActuatorGroup: function (evt) {
         var actuatorGroup = evt.target.dataset.actuatorGroup;
         if (actuatorGroup) {
           this.set('action.actuator_group', actuatorGroup);
@@ -124,19 +113,20 @@
         }
       },
 
-      _updateLandmark: function(evt) {
+      _updateLandmark: function (evt) {
         this.set('action.landmark', evt.model.item);
         this._updatePose();
       },
 
-      _landmarkName: function(landmark) {
+      _landmarkName: function (landmark) {
         if (!landmark || !landmark.type) {
           return 'Unknown landmark';
         }
         if (landmark.type === 'tf frame') {
-          if (landmark.name === 'base_link' || landmark.name === 'base_footprint') {
+          if (landmark.name === 'base_link' || landmark.name === 'base_footprint'
+            || landmark.name === 'base') {
             return 'Robot base';
-          } else if (landmark.name === 'torso_lift_link') {
+          } else if (landmark.name === 'torso_lift_link' || landmark.name === 'torso') {
             return 'Robot torso';
           } else {
             return landmark.name;
@@ -147,7 +137,7 @@
         return 'Unknown landmark';
       },
 
-      _updatePose: function() {
+      _updatePose: function () {
         var msg = {
           type: 'get pose',
           program_info: {
@@ -160,20 +150,20 @@
         this.$.eventPub.publish(msg);
       },
 
-      _maxSpeedChanged: function(evt) {
+      _maxSpeedChanged: function (evt) {
         this._parseString(evt.target.value, 'action.control_strategy.max_speed');
       },
-      _xChanged: function(evt) {
+      _xChanged: function (evt) {
         this._parseString(evt.target.value, 'action.pose.position.x');
       },
-      _yChanged: function(evt) {
+      _yChanged: function (evt) {
         this._parseString(evt.target.value, 'action.pose.position.y');
       },
-      _zChanged: function(evt) {
+      _zChanged: function (evt) {
         this._parseString(evt.target.value, 'action.pose.position.z');
       },
 
-      _parseString: function(s, key) {
+      _parseString: function (s, key) {
         if (typeof s === 'string') {
           var f = parseFloat(s);
           if (!isNaN(f) && s !== '0.') {

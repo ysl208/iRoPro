@@ -12,110 +12,70 @@
     <style include="shared-styles"></style>
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
     <style>
-      :host {
+       :host {
         display: block;
         width: 100%;
         position: relative;
       }
+
       .paper-material {
         padding: 5px;
       }
+
       h3 {
         margin: 0px;
       }
+
       paper-button {
         margin-top: 5px;
       }
-      .group + .group {
+
+      .group+.group {
         margin-top: 10px;
       }
+
       .half {
         width: 50%;
       }
+
       #cancel {
         height: 22px;
       }
     </style>
-    <ros-topic auto
-      id="topic"
-      last-message="{{_armState}}"
-      topic="rapid_pbd/arm_controller_state"
-      ros="[[ros]]"
-      msg-type="rapid_pbd_msgs/ArmControllerState"
-    ></ros-topic>
-    <ros-service
-      id="freeze"
-      last-message="{{_armState}}"
-      name="rapid_pbd/freeze_arm"
-      ros="[[ros]]"
-      service-type="rapid_pbd_msgs/FreezeArm"
-    ></ros-service>
-    <ros-service
-      id="relax"
-      last-message="{{_armState}}"
-      name="rapid_pbd/relax_arm"
-      ros="[[ros]]"
-      service-type="rapid_pbd_msgs/RelaxArm"
-    ></ros-service>
-    <ros-action-client
-      id="gripperAction"
-      server="/gripper_controller/gripper_action"
-      action-type="control_msgs/GripperCommandAction"
-      ros="[[ros]]"
-    ></ros-action-client>
-    <ros-action-client
-      id="leftGripperAction"
-      server="/rapid_pbd/l_gripper_action"
-      action-type="control_msgs/GripperCommandAction"
-      ros="[[ros]]"
-    ></ros-action-client>
-    <ros-action-client
-      id="rightGripperAction"
-      server="/rapid_pbd/r_gripper_action"
-      action-type="control_msgs/GripperCommandAction"
-      ros="[[ros]]"
-    ></ros-action-client>
+    <ros-topic auto id="topic" last-message="{{_armState}}" topic="rapid_pbd/arm_controller_state" ros="[[ros]]" msg-type="rapid_pbd_msgs/ArmControllerState"></ros-topic>
+    <ros-service id="freeze" last-message="{{_armState}}" name="rapid_pbd/freeze_arm" ros="[[ros]]" service-type="rapid_pbd_msgs/FreezeArm"></ros-service>
+    <ros-service id="relax" last-message="{{_armState}}" name="rapid_pbd/relax_arm" ros="[[ros]]" service-type="rapid_pbd_msgs/RelaxArm"></ros-service>
+    <ros-action-client id="gripperAction" server="/gripper_controller/gripper_action" action-type="control_msgs/GripperCommandAction"
+      ros="[[ros]]"></ros-action-client>
+    <ros-action-client id="leftGripperAction" server="/rapid_pbd/l_gripper_action" action-type="control_msgs/GripperCommandAction"
+      ros="[[ros]]"></ros-action-client>
+    <ros-action-client id="rightGripperAction" server="/rapid_pbd/r_gripper_action" action-type="control_msgs/GripperCommandAction"
+      ros="[[ros]]"></ros-action-client>
     <div class="paper-material">
-      <div class="layout horizontal center">
-        <h3>Temporary actions</h3>
-        <div class="flex"></div>
-        <paper-button id="cancel" on-tap="cancel" class="clear">Cancel</paper-button>
-      </div>
-      <template is="dom-if" if="[[params.hasTwoArms]]">
-        <div class="group layout horizontal">
-          <div class="half">
-            <paper-button hidden$="[[!_isLeftArmFrozen]]" class="normal"
-              on-tap="_relaxArm"
-              data-actuator-group="left arm"
-            >Relax left arm</paper-button>
-            <paper-button hidden$="[[_isLeftArmFrozen]]" class="normal"
-              on-tap="_freezeArm"
-              data-actuator-group="left arm"
-            >Freeze left arm</paper-button>
-          </div>
-          <div class="half">
-            <paper-button hidden$="[[!_isRightArmFrozen]]" class="normal"
-              on-tap="_relaxArm"
-              data-actuator-group="right arm"
-            >Relax right arm</paper-button>
-            <paper-button hidden$="[[_isRightArmFrozen]]" class="normal"
-              on-tap="_freezeArm"
-              data-actuator-group="right arm"
-            >Freeze right arm</paper-button>
-          </div>
+      <template is="dom-if" if="[[params.manualFreeze]]">
+        <div class="layout horizontal center">
+          <h3>Temporary actions</h3>
+          <div class="flex"></div>
+          <paper-button id="cancel" on-tap="cancel" class="clear">Cancel</paper-button>
         </div>
-      </template>
-      <template is="dom-if" if="[[!params.hasTwoArms]]">
-        <div class="group layout horizontal">
-          <paper-button hidden$="[[!_isArmFrozen]]" class="normal"
-            on-tap="_relaxArm"
-            data-actuator-group="arm"
-          >Relax arm</paper-button>
-          <paper-button hidden$="[[_isArmFrozen]]" class="normal"
-            on-tap="_freezeArm"
-            data-actuator-group="arm"
-          >Freeze arm</paper-button>
-        </div>
+        <template is="dom-if" if="[[params.hasTwoArms]]">
+          <div class="group layout horizontal">
+            <div class="half">
+              <paper-button hidden$="[[!_isLeftArmFrozen]]" class="normal" on-tap="_relaxArm" data-actuator-group="left arm">Relax left arm</paper-button>
+              <paper-button hidden$="[[_isLeftArmFrozen]]" class="normal" on-tap="_freezeArm" data-actuator-group="left arm">Freeze left arm</paper-button>
+            </div>
+            <div class="half">
+              <paper-button hidden$="[[!_isRightArmFrozen]]" class="normal" on-tap="_relaxArm" data-actuator-group="right arm">Relax right arm</paper-button>
+              <paper-button hidden$="[[_isRightArmFrozen]]" class="normal" on-tap="_freezeArm" data-actuator-group="right arm">Freeze right arm</paper-button>
+            </div>
+          </div>
+        </template>
+        <template is="dom-if" if="[[!params.hasTwoArms]]">
+          <div class="group layout horizontal">
+            <paper-button hidden$="[[!_isArmFrozen]]" class="normal" on-tap="_relaxArm" data-actuator-group="arm">Relax arm</paper-button>
+            <paper-button hidden$="[[_isArmFrozen]]" class="normal" on-tap="_freezeArm" data-actuator-group="arm">Freeze arm</paper-button>
+          </div>
+        </template>
       </template>
       <div class="group">
         <h3>Perception</h3>
@@ -175,11 +135,11 @@
         },
       },
 
-      cancel: function() {
+      cancel: function () {
         this.fire('iron-deselect');
       },
 
-      selectMoveHead: function() {
+      selectMoveHead: function () {
         var action = {
           type: 'move to joint goal',
           actuator_group: 'head'
@@ -187,60 +147,60 @@
         this.fire('iron-select', action);
       },
 
-      selectDetectTabletopObjects: function() {
+      selectDetectTabletopObjects: function () {
         var action = {
           type: 'detect tabletop objects'
         };
         this.fire('iron-select', action);
       },
 
-      selectFindCustomLandmark: function() {
+      selectFindCustomLandmark: function () {
         var action = {
           type: 'find custom landmark'
         };
         this.fire('iron-select', action);
       },
 
-      selectGripperPose: function() {
+      selectGripperPose: function () {
         this._selectGripperPose('arm');
       },
-      selectJointAngles: function() {
+      selectJointAngles: function () {
         this._selectJointAngles('arm');
       },
-      selectOpenGripper: function() {
+      selectOpenGripper: function () {
         this._selectActuateGripper('gripper', 'open');
       },
-      selectCloseGripper: function() {
+      selectCloseGripper: function () {
         this._selectActuateGripper('gripper', 'close');
       },
 
-      selectLeftGripperPose: function() {
+      selectLeftGripperPose: function () {
         this._selectGripperPose('left arm');
       },
-      selectLeftJointAngles: function() {
+      selectLeftJointAngles: function () {
         this._selectJointAngles('left arm');
       },
-      selectLeftOpenGripper: function() {
+      selectLeftOpenGripper: function () {
         this._selectActuateGripper('left gripper', 'open');
       },
-      selectLeftCloseGripper: function() {
+      selectLeftCloseGripper: function () {
         this._selectActuateGripper('left gripper', 'close');
       },
 
-      selectRightGripperPose: function() {
+      selectRightGripperPose: function () {
         this._selectGripperPose('right arm');
       },
-      selectRightJointAngles: function() {
+      selectRightJointAngles: function () {
         this._selectJointAngles('right arm');
       },
-      selectRightOpenGripper: function() {
+      selectRightOpenGripper: function () {
         this._selectActuateGripper('right gripper', 'open');
       },
-      selectRightCloseGripper: function() {
+      selectRightCloseGripper: function () {
         this._selectActuateGripper('right gripper', 'close');
       },
 
-      _selectGripperPose: function(actuatorGroup) {
+      _selectGripperPose: function (actuatorGroup) {
         var action = {
           type: 'move to cartesian goal',
           actuator_group: actuatorGroup
@@ -248,7 +208,7 @@
         this.fire('iron-select', action);
       },
 
-      _selectJointAngles: function(actuatorGroup) {
+      _selectJointAngles: function (actuatorGroup) {
         var action = {
           type: 'move to joint goal',
           actuator_group: actuatorGroup
@@ -256,7 +216,7 @@
         this.fire('iron-select', action);
       },
 
-      _selectActuateGripper: function(actuatorGroup, command) {
+      _selectActuateGripper: function (actuatorGroup, command) {
         var gripperCommand = {
           position: 0.1,
           max_effort: 100
@@ -285,21 +245,21 @@
         this.fire('iron-select', action);
       },
 
-      _computeIsArmFrozen: function(armState) {
+      _computeIsArmFrozen: function (armState) {
         if (armState) {
           return armState.arm_controller === 'frozen';
         } else {
           return true;
         }
       },
-      _computeIsLeftArmFrozen: function(armState) {
+      _computeIsLeftArmFrozen: function (armState) {
         if (armState) {
           return armState.l_arm_controller === 'frozen';
         } else {
           return true;
         }
       },
-      _computeIsRightArmFrozen: function(armState) {
+      _computeIsRightArmFrozen: function (armState) {
         if (armState) {
           return armState.r_arm_controller === 'frozen';
         } else {
@@ -307,14 +267,14 @@
         }
       },
 
-      _freezeArm: function(evt) {
+      _freezeArm: function (evt) {
         var actuatorGroup = evt.target.dataset.actuatorGroup;
-        this.$.freeze.call({actuator_group: actuatorGroup});
+        this.$.freeze.call({ actuator_group: actuatorGroup });
       },
 
-      _relaxArm: function(evt) {
+      _relaxArm: function (evt) {
         var actuatorGroup = evt.target.dataset.actuatorGroup;
-        this.$.relax.call({actuator_group: actuatorGroup});
+        this.$.relax.call({ actuator_group: actuatorGroup });
       },
     });
   </script>

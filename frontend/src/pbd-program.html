@@ -229,13 +229,24 @@
           depthCloudFrameId = '/head_mount_kinect_rgb_optical_frame';
         } else if (this.params.robot === "fetch") {
           depthCloudFrameId = '/head_camera_rgb_optical_frame';
+        } else if (this.params.robot === "baxter") {
+          depthCloudFrameId = '/camera_rgb_optical_frame';
         } else {
           console.error('Unknown robot type', this.params.robot);
         }
 
+         var fixedFrame = '';
+          if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+            fixedFrame = '/base_link';
+          } else if (this.params.robot === "baxter") {
+            fixedFrame = '/base';
+          } else {
+            console.error('Unknown robot type', this.params.robot);
+          }
+
         var config = {
           globalOptions: {
-            fixedFrame: '/base_link',
+            fixedFrame: fixedFrame,
             background: '#113344',
             videoServer: 'http://' + window.location.hostname + ':9998'
           },

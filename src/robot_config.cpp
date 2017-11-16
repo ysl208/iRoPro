@@ -12,6 +12,9 @@ std::string Pr2RobotConfig::planning_frame() const { return "base_footprint"; }
 std::string Pr2RobotConfig::planning_group() const { return "arms"; }
 std::string Pr2RobotConfig::base_link() const { return "base_footprint"; }
 std::string Pr2RobotConfig::torso_link() const { return "torso_lift_link"; }
+std::string Pr2RobotConfig::joint_states_topic() const {
+  return "/joint_states";
+}
 std::string Pr2RobotConfig::ee_frame_for_group(
     const std::string& actuator_group) const {
   if (actuator_group == Action::LEFT_ARM) {
@@ -87,6 +90,9 @@ std::string FetchRobotConfig::planning_frame() const { return "base_link"; }
 std::string FetchRobotConfig::planning_group() const { return "arm"; }
 std::string FetchRobotConfig::base_link() const { return "base_link"; }
 std::string FetchRobotConfig::torso_link() const { return "torso_lift_link"; }
+std::string FetchRobotConfig::joint_states_topic() const {
+  return "/joint_states";
+}
 std::string FetchRobotConfig::ee_frame_for_group(
     const std::string& actuator_group) const {
   if (actuator_group == Action::ARM) {
@@ -131,6 +137,73 @@ void FetchRobotConfig::joints_for_group(
   }
 }
 int FetchRobotConfig::num_arms() const { return 1; }
+
+BaxterRobotConfig::BaxterRobotConfig() {}
+
+std::string BaxterRobotConfig::planning_frame() const { return "base"; }
+std::string BaxterRobotConfig::planning_group() const { return "both_arms"; }
+std::string BaxterRobotConfig::base_link() const { return "base"; }
+std::string BaxterRobotConfig::torso_link() const { return "torso"; }
+std::string BaxterRobotConfig::joint_states_topic() const {
+  return "/robot/joint_states";
+}
+std::string BaxterRobotConfig::ee_frame_for_group(
+    const std::string& actuator_group) const {
+  if (actuator_group == Action::LEFT_ARM) {
+    return "left_gripper";
+  } else if (actuator_group == Action::RIGHT_ARM) {
+    return "right_gripper";
+  } else {
+    return "";
+  }
+}
+
+void BaxterRobotConfig::gripper_joints_for_group(
+    const std::string& actuator_group,
+    std::vector<std::string>* joint_names) const {
+  joint_names->clear();
+  if (actuator_group == Action::LEFT_GRIPPER) {
+    joint_names->push_back("l_gripper_l_finger_joint");
+    joint_names->push_back("l_gripper_r_finger_joint");
+  } else if (actuator_group == Action::RIGHT_GRIPPER) {
+    joint_names->push_back("r_gripper_l_finger_joint");
+    joint_names->push_back("r_gripper_r_finger_joint");
+  }
+}
+void BaxterRobotConfig::gripper_open_positions(
+    std::vector<double>* positions) const {
+  positions->clear();
+  positions->push_back(0.0);
+  positions->push_back(-0.020833);
+}
+void BaxterRobotConfig::gripper_close_positions(
+    std::vector<double>* positions) const {
+  positions->clear();
+  positions->push_back(0.0);
+  positions->push_back(0.0);
+}
+void BaxterRobotConfig::joints_for_group(
+    const std::string& actuator_group,
+    std::vector<std::string>* joint_names) const {
+  if (actuator_group == Action::LEFT_ARM) {
+    joint_names->push_back("left_e0");
+    joint_names->push_back("left_e1");
+    joint_names->push_back("left_s0");
+    joint_names->push_back("left_s1");
+    joint_names->push_back("left_w0");
+    joint_names->push_back("left_w1");
+    joint_names->push_back("left_w2");
+  } else if (actuator_group == Action::RIGHT_ARM) {
+    joint_names->push_back("right_e0");
+    joint_names->push_back("right_e1");
+    joint_names->push_back("right_s0");
+    joint_names->push_back("right_s1");
+    joint_names->push_back("right_w0");
+    joint_names->push_back("right_w1");
+    joint_names->push_back("right_w2");
+  }
+}
+int BaxterRobotConfig::num_arms() const { return 2; }
 }  // namespace pbd
 }  // namespace rapid
 

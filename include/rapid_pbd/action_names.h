@@ -6,6 +6,8 @@
 
 namespace rapid {
 namespace pbd {
+// Names without a leading slash will be prepended with /rapid_pbd/ in the
+// launch files.
 static const char kProgramActionName[] = "execute_program_action";
 
 static const char kGripperActionName[] = "gripper_action";
@@ -42,6 +44,15 @@ static const char kHeadActionName[] =
 namespace fetch {
 static const char kControllerActionName[] = "/query_controller_states";
 }  // namespace fetch
+
+namespace baxter {
+static const char kLeftGripperActionName[] =
+    "/robot/end_effector/left_gripper/gripper_action";
+static const char kRightGripperActionName[] =
+    "/robot/end_effector/right_gripper/gripper_action";
+static const char kHeadActionName[] = "/robot/head/head_action";
+}  // namespace baxter
+
 }  // namespace pbd
 }  // namespace rapid
 
