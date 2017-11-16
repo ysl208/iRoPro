@@ -12,21 +12,15 @@
 #include "control_msgs/GripperCommandAction.h"
 #include "control_msgs/SingleJointPositionAction.h"
 
-#include "rapid_pbd_msgs/ArmControllerState.h"
-#include "rapid_pbd_msgs/FreezeArm.h"
-#include "rapid_pbd_msgs/RelaxArm.h"
-
 namespace {
-typedef actionlib::SimpleActionClient<
-    control_msgs::GripperCommandAction>
+typedef actionlib::SimpleActionClient<control_msgs::GripperCommandAction>
     BaxterGripperClient;
 using control_msgs::GripperCommandFeedback;
 using control_msgs::GripperCommandResultConstPtr;
 }  // namespace
 
 namespace {
-typedef actionlib::SimpleActionClient<
-    control_msgs::SingleJointPositionAction>
+typedef actionlib::SimpleActionClient<control_msgs::SingleJointPositionAction>
     BaxterHeadClient;
 using control_msgs::SingleJointPositionFeedback;
 using control_msgs::SingleJointPositionResultConstPtr;
@@ -48,19 +42,20 @@ class GripperAction {
   BaxterGripperClient baxter_client_;
 };
 
-
 // HeadAction manages the controllers running on the BAXTER head.
 class HeadAction {
  public:
-  HeadAction(const std::string& head_server_name, 
-                        const std::string& head_client_name);
+  HeadAction(const std::string& head_server_name,
+             const std::string& head_client_name);
 
   void Start();
   void Execute(const control_msgs::FollowJointTrajectoryGoalConstPtr& goal);
-  void HandleFeedback(const SingleJointPositionFeedback::ConstPtr& baxter_feedback);
+  void HandleFeedback(
+      const SingleJointPositionFeedback::ConstPtr& baxter_feedback);
 
  private:
-  actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> server_;
+  actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction>
+      server_;
   BaxterHeadClient baxter_client_;
 };
 

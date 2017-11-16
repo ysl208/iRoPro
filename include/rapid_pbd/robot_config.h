@@ -77,7 +77,6 @@ class BaxterRobotConfig : public RobotConfig {
                                 std::vector<std::string>* joint_names) const;
   void gripper_open_positions(std::vector<double>* positions) const;
   void gripper_close_positions(std::vector<double>* positions) const;
-  void default_gripper_poses(std::vector<double>* poses) const;
   void joints_for_group(const std::string& actuator_group,
                         std::vector<std::string>* joint_names) const;
   int num_arms() const;

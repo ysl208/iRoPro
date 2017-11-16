@@ -461,8 +461,7 @@ install(FILES
   launch/editor.launch
   launch/baxter_app.launch
   launch/baxter.launch
-  ## launch/baxter_moveit.launch
-  launch/baxter_planning_context.launch
+  launch/baxter_moveit.launch
   launch/fetch_app.launch
   launch/fetch.launch
   launch/fetch_moveit.launch

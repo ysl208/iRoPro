@@ -12,7 +12,9 @@ std::string Pr2RobotConfig::planning_frame() const { return "base_footprint"; }
 std::string Pr2RobotConfig::planning_group() const { return "arms"; }
 std::string Pr2RobotConfig::base_link() const { return "base_footprint"; }
 std::string Pr2RobotConfig::torso_link() const { return "torso_lift_link"; }
-std::string Pr2RobotConfig::joint_states_topic() const { return "/joint_states"; }
+std::string Pr2RobotConfig::joint_states_topic() const {
+  return "/joint_states";
+}
 std::string Pr2RobotConfig::ee_frame_for_group(
     const std::string& actuator_group) const {
   if (actuator_group == Action::LEFT_ARM) {
@@ -88,7 +90,9 @@ std::string FetchRobotConfig::planning_frame() const { return "base_link"; }
 std::string FetchRobotConfig::planning_group() const { return "arm"; }
 std::string FetchRobotConfig::base_link() const { return "base_link"; }
 std::string FetchRobotConfig::torso_link() const { return "torso_lift_link"; }
-std::string FetchRobotConfig::joint_states_topic() const { return "/joint_states"; }
+std::string FetchRobotConfig::joint_states_topic() const {
+  return "/joint_states";
+}
 std::string FetchRobotConfig::ee_frame_for_group(
     const std::string& actuator_group) const {
   if (actuator_group == Action::ARM) {
@@ -140,7 +144,9 @@ std::string BaxterRobotConfig::planning_frame() const { return "base"; }
 std::string BaxterRobotConfig::planning_group() const { return "both_arms"; }
 std::string BaxterRobotConfig::base_link() const { return "base"; }
 std::string BaxterRobotConfig::torso_link() const { return "torso"; }
-std::string BaxterRobotConfig::joint_states_topic() const { return "/robot/joint_states"; }
+std::string BaxterRobotConfig::joint_states_topic() const {
+  return "/robot/joint_states";
+}
 std::string BaxterRobotConfig::ee_frame_for_group(
     const std::string& actuator_group) const {
   if (actuator_group == Action::LEFT_ARM) {
@@ -169,37 +175,12 @@ void BaxterRobotConfig::gripper_open_positions(
   positions->clear();
   positions->push_back(0.0);
   positions->push_back(-0.020833);
-  // right
-  // positions->push_back(0.020833);
-  // positions->push_back(0.0);
-
 }
 void BaxterRobotConfig::gripper_close_positions(
     std::vector<double>* positions) const {
   positions->clear();
   positions->push_back(0.0);
   positions->push_back(0.0);
-  // , 
-}
-void BaxterRobotConfig::default_gripper_poses(
-    std::vector<double>* poses) const {
-  poses->clear();
- //left
-  poses->push_back(-0.001559);
-  poses->push_back(0.497111);
-  poses->push_back(0.443514);
-  poses->push_back(1.047000);
-  poses->push_back(0.042488);
-  poses->push_back(0.060054);
-  poses->push_back(-1.557647);
-  // right
-  poses->push_back(0.002409);                                                                                           
-  poses->push_back(0.497103);
-  poses->push_back(-0.423241);
-  poses->push_back(1.047000);
-  poses->push_back(-0.065177);
-  poses->push_back(0.060082);
-  poses->push_back(1.549610);
 }
 void BaxterRobotConfig::joints_for_group(
     const std::string& actuator_group,
