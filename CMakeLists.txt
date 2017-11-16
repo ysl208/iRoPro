@@ -6,9 +6,7 @@ project(rapid_pbd)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   actionlib
-  baxter_core_msgs
   control_msgs
-  controller_manager_msgs
   geometry_msgs
   mongodb_store
   moveit_core
@@ -147,9 +145,7 @@ catkin_package(
     rapid_pbd_world
   CATKIN_DEPENDS
     actionlib
-    baxter_core_msgs
     control_msgs
-    controller_manager_msgs
     geometry_msgs
     mongodb_store
     moveit_core
