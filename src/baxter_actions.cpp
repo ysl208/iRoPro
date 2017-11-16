@@ -1,5 +1,5 @@
 #include "rapid_pbd/baxter_actions.h"
-
+#include <string>
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/server/simple_action_server.h"
 #include "control_msgs/FollowJointTrajectoryAction.h"
@@ -94,10 +94,7 @@ void HeadAction::Execute(
   control_msgs::SingleJointPositionGoal baxter_head_goal;
   baxter_head_goal.position = goal->trajectory.points[0].positions[0];
   baxter_head_goal.max_velocity = 1.0;
-  ROS_INFO("Sending SingleJointPositionGoal to baxter_head_client: %f",
-           baxter_head_goal.position);
   baxter_client_.sendGoal(baxter_head_goal);
-  ROS_INFO("Goal sent. Getting state...");
   while (!baxter_client_.getState().isDone()) {
     if (server_.isPreemptRequested() || !ros::ok()) {
       baxter_client_.cancelAllGoals();
@@ -121,7 +118,6 @@ void HeadAction::Execute(
   // convert baxter client result to FollowJointTrajectory again
   control_msgs::FollowJointTrajectoryResult result;
   result.error_code = 0;
-  ROS_INFO("Sending FollowJointTrajectoryResult to baxter_head_client ");
 
   // To Do: generate correct result, but SingleJointPositionResult msg seems to
   // be empty
