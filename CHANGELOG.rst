@@ -2,8 +2,8 @@
 Changelog for package rapid_pbd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2017-11-15)
+------------------
 * Adds support for the Baxter robot (`#18 <https://github.com/jstnhuang/rapid_pbd/issues/18>`_)
 * Added additional runtime deps.
 * Contributors: Justin Huang, ysl208
