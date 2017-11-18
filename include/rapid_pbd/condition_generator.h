@@ -31,7 +31,7 @@ class ConditionGenerator {
   void UpdateReferenceLandmark(const World& world,
                                rapid_pbd_msgs::Condition* condition,
                                const rapid_pbd_msgs::Landmark& reference);
-  void GenerateGrid(const World& world, rapid_pbd_msgs::Condition* condition,
+  void GenerateGrid(rapid_pbd_msgs::Condition* condition,
                     std::vector<geometry_msgs::PoseArray>* grid);
 
  private:
@@ -63,7 +63,16 @@ class ConditionGenerator {
   void GetRelativeAlignment(rapid_pbd_msgs::Condition* condition);
   void CheckRelevantProperties(const World& world,
                                rapid_pbd_msgs::Condition* condition);
-  void GetDefaultSurface(rapid_pbd_msgs::Surface* surface);
+  void GetPositions(const geometry_msgs::Vector3& min_pos,
+                    const geometry_msgs::Vector3& max_pos,
+                    const geometry_msgs::Vector3& dimensions,
+                    const geometry_msgs::Vector3& obj_distance,
+                    std::vector<geometry_msgs::Pose>* positions);
+
+  // void GetPositionsAroundObject(
+  //     msgs::Condition* condition, const geometry_msgs::Vector3& dimensions,
+  //     const geometry_msgs::Vector3& obj_distance,
+  //     std::vector<geometry_msgs::Pose>* positions);
 };
 }  // namespace pbd
 }  // namespace rapid

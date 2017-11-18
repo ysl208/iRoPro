@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "rapid_pbd_msgs/Condition.h"
 #include "rapid_pbd_msgs/EditorEvent.h"
 #include "rapid_pbd_msgs/Landmark.h"
 #include "rapid_pbd_msgs/Program.h"
@@ -72,7 +73,8 @@ class RuntimeVisualizer {
 void GetConditionMarker(const rapid_pbd_msgs::Condition& condition,
                         const RobotConfig& robot_config,
                         visualization_msgs::MarkerArray* scene_markers);
-void GetGridMarker(const rapid_pbd_msgs::Surface& surface,
+void GetGridMarker(const rapid_pbd_msgs::Condition& condition,
+                   const rapid_pbd_msgs::Surface& surface,
                    const std::vector<geometry_msgs::PoseArray>& grid,
                    const RobotConfig& robot_config,
                    visualization_msgs::MarkerArray* scene_markers);
@@ -83,6 +85,7 @@ void GetSegmentationMarker(
 void GetSurfaceMarker(const rapid_pbd_msgs::Surface& surface,
                       const RobotConfig& robot_config,
                       visualization_msgs::MarkerArray* scene_markers);
+void ClearMarkers(visualization_msgs::MarkerArray* scene_markers, const int& type, const std::string& ns);
 }  // namespace pbd
 }  // namespace rapid
 

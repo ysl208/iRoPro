@@ -116,11 +116,13 @@ void Visualizer::PublishConditionMarkers(const std::string& program_id,
     Publish(program_id, world);
   }
   MarkerArray scene_markers;
-  GetConditionMarker(condition, robot_config_, &scene_markers);
-  GetGridMarker(world.surface, world.grid, robot_config_, &scene_markers);
+  // GetConditionMarker(condition, robot_config_, &scene_markers);
+  GetGridMarker(condition, world.surface, world.grid, robot_config_,
+                &scene_markers);
   if (scene_markers.markers.size() > 0) {
     step_vizs_[program_id].surface_seg_pub.publish(scene_markers);
   } else {
+  StopPublishing(program_id);
     ROS_INFO("No markers to publish");
   }
 }
@@ -148,8 +150,21 @@ void RuntimeVisualizer::PublishSurfaceBoxes(
   GetSegmentationMarker(box_landmarks, robot_config_, &scene_markers);
   surface_box_pub_.publish(scene_markers);
 }
+void ClearMarkers(MarkerArray* scene_markers, const int& type, const std::string& ns){
+  // removes all markers of a certain type and namespace
+  std::vector<visualization_msgs::Marker> new_markers;
+  for(size_t i = 0; i<scene_markers->markers.size(); ++i){
+    if(scene_markers->markers[i].type != type || !scene_markers->markers[i].ns.find(ns)){
+      new_markers.push_back(scene_markers->markers[i]);
+    }
+  }
+  // scene_markers.markers.clear();
+  scene_markers->markers = new_markers;
+  
+}
 
-void GetGridMarker(const msgs::Surface& surface,
+void GetGridMarker(const msgs::Condition& condition,
+                   const msgs::Surface& surface,
                    const std::vector<geometry_msgs::PoseArray>& grid,
                    const RobotConfig& robot_config,
                    visualization_msgs::MarkerArray* scene_markers) {
@@ -158,10 +173,17 @@ void GetGridMarker(const msgs::Surface& surface,
   points.header.frame_id = base_link;
   points.type = Marker::POINTS;
   points.ns = "grid";
-  points.scale.x = 0.05; // point width
-  points.scale.y = 0.05; // point height
+  points.scale.x = 0.05;  // point width
+  points.scale.y = 0.05;  // point height
   points.color.b = 1.0;
   points.color.a = 1.0;
+  
+  geometry_msgs::Vector3 object_dims = condition.surface_box_dims;
+  if (fabs(fmod(condition.eulerAngles.z, 180)) > 85) {
+    float temp = object_dims.x;
+    object_dims.x = object_dims.y;
+    object_dims.y = temp;
+  }
 
   for (size_t i = 0; i < grid.size(); ++i) {
     geometry_msgs::PoseArray pose_array = grid[i];
@@ -169,9 +191,25 @@ void GetGridMarker(const msgs::Surface& surface,
       geometry_msgs::Pose pose = pose_array.poses[j];
       pose.position.z = surface.pose_stamped.pose.position.z;
       points.points.push_back(pose.position);
+
+      Marker positions;
+      positions.header.frame_id = base_link;
+      positions.type = Marker::CUBE;
+      positions.ns = "alternative_positions " + i + j;
+      positions.scale.x = object_dims.x;
+      positions.scale.y = object_dims.y;
+      positions.scale.z = object_dims.z;
+      positions.color.r = 191;  // bronze
+      positions.color.g = 191;
+      positions.color.b = 63;
+      positions.color.a = 0.4;
+      positions.pose = pose_array.poses[j];
+      //positions.pose.position.z = surface.pose_stamped.pose.position.z;
+      
+      scene_markers->markers.push_back(positions);
+  // std::cout << "scene markers : " << scene_markers->markers.size() << "\n";
     }
   }
-  ROS_INFO("Grid markers: %d", points.points.size());
   scene_markers->markers.push_back(points);
 }
 
@@ -187,11 +225,6 @@ void GetConditionMarker(const msgs::Condition& condition,
     cylinder.ns = "displacement_cylinder";
     geometry_msgs::Pose pose;
     pose.position = condition.position;
-
-    geometry_msgs::Quaternion quat;
-    quat = tf::createQuaternionMsgFromRollPitchYaw(condition.eulerAngles.x,
-                                                   condition.eulerAngles.y,
-                                                   condition.eulerAngles.z);
     pose.orientation = condition.surface.pose_stamped.pose.orientation;
     cylinder.pose = pose;
     cylinder.pose.position.x =
@@ -209,19 +242,14 @@ void GetConditionMarker(const msgs::Condition& condition,
     }
     cylinder.scale.x =
         fmax(object_dims.x + 0.01, condition.max_pos.x - condition.min_pos.x);
-    ROS_INFO("max min x: %f %f", condition.max_pos.x, condition.min_pos.x);
-
     cylinder.scale.y =
         fmax(object_dims.y + 0.01, condition.max_pos.y - condition.min_pos.y);
-    ROS_INFO("max min y: %f %f", condition.max_pos.y, condition.min_pos.y);
-    ROS_INFO("scale x y: %f %f", cylinder.scale.x, cylinder.scale.y);
 
     cylinder.scale.z = 0.005;  // head length
-
-    cylinder.color.r = 1;  // violet
+    cylinder.color.r = 1;      // violet
     cylinder.color.g = 0;
     cylinder.color.b = 0;
-    cylinder.color.a = 1;
+    cylinder.color.a = 0.4;
     scene_markers->markers.push_back(cylinder);
   }
   if (condition.contDisplacementRelevant) {
@@ -243,7 +271,7 @@ void GetConditionMarker(const msgs::Condition& condition,
     arrow.color.r = 0;      // violet
     arrow.color.g = 0;
     arrow.color.b = 1;
-    arrow.color.a = 1;
+    arrow.color.a = 0.4;
     scene_markers->markers.push_back(arrow);
 
     // three lines indicating the allowed variances
@@ -374,7 +402,7 @@ void GetSurfaceMarker(const msgs::Surface& surface,
   std::string base_link(robot_config.base_link());
   if (surface.dimensions.x <= 0) {
     ROS_INFO("No surface to publish");
-  }
+  }else {
   Marker table;
   table.header.frame_id = base_link;
   table.type = Marker::CUBE;
@@ -393,6 +421,7 @@ void GetSurfaceMarker(const msgs::Surface& surface,
   table.color.b = 0.01;
   table.color.a = 1;
   scene_markers->markers.push_back(table);
+  }
 }
 
 }  // namespace pbd

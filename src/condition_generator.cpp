@@ -31,7 +31,6 @@ void ConditionGenerator::AssignLandmarkCondition(
     const World& world, const std::string& landmark_name,
     msgs::Condition* condition) {
   World currentWorld = world;
-  ROS_INFO("Assign landmarks: (%d) ", world.surface_box_landmarks.size());
   for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
     msgs::Landmark world_landmark = world.surface_box_landmarks[i];
 
@@ -81,9 +80,7 @@ void ConditionGenerator::UpdateReferenceLandmark(
 }
 
 void ConditionGenerator::GenerateGrid(
-    const World& world, rapid_pbd_msgs::Condition* condition,
-    std::vector<geometry_msgs::PoseArray>* grid) {
-  msgs::Surface surface = world.surface;
+    msgs::Condition* condition, std::vector<geometry_msgs::PoseArray>* grid) {
   // Given a range [min,max], a point in the range x_0, a subrange around x with
   // width dim.x, (a distance d,) return an array of i points x_i in [min,max]
   // such that all x_i are spread out evenly
@@ -91,100 +88,125 @@ void ConditionGenerator::GenerateGrid(
 
   // start at x_0, move left until border, move right
   // if (condition->positionRelevant) {
-  geometry_msgs::Vector3 obj_distance;
-  obj_distance.x = fmax(condition->surface_box_dims.x, fabs(obj_distance.x));
-  obj_distance.y = fmax(condition->surface_box_dims.y, fabs(obj_distance.y));
-  obj_distance.z = fmax(condition->surface_box_dims.z, fabs(obj_distance.z));
-
   geometry_msgs::PoseArray pose_array;
   std::vector<geometry_msgs::Pose> positions;
 
-  geometry_msgs::Pose pose;
-  // 1. Add the actual position of the object x_0
-  pose.position = condition->position;
-  pose.orientation = condition->orientation;
-  positions.push_back(pose);
-  ROS_INFO("Added first point: (%f,%f) ", pose.position.x, pose.position.y);
-  ROS_INFO("No. of positions: %d", positions.size());
+  geometry_msgs::Vector3 obj_distance;
+  obj_distance.x =
+      fmax(condition->surface_box_dims.x, fabs(condition->contDisplacement.x));
+  obj_distance.y =
+      fmax(condition->surface_box_dims.y, fabs(condition->contDisplacement.y));
+  obj_distance.z =
+      fmax(condition->surface_box_dims.z, fabs(condition->contDisplacement.z));
 
-  geometry_msgs::Vector3 object_dims = condition->surface_box_dims;
-  // geometry_msgs::Point point = pose.position;
-
-  // 2. Find spaces for x-coordinate
-  // 2.1 move x < x_0
-  float l_min = condition->min_pos.x;
-  float l_max = pose.position.x - (object_dims.x * 0.5);
-  ROS_INFO("l_min/l_max for x: (%f,%f) ", l_min, l_max);
-
-  // generate pose closest to x_0 (i.e. closest to l_max)
-  // geometry_msgs::Point new_point = condition->position;
-  while (l_max - obj_distance.x > l_min) {
-    pose.position.x = l_max - (obj_distance.x * 0.5);
-    l_max = pose.position.x - (obj_distance.x * 0.5);
-    positions.push_back(pose);  // add new point
-    ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
-    ROS_INFO("No. of positions: %d", positions.size());
-  }
-  // 2.2 move x > x_0
-  float r_min = pose.position.x + (object_dims.x * 0.5);
-  float r_max = condition->max_pos.x;
-  ROS_INFO("r_min/r_max for x: (%f,%f) ", r_min, r_max);
-
-  while (r_min + obj_distance.x < r_max) {
-    pose.position.x = r_min + (obj_distance.x * 0.5);
-    r_min = pose.position.x + (obj_distance.x * 0.5);
-    positions.push_back(pose);  // add new point
-    ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
-    ROS_INFO("No. of positions: %d", positions.size());
-  }
-  // 3. find spaces for y-coordinate
-  // 3.1 move before y_0
-  l_min = condition->min_pos.y;
-  l_max = pose.position.y - (object_dims.y * 0.5);
-  ROS_INFO("spaces for y-position: l_min/l_max: (%f,%f) ", l_min, l_max);
-
-  // place new y closest to y_0 (i.e. closest to l_max)
-  pose.position = condition->position;  // reset pose.position to x_0
-  while (l_max - obj_distance.y > l_min) {
-    pose.position.y = l_max - (obj_distance.y * 0.5);
-    l_max = pose.position.y - (obj_distance.y * 0.5);
-    positions.push_back(pose);  // add new point
-    ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
-    ROS_INFO("No. of positions: %d", positions.size());
-  }
-  // 3.2 move after y_0
-  r_min = pose.position.y + (object_dims.y * 0.5);
-  r_max = condition->max_pos.y;
-  ROS_INFO("r_min/r_max: (%f,%f) ", r_min, r_max);
-
-  while (r_min + obj_distance.y < r_max) {
-    pose.position.y = r_min + (obj_distance.y * 0.5);
-    r_min = pose.position.y + (obj_distance.y * 0.5);
-    positions.push_back(pose);  // add new point
-    ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
-    ROS_INFO("No. of positions: %d", positions.size());
-  }
+  // set corners of the allowed area
+  geometry_msgs::Vector3 min_pos = condition->min_pos;
+  geometry_msgs::Vector3 max_pos = condition->max_pos;
+  GetPositions(min_pos, max_pos, condition->surface_box_dims, obj_distance,
+               &positions);
   //}
   pose_array.poses = positions;
   grid->push_back(pose_array);
 }
 
-void ConditionGenerator::GetDefaultSurface(msgs::Surface* surface) {
-  surface->dimensions.x = 0.456164;
-  surface->dimensions.y = 0.899257;
-  surface->dimensions.z = 0.009994;
+void ConditionGenerator::GetPositions(
+    const geometry_msgs::Vector3& min_pos,
+    const geometry_msgs::Vector3& max_pos,
+    const geometry_msgs::Vector3& dimensions,
+    const geometry_msgs::Vector3& obj_distance,
+    std::vector<geometry_msgs::Pose>* positions) {
+  // Takes the corner values of the area which should be filled with positions
 
-  surface->pose_stamped.pose.position.x = 0.698007;
-  surface->pose_stamped.pose.position.y = 0.075515;
-  surface->pose_stamped.pose.position.z = 0.501755;
-  // converted to zero degrees
-  surface->pose_stamped.pose.orientation.x = -0.011494;
-  surface->pose_stamped.pose.orientation.y = -0.005507;
-  surface->pose_stamped.pose.orientation.z = 0.036195;
-  surface->pose_stamped.pose.orientation.w = 0.999263;
-  ROS_INFO(
-      "Using default surface values - might not align with actual surface!");
+  geometry_msgs::Pose pose;
+  pose.position.z = min_pos.z;
+  geometry_msgs::Vector3 local_min = min_pos;
+  geometry_msgs::Vector3 local_max = max_pos;
+
+  local_min.x += dimensions.x;
+  local_min.y += dimensions.y;
+
+  while (local_min.x < max_pos.x) {
+    pose.position.x = local_min.x - (dimensions.x * 0.5);
+    while (local_min.y < max_pos.y) {
+      pose.position.y = local_min.y - (dimensions.y * 0.5);
+      std::cout << "x y : " << pose.position.x << " , " << pose.position.y
+                << "\n";
+      positions->push_back(pose);
+      local_min.y += +obj_distance.y;
+    }
+    local_min.y = min_pos.y + dimensions.y;  // reset y
+    local_min.x += obj_distance.x;
+    std::cout << "No. of positions: " << positions->size() << "\n";
+  }
 }
+
+// void ConditionGenerator::GetPositionsAroundObject(
+//     msgs::Condition* condition, const geometry_msgs::Vector3& dimensions,
+//     const geometry_msgs::Vector3& obj_distance,
+//     std::vector<geometry_msgs::Pose>* positions) {
+//   geometry_msgs::Pose pose;
+//   // 1. Add the actual position of the object x_0
+//   pose.position = condition->position;
+//   pose.orientation = condition->orientation;
+//   // positions.push_back(pose);
+//   ROS_INFO("Added first point: (%f,%f) ", pose.position.x, pose.position.y);
+//   ROS_INFO("No. of positions: %d", positions.size());
+
+//   // 2. Find spaces for x-coordinate
+//   // 2.1 move x < x_0
+//   float l_min = condition->min_pos.x;
+//   float l_max = pose.position.x - (dimensions.x * 0.5);
+//   ROS_INFO("l_min/l_max for x: (%f,%f) ", l_min, l_max);
+
+//   // generate pose closest to x_0 (i.e. closest to l_max)
+//   // geometry_msgs::Point new_point = condition->position;
+//   while (l_max - obj_distance.x > l_min) {
+//     pose.position.x = l_max - (obj_distance.x * 0.5);
+//     l_max = pose.position.x - (obj_distance.x * 0.5);
+//     positions.push_back(pose);  // add new point
+//     ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
+//     ROS_INFO("No. of positions: %d", positions.size());
+//   }
+//   // 2.2 move x > x_0
+//   float r_min = pose.position.x + (dimensions.x * 0.5);
+//   float r_max = condition->max_pos.x;
+//   ROS_INFO("r_min/r_max for x: (%f,%f) ", r_min, r_max);
+
+//   while (r_min + obj_distance.x < r_max) {
+//     pose.position.x = r_min + (obj_distance.x * 0.5);
+//     r_min = pose.position.x + (obj_distance.x * 0.5);
+//     positions.push_back(pose);  // add new point
+//     ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
+//     ROS_INFO("No. of positions: %d", positions.size());
+//   }
+//   // 3. find spaces for y-coordinate
+//   // 3.1 move before y_0
+//   l_min = condition->min_pos.y;
+//   l_max = pose.position.y - (dimensions.y * 0.5);
+//   ROS_INFO("spaces for y-position: l_min/l_max: (%f,%f) ", l_min, l_max);
+
+//   // place new y closest to y_0 (i.e. closest to l_max)
+//   pose.position = condition->position;  // reset pose.position to x_0
+//   while (l_max - obj_distance.y > l_min) {
+//     pose.position.y = l_max - (obj_distance.y * 0.5);
+//     l_max = pose.position.y - (obj_distance.y * 0.5);
+//     positions.push_back(pose);  // add new point
+//     ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
+//     ROS_INFO("No. of positions: %d", positions.size());
+//   }
+//   // 3.2 move after y_0
+//   r_min = pose.position.y + (dimensions.y * 0.5);
+//   r_max = condition->max_pos.y;
+//   ROS_INFO("r_min/r_max: (%f,%f) ", r_min, r_max);
+
+//   while (r_min + obj_distance.y < r_max) {
+//     pose.position.y = r_min + (obj_distance.y * 0.5);
+//     r_min = pose.position.y + (obj_distance.y * 0.5);
+//     positions.push_back(pose);  // add new point
+//     ROS_INFO("Added point: (%f,%f) ", pose.position.x, pose.position.y);
+//     ROS_INFO("No. of positions: %d", positions.size());
+//   }
+// }
 
 void ConditionGenerator::CheckRelevantProperties(const World& world,
                                                  msgs::Condition* condition) {
@@ -245,7 +267,7 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
   if ((condition->position.x < (b_edge + object_dims.x)) ||
       (dx < object_dims.x) ||
       (condition->position.x > (t_edge - object_dims.x))) {
-    condition->positionVariance.x = 0.01;
+    condition->positionVariance.x = condition->surface_box_dims.x * 0.5 + 0.01;
     condition->min_pos.x =
         condition->position.x - condition->positionVariance.x;
     condition->max_pos.x =
@@ -275,7 +297,7 @@ void ConditionGenerator::CheckRelevantProperties(const World& world,
       (dy < object_dims.y) ||
       (condition->position.y > (l_edge - object_dims.y))) {
     // half length
-    condition->positionVariance.y = 0.01;
+    condition->positionVariance.y = condition->surface_box_dims.y * 0.5 + 0.01;
     condition->min_pos.y =
         condition->position.y - condition->positionVariance.y;
     condition->max_pos.y =
@@ -316,8 +338,10 @@ void ConditionGenerator::GetPropertyConditions(const msgs::Landmark& landmark,
 
   condition->min_pos.x = surface_position.x - surface_dims.x * 0.5;
   condition->min_pos.y = surface_position.y - surface_dims.y * 0.5;
+  condition->min_pos.z = surface_position.z + condition->surface_box_dims.z * 0.5;
   condition->max_pos.x = surface_position.x + surface_dims.x * 0.5;
   condition->max_pos.y = surface_position.y + surface_dims.y * 0.5;
+  condition->max_pos.z = surface_position.z + condition->surface_box_dims.z * 0.5;
   ROS_INFO("set min_ max_ to %f , %f", condition->min_pos.x,
            condition->max_pos.x);
   ROS_INFO("surface pos and dims %f , %f * 0.5 = %f", surface_position.x,

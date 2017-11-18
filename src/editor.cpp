@@ -298,21 +298,18 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
         step_id, db_id.c_str(), program.steps.size());
     return;
   }
+  DeleteScene(program.steps[step_id].scene_id);
   msgs::Step* step = &program.steps[step_id];
-
   World initial_world;
   GetWorld(robot_config_, program, step_id, &initial_world);
 
   msgs::Condition action_condition = step->actions[action_id].condition;
   cond_gen_.AssignLandmarkCondition(initial_world, landmark_name,
                                     &action_condition);
-  // geometry_msgs::PoseArray* grid = program.grid;
+
   std::vector<geometry_msgs::PoseArray> grid;
-  cond_gen_.GenerateGrid(initial_world, &action_condition, &grid);
+  cond_gen_.GenerateGrid(&action_condition, &grid);
   step->grid = grid;
-  // initial_world.grid = grid;
-  ROS_INFO("Grid: %d with %d", step->grid.size(),
-           step->grid[0].poses.size());
   step->actions[action_id].condition = action_condition;
   // publish condition markers
   db_.Update(db_id, program);
@@ -342,6 +339,10 @@ void Editor::ViewConditions(const std::string& db_id, size_t step_id,
   }
   msgs::Step* step = &program.steps[step_id];
   msgs::Condition action_condition = step->actions[action_id].condition;
+
+  std::vector<geometry_msgs::PoseArray> grid;
+  cond_gen_.GenerateGrid(&action_condition, &grid);
+  step->grid = grid;
 
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
@@ -541,8 +542,6 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
     program.steps[step_id].landmarks.push_back(landmark);
   }
   program.steps[step_id].surface = result->surface;
-  // ROS_INFO("Surface orientation: (%f)",
-  //          program.steps[step_id].surface.pose_stamped.pose.orientation.x);
   Update(db_id, program);
 }
 
