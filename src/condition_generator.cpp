@@ -80,7 +80,8 @@ void ConditionGenerator::UpdateReferenceLandmark(
 }
 
 void ConditionGenerator::GenerateGrid(
-    msgs::Condition* condition, std::vector<geometry_msgs::PoseArray>* grid) {
+    msgs::Condition* condition, std::vector<geometry_msgs::PoseArray>* grid,
+    const int& obj_num) {
   // Given a range [min,max], a point in the range x_0, a subrange around x with
   // width dim.x, (a distance d,) return an array of i points x_i in [min,max]
   // such that all x_i are spread out evenly
@@ -102,8 +103,9 @@ void ConditionGenerator::GenerateGrid(
   // set corners of the allowed area
   geometry_msgs::Vector3 min_pos = condition->min_pos;
   geometry_msgs::Vector3 max_pos = condition->max_pos;
+
   GetPositions(min_pos, max_pos, condition->surface_box_dims, obj_distance,
-               &positions);
+               &positions, obj_num);
   //}
   pose_array.poses = positions;
   grid->push_back(pose_array);
@@ -114,7 +116,8 @@ void ConditionGenerator::GetPositions(
     const geometry_msgs::Vector3& max_pos,
     const geometry_msgs::Vector3& dimensions,
     const geometry_msgs::Vector3& obj_distance,
-    std::vector<geometry_msgs::Pose>* positions) {
+    std::vector<geometry_msgs::Pose>* positions,
+    const int& obj_num) {
   // Takes the corner values of the area which should be filled with positions
 
   geometry_msgs::Pose pose;
@@ -124,20 +127,24 @@ void ConditionGenerator::GetPositions(
 
   local_min.x += dimensions.x;
   local_min.y += dimensions.y;
-
-  while (local_min.x < max_pos.x) {
-    pose.position.x = local_min.x - (dimensions.x * 0.5);
-    while (local_min.y < max_pos.y) {
-      pose.position.y = local_min.y - (dimensions.y * 0.5);
-      std::cout << "x y : " << pose.position.x << " , " << pose.position.y
-                << "\n";
-      positions->push_back(pose);
-      local_min.y += +obj_distance.y;
+  
+    while (local_min.x < max_pos.x) {
+      pose.position.x = local_min.x - (dimensions.x * 0.5);
+      while (local_min.y < max_pos.y) {
+        pose.position.y = local_min.y - (dimensions.y * 0.5);
+        std::cout << "x y : " << pose.position.x << " , " << pose.position.y
+                  << "\n";
+        positions->push_back(pose);
+        local_min.y += +obj_distance.y;
+        if(positions->size() >= obj_num){
+          return;
+        }
+      }
+      local_min.y = min_pos.y + dimensions.y;  // reset y
+      local_min.x += obj_distance.x;
+      std::cout << "No. of positions: " << positions->size() << " out of \n" << obj_num;
     }
-    local_min.y = min_pos.y + dimensions.y;  // reset y
-    local_min.x += obj_distance.x;
-    std::cout << "No. of positions: " << positions->size() << "\n";
-  }
+  
 }
 
 // void ConditionGenerator::GetPositionsAroundObject(
@@ -569,6 +576,7 @@ void ConditionGenerator::GetSpatialRelation(msgs::Condition* condition) {
   }
   condition->spatial_relation = spatial_relation;
 }
+
 
 }  // namespace pbd
 }  // namespace rapid

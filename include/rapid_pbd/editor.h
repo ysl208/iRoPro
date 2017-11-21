@@ -42,7 +42,8 @@ class Editor {
   void Update(const std::string& db_id, const rapid_pbd_msgs::Program& program);
   void Delete(const std::string& db_id);
   void GenerateConditions(const std::string& db_id, size_t step_id,
-                          size_t action_id, const std::string& landmark_name);
+                          size_t action_id, const std::string& landmark_name,
+                                const int& obj_num);
   void UpdateConditions(const std::string& db_id, size_t step_id,
                         size_t action_id,
                         const rapid_pbd_msgs::Landmark& reference);

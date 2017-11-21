@@ -117,6 +117,7 @@ void Visualizer::PublishConditionMarkers(const std::string& program_id,
   }
   MarkerArray scene_markers;
   // GetConditionMarker(condition, robot_config_, &scene_markers);
+  
   GetGridMarker(condition, world.surface, world.grid, robot_config_,
                 &scene_markers);
   if (scene_markers.markers.size() > 0) {

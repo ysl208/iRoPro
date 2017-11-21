@@ -59,7 +59,7 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       Delete(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
       GenerateConditions(event.program_info.db_id, event.step_num,
-                         event.action_num, event.landmark_name);
+                         event.action_num, event.landmark_name, event.action.condition.obj_num);
     } else if (event.type == msgs::EditorEvent::ADD_SENSE_STEPS) {
       AddSenseSteps(event.program_info.db_id, event.step_num);
     } else if (event.type == msgs::EditorEvent::VIEW_CONDITIONS) {
@@ -283,7 +283,8 @@ void Editor::Delete(const std::string& db_id) {
 
 void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
                                 size_t action_id,
-                                const std::string& landmark_name) {
+                                const std::string& landmark_name,
+                                const int& obj_num) {
   // Generates conditions for current step
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
@@ -308,7 +309,7 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
                                     &action_condition);
 
   std::vector<geometry_msgs::PoseArray> grid;
-  cond_gen_.GenerateGrid(&action_condition, &grid);
+  cond_gen_.GenerateGrid(&action_condition, &grid, obj_num);
   step->grid = grid;
   step->actions[action_id].condition = action_condition;
   // publish condition markers
@@ -341,7 +342,7 @@ void Editor::ViewConditions(const std::string& db_id, size_t step_id,
   msgs::Condition action_condition = step->actions[action_id].condition;
 
   std::vector<geometry_msgs::PoseArray> grid;
-  cond_gen_.GenerateGrid(&action_condition, &grid);
+  // cond_gen_.GenerateGrid(&action_condition, &grid, obj_num);
   step->grid = grid;
 
   db_.Update(db_id, program);
