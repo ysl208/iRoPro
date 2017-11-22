@@ -33,7 +33,7 @@ class ConditionGenerator {
                                const rapid_pbd_msgs::Landmark& reference);
   void GenerateGrid(rapid_pbd_msgs::Condition* condition,
                     std::vector<geometry_msgs::PoseArray>* grid,
-                                const int& obj_num);
+                    const int& obj_num);
 
  private:
   World* world_;
@@ -70,7 +70,11 @@ class ConditionGenerator {
                     const geometry_msgs::Vector3& obj_distance,
                     std::vector<geometry_msgs::Pose>* positions,
                     const int& obj_num);
-
+  void GetPatternPositions(const int& s,
+                           std::vector<geometry_msgs::Pose>* positions,
+                           const rapid_pbd_msgs::Landmark& landmark,
+                           geometry_msgs::Vector3 obj_distance,
+                           const int& obj_num);
   // void GetPositionsAroundObject(
   //     msgs::Condition* condition, const geometry_msgs::Vector3& dimensions,
   //     const geometry_msgs::Vector3& obj_distance,
