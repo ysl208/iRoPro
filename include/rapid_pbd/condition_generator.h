@@ -75,6 +75,12 @@ class ConditionGenerator {
                            const rapid_pbd_msgs::Landmark& landmark,
                            geometry_msgs::Vector3 obj_distance,
                            const int& obj_num);
+
+  void UpdatePosteriors(const World& world,
+                        const rapid_pbd_msgs::Landmark& landmark);
+  void UpdatePriors(const std::map<int, float>& priors,
+                    const std::map<int, float>& pOfD,
+                    std::map<int, float>* posteriors);
   // void GetPositionsAroundObject(
   //     msgs::Condition* condition, const geometry_msgs::Vector3& dimensions,
   //     const geometry_msgs::Vector3& obj_distance,

@@ -117,13 +117,13 @@ void Visualizer::PublishConditionMarkers(const std::string& program_id,
   }
   MarkerArray scene_markers;
   // GetConditionMarker(condition, robot_config_, &scene_markers);
-  
+
   GetGridMarker(condition, world.surface, world.grid, robot_config_,
                 &scene_markers);
   if (scene_markers.markers.size() > 0) {
     step_vizs_[program_id].surface_seg_pub.publish(scene_markers);
   } else {
-  StopPublishing(program_id);
+    StopPublishing(program_id);
     ROS_INFO("No markers to publish");
   }
 }
@@ -151,17 +151,18 @@ void RuntimeVisualizer::PublishSurfaceBoxes(
   GetSegmentationMarker(box_landmarks, robot_config_, &scene_markers);
   surface_box_pub_.publish(scene_markers);
 }
-void ClearMarkers(MarkerArray* scene_markers, const int& type, const std::string& ns){
+void ClearMarkers(MarkerArray* scene_markers, const int& type,
+                  const std::string& ns) {
   // removes all markers of a certain type and namespace
   std::vector<visualization_msgs::Marker> new_markers;
-  for(size_t i = 0; i<scene_markers->markers.size(); ++i){
-    if(scene_markers->markers[i].type != type || !scene_markers->markers[i].ns.find(ns)){
+  for (size_t i = 0; i < scene_markers->markers.size(); ++i) {
+    if (scene_markers->markers[i].type != type ||
+        !scene_markers->markers[i].ns.find(ns)) {
       new_markers.push_back(scene_markers->markers[i]);
     }
   }
   // scene_markers.markers.clear();
   scene_markers->markers = new_markers;
-  
 }
 
 void GetGridMarker(const msgs::Condition& condition,
@@ -178,7 +179,7 @@ void GetGridMarker(const msgs::Condition& condition,
   points.scale.y = 0.05;  // point height
   points.color.b = 1.0;
   points.color.a = 1.0;
-  
+
   geometry_msgs::Vector3 object_dims = condition.surface_box_dims;
   if (fabs(fmod(condition.eulerAngles.z, 180)) > 85) {
     float temp = object_dims.x;
@@ -205,10 +206,11 @@ void GetGridMarker(const msgs::Condition& condition,
       positions.color.b = 63;
       positions.color.a = 0.4;
       positions.pose = pose_array.poses[j];
-      //positions.pose.position.z = surface.pose_stamped.pose.position.z;
-      
+      // positions.pose.position.z = surface.pose_stamped.pose.position.z;
+
       scene_markers->markers.push_back(positions);
-  // std::cout << "scene markers : " << scene_markers->markers.size() << "\n";
+      // std::cout << "scene markers : " << scene_markers->markers.size() <<
+      // "\n";
     }
   }
   scene_markers->markers.push_back(points);
@@ -403,25 +405,25 @@ void GetSurfaceMarker(const msgs::Surface& surface,
   std::string base_link(robot_config.base_link());
   if (surface.dimensions.x <= 0) {
     ROS_INFO("No surface to publish");
-  }else {
-  Marker table;
-  table.header.frame_id = base_link;
-  table.type = Marker::CUBE;
-  table.ns = "table";
-  geometry_msgs::Pose pose;
-  pose.position = surface.pose_stamped.pose.position;
-  pose.orientation = surface.pose_stamped.pose.orientation;
-  table.pose = pose;
-  table.pose.position.z -= surface.dimensions.z;
-  table.scale.x = surface.dimensions.x;
-  table.scale.y = surface.dimensions.y;
-  table.scale.z = surface.dimensions.z;
+  } else {
+    Marker table;
+    table.header.frame_id = base_link;
+    table.type = Marker::CUBE;
+    table.ns = "table";
+    geometry_msgs::Pose pose;
+    pose.position = surface.pose_stamped.pose.position;
+    pose.orientation = surface.pose_stamped.pose.orientation;
+    table.pose = pose;
+    table.pose.position.z -= surface.dimensions.z;
+    table.scale.x = surface.dimensions.x;
+    table.scale.y = surface.dimensions.y;
+    table.scale.z = surface.dimensions.z;
 
-  table.color.r = 0.01;
-  table.color.g = 0.01;
-  table.color.b = 0.01;
-  table.color.a = 1;
-  scene_markers->markers.push_back(table);
+    table.color.r = 0.01;
+    table.color.g = 0.01;
+    table.color.b = 0.01;
+    table.color.a = 1;
+    scene_markers->markers.push_back(table);
   }
 }
 

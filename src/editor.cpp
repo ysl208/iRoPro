@@ -59,7 +59,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       Delete(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
       GenerateConditions(event.program_info.db_id, event.step_num,
-                         event.action_num, event.landmark_name, event.action.condition.obj_num);
+                         event.action_num, event.landmark_name,
+                         event.action.condition.obj_num);
     } else if (event.type == msgs::EditorEvent::ADD_SENSE_STEPS) {
       AddSenseSteps(event.program_info.db_id, event.step_num);
     } else if (event.type == msgs::EditorEvent::VIEW_CONDITIONS) {

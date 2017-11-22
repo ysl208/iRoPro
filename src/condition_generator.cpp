@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cmath>
 #include <exception>
+#include <string>
 #include <vector>
 
 #include "rapid_pbd/robot_config.h"
@@ -536,5 +537,100 @@ void ConditionGenerator::GetSpatialRelation(msgs::Condition* condition) {
   condition->spatial_relation = spatial_relation;
 }
 
+void ConditionGenerator::UpdatePosteriors(const World& world,
+                                          const msgs::Landmark& landmark) {
+  // 5 specifications (s6 can be random)
+  // to keep track of
+  std::map<int, float> priors;  // priors for s_n
+  std::map<int, float> pOfD;
+  std::map<int, float> posteriors;
+  std::vector<rapid_pbd_msgs::Landmark> landmarks;
+  float avg_dx = 0.0;
+  float avg_dy = 0.0;
+  bool flag1D = true;
+
+  // initialise pOfD with all 1st
+
+  float allowedVariance = 0.075;
+  // initialise priors and pOfD
+  for (size_t i = 0; i < 5; ++i) {
+    priors[i] = 1 / 5;
+    pOfD[i] = 0.0;
+  }
+
+  // find closest landmark that can be referenced
+  double distance_cutoff = 1;
+  double squared_cutoff = distance_cutoff * distance_cutoff;
+  msgs::Landmark closest;
+  float dx;
+  float dy;
+  if (ReferencedLandmark(landmark, world, squared_cutoff, &closest)) {
+    // calculate dx, dy
+    dx = fabs(closest.pose_stamped.pose.position.x -
+              landmark.pose_stamped.pose.position.x);
+    dy = fabs(closest.pose_stamped.pose.position.y -
+              landmark.pose_stamped.pose.position.y);
+    avg_dx = (avg_dx + dx) / landmarks.size();
+    avg_dy = (avg_dy + dy) / landmarks.size();
+
+    // check s_n conditions
+    // s4 s5: check that the object is not aligned
+    if (dx > allowedVariance || dy > allowedVariance) {
+      // s4 are rows, s5 are columns
+      if (dx > dy) {
+        // s4
+        pOfD[4] = 1.0;
+      } else if (dx < dy) {
+        // s5
+        pOfD[5] = 1.0;
+      } else {
+        // s?
+      }
+    } else if (dx < allowedVariance) {
+      // x-aligned
+      if (flag1D) {
+        // s1
+
+        pOfD[1] = 1.0;
+      }
+      // s3
+
+    } else if (dy < allowedVariance) {
+      // x-aligned
+      if (flag1D) {
+        // s2
+        pOfD[2] = 1.0;
+      }
+      // s3
+      pOfD[3] = 1.0;
+
+    } else {
+      ROS_WARN("Unknown pattern");
+    }
+    UpdatePriors(priors, pOfD, &posteriors);
+    priors = posteriors;
+  }
+  // add landmark to list
+  landmarks.push_back(landmark);
+
+  for (size_t i = 0; i < priors.size(); ++i) {
+    std::cout << "Prior for s" << i << " " << priors[i] << " \n";
+  }
+
+  std::cout << "Landmarks: " << landmarks.size() << " \n";
+}
+void ConditionGenerator::UpdatePriors(const std::map<int, float>& priors,
+                                      const std::map<int, float>& pOfD,
+                                      std::map<int, float>* posteriors) {
+  // calculate sum of all pOfD
+  float sum;
+
+  // for (size_t key = 0; key < pOfD.size(); ++key) {
+  //   sum += pOfD[key];
+  // }
+  // for (size_t key = 0; key < priors.size(); ++key) {
+  //   posteriors[key] = (priors[key] * pOfD[key]) / sum;
+  // }
+}
 }  // namespace pbd
 }  // namespace rapid
