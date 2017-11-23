@@ -17,6 +17,7 @@
 #include "rapid_pbd/joint_state_reader.h"
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
+#include "rapid_pbd/spec_inference.h"
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
 
@@ -30,7 +31,8 @@ class Editor {
   Editor(const ProgramDb& db, const SceneDb& scene_db,
          const JointStateReader& joint_state_reader,
          const Visualizer& visualizer, ActionClients* action_clients,
-         const ConditionGenerator& cond_gen, const RobotConfig& robot_config);
+         const ConditionGenerator& cond_gen, const SpecInference& spec_inf,
+         const RobotConfig& robot_config);
   void Start();
   void HandleEvent(const rapid_pbd_msgs::EditorEvent& event);
   bool HandleCreateProgram(rapid_pbd_msgs::CreateProgram::Request&,
@@ -43,7 +45,7 @@ class Editor {
   void Delete(const std::string& db_id);
   void GenerateConditions(const std::string& db_id, size_t step_id,
                           size_t action_id, const std::string& landmark_name,
-                                const int& obj_num);
+                          const int& obj_num);
   void UpdateConditions(const std::string& db_id, size_t step_id,
                         size_t action_id,
                         const rapid_pbd_msgs::Landmark& reference);
@@ -105,6 +107,7 @@ class Editor {
   Visualizer viz_;
   ActionClients* action_clients_;
   ConditionGenerator cond_gen_;
+  SpecInference spec_inf_;
   const RobotConfig& robot_config_;
   tf::TransformListener tf_listener_;
   std::map<std::string, size_t> last_viewed_;

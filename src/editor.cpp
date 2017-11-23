@@ -24,6 +24,7 @@
 #include "rapid_pbd/landmarks.h"
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
+#include "rapid_pbd/spec_inference.h"
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
 
@@ -34,13 +35,14 @@ Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
                const JointStateReader& joint_state_reader,
                const Visualizer& visualizer, ActionClients* action_clients,
                const ConditionGenerator& cond_gen,
-               const RobotConfig& robot_config)
+               const SpecInference& spec_inf, const RobotConfig& robot_config)
     : db_(db),
       scene_db_(scene_db),
       joint_state_reader_(joint_state_reader),
       viz_(visualizer),
       action_clients_(action_clients),
       cond_gen_(cond_gen),
+      spec_inf_(spec_inf),
       robot_config_(robot_config),
       tf_listener_(),
       last_viewed_() {}
@@ -331,10 +333,11 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
     posteriors.push_back(0.0);
   }
 
-  cond_gen_.UpdatePosteriors(initial_world,
-                             initial_world.surface_box_landmarks.back(), flag1D,
-                             //  &priors,
-                             &posteriors);
+  // cond_gen_.UpdatePosteriors(initial_world,
+  //                            initial_world.surface_box_landmarks.back(),
+  //                            flag1D,
+  //                            //  &priors,
+  //                            &posteriors);
 }
 
 void Editor::ViewConditions(const std::string& db_id, size_t step_id,
@@ -369,9 +372,10 @@ void Editor::ViewConditions(const std::string& db_id, size_t step_id,
   }
 
   GetWorld(robot_config_, program, last_viewed_[db_id], &world);
-  cond_gen_.UpdatePosteriors(world, world.surface_box_landmarks.back(), flag1D,
-                             //  &priors,
-                             &posteriors);
+  // cond_gen_.UpdatePosteriors(world, world.surface_box_landmarks.back(),
+  // flag1D,
+  //                            //  &priors,
+  //                            &posteriors);
 
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {

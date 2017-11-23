@@ -285,6 +285,10 @@ target_link_libraries(rapid_pbd_runtime_robot_state
   rapid_pbd_robot_config
   ${catkin_LIBRARIES})
 
+add_library(rapid_pbd_spec_inference src/spec_inference.cpp)
+add_dependencies(rapid_pbd_spec_inference ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_spec_inference ${catkin_LIBRARIES})
+
 add_library(rapid_pbd_step_executor src/step_executor.cpp)
 add_dependencies(rapid_pbd_step_executor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_step_executor
@@ -330,6 +334,7 @@ target_link_libraries(rapid_pbd_editor_node
   rapid_pbd_editor
   rapid_pbd_program_db
   rapid_pbd_robot_config
+  rapid_pbd_spec_inference
   ${catkin_LIBRARIES})
 
 add_executable(rapid_pbd_baxter_action_node src/baxter_action_node.cpp)

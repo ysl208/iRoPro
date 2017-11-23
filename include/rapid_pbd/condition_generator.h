@@ -1,8 +1,4 @@
-//
-//  condition.h
-//
-//
-//  Created by YSL on 28/07/2017.
+//  Created by Ying Siu Liang on 28/07/2017.
 //
 //
 
@@ -34,9 +30,6 @@ class ConditionGenerator {
   void GenerateGrid(rapid_pbd_msgs::Condition* condition,
                     std::vector<geometry_msgs::PoseArray>* grid,
                     const int& obj_num);
-  void UpdatePosteriors(const World& world,
-                        const rapid_pbd_msgs::Landmark& landmark, bool flag1D,
-                        std::vector<float>* posteriors);
 
  private:
   World* world_;
@@ -74,15 +67,6 @@ class ConditionGenerator {
                     const geometry_msgs::Vector3& obj_distance,
                     std::vector<geometry_msgs::Pose>* positions,
                     const int& obj_num);
-  void GetPatternPositions(const int& s,
-                           std::vector<geometry_msgs::Pose>* positions,
-                           const rapid_pbd_msgs::Landmark& landmark,
-                           geometry_msgs::Vector3 obj_distance,
-                           const int& obj_num);
-  int GetPatternIndex(const std::string& s);
-  void UpdatePriors(const std::vector<float>& priors,
-                    const std::vector<float>& pOfD,
-                    std::vector<float>* posteriors);
   // void GetPositionsAroundObject(
   //     msgs::Condition* condition, const geometry_msgs::Vector3& dimensions,
   //     const geometry_msgs::Vector3& obj_distance,

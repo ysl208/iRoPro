@@ -1,7 +1,8 @@
+#include "rapid_pbd/editor.h"
 #include "mongodb_store/message_store.h"
 #include "rapid_pbd/action_clients.h"
+#include "rapid_pbd/condition_generator.h"
 #include "rapid_pbd/db_names.h"
-#include "rapid_pbd/editor.h"
 #include "rapid_pbd/joint_state_reader.h"
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
@@ -12,7 +13,6 @@
 #include "std_msgs/Bool.h"
 #include "urdf/model.h"
 #include "visualization_msgs/MarkerArray.h"
-#include "rapid_pbd/condition_generator.h"
 
 namespace pbd = rapid::pbd;
 
@@ -69,10 +69,12 @@ int main(int argc, char** argv) {
   visualizer.Init();
 
   pbd::ConditionGenerator cond_gen(*robot_config);
+
+  pbd::SpecInference spec_inf(*robot_config);
   // Build editor.
   pbd::JointStateReader joint_state_reader;
   pbd::Editor editor(db, scene_db, joint_state_reader, visualizer,
-                     &action_clients, cond_gen, *robot_config);
+                     &action_clients, cond_gen, spec_inf, *robot_config);
   editor.Start();
 
   ros::Subscriber editor_sub = nh.subscribe(pbd::kEditorEventsTopic, 10,
