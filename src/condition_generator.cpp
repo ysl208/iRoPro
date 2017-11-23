@@ -537,100 +537,135 @@ void ConditionGenerator::GetSpatialRelation(msgs::Condition* condition) {
   condition->spatial_relation = spatial_relation;
 }
 
+int ConditionGenerator::GetPatternIndex(const std::string& s) {
+  if (s == "s1") {
+    // all x-coordinates are within a range of allowedVariance
+    // all y-coordinates need to be > allowedVariance
+    // assume allowedVariance < landmark.dims
+    return 0;
+  } else if (s == "s2") {
+    // y-aligned
+    return 1;
+  } else if (s == "s3") {
+    return 2;
+  } else if (s == "s4") {
+    return 3;
+  } else if (s == "s5") {
+    return 4;
+    // } else if (s == "s6") {
+    // s6 for random or user-specified
+    //   return 5;
+  } else {
+    ROS_ERROR("Unknown pattern name");
+    return -1;
+  }
+}
+
 void ConditionGenerator::UpdatePosteriors(const World& world,
-                                          const msgs::Landmark& landmark) {
+                                          const msgs::Landmark& landmark,
+                                          bool flag1D,
+                                          // std::vector<float>* priors,
+                                          std::vector<float>* posteriors) {
   // 5 specifications (s6 can be random)
   // to keep track of
-  std::map<int, float> priors;  // priors for s_n
-  std::map<int, float> pOfD;
-  std::map<int, float> posteriors;
-  std::vector<rapid_pbd_msgs::Landmark> landmarks;
+  std::vector<float> pOfD, priors;
+
   float avg_dx = 0.0;
   float avg_dy = 0.0;
-  bool flag1D = true;
+  // bool flag1D = true;
 
-  // initialise pOfD with all 1st
-
-  float allowedVariance = 0.075;
+  // initialise
+  float allowedVariance = 0.03;
   // initialise priors and pOfD
   for (size_t i = 0; i < 5; ++i) {
-    priors[i] = 1 / 5;
-    pOfD[i] = 0.0;
+    priors.push_back(0.2);
+    pOfD.push_back(1.0);
   }
 
   // find closest landmark that can be referenced
-  double distance_cutoff = 1;
+  double distance_cutoff = 1.0;
   double squared_cutoff = distance_cutoff * distance_cutoff;
   msgs::Landmark closest;
-  float dx;
-  float dy;
+  float dx, dy;
+  ROS_INFO("** Updating Posteriors **");
   if (ReferencedLandmark(landmark, world, squared_cutoff, &closest)) {
     // calculate dx, dy
     dx = fabs(closest.pose_stamped.pose.position.x -
               landmark.pose_stamped.pose.position.x);
     dy = fabs(closest.pose_stamped.pose.position.y -
               landmark.pose_stamped.pose.position.y);
-    avg_dx = (avg_dx + dx) / landmarks.size();
-    avg_dy = (avg_dy + dy) / landmarks.size();
+
+    ROS_INFO("dx = %f, dy = %f", dx, dy);
+    avg_dx = (avg_dx + dx) / world.surface_box_landmarks.size();
+    avg_dy = (avg_dy + dy) / world.surface_box_landmarks.size();
 
     // check s_n conditions
+    if (flag1D) {
+      if (dx > allowedVariance) {
+        // x-aligned
+        pOfD.at(GetPatternIndex("s1")) = 0.0;
+      }
+      if (dy > allowedVariance) {
+        // y-aligned
+        pOfD.at(GetPatternIndex("s2")) = 0.0;
+      }
+
+      if (pOfD[GetPatternIndex("s1")] == 0.0 &&
+          pOfD[GetPatternIndex("s2")] == 0.0) {
+        flag1D = false;
+        ROS_INFO("flag1D set to false");
+      }
+    } else {
+      pOfD.at(GetPatternIndex("s1")) = 0.0;
+      pOfD.at(GetPatternIndex("s2")) = 0.0;
+    }
+    // if not 1-dimensional, then check s3-s5
+    // s3
     // s4 s5: check that the object is not aligned
-    if (dx > allowedVariance || dy > allowedVariance) {
+    if (dx > allowedVariance && dy > allowedVariance) {
+      // not vertically nor horizontically aligned
+      pOfD.at(GetPatternIndex("s3")) = 0.0;
       // s4 are rows, s5 are columns
-      if (dx > dy) {
+      if (dx < dy) {
         // s4
-        pOfD[4] = 1.0;
-      } else if (dx < dy) {
+        pOfD.at(GetPatternIndex("s4")) = 0.0;
+      }
+
+      if (dx > dy) {
         // s5
-        pOfD[5] = 1.0;
+        pOfD.at(GetPatternIndex("s5")) = 0.0;
       } else {
         // s?
       }
-    } else if (dx < allowedVariance) {
-      // x-aligned
-      if (flag1D) {
-        // s1
-
-        pOfD[1] = 1.0;
-      }
-      // s3
-
-    } else if (dy < allowedVariance) {
-      // x-aligned
-      if (flag1D) {
-        // s2
-        pOfD[2] = 1.0;
-      }
-      // s3
-      pOfD[3] = 1.0;
-
-    } else {
-      ROS_WARN("Unknown pattern");
     }
-    UpdatePriors(priors, pOfD, &posteriors);
-    priors = posteriors;
+    for (size_t i = 0; i < pOfD.size(); ++i) {
+      std::cout << "PofD for s" << i + 1 << " " << pOfD[i] << " \n";
+    }
+    UpdatePriors(priors, pOfD, posteriors);
+    // priors = posteriors;
   }
   // add landmark to list
-  landmarks.push_back(landmark);
+  // landmarks->push_back(landmark);
 
-  for (size_t i = 0; i < priors.size(); ++i) {
-    std::cout << "Prior for s" << i << " " << priors[i] << " \n";
+  for (size_t i = 0; i < posteriors->size(); ++i) {
+    std::cout << "posteriors for s" << i + 1 << " " << posteriors->at(i)
+              << " \n";
   }
-
-  std::cout << "Landmarks: " << landmarks.size() << " \n";
 }
-void ConditionGenerator::UpdatePriors(const std::map<int, float>& priors,
-                                      const std::map<int, float>& pOfD,
-                                      std::map<int, float>* posteriors) {
+void ConditionGenerator::UpdatePriors(const std::vector<float>& priors,
+                                      const std::vector<float>& pOfD,
+                                      std::vector<float>* posteriors) {
   // calculate sum of all pOfD
-  float sum;
-
-  // for (size_t key = 0; key < pOfD.size(); ++key) {
-  //   sum += pOfD[key];
-  // }
-  // for (size_t key = 0; key < priors.size(); ++key) {
-  //   posteriors[key] = (priors[key] * pOfD[key]) / sum;
-  // }
+  float sum = 0;
+  for (size_t key = 0; key < pOfD.size(); ++key) {
+    sum += pOfD[key];
+    ROS_INFO("sum = %f", sum);
+  }
+  for (size_t key = 0; key < priors.size(); ++key) {
+    float posterior = (priors[key] * pOfD[key]) / sum;
+    posteriors->at(key) = posterior;
+    ROS_INFO("posteriors->at(key) = %f", posteriors->at(key));
+  }
 }
 }  // namespace pbd
 }  // namespace rapid

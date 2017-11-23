@@ -322,6 +322,19 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
   }
+  // calculate scores:
+  std::vector<float> priors, posteriors;
+  bool flag1D = true;
+
+  for (size_t i = 0; i < 5; ++i) {
+    priors.push_back(0.2);
+    posteriors.push_back(0.0);
+  }
+
+  cond_gen_.UpdatePosteriors(initial_world,
+                             initial_world.surface_box_landmarks.back(), flag1D,
+                             //  &priors,
+                             &posteriors);
 }
 
 void Editor::ViewConditions(const std::string& db_id, size_t step_id,
@@ -346,10 +359,22 @@ void Editor::ViewConditions(const std::string& db_id, size_t step_id,
   // cond_gen_.GenerateGrid(&action_condition, &grid, obj_num);
   step->grid = grid;
 
+  // calculate scores:
+  std::vector<float> priors, posteriors;
+  bool flag1D = true;
+  World world;
+  for (size_t i = 0; i < 5; ++i) {
+    priors.push_back(1 / 5);
+    posteriors.push_back(0.0);
+  }
+
+  GetWorld(robot_config_, program, last_viewed_[db_id], &world);
+  cond_gen_.UpdatePosteriors(world, world.surface_box_landmarks.back(), flag1D,
+                             //  &priors,
+                             &posteriors);
+
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
-    World world;
-    GetWorld(robot_config_, program, last_viewed_[db_id], &world);
     viz_.PublishConditionMarkers(db_id, world, action_condition);
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");

@@ -34,10 +34,14 @@ class ConditionGenerator {
   void GenerateGrid(rapid_pbd_msgs::Condition* condition,
                     std::vector<geometry_msgs::PoseArray>* grid,
                     const int& obj_num);
+  void UpdatePosteriors(const World& world,
+                        const rapid_pbd_msgs::Landmark& landmark, bool flag1D,
+                        std::vector<float>* posteriors);
 
  private:
   World* world_;
   const RobotConfig& robot_config_;
+
   bool IsLandmarkName(const rapid_pbd_msgs::Landmark& landmark,
                       const std::string& name);
   void GetPropertyConditions(const rapid_pbd_msgs::Landmark& landmark,
@@ -75,12 +79,10 @@ class ConditionGenerator {
                            const rapid_pbd_msgs::Landmark& landmark,
                            geometry_msgs::Vector3 obj_distance,
                            const int& obj_num);
-
-  void UpdatePosteriors(const World& world,
-                        const rapid_pbd_msgs::Landmark& landmark);
-  void UpdatePriors(const std::map<int, float>& priors,
-                    const std::map<int, float>& pOfD,
-                    std::map<int, float>* posteriors);
+  int GetPatternIndex(const std::string& s);
+  void UpdatePriors(const std::vector<float>& priors,
+                    const std::vector<float>& pOfD,
+                    std::vector<float>* posteriors);
   // void GetPositionsAroundObject(
   //     msgs::Condition* condition, const geometry_msgs::Vector3& dimensions,
   //     const geometry_msgs::Vector3& obj_distance,
