@@ -106,6 +106,10 @@ void SpecInference::UpdatePosteriors(const World& world,
   pOfD.clear();
   for (size_t i = 0; i < 5; ++i) {
     pOfD.push_back(1.0);
+
+    std::cout << "Prior for s" << i + 1 << " " << priors_[i] << " \n";
+    std::cout << "Posteriors for s" << i + 1 << " " << posteriors_[i] << " \n";
+    
   }
 
   // find closest landmark that can be referenced

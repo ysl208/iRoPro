@@ -18,6 +18,7 @@ namespace pbd {
 // pre-/postconditions
 class SpecInference {
  public:
+  std::vector<float> priors_, posteriors_;
   SpecInference(const RobotConfig& robot_config);
   void Init();
   void UpdatePosteriors(const World& world,
@@ -28,7 +29,6 @@ class SpecInference {
   const RobotConfig& robot_config_;
    double distance_cutoff;
    float allowedVariance;
-  std::vector<float> priors_, posteriors_;
   bool flag1D;
   float avg_dx, avg_dy;
 

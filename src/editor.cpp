@@ -443,6 +443,18 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
   GetWorld(robot_config_, program, step_id, &world);
   spec_inf_.UpdatePosteriors(world,
                              world.surface_box_landmarks.back());
+
+  step->actions[action_id].posteriors.data.clear();
+  for(size_t i=0; i<spec_inf_.posteriors_.size(); ++i){
+    step->actions[action_id].posteriors.data.push_back(spec_inf_.posteriors_[i]);
+
+    std::cout << ".Posteriors for s" << i + 1 << " " << step->actions[action_id].posteriors.data[i] << " \n";
+  }
+
+ std::cout << "new posteriors are " << step->actions[action_id].posteriors.data.size() << " \n";
+ std::cout << "for action_id " << action_id << " \n";
+
+  db_.Update(db_id, program);
 }
 
 void Editor::AddStep(const std::string& db_id) {
