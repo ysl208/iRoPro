@@ -14,6 +14,7 @@
 <link rel="import" href="pbd-gripper-action.html">
 <link rel="import" href="pbd-head-action.html">
 <link rel="import" href="pbd-joint-angle-action.html">
+<link rel="import" href="pbd-spec-inference-action.html">
 
 <dom-module id="pbd-action">
   <template>
@@ -58,6 +59,7 @@
             <paper-item data-type="move head">Move head</paper-item>
             <paper-item data-type="detect tabletop objects">Detect tabletop objects</paper-item>
             <paper-item data-type="check world conditions">Check world conditions</paper-item>
+            <paper-item data-type="infer specification">Infer specification</paper-item>
             <!--paper-item data-type="find custom landmark">Find custom landmark</paper-item-->
           </paper-listbox>
         </paper-dropdown-menu>
@@ -84,6 +86,10 @@
         <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'check world conditions')]]">
           <pbd-check-conditions-action action="{{action}}" params="[[params]]" program-id="[[programId]]" step-index="[[stepNum]]"
             index="[[index]]" landmarks="[[landmarks]]" ros="[[ros]]"></pbd-check-conditions-action>
+        </template>
+        <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'infer specification')]]">
+          <pbd-spec-inference-action action="{{action}}" params="[[params]]" program-id="[[programId]]" step-index="[[stepNum]]"
+            index="[[index]]" landmarks="[[landmarks]]" ros="[[ros]]"></pbd-spec-inference-action>
         </template>
         <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'find custom landmark')]]">
           CustomLandmarks options
@@ -159,6 +165,8 @@
           this._actionDescription = 'Detect tabletop objects';
         } else if (this.action.type === 'check world conditions') {
           this._actionDescription = 'Check world conditions';
+        } else if (this.action.type === 'infer specification') {
+          this._actionDescription = 'Infer specification';
         } else if (this.action.type === 'find custom landmark') {
           this._actionDescription = 'Find custom landmark';
         }

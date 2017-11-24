@@ -82,6 +82,7 @@
         <paper-button class="normal" on-tap="selectMoveHead">Move head</paper-button>
         <paper-button class="normal" on-tap="selectDetectTabletopObjects">Detect tabletop objects</paper-button>
         <paper-button class="normal" on-tap="selectCheckConditions">Check world conditions</paper-button>
+        <paper-button class="normal" on-tap="selectSpecInference">Infer Specification</paper-button>
         <!--paper-button class="normal" on-tap="selectFindCustomLandmark">Find custom landmark</paper-button-->
       </div>
       <template is="dom-if" if="[[params.hasTwoArms]]">
@@ -158,6 +159,13 @@
       selectCheckConditions: function () {
         var action = {
           type: 'check world conditions'
+        };
+        this.fire('iron-select', action);
+      },
+
+      selectSpecInference: function () {
+        var action = {
+          type: 'infer specification'
         };
         this.fire('iron-select', action);
       },
