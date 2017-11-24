@@ -51,6 +51,7 @@ void Editor::Start() {
   db_.Start();
   joint_state_reader_.Start();
   viz_.Init();
+  spec_inf_.Init();
 }
 
 void Editor::HandleEvent(const msgs::EditorEvent& event) {
@@ -61,16 +62,18 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       Delete(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
       GenerateConditions(event.program_info.db_id, event.step_num,
-                         event.action_num, event.landmark_name,
-                         event.action.condition.obj_num);
-    } else if (event.type == msgs::EditorEvent::ADD_SENSE_STEPS) {
-      AddSenseSteps(event.program_info.db_id, event.step_num);
+                         event.action_num, event.landmark_name);
     } else if (event.type == msgs::EditorEvent::VIEW_CONDITIONS) {
       ViewConditions(event.program_info.db_id, event.step_num,
                      event.action_num);
     } else if (event.type == msgs::EditorEvent::UPDATE_CONDITIONS) {
       UpdateConditions(event.program_info.db_id, event.step_num,
                        event.action_num, event.action.condition.reference);
+    } else if (event.type == msgs::EditorEvent::INFER_SPEC) {
+      InferSpecification(event.program_info.db_id, event.step_num,
+                         event.action_num, event.landmark_name);
+    } else if (event.type == msgs::EditorEvent::ADD_SENSE_STEPS) {
+      AddSenseSteps(event.program_info.db_id, event.step_num);
     } else if (event.type == msgs::EditorEvent::ADD_STEP) {
       AddStep(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::DELETE_STEP) {
@@ -286,10 +289,11 @@ void Editor::Delete(const std::string& db_id) {
 
 void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
                                 size_t action_id,
-                                const std::string& landmark_name,
-                                const int& obj_num) {
+                                const std::string& landmark_name
+                                ) {
   // Generates conditions for current step
   msgs::Program program;
+  int obj_num = 5;
   bool success = db_.Get(db_id, &program);
   if (!success) {
     ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
@@ -324,20 +328,6 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
   }
-  // calculate scores:
-  std::vector<float> priors, posteriors;
-  bool flag1D = true;
-
-  for (size_t i = 0; i < 5; ++i) {
-    priors.push_back(0.2);
-    posteriors.push_back(0.0);
-  }
-
-  // cond_gen_.UpdatePosteriors(initial_world,
-  //                            initial_world.surface_box_landmarks.back(),
-  //                            flag1D,
-  //                            //  &priors,
-  //                            &posteriors);
 }
 
 void Editor::ViewConditions(const std::string& db_id, size_t step_id,
@@ -426,6 +416,33 @@ void Editor::UpdateConditions(const std::string& db_id, size_t step_id,
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
   }
+}
+
+void Editor::InferSpecification(const std::string& db_id, size_t step_id,
+                                size_t action_id,
+                                const std::string& landmark_name
+                                ){
+  ROS_INFO("Inferring specifications");
+  // calculate scores:
+  msgs::Program program;
+  bool success = db_.Get(db_id, &program);
+  if (!success) {
+    ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
+    return;
+  }
+  if (step_id >= program.steps.size()) {
+    ROS_ERROR(
+        "Unable to get action from step %ld from program \"%s\", which has "
+        "%ld steps",
+        step_id, db_id.c_str(), program.steps.size());
+    return;
+  }
+  msgs::Step* step = &program.steps[step_id];
+
+  World world;
+  GetWorld(robot_config_, program, step_id, &world);
+  spec_inf_.UpdatePosteriors(world,
+                             world.surface_box_landmarks.back());
 }
 
 void Editor::AddStep(const std::string& db_id) {

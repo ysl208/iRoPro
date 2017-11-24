@@ -19,13 +19,20 @@ namespace pbd {
 class SpecInference {
  public:
   SpecInference(const RobotConfig& robot_config);
+  void Init();
   void UpdatePosteriors(const World& world,
-                        const rapid_pbd_msgs::Landmark& landmark, bool flag1D,
-                        std::vector<float>* posteriors);
+                        const rapid_pbd_msgs::Landmark& landmark);
 
  private:
   World* world_;
   const RobotConfig& robot_config_;
+   double distance_cutoff;
+   float allowedVariance;
+  std::vector<float> priors_, posteriors_;
+  bool flag1D;
+  float avg_dx, avg_dy;
+
+
   bool ReferencedLandmark(const rapid_pbd_msgs::Landmark& landmark,
                           const World& world,
                           const double squared_distance_cutoff,
@@ -37,9 +44,7 @@ class SpecInference {
                            geometry_msgs::Vector3 obj_distance,
                            const int& obj_num);
   int GetPatternIndex(const std::string& s);
-  void UpdatePriors(const std::vector<float>& priors,
-                    const std::vector<float>& pOfD,
-                    std::vector<float>* posteriors);
+  void UpdatePriors(const std::vector<float>& pOfD);
 };
 }  // namespace pbd
 }  // namespace rapid

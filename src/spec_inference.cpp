@@ -24,6 +24,23 @@ namespace pbd {
 SpecInference::SpecInference(const RobotConfig& robot_config)
     : robot_config_(robot_config) {}
 
+void SpecInference::Init(){
+  flag1D = true;
+  distance_cutoff = 1.0;
+  priors_.clear();
+  posteriors_.clear();
+
+  avg_dx = 0.0;
+  avg_dy = 0.0;
+  allowedVariance = 0.03;
+
+  for (size_t i = 0; i < 5; ++i) {
+    priors_.push_back(0.2);
+    posteriors_.push_back(0.0);
+  }
+
+}
+
 bool SpecInference::ReferencedLandmark(const msgs::Landmark& landmark,
                                        const World& world,
                                        const double squared_distance_cutoff,
@@ -80,31 +97,21 @@ int SpecInference::GetPatternIndex(const std::string& s) {
 }
 
 void SpecInference::UpdatePosteriors(const World& world,
-                                     const msgs::Landmark& landmark,
-                                     bool flag1D,
-                                     // std::vector<float>* priors,
-                                     std::vector<float>* posteriors) {
+                                     const msgs::Landmark& landmark) {
   // 5 specifications (s6 can be random)
-  // to keep track of
-  std::vector<float> pOfD, priors;
+  std::vector<float> pOfD;
+  float dx, dy;
 
-  float avg_dx = 0.0;
-  float avg_dy = 0.0;
-  // bool flag1D = true;
-
-  // initialise
-  float allowedVariance = 0.03;
-  // initialise priors and pOfD
+  // initialise pOfD
+  pOfD.clear();
   for (size_t i = 0; i < 5; ++i) {
-    priors.push_back(0.2);
     pOfD.push_back(1.0);
   }
 
   // find closest landmark that can be referenced
-  double distance_cutoff = 1.0;
+  
   double squared_cutoff = distance_cutoff * distance_cutoff;
   msgs::Landmark closest;
-  float dx, dy;
   ROS_INFO("** Updating Posteriors **");
   if (ReferencedLandmark(landmark, world, squared_cutoff, &closest)) {
     // calculate dx, dy
@@ -159,30 +166,27 @@ void SpecInference::UpdatePosteriors(const World& world,
     for (size_t i = 0; i < pOfD.size(); ++i) {
       std::cout << "PofD for s" << i + 1 << " " << pOfD[i] << " \n";
     }
-    UpdatePriors(priors, pOfD, posteriors);
-    // priors = posteriors;
+    UpdatePriors(pOfD);
   }
   // add landmark to list
   // landmarks->push_back(landmark);
 
-  for (size_t i = 0; i < posteriors->size(); ++i) {
-    std::cout << "posteriors for s" << i + 1 << " " << posteriors->at(i)
+  for (size_t i = 0; i < posteriors_.size(); ++i) {
+    std::cout << "posteriors_ for s" << i + 1 << " " << posteriors_.at(i)
               << " \n";
   }
 }
-void SpecInference::UpdatePriors(const std::vector<float>& priors,
-                                 const std::vector<float>& pOfD,
-                                 std::vector<float>* posteriors) {
+void SpecInference::UpdatePriors(const std::vector<float>& pOfD) {
   // calculate sum of all pOfD
   float sum = 0;
   for (size_t key = 0; key < pOfD.size(); ++key) {
     sum += pOfD[key];
     ROS_INFO("sum = %f", sum);
   }
-  for (size_t key = 0; key < priors.size(); ++key) {
-    float posterior = (priors[key] * pOfD[key]) / sum;
-    posteriors->at(key) = posterior;
-    ROS_INFO("posteriors->at(key) = %f", posteriors->at(key));
+  for (size_t key = 0; key < priors_.size(); ++key) {
+    float posterior = (priors_[key] * pOfD[key]) / sum;
+    posteriors_.at(key) = posterior;
+    ROS_INFO("posteriors_.at(key) = %f", posteriors_.at(key));
   }
 }
 }  // namespace pbd
