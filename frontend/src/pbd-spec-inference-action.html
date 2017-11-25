@@ -85,29 +85,16 @@
       </paper-dropdown-menu>
       <paper-button class="normal" on-tap="_infer">Infer</paper-button>
     </div>
-<!--     
-    <template is="dom-repeat" items="[[action.posteriors.data]]">
-      <div><span>[[_specName(index)]]</span></div>
-      <div><span>[[item]]</span></div>
-    </template> -->
 
-    <div><!-- 
-      <paper-dropdown-menu label="Specification">
-        <paper-listbox slot="dropdown-content" attr-for-selected="name"> -->
-          <template is="dom-repeat" items="[[_specScores(action.posteriors)]]">
+    <div>
+      <template is="dom-repeat" items="[[_specScores(action.posteriors)]]">
 
-            <!-- <paper-item name="[[_specName(index)]]"> -->
-            <div>
-            [[_specName(index)]] 
-            [[_formatDec(item)]]
-            <!-- </paper-item> -->
-            <!-- <paper-item name="[[item]]">[[item]]</paper-item> -->
-            <paper-button class="normal" on-tap="_save">View</paper-button>
-            <paper-button class="normal" on-tap="_save">Select</paper-button>
-            </div>
-          </template><!-- 
-        </paper-listbox>
-      </paper-dropdown-menu> -->
+        <div>
+          [[_specName(index)]] [[_formatDec(item)]]
+          <paper-button class="normal" on-tap="_view">View</paper-button>
+          <paper-button class="normal" on-tap="_save(index)">Select</paper-button>
+        </div>
+      </template>
     </div>
     <!-- <div id="wrap">
         <div id="left_col">
@@ -148,6 +135,7 @@
         programId: String,
         ros: Object,
         step: Object,
+        landmark: Object,
         landmarks: Array,
         spatial_relations: Array,
         currentCondition: Object,
@@ -165,15 +153,15 @@
         //'_save(action.condition.*)'
       ],
 
-      _save: function () {
+      _view: function () {
         var msg = {
-          type: 'view conditions',
+          type: 'view specification',
           program_info: {
             db_id: this.programId
           },
           step_num: this.stepIndex,
           action_num: this.index,
-          action: this.action
+          spec: this.spec
         };
         this.$.eventPub.publish(msg);
       },
@@ -185,7 +173,7 @@
           },
           step_num: this.stepIndex,
           action_num: this.index,
-          landmark_name: this.action.condition.landmark.name,
+          landmark: this.landmark,
           action: this.action
         };
         this.$.eventPub.publish(msg);
@@ -379,7 +367,7 @@
         return 'Unknown landmark';
       },
       _specName: function (index) {
-        if(index >= 0){
+        if (index >= 0) {
           index += 1;
           return "Spec " + index;
         }
@@ -407,8 +395,8 @@
 
       _output: function (number) {
         console.debug("_output: ", number);
-          return number;
-        
+        return number;
+
       },
       _clear: function () {
         //this.currentCondition = {};

@@ -24,11 +24,12 @@ namespace pbd {
 SpecInference::SpecInference(const RobotConfig& robot_config)
     : robot_config_(robot_config) {}
 
-void SpecInference::Init(){
+void SpecInference::Init() {
   flag1D = true;
   distance_cutoff = 1.0;
   priors_.clear();
   posteriors_.clear();
+  specs_.clear();
 
   avg_dx = 0.0;
   avg_dy = 0.0;
@@ -36,9 +37,44 @@ void SpecInference::Init(){
 
   for (size_t i = 0; i < 5; ++i) {
     priors_.push_back(0.2);
-    posteriors_.push_back(0.0);
+    posteriors_.push_back(1.0);
   }
+}
 
+void SpecInference::InitSpecs(std::vector<msgs::Specification>* specs,
+                              const msgs::Landmark& landmark) {
+  // Given the surface and the first object placed, we can initialise the area
+  // for this specification
+  msgs::Specification spec;
+  spec.landmark = landmark;
+  spec.avg_dx = landmark.surface_box_dims.x + 0.02;
+  spec.avg_dy = landmark.surface_box_dims.y + 0.02;
+  spec.obj_num = 100;
+
+  spec.name = "Spec 1";
+  spec.row_num = 1;
+  spec.col_num = 100;
+  specs->push_back(spec);
+
+  spec.name = "Spec 2";
+  spec.row_num = 100;
+  spec.col_num = 1;
+  specs->push_back(spec);
+
+  spec.name = "Spec 3";
+  spec.row_num = 100;
+  spec.col_num = 100;
+  specs->push_back(spec);
+
+  spec.name = "Spec 4";
+  spec.row_num = 100;
+  spec.col_num = 100;
+  specs->push_back(spec);
+
+  spec.name = "Spec 5";
+  spec.row_num = 100;
+  spec.col_num = 100;
+  specs->push_back(spec);
 }
 
 bool SpecInference::ReferencedLandmark(const msgs::Landmark& landmark,
@@ -97,7 +133,8 @@ int SpecInference::GetPatternIndex(const std::string& s) {
 }
 
 void SpecInference::UpdatePosteriors(const World& world,
-                                     const msgs::Landmark& landmark) {
+                                     const msgs::Landmark& landmark,
+                                     std::vector<float>* posteriors) {
   // 5 specifications (s6 can be random)
   std::vector<float> pOfD;
   float dx, dy;
@@ -108,16 +145,15 @@ void SpecInference::UpdatePosteriors(const World& world,
     pOfD.push_back(1.0);
 
     std::cout << "Prior for s" << i + 1 << " " << priors_[i] << " \n";
-    std::cout << "Posteriors for s" << i + 1 << " " << posteriors_[i] << " \n";
-    
+    std::cout << "Posteriors for s" << i + 1 << " " << &posteriors[i] << " \n";
   }
 
   // find closest landmark that can be referenced
-  
   double squared_cutoff = distance_cutoff * distance_cutoff;
   msgs::Landmark closest;
-  ROS_INFO("** Updating Posteriors **");
+  std::cout << "** Updating Posteriors : " << landmark.name;
   if (ReferencedLandmark(landmark, world, squared_cutoff, &closest)) {
+    std::cout << " close to " << closest.name << "\n";
     // calculate dx, dy
     dx = fabs(closest.pose_stamped.pose.position.x -
               landmark.pose_stamped.pose.position.x);
@@ -133,10 +169,12 @@ void SpecInference::UpdatePosteriors(const World& world,
       if (dx > allowedVariance) {
         // x-aligned
         pOfD.at(GetPatternIndex("s1")) = 0.0;
+        std::cout << "dx " << dx << " > allVar " << allowedVariance << "\n";
       }
       if (dy > allowedVariance) {
         // y-aligned
         pOfD.at(GetPatternIndex("s2")) = 0.0;
+        std::cout << "dy " << dy << " > allVar " << allowedVariance << "\n";
       }
 
       if (pOfD[GetPatternIndex("s1")] == 0.0 &&
@@ -170,28 +208,105 @@ void SpecInference::UpdatePosteriors(const World& world,
     for (size_t i = 0; i < pOfD.size(); ++i) {
       std::cout << "PofD for s" << i + 1 << " " << pOfD[i] << " \n";
     }
-    UpdatePriors(pOfD);
+    UpdatePriors(pOfD, posteriors);
   }
   // add landmark to list
   // landmarks->push_back(landmark);
 
-  for (size_t i = 0; i < posteriors_.size(); ++i) {
-    std::cout << "posteriors_ for s" << i + 1 << " " << posteriors_.at(i)
+  for (size_t i = 0; i < posteriors->size(); ++i) {
+    std::cout << "posteriors_ for s" << i + 1 << " " << posteriors->at(i)
               << " \n";
   }
 }
-void SpecInference::UpdatePriors(const std::vector<float>& pOfD) {
+void SpecInference::UpdatePriors(const std::vector<float>& pOfD,
+                                 std::vector<float>* posteriors) {
   // calculate sum of all pOfD
   float sum = 0;
   for (size_t key = 0; key < pOfD.size(); ++key) {
-    sum += pOfD[key];
-    ROS_INFO("sum = %f", sum);
+    sum += pOfD[key] * priors_[key];
+    ROS_INFO("sum is now %f", sum);
   }
   for (size_t key = 0; key < priors_.size(); ++key) {
     float posterior = (priors_[key] * pOfD[key]) / sum;
-    posteriors_.at(key) = posterior;
-    ROS_INFO("posteriors_.at(key) = %f", posteriors_.at(key));
+    posteriors->at(key) = posterior;
+    ROS_INFO("posteriors = %f", posteriors->at(key));
   }
 }
+
+void SpecInference::GenerateGrid(const msgs::Specification& spec,
+                                 const msgs::Surface& surface,
+                                 std::vector<geometry_msgs::PoseArray>* grid) {
+  // Given the number of rows/cols, the starting landmark, an avg inter-object
+  // distance, and a surface
+  // generate obj_num positions on the surface
+  // Note: assume that starting landmark is on top right corner of the table
+
+  geometry_msgs::PoseArray pose_array;
+  std::vector<geometry_msgs::Pose> positions;
+
+  geometry_msgs::Vector3 obj_distance;
+  obj_distance.x = spec.avg_dx;
+  obj_distance.y = spec.avg_dy;
+  obj_distance.z = spec.landmark.surface_box_dims.z;
+
+  // set corners of the allowed area
+  geometry_msgs::Point min_pos = spec.landmark.pose_stamped.pose.position;
+  geometry_msgs::Point max_pos, num_based, surface_based;
+  // Note: using minus operator because we assume that start object is top right
+  num_based.x = min_pos.x - (spec.row_num - 1) * avg_dx;
+  num_based.y = min_pos.y - (spec.col_num - 1) * avg_dy;
+
+  surface_based.x =
+      surface.pose_stamped.pose.position.x - surface.dimensions.x * 0.5;
+  surface_based.y =
+      surface.pose_stamped.pose.position.y - surface.dimensions.y * 0.5;
+
+  max_pos.x = fmax(num_based.x, surface_based.x);
+  max_pos.y = fmax(num_based.y, surface_based.y);
+  max_pos.z =
+      surface.pose_stamped.pose.position.z + spec.landmark.surface_box_dims.z;
+
+  GetPositions(min_pos, max_pos, spec.landmark.surface_box_dims, obj_distance,
+               &positions, spec.obj_num);
+
+  pose_array.poses = positions;
+  grid->push_back(pose_array);
+}
+
+void SpecInference::GetPositions(const geometry_msgs::Point& min_pos,
+                                 const geometry_msgs::Point& max_pos,
+                                 const geometry_msgs::Vector3& dimensions,
+                                 const geometry_msgs::Vector3& obj_distance,
+                                 std::vector<geometry_msgs::Pose>* positions,
+                                 const int& obj_num) {
+  // Takes the corner values of the area which should be filled with positions
+
+  geometry_msgs::Pose pose;
+  pose.position.z = min_pos.z;
+  geometry_msgs::Point local_min = min_pos;
+  geometry_msgs::Point local_max = max_pos;
+
+  local_min.x += dimensions.x;
+  local_min.y += dimensions.y;
+
+  while (local_min.x < max_pos.x) {
+    pose.position.x = local_min.x - (dimensions.x * 0.5);
+    while (local_min.y < max_pos.y) {
+      pose.position.y = local_min.y - (dimensions.y * 0.5);
+      std::cout << "x y : " << pose.position.x << " , " << pose.position.y
+                << "\n";
+      positions->push_back(pose);
+      local_min.y += +obj_distance.y;
+      if (positions->size() >= obj_num) {
+        return;
+      }
+    }
+    local_min.y = min_pos.y + dimensions.y;  // reset y
+    local_min.x += obj_distance.x;
+    std::cout << "No. of positions: " << positions->size() << " out of \n"
+              << obj_num;
+  }
+}
+
 }  // namespace pbd
 }  // namespace rapid

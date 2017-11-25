@@ -62,16 +62,19 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       Delete(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
       GenerateConditions(event.program_info.db_id, event.step_num,
-                         event.action_num, event.landmark_name);
+                         event.action_num, event.landmark.name);
     } else if (event.type == msgs::EditorEvent::VIEW_CONDITIONS) {
       ViewConditions(event.program_info.db_id, event.step_num,
                      event.action_num);
     } else if (event.type == msgs::EditorEvent::UPDATE_CONDITIONS) {
       UpdateConditions(event.program_info.db_id, event.step_num,
                        event.action_num, event.action.condition.reference);
-    } else if (event.type == msgs::EditorEvent::INFER_SPEC) {
+    } else if (event.type == msgs::EditorEvent::INFER_SPECIFICATION) {
       InferSpecification(event.program_info.db_id, event.step_num,
-                         event.action_num, event.landmark_name);
+                         event.action_num, event.landmark);
+    } else if (event.type == msgs::EditorEvent::INFER_SPECIFICATION) {
+      ViewSpecification(event.program_info.db_id, event.step_num,
+                         event.action_num, event.spec);
     } else if (event.type == msgs::EditorEvent::ADD_SENSE_STEPS) {
       AddSenseSteps(event.program_info.db_id, event.step_num);
     } else if (event.type == msgs::EditorEvent::ADD_STEP) {
@@ -289,8 +292,7 @@ void Editor::Delete(const std::string& db_id) {
 
 void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
                                 size_t action_id,
-                                const std::string& landmark_name
-                                ) {
+                                const std::string& landmark_name) {
   // Generates conditions for current step
   msgs::Program program;
   int obj_num = 5;
@@ -315,9 +317,9 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
   cond_gen_.AssignLandmarkCondition(initial_world, landmark_name,
                                     &action_condition);
 
-  std::vector<geometry_msgs::PoseArray> grid;
-  cond_gen_.GenerateGrid(&action_condition, &grid, obj_num);
-  step->grid = grid;
+  // std::vector<geometry_msgs::PoseArray> grid;
+  // cond_gen_.GenerateGrid(&action_condition, &grid, obj_num);
+  // step->grid = grid;
   step->actions[action_id].condition = action_condition;
   // publish condition markers
   db_.Update(db_id, program);
@@ -348,27 +350,14 @@ void Editor::ViewConditions(const std::string& db_id, size_t step_id,
   msgs::Step* step = &program.steps[step_id];
   msgs::Condition action_condition = step->actions[action_id].condition;
 
-  std::vector<geometry_msgs::PoseArray> grid;
+  // std::vector<geometry_msgs::PoseArray> grid;
   // cond_gen_.GenerateGrid(&action_condition, &grid, obj_num);
-  step->grid = grid;
-
-  // calculate scores:
-  std::vector<float> priors, posteriors;
-  bool flag1D = true;
-  World world;
-  for (size_t i = 0; i < 5; ++i) {
-    priors.push_back(1 / 5);
-    posteriors.push_back(0.0);
-  }
-
-  GetWorld(robot_config_, program, last_viewed_[db_id], &world);
-  // cond_gen_.UpdatePosteriors(world, world.surface_box_landmarks.back(),
-  // flag1D,
-  //                            //  &priors,
-  //                            &posteriors);
+  // step->grid = grid;
 
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
+    World world;
+    GetWorld(robot_config_, program, last_viewed_[db_id], &world);
     viz_.PublishConditionMarkers(db_id, world, action_condition);
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
@@ -420,10 +409,7 @@ void Editor::UpdateConditions(const std::string& db_id, size_t step_id,
 
 void Editor::InferSpecification(const std::string& db_id, size_t step_id,
                                 size_t action_id,
-                                const std::string& landmark_name
-                                ){
-  ROS_INFO("Inferring specifications");
-  // calculate scores:
+                                const msgs::Landmark& landmark) {
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
@@ -441,20 +427,78 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
 
   World world;
   GetWorld(robot_config_, program, step_id, &world);
-  spec_inf_.UpdatePosteriors(world,
-                             world.surface_box_landmarks.back());
 
+  // if there is only one landmark, initialise specs
+  // assumes that if there are more, then it is already initialised
+  std::vector<msgs::Specification> specs;
+  if (world.surface_box_landmarks.size() == 1) {
+    spec_inf_.InitSpecs(&specs, landmark);
+    step->actions[action_id].specs = specs;
+  }
+  std::vector<float> posteriors;
+  // get posteriors from action if already exists, if not, take initialised ones
+  if (step->actions[action_id].posteriors.data.size() <= 0) {
+    posteriors = spec_inf_.posteriors_;
+    std::cout << "posteriors didnt exist, initialise"
+              << "\n";
+  } else {
+    std::cout << "posteriors already exist, use old ones"
+              << "\n";
+    for (size_t i = 0; i < step->actions[action_id].posteriors.data.size();
+         ++i) {
+      posteriors.push_back(step->actions[action_id].posteriors.data[i]);
+      std::cout << ".. s" << i + 1 << " " << posteriors[i] << " \n";
+    }
+  }
+  spec_inf_.UpdatePosteriors(world, landmark, &posteriors);
+  // replace old posteriors with new ones
   step->actions[action_id].posteriors.data.clear();
-  for(size_t i=0; i<spec_inf_.posteriors_.size(); ++i){
-    step->actions[action_id].posteriors.data.push_back(spec_inf_.posteriors_[i]);
+  for (size_t i = 0; i < posteriors.size(); ++i) {
+    step->actions[action_id].posteriors.data.push_back(posteriors[i]);
 
-    std::cout << ".Posteriors for s" << i + 1 << " " << step->actions[action_id].posteriors.data[i] << " \n";
+    std::cout << ".Posteriors for s" << i + 1 << " "
+              << step->actions[action_id].posteriors.data[i] << " \n";
   }
 
- std::cout << "new posteriors are " << step->actions[action_id].posteriors.data.size() << " \n";
- std::cout << "for action_id " << action_id << " \n";
+  std::cout << "new posteriors are "
+            << step->actions[action_id].posteriors.data.size() << " \n";
+  std::cout << "for action_id " << action_id << " \n";
+
 
   db_.Update(db_id, program);
+}
+
+void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
+                               size_t action_id, const msgs::Specification& spec) {
+  msgs::Program program;
+  bool success = db_.Get(db_id, &program);
+  if (!success) {
+    ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
+    return;
+  }
+  if (step_id >= program.steps.size()) {
+    ROS_ERROR(
+        "Unable to get action from step %ld from program \"%s\", which has "
+        "%ld steps",
+        step_id, db_id.c_str(), program.steps.size());
+    return;
+  }
+  msgs::Step* step = &program.steps[step_id];
+  msgs::Condition action_condition = step->actions[action_id].condition;
+
+  // generate grid for each spec
+  std::vector<geometry_msgs::PoseArray> grid;
+  spec_inf_.GenerateGrid(spec, step->surface, &grid);
+  step->grid = grid;
+
+  db_.Update(db_id, program);
+  if (last_viewed_.find(db_id) != last_viewed_.end()) {
+    World world;
+    GetWorld(robot_config_, program, last_viewed_[db_id], &world);
+    viz_.PublishConditionMarkers(db_id, world, action_condition);
+  } else {
+    ROS_ERROR("Unable to publish visualization: unknown step");
+  }
 }
 
 void Editor::AddStep(const std::string& db_id) {
@@ -596,6 +640,7 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   DeleteScene(program.steps[step_id].scene_id);
   program.steps[step_id].scene_id = result->cloud_db_id;
   DeleteLandmarks(msgs::Landmark::SURFACE_BOX, &program.steps[step_id]);
+
   for (size_t i = 0; i < result->landmarks.size(); ++i) {
     msgs::Landmark landmark;
     ProcessSurfaceBox(result->landmarks[i], &landmark);

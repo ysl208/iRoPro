@@ -9,6 +9,8 @@
 
 #include "rapid_pbd_msgs/Condition.h"
 #include "rapid_pbd_msgs/Landmark.h"
+#include "rapid_pbd_msgs/Specification.h"
+#include "rapid_pbd_msgs/Surface.h"
 
 #include "rapid_pbd/world.h"
 
@@ -19,19 +21,25 @@ namespace pbd {
 class SpecInference {
  public:
   std::vector<float> priors_, posteriors_;
+  std::vector<rapid_pbd_msgs::Specification> specs_;
   SpecInference(const RobotConfig& robot_config);
   void Init();
+  void InitSpecs(std::vector<rapid_pbd_msgs::Specification>* specs,
+                 const rapid_pbd_msgs::Landmark& landmark);
   void UpdatePosteriors(const World& world,
-                        const rapid_pbd_msgs::Landmark& landmark);
+                        const rapid_pbd_msgs::Landmark& landmark,
+                        std::vector<float>* posteriors);
+  void GenerateGrid(const rapid_pbd_msgs::Specification& spec,
+                    const rapid_pbd_msgs::Surface& surface,
+                    std::vector<geometry_msgs::PoseArray>* grid);
 
  private:
   World* world_;
   const RobotConfig& robot_config_;
-   double distance_cutoff;
-   float allowedVariance;
+  double distance_cutoff;
+  float allowedVariance;
   bool flag1D;
   float avg_dx, avg_dy;
-
 
   bool ReferencedLandmark(const rapid_pbd_msgs::Landmark& landmark,
                           const World& world,
@@ -44,7 +52,14 @@ class SpecInference {
                            geometry_msgs::Vector3 obj_distance,
                            const int& obj_num);
   int GetPatternIndex(const std::string& s);
-  void UpdatePriors(const std::vector<float>& pOfD);
+  void UpdatePriors(const std::vector<float>& pOfD,
+                    std::vector<float>* posteriors);
+  void GetPositions(const geometry_msgs::Point& min_pos,
+                    const geometry_msgs::Point& max_pos,
+                    const geometry_msgs::Vector3& dimensions,
+                    const geometry_msgs::Vector3& obj_distance,
+                    std::vector<geometry_msgs::Pose>* positions,
+                    const int& obj_num);
 };
 }  // namespace pbd
 }  // namespace rapid

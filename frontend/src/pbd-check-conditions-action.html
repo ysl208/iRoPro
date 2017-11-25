@@ -92,13 +92,13 @@
         <h3>[[action.condition.landmark.name]] properties </h3>
       </div> -->
       <div>
-         <paper-checkbox on-change="_sizeRelevantChanged" checked="{{action.condition.sizeRelevant}}"> Match size 
+        <paper-checkbox on-change="_sizeRelevantChanged" checked="{{action.condition.sizeRelevant}}"> Match size
         </paper-checkbox>
         <paper-input class="number" disabled={{!action.condition.sizeRelevant}} type="number" step="1" min="0" max="100" label="Variance"
           value="[[action.condition.sizeVariance.x]]" on-change="_valueChanged" data-args="action.condition.sizeVariance.x">
         </paper-input>
       </div>
-<!-- 
+      <!-- 
       <paper-input class="number" type="number" step="1" min="1" max="100" label="Objects" value="[[action.condition.obj_num]]"
         on-change="_valueChanged" data-args="action.condition.obj_num">
       </paper-input>
@@ -346,7 +346,7 @@
           },
           step_num: this.stepIndex,
           action_num: this.index,
-          landmark_name: this.action.condition.landmark.name,
+          landmark: this.action.condition.landmark,
           action: this.action
         };
         this.$.eventPub.publish(msg);

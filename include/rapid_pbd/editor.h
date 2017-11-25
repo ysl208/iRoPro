@@ -9,6 +9,7 @@
 #include "rapid_pbd_msgs/EditorEvent.h"
 #include "rapid_pbd_msgs/Program.h"
 #include "rapid_pbd_msgs/Step.h"
+#include "rapid_pbd_msgs/Specification.h"
 #include "tf/transform_listener.h"
 #include "transform_graph/graph.h"
 
@@ -51,7 +52,10 @@ class Editor {
   void ViewConditions(const std::string& db_id, size_t step_id,
                       size_t action_id);
   void InferSpecification(const std::string& db_id, size_t step_id,
-                          size_t action_id, const std::string& landmark_name);
+                          size_t action_id,
+                          const rapid_pbd_msgs::Landmark& landmark);
+  void ViewSpecification(const std::string& db_id, size_t step_id,
+                         size_t action_id, const rapid_pbd_msgs::Specification& spec);
   void AddStep(const std::string& db_id);
   void DeleteStep(const std::string& db_id, size_t step_id);
   void AddAction(const std::string& db_id, size_t step_id,
