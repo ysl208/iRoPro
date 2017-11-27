@@ -498,7 +498,7 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
   step->grid = grid;
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
-    viz_.PublishConditionMarkers(db_id, world, action_condition);
+    viz_.PublishSpecMarkers(db_id, world, spec.landmark);
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
   }

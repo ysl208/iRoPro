@@ -45,6 +45,9 @@ class Visualizer {
   void PublishConditionMarkers(const std::string& program_id,
                                const World& world,
                                const rapid_pbd_msgs::Condition& condition);
+                               void PublishSpecMarkers(const std::string& program_id,
+                                         const World& world,
+                                         const rapid_pbd_msgs::Landmark& landmark);
   void StopPublishing(const std::string& program_id);
 
  private:
@@ -73,7 +76,7 @@ class RuntimeVisualizer {
 void GetConditionMarker(const rapid_pbd_msgs::Condition& condition,
                         const RobotConfig& robot_config,
                         visualization_msgs::MarkerArray* scene_markers);
-void GetGridMarker(const rapid_pbd_msgs::Condition& condition,
+void GetGridMarker(const rapid_pbd_msgs::Landmark& landmark,
                    const rapid_pbd_msgs::Surface& surface,
                    const std::vector<geometry_msgs::PoseArray>& grid,
                    const RobotConfig& robot_config,
