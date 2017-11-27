@@ -77,7 +77,7 @@
     </div>
     <div>
       <paper-dropdown-menu label="Main landmark">
-        <paper-listbox slot="dropdown-content" selected="[[_landmarkName(action.condition.landmark)]]" attr-for-selected="name">
+        <paper-listbox slot="dropdown-content" selected="[[_landmarkName(action.landmark)]]" attr-for-selected="name">
           <template is="dom-repeat" items="[[_objectLandmarks(landmarks,'')]]">
             <paper-item name="[[_landmarkName(item)]]" on-tap="_updateLandmark">[[_landmarkName(item)]]</paper-item>
           </template>
@@ -85,20 +85,27 @@
       </paper-dropdown-menu>
       <paper-button class="normal" on-tap="_infer">Infer</paper-button>
     </div>
-
+    <div>
+      <paper-dropdown-menu label="Choose spec">
+        <paper-listbox slot="dropdown-content" attr-for-selected="name">
+          <template is="dom-repeat" items="[[_objectSpecs(action.specs)]]">
+            <paper-item name="[[_specName(item)]]" on-tap="_updateSpec">[[_specName(item)]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <paper-button class="normal" on-tap="_view">View</paper-button>
+    </div>
     <div>
       <template is="dom-repeat" items="[[_specScores(action.posteriors)]]">
-
         <div>
-          [[_specName(index)]] [[_formatDec(item)]]
-          <paper-button class="normal" on-tap="_view">View</paper-button>
-          <paper-button class="normal" on-tap="_save(index)">Select</paper-button>
+          [[_specName1(index)]] [[_formatDec(item)]]
+          <paper-button class="normal" on-tap="_view" data-args="[[_specName1(index)]]">View</paper-button>
+          <paper-button class="normal" on-tap="[[_select(index)]]">Select</paper-button>
         </div>
       </template>
     </div>
     <!-- <div id="wrap">
         <div id="left_col">
-
           <div>
             spec 1
           </div>
@@ -144,6 +151,7 @@
           value: 1,
         },
         conditions: Array,
+        spec: Object
       },
 
       observers: [
@@ -152,6 +160,20 @@
         '_computeCondition(index, conditionIndex)',
         //'_save(action.condition.*)'
       ],
+
+      _select: function (index) {
+        console.debug("_select: ", index);
+        var msg = {
+          type: 'select specification',
+          program_info: {
+            db_id: this.programId
+          },
+          step_num: this.stepIndex,
+          action_num: this.index,
+          spec: this.spec
+        };
+        this.$.eventPub.publish(msg);
+      },
 
       _view: function () {
         var msg = {
@@ -164,7 +186,9 @@
           spec: this.spec
         };
         this.$.eventPub.publish(msg);
+        console.debug('_view ', this.spec);
       },
+
       _infer: function () {
         var msg = {
           type: 'infer specification',
@@ -173,15 +197,15 @@
           },
           step_num: this.stepIndex,
           action_num: this.index,
-          landmark: this.landmark,
+          landmark: this.action.landmark,
           action: this.action
         };
         this.$.eventPub.publish(msg);
         this._computeSpatialRelations(this.action);
         console.debug('_infer: action index', this.index);
         console.debug('_infer: msg ', msg);
-
       },
+
       _computeCondition(index, conditionIndex) {
 
         if (!conditionIndex || conditionIndex < 0) {
@@ -196,36 +220,23 @@
         }
       },
 
-      _updateCondition: function () {
-        var msg = {
-          type: 'update conditions',
-          program_info: {
-            db_id: this.programId
-          },
-          step_num: this.stepIndex,
-          action_num: this.index,
-          action: this.action
-
-        };
-        this.$.eventPub.publish(msg);
-        console.debug('_updateCondition ', this.action.condition);
-      },
-
       _updateLandmark: function (evt) {
         // If selected Main landmark is None, no condition is assigned
-        console.debug('_updateLandmark: action ', this.action);
-        // this.set('conditionIndex', evt.model.index);
-        // console.debug('_updateLandmark: conditionIndex', this.conditionIndex);
+        console.debug('_updateLandmark: this.action = ', this.action);
 
-        // // if landmark selected and not Robot base/torso
-        // if (this.conditionIndex > 0) {
-        //   this.$.conditionProperties.style.display = "inline";
-        //   this.set('action.condition.landmark', evt.model.item);
-        //   console.debug(this.action.condition.landmark);
-        //   this.set('action.condition.relevant', true);
-        // } else {
-        //   this._clear();
-        // }
+        // if landmark selected and not Robot base/torso
+        if (this.conditionIndex > 0) {
+          this.set('action.landmark', evt.model.item);
+          console.debug('this.action.landmark = ', this.action.landmark);
+        } else {
+          this._clear();
+        }
+      },
+      _updateSpec: function (evt) {
+        // If selected Main landmark is None, no condition is assigned
+        this.set('spec', this.action.specs[evt.model.index]);
+        console.debug('_updateSpec: spec ', this.spec);
+        console.debug('evt.model ', evt.model);
       },
 
       _updateReference: function (evt) {
@@ -241,7 +252,6 @@
           this.$.relativeProperties.style.display = "none";
           this.action.condition.referenceRelevant = false;
           this.set('action.condition.reference', {});
-
         }
         this._updateCondition();
       },
@@ -336,6 +346,14 @@
         }
         return objects;
       },
+      _objectSpecs: function (specs) {
+        var objects = [];
+        console.debug('_objectSpecs', this.action.specs);
+        for (var i = 0; i < specs.length; ++i) {
+          objects.push(specs[i]);
+        }
+        return objects;
+      },
       _specScores: function (posteriors) {
         var objects = [];
         console.debug('_specScores', this.action.posteriors);
@@ -366,7 +384,12 @@
 
         return 'Unknown landmark';
       },
-      _specName: function (index) {
+      _specName: function (spec) {
+
+        return spec.name;
+      },
+
+      _specName1: function (index) {
         if (index >= 0) {
           index += 1;
           return "Spec " + index;

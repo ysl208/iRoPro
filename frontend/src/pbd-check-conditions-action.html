@@ -386,9 +386,9 @@
 
       _updateLandmark: function (evt) {
         // If selected Main landmark is None, no condition is assigned
-        console.debug('_updateLandmark: action ', this.action);
+        console.debug('_updateLandmark: this.action = ', this.action);
         this.set('conditionIndex', evt.model.index);
-        console.debug('_updateLandmark: conditionIndex', this.conditionIndex);
+        console.debug('_updateLandmark: conditionIndex = ', this.conditionIndex);
 
         // if landmark selected and not Robot base/torso
         if (this.conditionIndex > 0) {

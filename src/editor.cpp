@@ -72,9 +72,12 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     } else if (event.type == msgs::EditorEvent::INFER_SPECIFICATION) {
       InferSpecification(event.program_info.db_id, event.step_num,
                          event.action_num, event.landmark);
-    } else if (event.type == msgs::EditorEvent::INFER_SPECIFICATION) {
+    } else if (event.type == msgs::EditorEvent::VIEW_SPECIFICATION) {
       ViewSpecification(event.program_info.db_id, event.step_num,
                          event.action_num, event.spec);
+    } else if (event.type == msgs::EditorEvent::SELECT_SPECIFICATION) {
+      // ViewSpecification(event.program_info.db_id, event.step_num,
+      //                    event.action_num, event.spec);
     } else if (event.type == msgs::EditorEvent::ADD_SENSE_STEPS) {
       AddSenseSteps(event.program_info.db_id, event.step_num);
     } else if (event.type == msgs::EditorEvent::ADD_STEP) {
@@ -447,7 +450,7 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
     for (size_t i = 0; i < step->actions[action_id].posteriors.data.size();
          ++i) {
       posteriors.push_back(step->actions[action_id].posteriors.data[i]);
-      std::cout << ".. s" << i + 1 << " " << posteriors[i] << " \n";
+      // std::cout << ".. s" << i + 1 << " " << posteriors[i] << " \n";
     }
   }
   spec_inf_.UpdatePosteriors(world, landmark, &posteriors);
@@ -456,8 +459,8 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
   for (size_t i = 0; i < posteriors.size(); ++i) {
     step->actions[action_id].posteriors.data.push_back(posteriors[i]);
 
-    std::cout << ".Posteriors for s" << i + 1 << " "
-              << step->actions[action_id].posteriors.data[i] << " \n";
+    // std::cout << ".Posteriors for s" << i + 1 << " "
+    //           << step->actions[action_id].posteriors.data[i] << " \n";
   }
 
   std::cout << "new posteriors are "
@@ -486,15 +489,15 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
   msgs::Step* step = &program.steps[step_id];
   msgs::Condition action_condition = step->actions[action_id].condition;
 
-  // generate grid for each spec
-  std::vector<geometry_msgs::PoseArray> grid;
-  spec_inf_.GenerateGrid(spec, step->surface, &grid);
-  step->grid = grid;
-
-  db_.Update(db_id, program);
-  if (last_viewed_.find(db_id) != last_viewed_.end()) {
     World world;
     GetWorld(robot_config_, program, last_viewed_[db_id], &world);
+  // generate grid for each spec
+  std::cout << "** Show current " << spec.name << "\n";
+  std::vector<geometry_msgs::PoseArray> grid;
+  spec_inf_.GenerateGrid(spec, world.surface, &grid);
+  step->grid = grid;
+  db_.Update(db_id, program);
+  if (last_viewed_.find(db_id) != last_viewed_.end()) {
     viz_.PublishConditionMarkers(db_id, world, action_condition);
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
@@ -639,6 +642,7 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   }
   DeleteScene(program.steps[step_id].scene_id);
   program.steps[step_id].scene_id = result->cloud_db_id;
+  program.steps[step_id].surface = result->surface;
   DeleteLandmarks(msgs::Landmark::SURFACE_BOX, &program.steps[step_id]);
 
   for (size_t i = 0; i < result->landmarks.size(); ++i) {
@@ -646,7 +650,6 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
     ProcessSurfaceBox(result->landmarks[i], &landmark);
     program.steps[step_id].landmarks.push_back(landmark);
   }
-  program.steps[step_id].surface = result->surface;
   Update(db_id, program);
 }
 
