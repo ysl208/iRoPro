@@ -98,9 +98,9 @@
     <div>
       <template is="dom-repeat" items="[[_specScores(action.posteriors)]]">
         <div>
-          [[_specName1(index)]] [[_formatDec(item)]]
-          <paper-button class="normal" on-tap="_view" data-args="[[_specName1(index)]]">View</paper-button>
-          <paper-button class="normal" on-tap="[[_select(index)]]">Select</paper-button>
+          [[_specName1(index)]]: [[_formatDec(item)]]
+          <!-- <paper-button class="normal" on-tap="_view" data-args="[[_specName1(index)]]">View</paper-button> -->
+          <!-- <paper-button class="normal" on-tap="[[_select(index)]]">Select</paper-button> -->
         </div>
       </template>
     </div>
