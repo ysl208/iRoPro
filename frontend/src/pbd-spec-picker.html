@@ -1,0 +1,118 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/ros-param/ros-param.html">
+<link rel="import" href="../bower_components/ros-service/ros-service.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="pbd-spec-picker">
+    <template>
+        <style include="shared-styles"></style>
+        <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+        <style>
+             :host {
+                display: block;
+                width: 100%;
+                position: relative;
+            }
+
+            .paper-material {
+                padding: 5px;
+            }
+
+            h3 {
+                margin: 0px;
+            }
+
+            paper-button {
+                margin-top: 5px;
+            }
+
+            .group+.group {
+                margin-top: 10px;
+            }
+
+            .half {
+                width: 50%;
+            }
+
+            #cancel {
+                height: 22px;
+            }
+        </style>
+        <ros-topic auto id="topic" last-message="{{_armState}}" topic="rapid_pbd/arm_controller_state" ros="[[ros]]" msg-type="rapid_pbd_msgs/ArmControllerState"></ros-topic>
+
+        <div class="paper-material">
+            <!-- <template is="dom-if" if="[[params.manualFreeze]]"> -->
+            <div class="layout horizontal center">
+                <h3>Program specifications</h3>
+                <div class="flex"></div>
+                <paper-button id="cancel" on-tap="cancel" class="clear">Cancel</paper-button>
+            </div>
+
+            <div>
+                <template is="dom-repeat" items="[[_specScores(program.posteriors)]]">
+                    <div>
+                        [[_specName1(index)]]: [[_formatDec(item)]]
+                        <!-- <paper-button class="normal" on-tap="_view" data-args="[[_specName1(index)]]">View</paper-button> -->
+                        <!-- <paper-button class="normal" on-tap="[[_select(index)]]">Select</paper-button> -->
+                    </div>
+                </template>
+            </div>
+            <!-- </template> -->
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'pbd-spec-picker',
+            properties: {
+                ros: Object,
+                program: Object,
+                programId: String,
+                stepIndex: Number,
+                index: Number,
+                params: Object,
+                step: Object,
+                spec: Object
+            },
+
+            cancel: function () {
+                this.fire('iron-deselect');
+            },
+
+            _specScores: function (posteriors) {
+                var objects = [];
+                console.debug('_specScores', this.program.posteriors);
+                for (var i = 0; i < posteriors.data.length; ++i) {
+                    if (posteriors.data[i] >= 0) {
+                        objects.push(posteriors.data[i]);
+                    }
+                }
+                return objects;
+            },
+            _specName: function (spec) {
+
+                return spec.name;
+            },
+
+            _specName1: function (index) {
+                if (index >= 0) {
+                    index += 1;
+                    return "Spec " + index;
+                }
+                return "None";
+            },
+
+            _formatDec: function (number) {
+                if (number) {
+                    return number.toFixed(2);
+                }
+                console.debug("_formatDec: ", number);
+
+                return 0;
+            },
+        });
+    </script>
+</dom-module>

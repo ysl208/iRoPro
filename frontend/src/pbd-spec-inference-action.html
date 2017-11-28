@@ -65,12 +65,6 @@
         width: 60%;
       }
     </style>
-    <!-- <ros-topic auto
-      last-message="{{conditionCheck}}"
-      msg-type="std_msgs/ConditionCheckInfo"
-      topic="rapid_pbd/condition_check"
-      ros="[[ros]]"
-    ></ros-topic> -->
     <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
     <div class="layout horizontal center">
       <p>Select latest added landmark.</p>
@@ -95,38 +89,6 @@
       </paper-dropdown-menu>
       <paper-button class="normal" on-tap="_view">View</paper-button>
     </div>
-    <div>
-      <template is="dom-repeat" items="[[_specScores(action.posteriors)]]">
-        <div>
-          [[_specName1(index)]]: [[_formatDec(item)]]
-          <!-- <paper-button class="normal" on-tap="_view" data-args="[[_specName1(index)]]">View</paper-button> -->
-          <!-- <paper-button class="normal" on-tap="[[_select(index)]]">Select</paper-button> -->
-        </div>
-      </template>
-    </div>
-    <!-- <div id="wrap">
-        <div id="left_col">
-          <div>
-            spec 1
-          </div>
-          <div>
-            spec 2
-          </div>
-
-        </div>
-
-        <div id="right_col">
-        <div>
-            <paper-button class="normal" on-tap="_save">View</paper-button>
-            <paper-button class="normal" on-tap="_save">Select</paper-button>
-            </div>
-
-            <div>
-            <paper-button class="normal" on-tap="_save">View</paper-button>
-            <paper-button class="normal" on-tap="_save">Select</paper-button>
-            </div>
-        </div>
-      </div> -->
   </template>
   <script>
     Polymer({
@@ -143,21 +105,14 @@
         ros: Object,
         step: Object,
         landmark: Object,
-        landmarks: Array,
-        spatial_relations: Array,
-        currentCondition: Object,
         conditionIndex: {
           type: Number,
           value: 1,
         },
-        conditions: Array,
         spec: Object
       },
 
       observers: [
-        '_computeSpatialRelations(program, index)',
-        //'_updateCondition(action.*, index)',
-        '_computeCondition(index, conditionIndex)',
         //'_save(action.condition.*)'
       ],
 
@@ -201,23 +156,8 @@
           action: this.action
         };
         this.$.eventPub.publish(msg);
-        this._computeSpatialRelations(this.action);
         console.debug('_infer: action index', this.index);
         console.debug('_infer: msg ', msg);
-      },
-
-      _computeCondition(index, conditionIndex) {
-
-        if (!conditionIndex || conditionIndex < 0) {
-          conditionIndex = 0;
-        }
-        console.debug('_computeCondition: ', conditionIndex);
-        if (this.conditionIndex > 0) {
-          this.currentCondition = this.action.condition;
-          console.debug('_computeCondition ', this.currentCondition);
-        } else {
-          console.debug('_computeCondition: None ');
-        }
       },
 
       _updateLandmark: function (evt) {
@@ -239,106 +179,9 @@
         console.debug('evt.model ', evt.model);
       },
 
-      _updateReference: function (evt) {
-        this.set('action.condition.reference', evt.model.item);
-        console.debug('_updateReference: action ', this.action);
-        this.set('referenceIndex', evt.model.index);
-        console.debug('_updateLandmark: referenceIndex', this.referenceIndex);
-        // if landmark selected and not Robot base/torso
-        if (this.referenceIndex > 0) {
-          this.$.relativeProperties.style.display = "inline";
-          this.action.condition.referenceRelevant = true;
-        } else {
-          this.$.relativeProperties.style.display = "none";
-          this.action.condition.referenceRelevant = false;
-          this.set('action.condition.reference', {});
-        }
-        this._updateCondition();
-      },
-
-      _computeSpatialRelations: function (action) {
-        var spatial_relations = [
-          'is_left_of', 'is_right_of', 'is_in_front_of', 'is_behind_of',
-          'none'];
-        //landmarks = landmarks.concat(surfaceLandmarks);
-        this.set('spatial_relations', spatial_relations);
-        console.debug('_computeSpatialRelations: ', spatial_relations.length);
-      },
-
-      _positionRelevantChanged: function (evt) {
-        //this.currentCondition.positionRelevant = evt.target.checked;
-        //console.debug("_positionRelevantChanged: ", evt.target.checked);
-      },
-      _orientationRelevantChanged: function (evt) {
-        //this.currentCondition.orientationRelevant = evt.target.checked;
-        //console.debug("_orientationRelevantChanged: ", evt.target.checked);
-      },
-      _sizeRelevantChanged: function (evt) {
-        //this.currentCondition.sizeRelevant = evt.target.checked;
-        //console.debug("_sizeRelevantChanged: ", evt.target.checked);
-      },
-      _contDisplacementRelevantChanged: function (evt) {
-        //this.currentCondition.sizeRelevant = evt.target.checked;
-        //console.debug("_contDisplacementRelevantChanged: ", evt.target.checked);
-      },
-
-      _valueChanged: function (evt) {
-        var args = evt.target.getAttribute('data-args');
-        console.debug("_valueChanged: ", args, " set to ", evt.target.value);
-        // console.debug("_valueChanged: args ", args);
-        this._parseString(evt.target.value, args);
-      },
-      _updateSpatialRelation: function (evt) {
-        // Automatically set the displacement vector values
-        //this._updateCondition();
-        this.set('spatial_relation', evt.model.item);
-        this.action.condition.spatial_relation = evt.model.item;
-        // update continuous displacement values
-        if (evt.model.item === 'is_in_front_of' || evt.model.item === 'is_behind_of') {
-          this.set('action.condition.contDisplacement.y', 0);
-          this.set('action.condition.contDisplacementVariance.y', 0.5);
-        } else if (evt.model.item === 'is_left_of' || evt.model.item === 'is_right_of') {
-          this.set('action.condition.contDisplacement.x', 0);
-          this.set('action.condition.contDisplacementVariance.x', 0.5);
-        }
-      },
-      _getDistance: function (dispmnt) {
-        var x = parseFloat(dispmnt.x);
-        var y = parseFloat(dispmnt.y);
-        var squared_dist = x * x + y * y;
-
-        console.debug('_getDistance: ', Math.sqrt(squared_dist));
-        return Math.sqrt(squared_dist);
-      },
-
-      _relationName: function (spatial_relation) {
-        // console.debug('_relationName: ', spatial_relation);
-        if (spatial_relation === 'is_right_of') {
-          return 'is right of';
-        } if (spatial_relation === 'is_left_of') {
-          return 'is left of';
-        } if (spatial_relation === 'is_behind_of') {
-          return 'is behind of';
-        } if (spatial_relation === 'is_in_front_of') {
-          return 'is in front of';
-        }
-        return ' not relevant to ';
-      },
-      _referenceLandmarks: function (landmarks) {
-        var objects = ['None'];
-        // console.debug('_referenceLandmarks', this.action.condition.landmark);
-        for (var i = 0; i < landmarks.length; ++i) {
-          if (landmarks[i].type === 'surface box') {
-            if (this.action.condition.landmark && landmarks[i].name != this.action.condition.landmark.name) {
-              objects.push(landmarks[i]);
-            }
-          }
-        }
-        return objects;
-      },
       _objectLandmarks: function (landmarks) {
-        var objects = ['None'];
-        console.debug('_objectLandmarks', this.action.condition.landmark);
+        var objects = [];
+        console.debug('_objectLandmarks', this.action.landmark);
         for (var i = 0; i < landmarks.length; ++i) {
           if (landmarks[i].type === 'surface box') {
             objects.push(landmarks[i]);
@@ -346,6 +189,7 @@
         }
         return objects;
       },
+
       _objectSpecs: function (specs) {
         var objects = [];
         console.debug('_objectSpecs', this.action.specs);
@@ -385,7 +229,6 @@
         return 'Unknown landmark';
       },
       _specName: function (spec) {
-
         return spec.name;
       },
 
@@ -416,13 +259,7 @@
         }
       },
 
-      _output: function (number) {
-        console.debug("_output: ", number);
-        return number;
-
-      },
       _clear: function () {
-        //this.currentCondition = {};
         this.$.conditionProperties.style.display = "none";
         //this.action.condition.relevant = false;
 
