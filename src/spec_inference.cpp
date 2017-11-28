@@ -37,7 +37,7 @@ void SpecInference::Init() {
 
   for (size_t i = 0; i < 5; ++i) {
     priors_.push_back(0.2);
-    posteriors_.push_back(1.0);
+    posteriors_.push_back(0.20);
   }
 }
 

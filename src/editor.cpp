@@ -413,6 +413,7 @@ void Editor::UpdateConditions(const std::string& db_id, size_t step_id,
 void Editor::InferSpecification(const std::string& db_id, size_t step_id,
                                 size_t action_id,
                                 const msgs::Landmark& landmark) {
+  // Infers specification after the last landmark has been placed
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
@@ -434,39 +435,39 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
   // if there is only one landmark, initialise specs
   // assumes that if there are more, then it is already initialised
   std::vector<msgs::Specification> specs;
-  if (world.surface_box_landmarks.size() == 1) {
+  // if (world.surface_box_landmarks.size() == 1) {
+  if(program.specs.size() < 1){
     spec_inf_.InitSpecs(&specs, landmark);
     step->actions[action_id].specs = specs;
+    program.specs = specs;
   }
+
   std::vector<float> posteriors;
-  // get posteriors from action if already exists, if not, take initialised ones
-  if (step->actions[action_id].posteriors.data.size() <= 0) {
+  // get posteriors from program if already exists, if not, take initialised ones
+  if (program.posteriors.data.size() < 1) {
     posteriors = spec_inf_.posteriors_;
-    std::cout << "posteriors didnt exist, initialise"
+    std::cout << "program posteriors didnt exist, initialise"
               << "\n";
   } else {
-    std::cout << "posteriors already exist, use old ones"
+    std::cout << "program posteriors already exist, use old ones"
               << "\n";
-    for (size_t i = 0; i < step->actions[action_id].posteriors.data.size();
+    for (size_t i = 0; i < program.posteriors.data.size();
          ++i) {
-      posteriors.push_back(step->actions[action_id].posteriors.data[i]);
-      // std::cout << ".. s" << i + 1 << " " << posteriors[i] << " \n";
+      posteriors.push_back(program.posteriors.data[i]);
     }
   }
   spec_inf_.UpdatePosteriors(world, landmark, &posteriors);
   // replace old posteriors with new ones
   step->actions[action_id].posteriors.data.clear();
+  program.posteriors.data.clear();
   for (size_t i = 0; i < posteriors.size(); ++i) {
     step->actions[action_id].posteriors.data.push_back(posteriors[i]);
-
-    // std::cout << ".Posteriors for s" << i + 1 << " "
-    //           << step->actions[action_id].posteriors.data[i] << " \n";
+    program.posteriors.data.push_back(posteriors[i]);
   }
 
   std::cout << "new posteriors are "
-            << step->actions[action_id].posteriors.data.size() << " \n";
+            << program.posteriors.data.size() << " \n";
   std::cout << "for action_id " << action_id << " \n";
-
 
   db_.Update(db_id, program);
 }

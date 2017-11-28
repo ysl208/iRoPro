@@ -99,9 +99,7 @@ void Visualizer::Publish(const std::string& program_id, const World& world) {
       scene_markers.markers.push_back(blank);
     }
   // Publish surface marker
-  GetSurfaceMarker(world.surface, robot_config_, &scene_markers);
-
-  
+  GetSurfaceMarker(world.surface, robot_config_, &scene_markers);  
     step_vizs_[program_id].surface_seg_pub.publish(scene_markers);
   }
 }
@@ -375,7 +373,6 @@ void GetConditionMarker(const msgs::Condition& condition,
                         condition.contDisplacementVariance.y;
     // // head diameter
     reference.scale.z = 0.005;  // head length
-
     reference.color.r = 0.5;  // pink
     reference.color.g = 0;
     reference.color.b = 0.5;
