@@ -73,8 +73,7 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       InferSpecification(event.program_info.db_id, event.step_num,
                          event.action_num, event.landmark);
     } else if (event.type == msgs::EditorEvent::VIEW_SPECIFICATION) {
-      ViewSpecification(event.program_info.db_id, event.step_num,
-                         event.action_num, event.spec);
+      ViewSpecification(event.program_info.db_id, event.step_num, event.spec);
     } else if (event.type == msgs::EditorEvent::SELECT_SPECIFICATION) {
       // ViewSpecification(event.program_info.db_id, event.step_num,
       //                    event.action_num, event.spec);
@@ -436,14 +435,15 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
   // assumes that if there are more, then it is already initialised
   std::vector<msgs::Specification> specs;
   // if (world.surface_box_landmarks.size() == 1) {
-  if(program.specs.size() < 1){
+  if (program.specs.size() < 1) {
     spec_inf_.InitSpecs(&specs, landmark);
     step->actions[action_id].specs = specs;
     program.specs = specs;
   }
 
   std::vector<float> posteriors;
-  // get posteriors from program if already exists, if not, take initialised ones
+  // get posteriors from program if already exists, if not, take initialised
+  // ones
   if (program.posteriors.data.size() < 1) {
     posteriors = spec_inf_.posteriors_;
     std::cout << "program posteriors didnt exist, initialise"
@@ -451,8 +451,7 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
   } else {
     std::cout << "program posteriors already exist, use old ones"
               << "\n";
-    for (size_t i = 0; i < program.posteriors.data.size();
-         ++i) {
+    for (size_t i = 0; i < program.posteriors.data.size(); ++i) {
       posteriors.push_back(program.posteriors.data[i]);
     }
   }
@@ -465,15 +464,14 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
     program.posteriors.data.push_back(posteriors[i]);
   }
 
-  std::cout << "new posteriors are "
-            << program.posteriors.data.size() << " \n";
+  std::cout << "new posteriors are " << program.posteriors.data.size() << " \n";
   std::cout << "for action_id " << action_id << " \n";
 
   db_.Update(db_id, program);
 }
 
 void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
-                               size_t action_id, const msgs::Specification& spec) {
+                               const msgs::Specification& spec) {
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
@@ -488,10 +486,9 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
     return;
   }
   msgs::Step* step = &program.steps[step_id];
-  msgs::Condition action_condition = step->actions[action_id].condition;
 
-    World world;
-    GetWorld(robot_config_, program, last_viewed_[db_id], &world);
+  World world;
+  GetWorld(robot_config_, program, last_viewed_[db_id], &world);
   // generate grid for each spec
   std::cout << "** Show current " << spec.name << "\n";
   std::vector<geometry_msgs::PoseArray> grid;

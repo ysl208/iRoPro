@@ -65,6 +65,12 @@
         width: 60%;
       }
     </style>
+    <!-- <ros-topic auto
+      last-message="{{conditionCheck}}"
+      msg-type="std_msgs/ConditionCheckInfo"
+      topic="rapid_pbd/condition_check"
+      ros="[[ros]]"
+    ></ros-topic> -->
     <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
     <div class="layout horizontal center">
       <p>Select latest added landmark.</p>
@@ -89,6 +95,37 @@
       </paper-dropdown-menu>
       <paper-button class="normal" on-tap="_view">View</paper-button>
     </div>
+    <!-- <div>
+      <template is="dom-repeat" items="[[_specScores(action.posteriors)]]">
+        <div>
+          [[_specName1(index)]]: [[_formatDec(item)]]
+          
+        </div>
+      </template>
+    </div> -->
+    <!-- <div id="wrap">
+        <div id="left_col">
+          <div>
+            spec 1
+          </div>
+          <div>
+            spec 2
+          </div>
+
+        </div>
+
+        <div id="right_col">
+        <div>
+            <paper-button class="normal" on-tap="_save">View</paper-button>
+            <paper-button class="normal" on-tap="_save">Select</paper-button>
+            </div>
+
+            <div>
+            <paper-button class="normal" on-tap="_save">View</paper-button>
+            <paper-button class="normal" on-tap="_save">Select</paper-button>
+            </div>
+        </div>
+      </div> -->
   </template>
   <script>
     Polymer({
@@ -105,6 +142,7 @@
         ros: Object,
         step: Object,
         landmark: Object,
+        landmarks: Array,
         conditionIndex: {
           type: Number,
           value: 1,
@@ -113,6 +151,9 @@
       },
 
       observers: [
+        // '_computeSpatialRelations(program, index)',
+        //'_updateCondition(action.*, index)',
+        // '_computeCondition(index, conditionIndex)',
         //'_save(action.condition.*)'
       ],
 
@@ -180,7 +221,7 @@
       },
 
       _objectLandmarks: function (landmarks) {
-        var objects = [];
+        var objects = ['None'];
         console.debug('_objectLandmarks', this.action.landmark);
         for (var i = 0; i < landmarks.length; ++i) {
           if (landmarks[i].type === 'surface box') {
@@ -247,16 +288,6 @@
         console.debug("_formatDec: ", number);
 
         return 0;
-      },
-      _parseString: function (s, key) {
-        if (typeof s === 'string') {
-          var f = parseFloat(s);
-          if (!isNaN(f) && s !== '0.') {
-            this.set(key, f);
-          }
-        } else {
-          this.set(key, s);
-        }
       },
 
       _clear: function () {
