@@ -176,7 +176,6 @@ void SurfaceSegmentationAction::Execute(
     const SurfaceObjects& surface_scene = surface_objects[i];
     // get tabletop objects as landmarks
     num_objects += surface_scene.objects.size();
-    ROS_INFO("surface_objects: %f ", i);
     if (i == 0) {
       rapid_pbd_msgs::Surface surface;
       surface.dimensions = surface_objects[i].surface.dimensions;
