@@ -88,7 +88,7 @@
             index="[[index]]" landmarks="[[landmarks]]" ros="[[ros]]"></pbd-check-conditions-action>
         </template>
         <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'infer specification')]]">
-          <pbd-spec-inference-action action="{{action}}" params="[[params]]" program-id="[[programId]]" step-index="[[stepNum]]"
+          <pbd-spec-inference-action action="{{action}}" params="[[params]]" program-id="[[programId]]" step-index="[[stepNum]]" specs="[[program.specs]]"
             index="[[index]]" landmarks="[[landmarks]]" ros="[[ros]]"></pbd-spec-inference-action>
         </template>
         <template is="dom-if" restamp if="[[_displayActionTypeIs(_displayActionType, 'find custom landmark')]]">
@@ -106,11 +106,12 @@
           notify: true,
           type: Object,
         },
-        params: Object,
-        landmarks: Array,
         conditions: Array,
-        stepNum: Number,
         index: Number,
+        landmarks: Array,
+        params: Object,
+        program: Object,
+        stepNum: Number,
         programId: String,
         ros: Object,
         _isCollapseOpen: {

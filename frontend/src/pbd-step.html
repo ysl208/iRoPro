@@ -68,7 +68,7 @@
       No actions
     </div>
     <template is="dom-repeat" items="{{step.actions}}" as="action" index-as="stepIndex">
-      <pbd-action action="{{action}}" params="[[params]]" program-id="[[programId]]" step-num="[[index]]" index="[[stepIndex]]"
+      <pbd-action action="{{action}}" params="[[params]]" program-id="[[programId]]" step-num="[[index]]" index="[[stepIndex]]" program="[[program]]"
         landmarks="[[landmarks]]" on-delete="_handleDeleteAction" ros="[[ros]]"></pbd-action>
     </template>
     <paper-dialog id="deleteDialog" modal>

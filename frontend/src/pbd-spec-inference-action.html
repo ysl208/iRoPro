@@ -88,7 +88,7 @@
     <div>
       <paper-dropdown-menu label="Choose spec">
         <paper-listbox slot="dropdown-content" attr-for-selected="name">
-          <template is="dom-repeat" items="[[_objectSpecs(action.specs)]]">
+          <template is="dom-repeat" items="[[_objectSpecs(specs)]]">
             <paper-item name="[[_specName(item)]]" on-tap="_updateSpec">[[_specName(item)]]</paper-item>
           </template>
         </paper-listbox>
@@ -141,6 +141,7 @@
         programId: String,
         ros: Object,
         step: Object,
+        specs: Array,
         landmark: Object,
         landmarks: Array,
         conditionIndex: {
