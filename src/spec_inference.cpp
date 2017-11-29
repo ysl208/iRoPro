@@ -50,6 +50,8 @@ void SpecInference::InitSpecs(std::vector<msgs::Specification>* specs,
   spec.avg_dx = landmark.surface_box_dims.x + 0.02;
   spec.avg_dy = landmark.surface_box_dims.y + 0.02;
   spec.obj_num = 100;
+  spec.offset.x = 0;
+  spec.offset.y = 0;
 
   spec.name = "Spec 1";
   spec.row_num = 1;
@@ -69,11 +71,14 @@ void SpecInference::InitSpecs(std::vector<msgs::Specification>* specs,
   spec.name = "Spec 4";
   spec.row_num = 100;
   spec.col_num = 100;
+  spec.offset.y = spec.avg_dy * 0.5;
   specs->push_back(spec);
 
   spec.name = "Spec 5";
   spec.row_num = 100;
   spec.col_num = 100;
+  spec.offset.x = spec.avg_dx * 0.5;
+  spec.offset.y = 0;
   specs->push_back(spec);
 }
 
@@ -206,7 +211,7 @@ void SpecInference::UpdatePosteriors(const World& world,
       }
     }
     for (size_t i = 0; i < pOfD.size(); ++i) {
-    //   std::cout << "PofD for s" << i + 1 << " " << pOfD[i] << " \n";
+      //   std::cout << "PofD for s" << i + 1 << " " << pOfD[i] << " \n";
     }
     UpdatePriors(pOfD, posteriors);
   }
@@ -240,7 +245,8 @@ void SpecInference::GenerateGrid(const msgs::Specification& spec,
   // distance, and a surface
   // generate obj_num positions on the surface
   // Note: assume that starting landmark is on top right corner of the table
-  std::cout<<"Generate Grid " << "\n";
+  std::cout << "Generate Grid "
+            << "\n";
   geometry_msgs::PoseArray pose_array;
   std::vector<geometry_msgs::Pose> positions;
 
@@ -250,15 +256,18 @@ void SpecInference::GenerateGrid(const msgs::Specification& spec,
   obj_distance.z = spec.landmark.surface_box_dims.z;
 
   // set corners of the allowed area
-  
+
   geometry_msgs::Point min_pos = spec.landmark.pose_stamped.pose.position;
   geometry_msgs::Point max_pos, num_based, surface_based;
   // Fit the number of rows/cols required and stop at the surface border
-  // Note: using minus operator for x because we assume that start object is top right
+  // Note: using minus operator for x because we assume that start object is top
+  // right
   num_based.x = min_pos.x - (spec.row_num - 1) * obj_distance.x;
   num_based.y = min_pos.y + (spec.col_num - 1) * obj_distance.y;
-    std::cout << "num_based.x = " << min_pos.x  << " - (" << spec.row_num << "-1)*" << obj_distance.x << "\n";
-  std::cout << "num_based.y = " << min_pos.y  << " - (" << spec.col_num << "-1)*" << obj_distance.y << "\n";
+  std::cout << "num_based.x = " << min_pos.x << " - (" << spec.row_num << "-1)*"
+            << obj_distance.x << "\n";
+  std::cout << "num_based.y = " << min_pos.y << " - (" << spec.col_num << "-1)*"
+            << obj_distance.y << "\n";
   std::cout << "Surface: " << surface << "\n";
   surface_based.x =
       surface.pose_stamped.pose.position.x - surface.dimensions.x * 0.5;
@@ -272,9 +281,11 @@ void SpecInference::GenerateGrid(const msgs::Specification& spec,
   max_pos.z =
       surface.pose_stamped.pose.position.z + spec.landmark.surface_box_dims.z;
 
-std::cout << "GetPositions with \n" << min_pos << ", " << max_pos << ", " << spec.landmark.surface_box_dims << ", " << obj_distance << "\n";
-  GetPositions(min_pos, max_pos, spec.landmark.surface_box_dims, obj_distance,
-               &positions, spec.obj_num);
+  std::cout << "GetPositions with \n"
+            << min_pos << ", " << max_pos << ", "
+            << spec.landmark.surface_box_dims << ", " << obj_distance << "\n";
+  GetPositions(min_pos, max_pos, spec.offset, obj_distance, &positions,
+               spec.obj_num);
 
   pose_array.poses = positions;
   grid->push_back(pose_array);
@@ -282,40 +293,59 @@ std::cout << "GetPositions with \n" << min_pos << ", " << max_pos << ", " << spe
 
 void SpecInference::GetPositions(const geometry_msgs::Point& min_pos,
                                  const geometry_msgs::Point& max_pos,
-                                 const geometry_msgs::Vector3& dimensions,
+                                 const geometry_msgs::Vector3& offset,
                                  const geometry_msgs::Vector3& obj_distance,
                                  std::vector<geometry_msgs::Pose>* positions,
                                  const int& obj_num) {
   // Takes the corner values of the area which should be filled with positions
-
   geometry_msgs::Pose pose;
   pose.position.z = min_pos.z;
   geometry_msgs::Point local_min = min_pos;
   geometry_msgs::Point local_max = max_pos;
 
-//   local_min.x -= dimensions.x;
-//   local_min.y += dimensions.y;
-std::cout << "local_min.x " << local_min.x << " < " << max_pos.x << "\n";
+  std::cout << "local_min.x " << local_min.x << " < " << max_pos.x << "\n";
+  bool evenRow = false;
+  bool evenCol = false;
+  std::cout << "Offset is " << offset << "\n";
 
   while (local_min.x >= max_pos.x) {
-    pose.position.x = local_min.x;// - (dimensions.x * 0.5);
+    pose.position.x = local_min.x;
     std::cout << "local_min.y " << local_min.y << " < " << max_pos.y << "\n";
+    if (evenRow) {
+      local_min.y += offset.y * 0.5;
+      evenRow = false;
+    } else {
+      evenRow = true;
+    }
+
+    std::cout << "even Row is " << evenRow << "\n";
     while (local_min.y <= max_pos.y) {
-      pose.position.y = local_min.y;// + (dimensions.y * 0.5);
+      pose.position.y = local_min.y;
       std::cout << "x y : " << pose.position.x << " , " << pose.position.y
                 << "\n";
+
+    if (evenCol) {
+      pose.position.x -= offset.x * 0.5;
+      evenCol = false;
+    } else {
+      evenCol = true;
+      pose.position.x = local_min.x;
+
+    }
+
       positions->push_back(pose);
       local_min.y += obj_distance.y;
       if (positions->size() >= obj_num) {
         return;
       }
     }
-    local_min.y = min_pos.y;// + dimensions.y;  // reset y for next iteration
+    evenCol = false;
+    local_min.y = min_pos.y;  // reset y for next iteration
     local_min.x -= obj_distance.x;
   }
-  
-    std::cout << "No. of positions: " << positions->size() << " out of "
-              << obj_num << "\n";
+
+  std::cout << "No. of positions: " << positions->size() << " out of "
+            << obj_num << "\n";
 }
 
 }  // namespace pbd

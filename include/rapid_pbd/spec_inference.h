@@ -56,7 +56,7 @@ class SpecInference {
                     std::vector<float>* posteriors);
   void GetPositions(const geometry_msgs::Point& min_pos,
                     const geometry_msgs::Point& max_pos,
-                    const geometry_msgs::Vector3& dimensions,
+                    const geometry_msgs::Vector3& offset,
                     const geometry_msgs::Vector3& obj_distance,
                     std::vector<geometry_msgs::Pose>* positions,
                     const int& obj_num);
