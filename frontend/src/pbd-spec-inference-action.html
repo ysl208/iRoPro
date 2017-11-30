@@ -94,6 +94,7 @@
         </paper-listbox>
       </paper-dropdown-menu>
       <paper-button class="normal" on-tap="_view">View</paper-button>
+      <paper-button class="normal" on-tap="_select">Select</paper-button>
     </div>
     <!-- <div>
       <template is="dom-repeat" items="[[_specScores(action.posteriors)]]">
@@ -170,6 +171,7 @@
           spec: this.spec
         };
         this.$.eventPub.publish(msg);
+        console.debug('_select ', msg);
       },
 
       _view: function () {

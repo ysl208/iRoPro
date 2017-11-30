@@ -56,6 +56,8 @@ class Editor {
                           const rapid_pbd_msgs::Landmark& landmark);
   void ViewSpecification(const std::string& db_id, size_t step_id,
                          const rapid_pbd_msgs::Specification& spec);
+  void SelectSpecification(const std::string& db_id, size_t step_id,
+                           const rapid_pbd_msgs::Specification& spec);
   void AddStep(const std::string& db_id);
   void DeleteStep(const std::string& db_id, size_t step_id);
   void AddAction(const std::string& db_id, size_t step_id,
@@ -106,6 +108,11 @@ class Editor {
   void AddGripperPoseAction(const std::string& db_id, size_t step_id,
                             const std::vector<double>& default_pose);
 
+  void GetDemonstrationSteps(const rapid_pbd_msgs::Program& program,
+                             std::vector<rapid_pbd_msgs::Step>* demo_steps);
+  void ShiftCartActionPose(rapid_pbd_msgs::Action* action,
+                           const geometry_msgs::Pose& pose,
+                           const rapid_pbd_msgs::Landmark& landmark);
   ProgramDb db_;
   SceneDb scene_db_;
   JointStateReader joint_state_reader_;

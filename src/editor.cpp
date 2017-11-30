@@ -27,6 +27,7 @@
 #include "rapid_pbd/spec_inference.h"
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
+using rapid_pbd_msgs::Action;
 
 namespace msgs = rapid_pbd_msgs;
 namespace rapid {
@@ -75,8 +76,7 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     } else if (event.type == msgs::EditorEvent::VIEW_SPECIFICATION) {
       ViewSpecification(event.program_info.db_id, event.step_num, event.spec);
     } else if (event.type == msgs::EditorEvent::SELECT_SPECIFICATION) {
-      // ViewSpecification(event.program_info.db_id, event.step_num,
-      //                    event.action_num, event.spec);
+      SelectSpecification(event.program_info.db_id, event.step_num, event.spec);
     } else if (event.type == msgs::EditorEvent::ADD_SENSE_STEPS) {
       AddSenseSteps(event.program_info.db_id, event.step_num);
     } else if (event.type == msgs::EditorEvent::ADD_STEP) {
@@ -490,7 +490,6 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
   World world;
   GetWorld(robot_config_, program, last_viewed_[db_id], &world);
   // generate grid for each spec
-  std::cout << "** Show current " << spec.name << "\n";
   std::vector<geometry_msgs::PoseArray> grid;
   spec_inf_.GenerateGrid(spec, world.surface, &grid);
   step->grid = grid;
@@ -500,6 +499,97 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
   }
+}
+
+void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
+                                 const msgs::Specification& spec) {
+  // Get current program first
+  msgs::Program program;
+  bool success = db_.Get(db_id, &program);
+  if (!success) {
+    ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
+    return;
+  }
+  if (step_id >= program.steps.size()) {
+    ROS_ERROR(
+        "Unable to get action from step %ld from program \"%s\", which has "
+        "%ld steps",
+        step_id, db_id.c_str(), program.steps.size());
+    return;
+  }
+
+  // Create new program
+  msgs::Program new_program;
+  new_program.name = program.name + '-' + spec.name;
+
+  joint_state_reader_.ToMsg(&new_program.start_joint_state);
+  std::string id = db_.Insert(new_program);
+  success = db_.Get(db_id, &new_program);
+
+  // Copy demonstration steps from old program
+  std::vector<msgs::Step> demo_steps;
+  GetDemonstrationSteps(program, &demo_steps);
+  // get grid positions
+  World world;
+  GetWorld(robot_config_, program, last_viewed_[db_id], &world);
+  // generate grid for each spec, positions are relative to first landmark
+  std::vector<geometry_msgs::PoseArray> grid;
+  spec_inf_.GenerateGrid(spec, world.surface, &grid);
+
+  // for each grid position, add demo_steps to the program
+  for (size_t row = 0; row < grid.size(); ++row) {
+    for (size_t col = 0; col < grid[row].poses.size(); ++col) {
+      geometry_msgs::Pose pose = grid[row].poses[col];
+      std::cout << "pose is " << pose << "\n";
+      for (size_t i = 0; i < demo_steps.size(); ++i) {
+        for (size_t j = 0; j < demo_steps[i].actions.size(); ++j) {
+          msgs::Action action = demo_steps[i].actions[j];
+          if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
+              action.landmark.name == spec.landmark.name) {
+            demo_steps[i].actions[j].pose = pose;
+          }
+          // demo_steps[i].actions[j] = action;
+        }
+      }
+      new_program.steps.insert(new_program.steps.end(), demo_steps.begin(),
+                               demo_steps.end());
+    }
+  }
+  std::cout << "New program created with steps: " << new_program.steps.size()
+            << "\n";
+
+  // Each action that is a cart. pose relative to obj1 should be adjusted
+  // according to the grid
+
+  // Modify demonstration steps to target goal positions
+  // assume that it is a pick&place action, i.e. there is at least one
+  // action
+  // that saves cart. position
+
+  Update(db_id, new_program);
+}
+
+void Editor::ShiftCartActionPose(msgs::Action* action,
+                                 const geometry_msgs::Pose& pose,
+                                 const msgs::Landmark& landmark) {
+  if (action->type == Action::MOVE_TO_CARTESIAN_GOAL &&
+      action->landmark.name == landmark.name) {
+    action->pose = pose;
+  }
+}
+
+void Editor::GetDemonstrationSteps(const msgs::Program& program,
+                                   std::vector<msgs::Step>* demo_steps) {
+  // Assume that demonstrations are separated by a DetectTTObject action
+  for (size_t i = 0; i < program.steps.size(); ++i) {
+    if (program.steps[i].actions.size() == 1) {
+      if (program.steps[i].actions[0].type == Action::INFER_SPECIFICATION) {
+        break;
+      }
+    }
+    demo_steps->push_back(program.steps[i]);
+  }
+  std::cout << "new_program.steps.size = " << demo_steps->size() << "\n";
 }
 
 void Editor::AddStep(const std::string& db_id) {

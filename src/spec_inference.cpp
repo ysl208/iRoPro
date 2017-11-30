@@ -256,7 +256,6 @@ void SpecInference::GenerateGrid(const msgs::Specification& spec,
   obj_distance.z = spec.landmark.surface_box_dims.z;
 
   // set corners of the allowed area
-
   geometry_msgs::Point min_pos = spec.landmark.pose_stamped.pose.position;
   geometry_msgs::Point max_pos, num_based, surface_based;
   // Fit the number of rows/cols required and stop at the surface border
@@ -324,14 +323,13 @@ void SpecInference::GetPositions(const geometry_msgs::Point& min_pos,
       std::cout << "x y : " << pose.position.x << " , " << pose.position.y
                 << "\n";
 
-    if (evenCol) {
-      pose.position.x -= offset.x * 0.5;
-      evenCol = false;
-    } else {
-      evenCol = true;
-      pose.position.x = local_min.x;
-
-    }
+      if (evenCol) {
+        pose.position.x -= offset.x * 0.5;
+        evenCol = false;
+      } else {
+        evenCol = true;
+        pose.position.x = local_min.x;
+      }
 
       positions->push_back(pose);
       local_min.y += obj_distance.y;
