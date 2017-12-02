@@ -47,8 +47,8 @@ void SpecInference::InitSpecs(std::vector<msgs::Specification>* specs,
   // for this specification
   msgs::Specification spec;
   spec.landmark = landmark;
-  spec.avg_dx = landmark.surface_box_dims.x + 0.02;
-  spec.avg_dy = landmark.surface_box_dims.y + 0.02;
+  spec.avg_dx = landmark.surface_box_dims.y + 0.02;
+  spec.avg_dy = landmark.surface_box_dims.x + 0.02;
   spec.obj_num = 100;
   spec.offset.x = 0;
   spec.offset.y = 0;
@@ -283,8 +283,9 @@ void SpecInference::GenerateGrid(const msgs::Specification& spec,
   std::cout << "GetPositions with \n"
             << min_pos << ", " << max_pos << ", "
             << spec.landmark.surface_box_dims << ", " << obj_distance << "\n";
-  GetPositions(min_pos, max_pos, spec.offset, obj_distance, &positions,
-               spec.obj_num);
+  GetPositions(min_pos, max_pos, spec.offset,
+               spec.landmark.pose_stamped.pose.orientation, obj_distance,
+               &positions, spec.obj_num);
 
   pose_array.poses = positions;
   grid->push_back(pose_array);
@@ -293,11 +294,13 @@ void SpecInference::GenerateGrid(const msgs::Specification& spec,
 void SpecInference::GetPositions(const geometry_msgs::Point& min_pos,
                                  const geometry_msgs::Point& max_pos,
                                  const geometry_msgs::Vector3& offset,
+                                 const geometry_msgs::Quaternion& orientation,
                                  const geometry_msgs::Vector3& obj_distance,
                                  std::vector<geometry_msgs::Pose>* positions,
                                  const int& obj_num) {
   // Takes the corner values of the area which should be filled with positions
   geometry_msgs::Pose pose;
+  pose.orientation = orientation;
   pose.position.z = min_pos.z;
   geometry_msgs::Point local_min = min_pos;
   geometry_msgs::Point local_max = max_pos;
@@ -331,7 +334,9 @@ void SpecInference::GetPositions(const geometry_msgs::Point& min_pos,
         pose.position.x = local_min.x;
       }
 
+      std::cout << "** orientation is : " << pose.orientation << "\n";
       positions->push_back(pose);
+
       local_min.y += obj_distance.y;
       if (positions->size() >= obj_num) {
         return;

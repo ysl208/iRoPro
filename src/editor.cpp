@@ -523,8 +523,8 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   new_program.name = program.name + '-' + spec.name;
 
   joint_state_reader_.ToMsg(&new_program.start_joint_state);
-  std::string id = db_.Insert(new_program);
-  success = db_.Get(db_id, &new_program);
+  std::string new_id = db_.Insert(new_program);
+  // success = db_.Get(db_id, &new_program);
 
   // Copy demonstration steps from old program
   std::vector<msgs::Step> demo_steps;
@@ -536,27 +536,41 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   std::vector<geometry_msgs::PoseArray> grid;
   spec_inf_.GenerateGrid(spec, world.surface, &grid);
 
-  // for each grid position, add demo_steps to the program
+  std::cout << "** New program created with steps: " << new_program.steps.size()
+            << "\n";
+  // for each grid position, add demo_steps with that position to the program
   for (size_t row = 0; row < grid.size(); ++row) {
     for (size_t col = 0; col < grid[row].poses.size(); ++col) {
       geometry_msgs::Pose pose = grid[row].poses[col];
       std::cout << "pose is " << pose << "\n";
       for (size_t i = 0; i < demo_steps.size(); ++i) {
-        for (size_t j = 0; j < demo_steps[i].actions.size(); ++j) {
-          msgs::Action action = demo_steps[i].actions[j];
+        msgs::Step step = demo_steps[i];
+        for (size_t j = 0; j < step.actions.size(); ++j) {
+          msgs::Action action = step.actions[j];
           if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
               action.landmark.name == spec.landmark.name) {
-            demo_steps[i].actions[j].pose = pose;
+            msgs::Landmark old_landmark = action.landmark;
+            action.landmark.pose_stamped.pose = pose;
+            // action.landmark = new_landmark;
+            ReinterpretPose(old_landmark, &action);
+            step.actions[j] = action;
+            // demo_steps[i].actions[j].landmark.pose_stamped.pose = pose;
+            // std::cout << "demo_steps[i].actions[j].pose = "
+            //           << demo_steps[i].actions[j].pose << "\n";
+            std::cout << "** changed landmark pose to : "
+                      << demo_steps[i].actions[j].landmark.pose_stamped.pose
+                      << "\n";
           }
-          // demo_steps[i].actions[j] = action;
         }
+        new_program.steps.push_back(step);
+        // std::cout << "New program now with steps: " <<
+        // new_program.steps.back()
+        //           << "\n";
       }
-      new_program.steps.insert(new_program.steps.end(), demo_steps.begin(),
-                               demo_steps.end());
+      // new_program.steps.insert(new_program.steps.end(), demo_steps.begin(),
+      //                          demo_steps.end());
     }
   }
-  std::cout << "New program created with steps: " << new_program.steps.size()
-            << "\n";
 
   // Each action that is a cart. pose relative to obj1 should be adjusted
   // according to the grid
@@ -566,7 +580,10 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   // action
   // that saves cart. position
 
-  Update(db_id, new_program);
+  Update(new_id, new_program);
+
+  GetWorld(robot_config_, new_program, 0, &world);
+  viz_.Publish(new_id, world);
 }
 
 void Editor::ShiftCartActionPose(msgs::Action* action,
@@ -737,6 +754,7 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
     msgs::Landmark landmark;
     ProcessSurfaceBox(result->landmarks[i], &landmark);
     program.steps[step_id].landmarks.push_back(landmark);
+    std::cout << i << "th landmark: " << landmark.pose_stamped.pose << "\n";
   }
   Update(db_id, program);
 }
