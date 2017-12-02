@@ -77,6 +77,7 @@ bool ActionExecutor::IsValid(const Action& action) {
   } else if (action.type == Action::DETECT_TABLETOP_OBJECTS) {
   } else if (action.type == Action::FIND_CUSTOM_LANDMARK) {
   } else if (action.type == Action::CHECK_CONDITIONS) {
+  } else if (action.type == Action::INFER_SPECIFICATION) {
   } else {
     ROS_ERROR("Invalid action type: \"%s\"", action.type.c_str());
     return false;
