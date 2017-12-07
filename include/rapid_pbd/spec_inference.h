@@ -28,7 +28,8 @@ class SpecInference {
                  const rapid_pbd_msgs::Landmark& landmark);
   void UpdatePosteriors(const World& world,
                         const rapid_pbd_msgs::Landmark& landmark,
-                        std::vector<float>* posteriors);
+                        std::vector<float>* posteriors,
+                        rapid_pbd_msgs::Specification* spec);
   void GenerateGrid(const rapid_pbd_msgs::Specification& spec,
                     const rapid_pbd_msgs::Surface& surface,
                     std::vector<geometry_msgs::PoseArray>* grid);
@@ -57,7 +58,7 @@ class SpecInference {
   void GetPositions(const geometry_msgs::Point& min_pos,
                     const geometry_msgs::Point& max_pos,
                     const geometry_msgs::Vector3& offset,
-                                 const geometry_msgs::Quaternion& orientation,
+                    const geometry_msgs::Quaternion& orientation,
                     const geometry_msgs::Vector3& obj_distance,
                     std::vector<geometry_msgs::Pose>* positions,
                     const int& obj_num);

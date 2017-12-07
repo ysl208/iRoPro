@@ -434,11 +434,20 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
   // if there is only one landmark, initialise specs
   // assumes that if there are more, then it is already initialised
   std::vector<msgs::Specification> specs;
-  // if (world.surface_box_landmarks.size() == 1) {
-  if (program.specs.size() < 1) {
+  if (program.template_specs.size() < 1 ||
+      world.surface_box_landmarks.size() <= 1) {
     spec_inf_.InitSpecs(&specs, landmark);
-    step->actions[action_id].specs = specs;
-    program.specs = specs;
+    // step->actions[action_id].template_specs = specs;
+    program.template_specs = specs;
+    // new specification for this program
+    program.spec.avg_dx = landmark.surface_box_dims.y + 0.02;
+    program.spec.avg_dy = landmark.surface_box_dims.x + 0.02;
+    program.spec.landmark = landmark;
+    program.spec.obj_num = 100;
+    program.spec.offset.x = 0;
+    program.spec.offset.y = 0;
+    program.spec.row_num = 100;
+    program.spec.col_num = 100;
   }
 
   std::vector<float> posteriors;
@@ -455,23 +464,21 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
       posteriors.push_back(program.posteriors.data[i]);
     }
   }
-  spec_inf_.UpdatePosteriors(world, landmark, &posteriors);
+  spec_inf_.UpdatePosteriors(world, landmark, &posteriors, &program.spec);
   // replace old posteriors with new ones
-  step->actions[action_id].posteriors.data.clear();
+  // step->actions[action_id].posteriors.data.clear();
   program.posteriors.data.clear();
   for (size_t i = 0; i < posteriors.size(); ++i) {
-    step->actions[action_id].posteriors.data.push_back(posteriors[i]);
+    // step->actions[action_id].posteriors.data.push_back(posteriors[i]);
     program.posteriors.data.push_back(posteriors[i]);
   }
-
   std::cout << "new posteriors are " << program.posteriors.data.size() << " \n";
-  std::cout << "for action_id " << action_id << " \n";
 
   db_.Update(db_id, program);
 }
 
 void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
-                               const msgs::Specification& spec) {
+                               const msgs::Specification& temp_spec) {
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
@@ -490,9 +497,19 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
   World world;
   GetWorld(robot_config_, program, last_viewed_[db_id], &world);
   // generate grid for each spec
+  msgs::Specification spec = temp_spec;
+  if (!spec.flag1D) {
+    spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
+    spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
+  } else {
+    spec.avg_dx = program.spec.avg_dx;
+    spec.avg_dy = program.spec.avg_dy;
+  }
+
   std::vector<geometry_msgs::PoseArray> grid;
   spec_inf_.GenerateGrid(spec, world.surface, &grid);
   step->grid = grid;
+  program.grid = grid;
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
     viz_.PublishSpecMarkers(db_id, world, spec.landmark);
@@ -502,7 +519,7 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
 }
 
 void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
-                                 const msgs::Specification& spec) {
+                                 const msgs::Specification& temp_spec) {
   // Get current program first
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
@@ -516,6 +533,15 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
         "%ld steps",
         step_id, db_id.c_str(), program.steps.size());
     return;
+  }
+
+  msgs::Specification spec = temp_spec;
+  if (!spec.flag1D) {
+    spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
+    spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
+  } else {
+    spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
+    spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
   }
 
   // Create new program

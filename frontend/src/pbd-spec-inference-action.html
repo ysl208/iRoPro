@@ -95,6 +95,8 @@
       </paper-dropdown-menu>
       <paper-button class="normal" on-tap="_view">View</paper-button>
       <paper-button class="normal" on-tap="_select">Select</paper-button>
+      dx: [[program.spec.avg_dx]], dy: [[program.spec.avg_dy]]
+      <!-- <paper-button class="normal" on-tap="_reset">Reset</paper-button> -->
     </div>
     <!-- <div>
       <template is="dom-repeat" items="[[_specScores(action.posteriors)]]">
@@ -217,8 +219,7 @@
         }
       },
       _updateSpec: function (evt) {
-        // If selected Main landmark is None, no condition is assigned
-        this.set('spec', this.action.specs[evt.model.index]);
+        this.set('spec', this.specs[evt.model.index]);
         console.debug('_updateSpec: spec ', this.spec);
         console.debug('evt.model ', evt.model);
       },
@@ -236,7 +237,7 @@
 
       _objectSpecs: function (specs) {
         var objects = [];
-        console.debug('_objectSpecs', this.action.specs);
+        console.debug('_objectSpecs', this.specs);
         for (var i = 0; i < specs.length; ++i) {
           objects.push(specs[i]);
         }
