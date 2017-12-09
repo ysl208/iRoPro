@@ -34,6 +34,8 @@ void SpecInference::Init() {
   avg_dx = 0.0;
   avg_dy = 0.0;
   allowedVariance = 0.03;
+  max_rows_ = 3;
+  min_rows_ = 1;
 
   for (size_t i = 0; i < 5; ++i) {
     priors_.push_back(0.2);
@@ -48,38 +50,40 @@ void SpecInference::InitSpecs(std::vector<msgs::Specification>* specs,
   Init();
   msgs::Specification spec;
   spec.landmark = landmark;
-  spec.avg_dx = landmark.surface_box_dims.y + 0.02;
-  spec.avg_dy = landmark.surface_box_dims.x + 0.02;
-  spec.obj_num = 100;
+  spec.avg_dx =
+      fmin(landmark.surface_box_dims.x, landmark.surface_box_dims.y) + 0.02;
+  spec.avg_dy =
+      fmax(landmark.surface_box_dims.x, landmark.surface_box_dims.y) + 0.02;
+  spec.obj_num = 10;
   spec.offset.x = 0;
   spec.offset.y = 0;
   spec.flag1D = true;
 
   spec.name = "Spec 1";
-  spec.row_num = 1;
-  spec.col_num = 100;
+  spec.row_num = min_rows_;
+  spec.col_num = max_rows_;
   specs->push_back(spec);
 
   spec.name = "Spec 2";
-  spec.row_num = 100;
-  spec.col_num = 1;
+  spec.row_num = max_rows_;
+  spec.col_num = min_rows_;
   specs->push_back(spec);
 
   spec.flag1D = false;
   spec.name = "Spec 3";
-  spec.row_num = 100;
-  spec.col_num = 100;
+  spec.row_num = max_rows_;
+  spec.col_num = max_rows_;
   specs->push_back(spec);
 
   spec.name = "Spec 4";
-  spec.row_num = 100;
-  spec.col_num = 100;
+  spec.row_num = max_rows_;
+  spec.col_num = max_rows_;
   spec.offset.y = spec.avg_dy * 0.5;
   specs->push_back(spec);
 
   spec.name = "Spec 5";
-  spec.row_num = 100;
-  spec.col_num = 100;
+  spec.row_num = max_rows_;
+  spec.col_num = max_rows_;
   spec.offset.x = spec.avg_dx * 0.5;
   spec.offset.y = 0;
   specs->push_back(spec);
@@ -255,8 +259,7 @@ void SpecInference::GenerateGrid(const msgs::Specification& spec,
   // distance, and a surface
   // generate obj_num positions on the surface
   // Note: assume that starting landmark is on top right corner of the table
-  std::cout << "Generate Grid "
-            << "\n";
+  std::cout << "Generate Grid \n";
   geometry_msgs::PoseArray pose_array;
   std::vector<geometry_msgs::Pose> positions;
 
@@ -319,14 +322,11 @@ void SpecInference::GetPositions(const geometry_msgs::Point& min_pos,
   geometry_msgs::Point local_min = min_pos;
   geometry_msgs::Point local_max = max_pos;
 
-  std::cout << "local_min.x " << local_min.x << " < " << max_pos.x << "\n";
   bool evenRow = false;
   bool evenCol = false;
-  std::cout << "Offset is " << offset << "\n";
 
   while (local_min.x >= max_pos.x) {
     pose.position.x = local_min.x;
-    std::cout << "local_min.y " << local_min.y << " < " << max_pos.y << "\n";
     if (evenRow) {
       local_min.y += offset.y * 0.5;
       evenRow = false;
@@ -334,7 +334,6 @@ void SpecInference::GetPositions(const geometry_msgs::Point& min_pos,
       evenRow = true;
     }
 
-    std::cout << "even Row is " << evenRow << "\n";
     while (local_min.y <= max_pos.y) {
       pose.position.y = local_min.y;
       std::cout << "x y : " << pose.position.x << " , " << pose.position.y
@@ -348,7 +347,6 @@ void SpecInference::GetPositions(const geometry_msgs::Point& min_pos,
         pose.position.x = local_min.x;
       }
 
-      // std::cout << "** orientation is : " << pose.orientation << "\n";
       positions->push_back(pose);
 
       local_min.y += obj_distance.y;

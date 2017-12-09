@@ -58,6 +58,9 @@ class Editor {
                          const rapid_pbd_msgs::Specification& spec);
   void SelectSpecification(const std::string& db_id, size_t step_id,
                            const rapid_pbd_msgs::Specification& spec);
+
+  void SelectSpecification2(const std::string& db_id, size_t step_id,
+                            const rapid_pbd_msgs::Specification& spec);
   void AddStep(const std::string& db_id);
   void DeleteStep(const std::string& db_id, size_t step_id);
   void AddAction(const std::string& db_id, size_t step_id,
@@ -113,6 +116,10 @@ class Editor {
   void ShiftCartActionPose(rapid_pbd_msgs::Action* action,
                            const geometry_msgs::Pose& pose,
                            const rapid_pbd_msgs::Landmark& landmark);
+  void RunProgram(const std::string& program_name);
+  bool CheckGridPositionFree(
+      const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
+      const geometry_msgs::Point& position);
   ProgramDb db_;
   SceneDb scene_db_;
   JointStateReader joint_state_reader_;

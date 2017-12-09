@@ -41,6 +41,7 @@ class SpecInference {
   float allowedVariance;
   bool flag1D;
   float avg_dx, avg_dy;
+  int max_rows_, min_rows_;
 
   bool ReferencedLandmark(const rapid_pbd_msgs::Landmark& landmark,
                           const World& world,

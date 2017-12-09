@@ -3,11 +3,13 @@
 #include <cmath>
 #include <exception>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Condition.h"
 #include "rapid_pbd_msgs/EditorEvent.h"
+#include "rapid_pbd_msgs/ExecuteProgramGoal.h"
 #include "rapid_pbd_msgs/Landmark.h"
 #include "rapid_pbd_msgs/Program.h"
 #include "rapid_pbd_msgs/SegmentSurfacesGoal.h"
@@ -436,12 +438,16 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
   std::vector<msgs::Specification> specs;
   if (program.template_specs.size() < 1 ||
       world.surface_box_landmarks.size() <= 1) {
+    std::cout << "Re-initalising specs with landmark: "
+              << landmark.surface_box_dims.x << "\n";
     spec_inf_.InitSpecs(&specs, landmark);
     // step->actions[action_id].template_specs = specs;
     program.template_specs = specs;
     // new specification for this program
-    program.spec.avg_dx = landmark.surface_box_dims.y + 0.02;
-    program.spec.avg_dy = landmark.surface_box_dims.x + 0.02;
+    program.spec.avg_dx =
+        fmin(landmark.surface_box_dims.x, landmark.surface_box_dims.y) + 0.02;
+    program.spec.avg_dy =
+        fmax(landmark.surface_box_dims.x, landmark.surface_box_dims.y) + 0.02;
     program.spec.landmark = landmark;
     program.spec.obj_num = 100;
     program.spec.offset.x = 0;
@@ -496,8 +502,10 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
 
   World world;
   GetWorld(robot_config_, program, last_viewed_[db_id], &world);
-  // generate grid for each spec
   msgs::Specification spec = temp_spec;
+
+  // update values of template with current program.spec
+  spec.landmark = program.spec.landmark;
   if (!spec.flag1D) {
     spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
     spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
@@ -518,8 +526,201 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
   }
 }
 
+void Editor::RunProgram(const std::string& program_name) {
+  msgs::ExecuteProgramGoal goal;
+  goal.name = program_name;
+  action_clients_->program_client.sendGoal(goal);
+  bool success =
+      action_clients_->program_client.waitForResult(ros::Duration(10));
+  if (!success) {
+    ROS_ERROR("Failed to execute program 'place'.");
+    return;
+  }
+  msgs::ExecuteProgramResult::ConstPtr result =
+      action_clients_->program_client.getResult();
+}
+
 void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
                                  const msgs::Specification& temp_spec) {
+  // Assumes that this is called in the 'Place & Infer' program
+  // TO DO: assume that spec.landmark is the last added landmark
+  // get the program
+  msgs::Program program;
+  bool success = db_.Get(db_id, &program);
+  if (!success) {
+    ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
+    return;
+  }
+  if (step_id >= program.steps.size()) {
+    ROS_ERROR(
+        "Unable to get action from step %ld from program \"%s\", which has "
+        "%ld steps",
+        step_id, db_id.c_str(), program.steps.size());
+    return;
+  }
+
+  msgs::Specification spec = temp_spec;
+  if (!spec.flag1D) {
+    spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
+    spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
+  } else {
+    spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
+    spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
+  }
+
+  // Create new program that will be modified and run for each grid position
+  // TO DO: Cut off program at first demo
+  msgs::Program new_program = program;
+
+  // Get grid positions
+  World world;
+  GetWorld(robot_config_, new_program, last_viewed_[db_id], &world);
+  std::vector<geometry_msgs::PoseArray> grid;
+  spec_inf_.GenerateGrid(spec, world.surface, &grid);
+
+  // 1.1 save 'move to cart pose' actions in an array
+  // 1.2 get demo reference position by looking for 'open gripper action' and
+  // taking the latest 'move to cart pose'
+  // Note: reference position in demo always aligns with 1st object in grid
+  std::pair<int, int> reference_pose;
+  size_t release_step = -1;
+  size_t release_action = -1;
+  std::vector<std::pair<int, int> > cart_pose_actions;
+
+  for (size_t step_id = 0; step_id < new_program.steps.size(); ++step_id) {
+    msgs::Step* step = &new_program.steps[step_id];
+    for (size_t action_id = 0; action_id < step->actions.size(); ++action_id) {
+      msgs::Action action = step->actions[action_id];
+      if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
+          action.landmark.name == robot_config_.torso_link()) {
+        cart_pose_actions.push_back(std::make_pair(step_id, action_id));
+      }
+      if (action.type == Action::ACTUATE_GRIPPER) {
+        // save the latest added step-action pair
+        reference_pose = cart_pose_actions.back();
+        release_step = step_id;
+        release_action = action_id;
+        std::cout << "* Pushed out Reference pose: " << reference_pose.first
+                  << "," << reference_pose.second << "\n";
+      }
+    }
+  }
+  int ref_step = reference_pose.first;
+  int ref_action = reference_pose.second;
+  std::cout << "Release step/actions: " << ref_step << "," << ref_action
+            << "\n";
+  std::cout << "cart_pose_actions: " << cart_pose_actions.size() << "\n";
+  // if reference_pose with landmark.pose < some variance
+  // geometry_msgs::Pose lm_pose = landmark.pose_stamped.pose;
+  geometry_msgs::Pose ref_pose =
+      new_program.steps[ref_step].actions[ref_action].pose;
+
+  // 2. Loop through grid positions
+  // 2.1 if landmark on position, skip
+  // 2.2 if position empty, modify poses and run program
+  double dx, dy;  // track transformation from 0th to current position
+  int count = 1;
+  std::cout << "Grid positions = " << grid.size() * grid[0].poses.size()
+            << "\n";
+  for (size_t row = 0; row < grid.size(); ++row) {
+    for (size_t col = 0; col < grid[row].poses.size(); ++col) {
+      geometry_msgs::Pose pose = grid[row].poses[col];
+      std::cout << "-- " << count << "th grid position is \n"
+                << pose.position << "\n";
+
+      if (CheckGridPositionFree(world.surface_box_landmarks, pose.position)) {
+        // dx = pose.position.x - ref_pose.position.x;
+        // dy = pose.position.y - ref_pose.position.y;
+        // std::cout << "dx is " << dx << "\n";
+        // std::cout << "dy is " << dy << "\n";
+        // // double dz = pose.position.z - ref_pose.position.z;
+        // double squared_distance = dx * dx + dy * dy;  // + dz * dz;
+        // double lm_diameter =
+        //     spec.landmark.surface_box_dims.x *
+        //     spec.landmark.surface_box_dims.x +
+        //     spec.landmark.surface_box_dims.y *
+        //     spec.landmark.surface_box_dims.y;
+        // std::cout << "grid pose is " << pose << "\n";
+        // std::cout << "ref pose is " << ref_pose << "\n";
+        // std::cout << "squ distance is " << squared_distance << "\n";
+        // std::cout << "lm_diameter is " << lm_diameter << "\n";
+        // if (squared_distance >= lm_diameter) {
+
+        // use this grid pose, update cart_pose_actions with new grid pose
+        // find transform from grid pos to ref_pose
+        for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
+          int s_id = cart_pose_actions[id].first;
+          int a_id = cart_pose_actions[id].second;
+          new_program.steps[s_id].actions[a_id].pose.position.x =
+              grid[0].poses[0].position.x + dx;
+          new_program.steps[s_id].actions[a_id].pose.position.y =
+              grid[0].poses[0].position.y - dy;
+          std::cout << "New x pose for step/action = " << s_id << "," << a_id
+                    << ": "
+                    << new_program.steps[s_id].actions[a_id].pose.position.x
+                    << ", and y pose is "
+                    << new_program.steps[s_id].actions[a_id].pose.position.y
+                    << "\n";
+        }
+        std::cout << "Running program...\n";
+        RunProgram("pick up pasta");
+        // RunProgram(new_program);
+        msgs::ExecuteProgramGoal goal;
+        goal.program = new_program;
+        action_clients_->program_client.sendGoal(goal);
+        bool success =
+            action_clients_->program_client.waitForResult(ros::Duration(10));
+        if (!success) {
+          ROS_ERROR("Failed to execute program 'place'.");
+          std::cin.ignore();
+        }
+        msgs::ExecuteProgramResult::ConstPtr result =
+            action_clients_->program_client.getResult();
+      }
+      dx = pose.position.x - grid[0].poses[0].position.x;
+      dy = pose.position.y - grid[0].poses[0].position.y;
+
+      std::cout << "dx is " << dx << ",";
+      std::cout << "dy is " << dy << "\n";
+      ++count;
+    }
+  }
+}
+
+bool Editor::CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
+                                   const geometry_msgs::Point& position) {
+  for (size_t i = 0; i < landmarks.size(); ++i) {
+    msgs::Landmark lm = landmarks[i];
+    double dx = position.x - lm.pose_stamped.pose.position.x;
+    double dy = position.y - lm.pose_stamped.pose.position.y;
+    // double dz = position.z - lm.pose_stamped.pose.position.z;
+    double squared_distance = dx * dx + dy * dy;  // + dz * dz;
+    double lm_diameter = lm.surface_box_dims.x * lm.surface_box_dims.x +
+                         lm.surface_box_dims.y * lm.surface_box_dims.y;
+    std::cout << "squ distance = " << squared_distance << " < ";
+    std::cout << "lm_diameter = " << lm_diameter << "\n";
+    if (squared_distance < lm_diameter) {
+      std::cout << "Position not free ";
+      std::cout << "squ distance = " << squared_distance << " < ";
+      std::cout << "lm_diameter = " << lm_diameter << "\n";
+      return false;
+    }
+  }
+  return true;
+}
+
+void Editor::SelectSpecification2(const std::string& db_id, size_t step_id,
+                                  const msgs::Specification& temp_spec) {
+  // 1. For this program, the landmark's final position is the one all poses are
+  // relative to, set the tf frame to be the landmark
+  // 2. when looping through, change this tf frame to the new grid position, the
+  // poses should comply accordingly
+
+  // SelectSpec should do:
+  // get the chosen specification grid
+  // set poses wrt tf frame = lm
+  // get program, run for each grid
+
   // Get current program first
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
@@ -580,21 +781,13 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
             // action.landmark = new_landmark;
             ReinterpretPose(old_landmark, &action);
             step.actions[j] = action;
-            // demo_steps[i].actions[j].landmark.pose_stamped.pose = pose;
-            // std::cout << "demo_steps[i].actions[j].pose = "
-            //           << demo_steps[i].actions[j].pose << "\n";
             std::cout << "** changed landmark pose to : "
                       << demo_steps[i].actions[j].landmark.pose_stamped.pose
                       << "\n";
           }
         }
         new_program.steps.push_back(step);
-        // std::cout << "New program now with steps: " <<
-        // new_program.steps.back()
-        //           << "\n";
       }
-      // new_program.steps.insert(new_program.steps.end(), demo_steps.begin(),
-      //                          demo_steps.end());
     }
   }
 
