@@ -98,8 +98,8 @@ void Visualizer::Publish(const std::string& program_id, const World& world) {
       blank.scale.z = 0.05;
       scene_markers.markers.push_back(blank);
     }
-  // Publish surface marker
-  GetSurfaceMarker(world.surface, robot_config_, &scene_markers);  
+    // Publish surface marker
+    GetSurfaceMarker(world.surface, robot_config_, &scene_markers);
     step_vizs_[program_id].surface_seg_pub.publish(scene_markers);
   }
 }
@@ -113,7 +113,6 @@ void Visualizer::StopPublishing(const std::string& program_id) {
 void Visualizer::PublishConditionMarkers(const std::string& program_id,
                                          const World& world,
                                          const msgs::Condition& condition) {
-
   // Publish robot model, scene, landmark markers
   if (step_vizs_.find(program_id) == step_vizs_.end()) {
     Publish(program_id, world);
@@ -130,8 +129,8 @@ void Visualizer::PublishConditionMarkers(const std::string& program_id,
 }
 
 void Visualizer::PublishSpecMarkers(const std::string& program_id,
-                                         const World& world,
-                                         const msgs::Landmark& landmark) {
+                                    const World& world,
+                                    const msgs::Landmark& landmark) {
   // Publish robot model, scene, landmark markers
   if (step_vizs_.find(program_id) == step_vizs_.end()) {
     Publish(program_id, world);
@@ -185,8 +184,7 @@ void ClearMarkers(MarkerArray* scene_markers, const int& type,
   scene_markers->markers = new_markers;
 }
 
-void GetGridMarker(const msgs::Landmark& landmark,
-                   const msgs::Surface& surface,
+void GetGridMarker(const msgs::Landmark& landmark, const msgs::Surface& surface,
                    const std::vector<geometry_msgs::PoseArray>& grid,
                    const RobotConfig& robot_config,
                    visualization_msgs::MarkerArray* scene_markers) {
@@ -201,11 +199,6 @@ void GetGridMarker(const msgs::Landmark& landmark,
   points.color.a = 1.0;
 
   geometry_msgs::Vector3 object_dims = landmark.surface_box_dims;
-  // if (fabs(fmod(landmark.eulerAngles.z, 180)) > 85) {
-  //   float temp = object_dims.x;
-  //   object_dims.x = object_dims.y;
-  //   object_dims.y = temp;
-  // }
   size_t id = 0;
   for (size_t i = 0; i < grid.size(); ++i) {
     geometry_msgs::PoseArray pose_array = grid[i];
@@ -216,7 +209,7 @@ void GetGridMarker(const msgs::Landmark& landmark,
 
       Marker positions;
       positions.header.frame_id = base_link;
-      positions.type = Marker::CUBE;
+      positions.type = landmark.marker_type;
       positions.ns = "grid_boxes";
       positions.id = id;
       positions.scale.x = object_dims.x;
@@ -239,7 +232,7 @@ void GetGridMarker(const msgs::Landmark& landmark,
     blank.ns = "grid_boxes";
     blank.id = i;
     blank.header.frame_id = base_link;
-    blank.type = Marker::CUBE;
+    blank.type = landmark.marker_type;
     blank.pose.orientation.w = 1;
     blank.scale.x = 0.05;
     blank.scale.y = 0.05;
@@ -248,7 +241,6 @@ void GetGridMarker(const msgs::Landmark& landmark,
     blank.ns = "grid_points";
     scene_markers->markers.push_back(blank);
   }
-
 }
 
 void GetConditionMarker(const msgs::Condition& condition,
@@ -373,7 +365,7 @@ void GetConditionMarker(const msgs::Condition& condition,
                         condition.contDisplacementVariance.y;
     // // head diameter
     reference.scale.z = 0.005;  // head length
-    reference.color.r = 0.5;  // pink
+    reference.color.r = 0.5;    // pink
     reference.color.g = 0;
     reference.color.b = 0.5;
     reference.color.a = 0.4;
@@ -428,7 +420,7 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
     blank.scale.y = 0.05;
     blank.scale.z = 0.05;
     scene_markers->markers.push_back(blank);
-    // Rename ns 
+    // Rename ns
     blank.ns = "segmentation_names";
     scene_markers->markers.push_back(blank);
   }

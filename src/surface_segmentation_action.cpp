@@ -195,6 +195,7 @@ void SurfaceSegmentationAction::Execute(
       ++obj_count;
       rapid_pbd_msgs::Landmark landmark;
       landmark.type = rapid_pbd_msgs::Landmark::SURFACE_BOX;
+      landmark.marker_type = visualization_msgs::Marker::CUBE;
       std::stringstream ss;
       ss << "Obj " << obj_count;
       landmark.name = ss.str();
