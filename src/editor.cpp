@@ -436,6 +436,7 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
   // if there is only one landmark, initialise specs
   // assumes that if there are more, then it is already initialised
   std::vector<msgs::Specification> specs;
+  std::vector<float> posteriors;
   if (program.template_specs.size() < 1 ||
       world.surface_box_landmarks.size() <= 1) {
     std::cout << "Re-initalising specs with landmark: "
@@ -444,22 +445,18 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
     // step->actions[action_id].template_specs = specs;
     program.template_specs = specs;
     // new specification for this program
+    msgs::Specification spec = program.spec;
+    spec_inf_.InitSpec(&spec);
+    program.spec = spec;
     program.spec.avg_dx =
         fmin(landmark.surface_box_dims.x, landmark.surface_box_dims.y) + 0.02;
     program.spec.avg_dy =
         fmax(landmark.surface_box_dims.x, landmark.surface_box_dims.y) + 0.02;
     program.spec.landmark = landmark;
     program.spec.obj_num = 100;
-    program.spec.offset.x = 0;
-    program.spec.offset.y = 0;
-    program.spec.row_num = 100;
-    program.spec.col_num = 100;
-  }
 
-  std::vector<float> posteriors;
-  // get posteriors from program if already exists, if not, take initialised
-  // ones
-  if (program.posteriors.data.size() < 1) {
+    // get posteriors from program if already exists, if not, take initialised
+    // ones
     posteriors = spec_inf_.posteriors_;
     std::cout << "program posteriors didnt exist, initialise"
               << "\n";
@@ -472,10 +469,8 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
   }
   spec_inf_.UpdatePosteriors(world, landmark, &posteriors, &program.spec);
   // replace old posteriors with new ones
-  // step->actions[action_id].posteriors.data.clear();
   program.posteriors.data.clear();
   for (size_t i = 0; i < posteriors.size(); ++i) {
-    // step->actions[action_id].posteriors.data.push_back(posteriors[i]);
     program.posteriors.data.push_back(posteriors[i]);
   }
   std::cout << "new posteriors are " << program.posteriors.data.size() << " \n";
@@ -506,6 +501,7 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
 
   // update values of template with current program.spec
   spec.landmark = program.spec.landmark;
+
   if (!spec.flag1D) {
     spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
     spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);

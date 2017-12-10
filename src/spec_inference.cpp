@@ -42,6 +42,21 @@ void SpecInference::Init() {
     posteriors_.push_back(0.20);
   }
 }
+void SpecInference::InitSpec(msgs::Specification* spec) {
+  spec->avg_dx = avg_dx;
+  spec->avg_dy = avg_dy;
+  spec->row_num = max_rows_;
+  spec->col_num = max_rows_;
+  spec->flag1D = flag1D;
+  spec->offset.x = spec->offset.x * spec->avg_dx * 0.5;
+  spec->offset.y = spec->offset.y * spec->avg_dy * 0.5;
+}
+
+void SpecInference::GetOffset(const msgs::Specification& spec,
+                              geometry_msgs::Vector3* offset) {
+  offset->x = offset->x * spec.avg_dx * 0.5;
+  offset->y = offset->y * spec.avg_dy * 0.5;
+}
 
 void SpecInference::InitSpecs(std::vector<msgs::Specification>* specs,
                               const msgs::Landmark& landmark) {
@@ -152,18 +167,17 @@ void SpecInference::UpdatePosteriors(const World& world,
                                      std::vector<float>* posteriors,
                                      msgs::Specification* spec) {
   // 5 specifications (s6 can be random)
-  std::vector<float> pOfD;
+  std::vector<float> pOfD, priors;
+  std::vector<float> new_posteriors;
   float dx, dy;
 
-  // initialise pOfD
-  pOfD.clear();
+  // initialise pOfD for all s with 1
+  std::cout << "New priors: \n";
   for (size_t i = 0; i < 5; ++i) {
     pOfD.push_back(1.0);
-
-    std::cout << "Prior for s" << i + 1 << " " << priors_[i] << " \n";
-    std::cout << "Posteriors for s" << i + 1 << " " << &posteriors[i] << " \n";
+    priors.push_back(posteriors->at(i));
+    std::cout << " P(s" << i + 1 << ") = " << priors[i] << " \n";
   }
-
   // find closest landmark that can be referenced
   // double squared_cutoff = distance_cutoff * distance_cutoff;
   msgs::Landmark closest;
@@ -189,12 +203,12 @@ void SpecInference::UpdatePosteriors(const World& world,
       if (dx > allowedVariance) {
         // x-aligned
         pOfD.at(GetPatternIndex("s1")) = 0.0;
-        std::cout << "dx " << dx << " > allVar " << allowedVariance << "\n";
+        std::cout << "dx " << dx << " > allowedVar " << allowedVariance << "\n";
       }
       if (dy > allowedVariance) {
         // y-aligned
         pOfD.at(GetPatternIndex("s2")) = 0.0;
-        std::cout << "dy " << dy << " > allVar " << allowedVariance << "\n";
+        std::cout << "dy " << dy << " > allowedVar " << allowedVariance << "\n";
       }
 
       if (pOfD[GetPatternIndex("s1")] == 0.0 &&
@@ -207,8 +221,7 @@ void SpecInference::UpdatePosteriors(const World& world,
       pOfD.at(GetPatternIndex("s2")) = 0.0;
     }
     // if not 1-dimensional, then check s3-s5
-    // s3
-    // s4 s5: check that the object is not aligned
+    // s3 s4 s5: check that the object is not aligned
     if (dx > allowedVariance && dy > allowedVariance) {
       // not vertically nor horizontically aligned
       pOfD.at(GetPatternIndex("s3")) = 0.0;
@@ -225,30 +238,34 @@ void SpecInference::UpdatePosteriors(const World& world,
         // s?
       }
     }
-    for (size_t i = 0; i < pOfD.size(); ++i) {
-      //   std::cout << "PofD for s" << i + 1 << " " << pOfD[i] << " \n";
+
+    UpdatePriors(pOfD, priors, &new_posteriors);
+
+    posteriors->clear();
+    std::cout << "New posteriors are: \n";
+    for (size_t i = 0; i < new_posteriors.size(); ++i) {
+      posteriors->push_back(new_posteriors[i]);
+      std::cout << " P(s" << i + 1 << "|D) = " << posteriors->at(i) << " \n";
     }
-    UpdatePriors(pOfD, posteriors);
-  }
-  // add landmark to list
-  // landmarks->push_back(landmark);
-  else {
+  } else {
     std::cout << " No closest landmark found with sqred cutoff "
               << distance_cutoff << "\n";
   }
 }
 void SpecInference::UpdatePriors(const std::vector<float>& pOfD,
+                                 const std::vector<float>& priors,
                                  std::vector<float>* posteriors) {
   // calculate sum of all pOfD
+
+  std::cout << "Updating priors... \n";
   float sum = 0;
   for (size_t key = 0; key < pOfD.size(); ++key) {
-    sum += pOfD[key] * priors_[key];
-    // ROS_INFO("sum is now %f", sum);
+    sum += pOfD[key] * priors[key];
   }
-  for (size_t key = 0; key < priors_.size(); ++key) {
-    float posterior = (priors_[key] * pOfD[key]) / sum;
-    posteriors->at(key) = posterior;
-    // ROS_INFO("posteriors = %f", posteriors->at(key));
+  for (size_t key = 0; key < priors.size(); ++key) {
+    float posterior = (priors[key] * pOfD[key]) / sum;
+    // posteriors->at(key) = posterior;
+    posteriors->push_back(posterior);
   }
 }
 

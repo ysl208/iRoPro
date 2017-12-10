@@ -24,6 +24,7 @@ class SpecInference {
   std::vector<rapid_pbd_msgs::Specification> specs_;
   SpecInference(const RobotConfig& robot_config);
   void Init();
+  void InitSpec(rapid_pbd_msgs::Specification* spec);
   void InitSpecs(std::vector<rapid_pbd_msgs::Specification>* specs,
                  const rapid_pbd_msgs::Landmark& landmark);
   void UpdatePosteriors(const World& world,
@@ -55,6 +56,7 @@ class SpecInference {
                            const int& obj_num);
   int GetPatternIndex(const std::string& s);
   void UpdatePriors(const std::vector<float>& pOfD,
+                    const std::vector<float>& priors,
                     std::vector<float>* posteriors);
   void GetPositions(const geometry_msgs::Point& min_pos,
                     const geometry_msgs::Point& max_pos,
@@ -63,6 +65,8 @@ class SpecInference {
                     const geometry_msgs::Vector3& obj_distance,
                     std::vector<geometry_msgs::Pose>* positions,
                     const int& obj_num);
+  void GetOffset(const rapid_pbd_msgs::Specification& spec,
+                 geometry_msgs::Vector3* offset);
 };
 }  // namespace pbd
 }  // namespace rapid
