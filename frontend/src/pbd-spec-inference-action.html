@@ -101,6 +101,14 @@
         data-args="spec.row_num"></paper-input>
       <paper-input class="number" type="number" step="1" min="1" max="100" label="Columns" value="[[spec.col_num]]" on-change="_valueChanged"
         data-args="spec.col_num"></paper-input>
+      <paper-input class="flex" label="avg_dx" value="[[spec.avg_dx]]" on-change="_valueChanged" data-args="spec.avg_dx"></paper-input>
+      <paper-input class="flex" label="avg_dy" value="[[spec.avg_dy]]" on-change="_valueChanged" data-args="spec.avg_dy"></paper-input>
+
+      <paper-input class="flex" label="Landmark" value="[[spec.landmark.name]]"></paper-input>
+
+      <paper-input class="flex" label="dim.x" value="[[spec.landmark.surface_box_dims.x]]" data-args="spec.landmark.surface_box_dims.x"></paper-input>
+      <paper-input class="flex" label="dim.y" value="[[spec.landmark.surface_box_dims.y]]" data-args="spec.landmark.surface_box_dims.y"></paper-input>
+      <paper-input class="flex" label="dim.z" value="[[spec.landmark.surface_box_dims.z]]" data-args="spec.landmark.surface_box_dims.z"></paper-input>
       <!-- <paper-button class="normal" on-tap="_reset">Reset</paper-button> -->
     </div>
     <!-- <div>
