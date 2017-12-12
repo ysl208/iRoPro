@@ -591,7 +591,7 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
           action.landmark.name == robot_config_.torso_link()) {
         cart_pose_actions.push_back(std::make_pair(step_id, action_id));
       }
-      if (action.type == Action::ACTUATE_GRIPPER) {
+      if (action.type == Action::ACTUATE_GRIPPER && release_step < 0) {
         // save the latest added step-action pair
         reference_pose = cart_pose_actions.back();
         release_step = step_id;
@@ -621,36 +621,37 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   for (size_t row = 0; row < grid.size(); ++row) {
     for (size_t col = 0; col < grid[row].poses.size(); ++col) {
       geometry_msgs::Pose pose = grid[row].poses[col];
-      std::cout << "-- " << count << "th grid position is \n"
+      std::cout << "-- #" << count << " grid position is \n"
                 << pose.position << "\n";
 
-      if (CheckGridPositionFree(world.surface_box_landmarks, pose.position)) {
-        // dx = pose.position.x - ref_pose.position.x;
-        // dy = pose.position.y - ref_pose.position.y;
-        // std::cout << "dx is " << dx << "\n";
-        // std::cout << "dy is " << dy << "\n";
-        // // double dz = pose.position.z - ref_pose.position.z;
-        // double squared_distance = dx * dx + dy * dy;  // + dz * dz;
-        // double lm_diameter =
-        //     spec.landmark.surface_box_dims.x *
-        //     spec.landmark.surface_box_dims.x +
-        //     spec.landmark.surface_box_dims.y *
-        //     spec.landmark.surface_box_dims.y;
-        // std::cout << "grid pose is " << pose << "\n";
-        // std::cout << "ref pose is " << ref_pose << "\n";
-        // std::cout << "squ distance is " << squared_distance << "\n";
-        // std::cout << "lm_diameter is " << lm_diameter << "\n";
-        // if (squared_distance >= lm_diameter) {
+      dx = pose.position.x - grid[0].poses[0].position.x;
+      dy = pose.position.y - grid[0].poses[0].position.y;
 
+      std::cout << "dx is " << dx << ",";
+      std::cout << "dy is " << dy << "\n";
+      if (CheckGridPositionFree(world.surface_box_landmarks, pose.position)) {
         // use this grid pose, update cart_pose_actions with new grid pose
         // find transform from grid pos to ref_pose
         for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
           int s_id = cart_pose_actions[id].first;
           int a_id = cart_pose_actions[id].second;
+
+          // reset pose to original demo pose
           new_program.steps[s_id].actions[a_id].pose.position.x =
-              grid[0].poses[0].position.x + dx;
+              program.steps[s_id].actions[a_id].pose.position.x;
           new_program.steps[s_id].actions[a_id].pose.position.y =
-              grid[0].poses[0].position.y - dy;
+              program.steps[s_id].actions[a_id].pose.position.y;
+
+          std::cout << "Reset to original x pose for step/action = " << s_id
+                    << "," << a_id << ": "
+                    << new_program.steps[s_id].actions[a_id].pose.position.x
+                    << ", and y pose is "
+                    << new_program.steps[s_id].actions[a_id].pose.position.y
+                    << "\n";
+          // transform pose to new grid position
+          new_program.steps[s_id].actions[a_id].pose.position.x += dx;
+          new_program.steps[s_id].actions[a_id].pose.position.y += dy;
+
           std::cout << "New x pose for step/action = " << s_id << "," << a_id
                     << ": "
                     << new_program.steps[s_id].actions[a_id].pose.position.x
@@ -660,7 +661,6 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
         }
         std::cout << "Running program...\n";
         RunProgram("pick up pasta");
-        // RunProgram(new_program);
         msgs::ExecuteProgramGoal goal;
         goal.program = new_program;
         action_clients_->program_client.sendGoal(goal);
@@ -673,11 +673,6 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
         msgs::ExecuteProgramResult::ConstPtr result =
             action_clients_->program_client.getResult();
       }
-      dx = pose.position.x - grid[0].poses[0].position.x;
-      dy = pose.position.y - grid[0].poses[0].position.y;
-
-      std::cout << "dx is " << dx << ",";
-      std::cout << "dy is " << dy << "\n";
       ++count;
     }
   }
@@ -691,11 +686,12 @@ bool Editor::CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
     double dy = position.y - lm.pose_stamped.pose.position.y;
     // double dz = position.z - lm.pose_stamped.pose.position.z;
     double squared_distance = dx * dx + dy * dy;  // + dz * dz;
-    double lm_diameter = lm.surface_box_dims.x * lm.surface_box_dims.x +
-                         lm.surface_box_dims.y * lm.surface_box_dims.y;
+    // double lm_diameter = lm.surface_box_dims.x * lm.surface_box_dims.x +
+    //                      lm.surface_box_dims.y * lm.surface_box_dims.y;
+    double lm_diameter = fmin(lm.surface_box_dims.x, lm.surface_box_dims.x);
     std::cout << "squ distance = " << squared_distance << " < ";
-    std::cout << "lm_diameter = " << lm_diameter << "\n";
-    if (squared_distance < lm_diameter) {
+    std::cout << "lm_diameter = " << lm_diameter * lm_diameter << "\n";
+    if (squared_distance < lm_diameter * lm_diameter) {
       std::cout << "Position not free ";
       std::cout << "squ distance = " << squared_distance << " < ";
       std::cout << "lm_diameter = " << lm_diameter << "\n";
