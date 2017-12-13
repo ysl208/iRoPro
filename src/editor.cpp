@@ -497,18 +497,18 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
 
   // update values of template with current program.spec
   spec.landmark = program.spec.landmark;
-
-  if (!spec.flag1D) {
-    spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
-    spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
-  } else {
-    spec.avg_dx = program.spec.avg_dx;
-    spec.avg_dy = program.spec.avg_dy;
-  }
+  spec.avg_dx = program.spec.avg_dx;
+  spec.avg_dy = program.spec.avg_dy;
+  // if (!spec.flag1D) {
+  //   spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
+  //   spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
+  // } else {
+  //   spec.avg_dx = program.spec.avg_dx;
+  //   spec.avg_dy = program.spec.avg_dy;
+  // }
 
   std::vector<geometry_msgs::PoseArray> grid;
   spec_inf_.GenerateGrid(spec, world.surface, &grid);
-  step->grid = grid;
   program.grid = grid;
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
@@ -531,7 +531,6 @@ void Editor::RunProgram(const std::string& program_name) {
   msgs::ExecuteProgramResult::ConstPtr result =
       action_clients_->program_client.getResult();
 }
-
 void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
                                  const msgs::Specification& temp_spec) {
   // Assumes that this is called in the 'Place & Infer' program
@@ -562,34 +561,33 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
 
   // Create new program that will be modified and run for each grid position
   // TO DO: Cut off program at first demo
-
-  // Copy demonstration steps from old program
-  std::vector<msgs::Step> demo_steps;
   msgs::Program new_program = program;
-  // new_program.steps.clear();
-  // GetDemonstrationSteps(program, &new_program.steps);
-
-  std::cout << "new_program.steps.size = " << new_program.steps.size() << "\n";
-  // new_program.steps = demo_steps;
+  new_program.steps.clear();
   // Get grid positions
   World world;
-  GetWorld(robot_config_, new_program, last_viewed_[db_id], &world);
-  std::vector<geometry_msgs::PoseArray> grid;
-  spec_inf_.GenerateGrid(spec, world.surface, &grid);
+  GetWorld(robot_config_, program, last_viewed_[db_id], &world);
+  std::vector<geometry_msgs::PoseArray> grid = program.grid;
+
+  // spec_inf_.GenerateGrid(spec, world.surface, &grid);
 
   // 1.1 save 'move to cart pose' actions in an array
   // 1.2 get demo reference position by looking for 'open gripper action' and
   // taking the latest 'move to cart pose'
   // Note: reference position in demo always aligns with 1st object in grid
   std::pair<int, int> reference_pose;
-  size_t release_step = -1;
-  size_t release_action = -1;
+  int release_step = -1;
+  int release_action = -1;
   std::vector<std::pair<int, int> > cart_pose_actions;
 
-  for (size_t step_id = 0; step_id < new_program.steps.size(); ++step_id) {
-    msgs::Step* step = &new_program.steps[step_id];
-    for (size_t action_id = 0; action_id < step->actions.size(); ++action_id) {
-      msgs::Action action = step->actions[action_id];
+  for (size_t step_id = 0; step_id < program.steps.size(); ++step_id) {
+    msgs::Step step = program.steps[step_id];
+    for (size_t action_id = 0; action_id < step.actions.size(); ++action_id) {
+      msgs::Action action = step.actions[action_id];
+      if (action.type == Action::INFER_SPECIFICATION) {
+        std::cout << "Infer action detected, end of demo steps: "
+                  << new_program.steps.size() << "\n";
+        goto endloop;
+      }
       if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
           action.landmark.name != robot_config_.torso_link()) {
         cart_pose_actions.push_back(std::make_pair(step_id, action_id));
@@ -603,12 +601,17 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
                   << "," << reference_pose.second << "\n";
       }
     }
+    new_program.steps.push_back(step);
   }
+endloop:
+  std::cout << "new program has size: " << new_program.steps.size() << "\n";
   int ref_step = reference_pose.first;
   int ref_action = reference_pose.second;
   std::cout << "Release step/actions: " << ref_step << "," << ref_action
             << "\n";
   std::cout << "cart_pose_actions: " << cart_pose_actions.size() << "\n";
+  // if reference_pose with landmark.pose < some variance
+  // geometry_msgs::Pose lm_pose = landmark.pose_stamped.pose;
   geometry_msgs::Pose ref_pose =
       new_program.steps[ref_step].actions[ref_action].pose;
 
@@ -660,20 +663,19 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
                     << new_program.steps[s_id].actions[a_id].pose.position.y
                     << "\n";
         }
-
+        std::cout << "Running program...\n";
         for (size_t p_id = 0; p_id < new_program.spec.programs.size(); ++p_id) {
           std::string p_name = new_program.spec.programs[p_id];
           std::cout << "Running program..." << p_name << "\n";
           RunProgram(p_name);
         }
-
         msgs::ExecuteProgramGoal goal;
         goal.program = new_program;
         action_clients_->program_client.sendGoal(goal);
         bool success =
             action_clients_->program_client.waitForResult(ros::Duration(10));
         if (!success) {
-          ROS_INFO("Press enter to continue..");
+          ROS_ERROR("Failed to execute program 'place'.");
           std::cin.ignore();
         }
         msgs::ExecuteProgramResult::ConstPtr result =
@@ -703,102 +705,6 @@ bool Editor::CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
     }
   }
   return true;
-}
-
-void Editor::SelectSpecification2(const std::string& db_id, size_t step_id,
-                                  const msgs::Specification& temp_spec) {
-  // 1. For this program, the landmark's final position is the one all poses are
-  // relative to, set the tf frame to be the landmark
-  // 2. when looping through, change this tf frame to the new grid position, the
-  // poses should comply accordingly
-
-  // SelectSpec should do:
-  // get the chosen specification grid
-  // set poses wrt tf frame = lm
-  // get program, run for each grid
-
-  // Get current program first
-  msgs::Program program;
-  bool success = db_.Get(db_id, &program);
-  if (!success) {
-    ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
-    return;
-  }
-  if (step_id >= program.steps.size()) {
-    ROS_ERROR(
-        "Unable to get action from step %ld from program \"%s\", which has "
-        "%ld steps",
-        step_id, db_id.c_str(), program.steps.size());
-    return;
-  }
-
-  msgs::Specification spec = temp_spec;
-  if (!spec.flag1D) {
-    spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
-    spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
-  } else {
-    spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
-    spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
-  }
-
-  // Create new program
-  msgs::Program new_program;
-  new_program.name = program.name + '-' + spec.name;
-
-  joint_state_reader_.ToMsg(&new_program.start_joint_state);
-  std::string new_id = db_.Insert(new_program);
-  // success = db_.Get(db_id, &new_program);
-
-  // Copy demonstration steps from old program
-  std::vector<msgs::Step> demo_steps;
-  GetDemonstrationSteps(program, &demo_steps);
-  // get grid positions
-  World world;
-  GetWorld(robot_config_, program, last_viewed_[db_id], &world);
-  // generate grid for each spec, positions are relative to first landmark
-  std::vector<geometry_msgs::PoseArray> grid;
-  spec_inf_.GenerateGrid(spec, world.surface, &grid);
-
-  std::cout << "** New program created with steps: " << new_program.steps.size()
-            << "\n";
-  // for each grid position, add demo_steps with that position to the program
-  for (size_t row = 0; row < grid.size(); ++row) {
-    for (size_t col = 0; col < grid[row].poses.size(); ++col) {
-      geometry_msgs::Pose pose = grid[row].poses[col];
-      std::cout << "pose is " << pose << "\n";
-      for (size_t i = 0; i < demo_steps.size(); ++i) {
-        msgs::Step step = demo_steps[i];
-        for (size_t j = 0; j < step.actions.size(); ++j) {
-          msgs::Action action = step.actions[j];
-          if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
-              action.landmark.name == spec.landmark.name) {
-            msgs::Landmark old_landmark = action.landmark;
-            action.landmark.pose_stamped.pose = pose;
-            // action.landmark = new_landmark;
-            ReinterpretPose(old_landmark, &action);
-            step.actions[j] = action;
-            std::cout << "** changed landmark pose to : "
-                      << demo_steps[i].actions[j].landmark.pose_stamped.pose
-                      << "\n";
-          }
-        }
-        new_program.steps.push_back(step);
-      }
-    }
-  }
-
-  // Each action that is a cart. pose relative to obj1 should be adjusted
-  // according to the grid
-
-  // Modify demonstration steps to target goal positions
-  // assume that it is a pick&place action, i.e. there is at least one
-  // action
-  // that saves cart. position
-
-  Update(new_id, new_program);
-
-  GetWorld(robot_config_, new_program, 0, &world);
-  viz_.Publish(new_id, world);
 }
 
 void Editor::ShiftCartActionPose(msgs::Action* action,

@@ -59,8 +59,6 @@ class Editor {
   void SelectSpecification(const std::string& db_id, size_t step_id,
                            const rapid_pbd_msgs::Specification& spec);
 
-  void SelectSpecification2(const std::string& db_id, size_t step_id,
-                            const rapid_pbd_msgs::Specification& spec);
   void AddStep(const std::string& db_id);
   void DeleteStep(const std::string& db_id, size_t step_id);
   void AddAction(const std::string& db_id, size_t step_id,
