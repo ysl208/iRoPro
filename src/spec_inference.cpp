@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "rapid_pbd/robot_config.h"
-#include "rapid_pbd/spatial_relations.h"
 #include "transform_graph/graph.h"
 
 #include "ros/ros.h"
@@ -115,7 +114,8 @@ bool SpecInference::ReferencedLandmark(const msgs::Landmark& landmark,
 
   for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
     const msgs::Landmark& world_landmark = world.surface_box_landmarks[i];
-    if (landmark.name != world_landmark.name) {
+    if (landmark.name != world_landmark.name &&
+        SimilarSized(world_landmark, landmark)) {
       geometry_msgs::Point world_pose;
       world_pose.x = world_landmark.pose_stamped.pose.position.x;
       world_pose.y = world_landmark.pose_stamped.pose.position.y;
@@ -136,6 +136,19 @@ bool SpecInference::ReferencedLandmark(const msgs::Landmark& landmark,
     }
   }
   return success;
+}
+
+bool SpecInference::SimilarSized(const msgs::Landmark& landmark1,
+                                 const msgs::Landmark& landmark2) {
+  double variance = 0.075;
+  const double kMaxDistance = variance * variance;
+
+  double dx = (landmark1.surface_box_dims.x - landmark2.surface_box_dims.x);
+  double dy = (landmark1.surface_box_dims.y - landmark2.surface_box_dims.y);
+  double dz = (landmark1.surface_box_dims.z - landmark2.surface_box_dims.z);
+  double distance = dx * dx + dy * dy + dz * dz;
+  std::cout << "landmarks distance is " << distance << "\n";
+  return distance <= kMaxDistance;
 }
 
 int SpecInference::GetPatternIndex(const std::string& s) {
@@ -173,7 +186,7 @@ void SpecInference::UpdatePosteriors(const World& world,
 
   // initialise pOfD for all s with 1
   std::cout << "New priors: \n";
-  for (size_t i = 0; i < 5; ++i) {
+  for (size_t i = 0; i < posteriors->size(); ++i) {
     pOfD.push_back(1.0);
     priors.push_back(posteriors->at(i));
     std::cout << " P(s" << i + 1 << ") = " << priors[i] << " \n";
