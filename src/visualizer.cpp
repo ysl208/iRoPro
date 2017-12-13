@@ -199,7 +199,8 @@ void GetGridMarker(const msgs::Landmark& landmark, const msgs::Surface& surface,
   points.color.a = 1.0;
 
   geometry_msgs::Vector3 object_dims = landmark.surface_box_dims;
-  size_t id = 0;
+  int id = 0;
+
   for (size_t i = 0; i < grid.size(); ++i) {
     geometry_msgs::PoseArray pose_array = grid[i];
     for (size_t j = 0; j < pose_array.poses.size(); ++j) {

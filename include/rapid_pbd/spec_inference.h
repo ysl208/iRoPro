@@ -34,6 +34,9 @@ class SpecInference {
   void GenerateGrid(const rapid_pbd_msgs::Specification& spec,
                     const rapid_pbd_msgs::Surface& surface,
                     std::vector<geometry_msgs::PoseArray>* grid);
+  void GenerateStacks(const rapid_pbd_msgs::Specification& spec,
+                      const rapid_pbd_msgs::Surface& surface,
+                      std::vector<geometry_msgs::PoseArray>* grid);
 
  private:
   World* world_;

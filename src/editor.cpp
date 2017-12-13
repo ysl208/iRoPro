@@ -496,9 +496,9 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
   msgs::Specification spec = temp_spec;
 
   // update values of template with current program.spec
-  spec.landmark = program.spec.landmark;
-  spec.avg_dx = program.spec.avg_dx;
-  spec.avg_dy = program.spec.avg_dy;
+  // spec.landmark = program.spec.landmark;
+  // spec.avg_dx = program.spec.avg_dx;
+  // spec.avg_dy = program.spec.avg_dy;
   // if (!spec.flag1D) {
   //   spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
   //   spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
@@ -633,6 +633,7 @@ endloop:
 
       std::cout << "dx is " << dx << ",";
       std::cout << "dy is " << dy << "\n";
+      // TO DO: include object dims to check space properly
       if (CheckGridPositionFree(world.surface_box_landmarks, pose.position)) {
         // use this grid pose, update cart_pose_actions with new grid pose
         // find transform from grid pos to ref_pose
@@ -664,11 +665,17 @@ endloop:
                     << "\n";
         }
         std::cout << "Running program...\n";
-        for (size_t p_id = 0; p_id < new_program.spec.programs.size(); ++p_id) {
-          std::string p_name = new_program.spec.programs[p_id];
-          std::cout << "Running program..." << p_name << "\n";
-          RunProgram(p_name);
-        }
+        // for (size_t p_id = 0; p_id < new_program.spec.programs.size();
+        // ++p_id) {
+        //   std::string p_name = new_program.spec.programs[p_id];
+        //   if (p_name == "") {
+        //     p_name = "Pick from top";
+        //   }
+        //   std::cout << "Running program..." << p_name << "\n";
+        //   RunProgram(p_name);
+        // }
+
+        RunProgram(program.name + "2");
         msgs::ExecuteProgramGoal goal;
         goal.program = new_program;
         action_clients_->program_client.sendGoal(goal);

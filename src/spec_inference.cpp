@@ -46,6 +46,7 @@ void SpecInference::InitSpec(msgs::Specification* spec) {
   spec->avg_dy = avg_dy;
   spec->row_num = max_rows_;
   spec->col_num = max_rows_;
+  spec->height_num = min_rows_;
   spec->flag1D = flag1D;
   spec->offset.x = spec->offset.x * spec->avg_dx * 0.5;
   spec->offset.y = spec->offset.y * spec->avg_dy * 0.5;
@@ -69,6 +70,7 @@ void SpecInference::InitSpecs(std::vector<msgs::Specification>* specs,
   spec.avg_dy =
       fmax(landmark.surface_box_dims.x, landmark.surface_box_dims.y) + 0.02;
   spec.obj_num = 10;
+  spec.height_num = min_rows_;
   spec.offset.x = 0;
   spec.offset.y = 0;
   spec.flag1D = true;
@@ -281,7 +283,17 @@ void SpecInference::UpdatePriors(const std::vector<float>& pOfD,
     posteriors->push_back(posterior);
   }
 }
-
+void SpecInference::GenerateStacks(
+    const msgs::Specification& spec, const msgs::Surface& surface,
+    std::vector<geometry_msgs::PoseArray>* grid) {
+  // Given a grid with positions, generate height_num stacks of these initial
+  // positions
+  // for (size_t row = 0; row < grid.size(); ++row) {
+  //   for (size_t col = 0; col < grid[row].poses.size(); ++col) {
+  //     geometry_msgs::Pose pose = grid[row].poses[col];
+  //   }
+  // }
+}
 void SpecInference::GenerateGrid(const msgs::Specification& spec,
                                  const msgs::Surface& surface,
                                  std::vector<geometry_msgs::PoseArray>* grid) {
