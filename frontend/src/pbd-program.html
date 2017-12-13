@@ -401,39 +401,6 @@
         console.debug('Saving', this.program);
       },
 
-      _conditionCheck: function (step_id) {
-        // this.save();
-        // // Run Sense actions only 
-        // var senseProgram = Object.assign({},this.program);
-        // senseProgram.steps = senseProgram.steps.slice(0,2);
-        // var goal = {
-        //   program: senseProgram
-        // }
-        // console.debug('_conditionCheck: Sense steps...', senseProgram);
-        // this.$.programAction.send(goal);
-
-        // do {
-        //   console.debug('Waiting for Sense steps to finish...');
-        //   setTimeout(this._wait, 2000);
-        // }
-        // while (this.isRunning.data)
-
-        // // Check preconditions
-        // console.debug('Check conditions...', this.program);
-        // if ( this.program.preconditions.length > 0){
-        //   var msg = {
-        //     type: 'check conditions',
-        //     program_info: {
-        //       db_id: this.routeData.id,
-        //       name: this.program.name,
-        //     },
-        //     //program: this.program.steps.slice(1,2),
-        //     step_num: step_id
-        //   };
-        //   this.$.eventPub.publish(msg);
-        // }
-      },
-
       _preCheck: function () {
         this._conditionCheck(1);
       },

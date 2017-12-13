@@ -389,13 +389,9 @@ void Editor::UpdateConditions(const std::string& db_id, size_t step_id,
   World world;
   GetWorld(robot_config_, program, step_id, &world);
   msgs::Condition action_condition = step->actions[action_id].condition;
-  // std::cout << "Reference relevant " << action_condition.referenceRelevant
-  //           << std::endl;
-  // std::cout << "Reference object: " << reference.name << std::endl;
   if (action_condition.referenceRelevant && reference.name != "") {
     cond_gen_.UpdateReferenceLandmark(world, &action_condition, reference);
     step->actions[action_id].condition = action_condition;
-
   } else {
     step->actions[action_id].condition.referenceRelevant = false;
   }
@@ -438,11 +434,11 @@ void Editor::InferSpecification(const std::string& db_id, size_t step_id,
   std::vector<msgs::Specification> specs;
   std::vector<float> posteriors;
   if (program.template_specs.size() < 1 ||
-      world.surface_box_landmarks.size() <= 1) {
+      world.surface_box_landmarks.size() <= 1 ||
+      program.posteriors.data.size() < 0) {
     std::cout << "Re-initalising specs with landmark: "
               << landmark.surface_box_dims.x << "\n";
     spec_inf_.InitSpecs(&specs, landmark);
-    // step->actions[action_id].template_specs = specs;
     program.template_specs = specs;
     // new specification for this program
     msgs::Specification spec = program.spec;
@@ -566,8 +562,15 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
 
   // Create new program that will be modified and run for each grid position
   // TO DO: Cut off program at first demo
-  msgs::Program new_program = program;
 
+  // Copy demonstration steps from old program
+  std::vector<msgs::Step> demo_steps;
+  msgs::Program new_program = program;
+  // new_program.steps.clear();
+  // GetDemonstrationSteps(program, &new_program.steps);
+
+  std::cout << "new_program.steps.size = " << new_program.steps.size() << "\n";
+  // new_program.steps = demo_steps;
   // Get grid positions
   World world;
   GetWorld(robot_config_, new_program, last_viewed_[db_id], &world);
@@ -588,7 +591,7 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
     for (size_t action_id = 0; action_id < step->actions.size(); ++action_id) {
       msgs::Action action = step->actions[action_id];
       if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
-          action.landmark.name == robot_config_.torso_link()) {
+          action.landmark.name != robot_config_.torso_link()) {
         cart_pose_actions.push_back(std::make_pair(step_id, action_id));
       }
       if (action.type == Action::ACTUATE_GRIPPER && release_step < 0) {
@@ -606,8 +609,6 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   std::cout << "Release step/actions: " << ref_step << "," << ref_action
             << "\n";
   std::cout << "cart_pose_actions: " << cart_pose_actions.size() << "\n";
-  // if reference_pose with landmark.pose < some variance
-  // geometry_msgs::Pose lm_pose = landmark.pose_stamped.pose;
   geometry_msgs::Pose ref_pose =
       new_program.steps[ref_step].actions[ref_action].pose;
 
@@ -659,15 +660,20 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
                     << new_program.steps[s_id].actions[a_id].pose.position.y
                     << "\n";
         }
-        std::cout << "Running program...\n";
-        RunProgram("pick up pasta");
+
+        for (size_t p_id = 0; p_id < new_program.spec.programs.size(); ++p_id) {
+          std::string p_name = new_program.spec.programs[p_id];
+          std::cout << "Running program..." << p_name << "\n";
+          RunProgram(p_name);
+        }
+
         msgs::ExecuteProgramGoal goal;
         goal.program = new_program;
         action_clients_->program_client.sendGoal(goal);
         bool success =
             action_clients_->program_client.waitForResult(ros::Duration(10));
         if (!success) {
-          ROS_ERROR("Failed to execute program 'place'.");
+          ROS_INFO("Press enter to continue..");
           std::cin.ignore();
         }
         msgs::ExecuteProgramResult::ConstPtr result =
@@ -686,15 +692,13 @@ bool Editor::CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
     double dy = position.y - lm.pose_stamped.pose.position.y;
     // double dz = position.z - lm.pose_stamped.pose.position.z;
     double squared_distance = dx * dx + dy * dy;  // + dz * dz;
-    // double lm_diameter = lm.surface_box_dims.x * lm.surface_box_dims.x +
-    //                      lm.surface_box_dims.y * lm.surface_box_dims.y;
+
     double lm_diameter = fmin(lm.surface_box_dims.x, lm.surface_box_dims.x);
-    std::cout << "squ distance = " << squared_distance << " < ";
-    std::cout << "lm_diameter = " << lm_diameter * lm_diameter << "\n";
     if (squared_distance < lm_diameter * lm_diameter) {
-      std::cout << "Position not free ";
+      std::cout << "Position not free, blocked by " << lm.name << "\n";
       std::cout << "squ distance = " << squared_distance << " < ";
-      std::cout << "lm_diameter = " << lm_diameter << "\n";
+      std::cout << "lm_diameter = " << lm_diameter * lm_diameter << "\n";
+
       return false;
     }
   }
@@ -909,6 +913,14 @@ void Editor::DeleteAction(const std::string& db_id, size_t step_id,
     DeleteScene(step->scene_id);
     step->scene_id = "";
     DeleteLandmarks(msgs::Landmark::CUSTOM_LANDMARK, step);
+  } else if (action.type == msgs::Action::CHECK_CONDITIONS) {
+  } else if (action.type == msgs::Action::INFER_SPECIFICATION) {
+    program.template_specs.clear();
+    program.posteriors.data.clear();
+    std::cout << "template_spec size " << program.template_specs.size() << "\n";
+    std::cout << "posteriors size " << program.posteriors.data.size() << "\n";
+    msgs::Specification spec;
+    program.spec = spec;
   }
 
   step->actions.erase(step->actions.begin() + action_id);
