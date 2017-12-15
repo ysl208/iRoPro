@@ -175,7 +175,7 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
       world->surface = surface;
     }
 
-    std::vector<geometry_msgs::PoseArray> grid = step.grid;
+    std::vector<geometry_msgs::PoseArray> grid = program.grid;
     if (grid.size() > 0) {
       world->grid = grid;
     }
