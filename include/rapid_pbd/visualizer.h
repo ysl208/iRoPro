@@ -45,9 +45,9 @@ class Visualizer {
   void PublishConditionMarkers(const std::string& program_id,
                                const World& world,
                                const rapid_pbd_msgs::Condition& condition);
-                               void PublishSpecMarkers(const std::string& program_id,
-                                         const World& world,
-                                         const rapid_pbd_msgs::Landmark& landmark);
+  void PublishSpecMarkers(const std::string& program_id, const World& world,
+                          const std::vector<geometry_msgs::PoseArray>& grid,
+                          const rapid_pbd_msgs::Landmark& landmark);
   void StopPublishing(const std::string& program_id);
 
  private:
@@ -88,7 +88,8 @@ void GetSegmentationMarker(
 void GetSurfaceMarker(const rapid_pbd_msgs::Surface& surface,
                       const RobotConfig& robot_config,
                       visualization_msgs::MarkerArray* scene_markers);
-void ClearMarkers(visualization_msgs::MarkerArray* scene_markers, const int& type, const std::string& ns);
+void ClearMarkers(visualization_msgs::MarkerArray* scene_markers,
+                  const int& type, const std::string& ns);
 }  // namespace pbd
 }  // namespace rapid
 

@@ -128,16 +128,16 @@ void Visualizer::PublishConditionMarkers(const std::string& program_id,
   }
 }
 
-void Visualizer::PublishSpecMarkers(const std::string& program_id,
-                                    const World& world,
-                                    const msgs::Landmark& landmark) {
+void Visualizer::PublishSpecMarkers(
+    const std::string& program_id, const World& world,
+    const std::vector<geometry_msgs::PoseArray>& grid,
+    const msgs::Landmark& landmark) {
   // Publish robot model, scene, landmark markers
   if (step_vizs_.find(program_id) == step_vizs_.end()) {
     Publish(program_id, world);
   }
   MarkerArray scene_markers;
-  GetGridMarker(landmark, world.surface, world.grid, robot_config_,
-                &scene_markers);
+  GetGridMarker(landmark, world.surface, grid, robot_config_, &scene_markers);
 
   if (scene_markers.markers.size() > 0) {
     step_vizs_[program_id].surface_seg_pub.publish(scene_markers);

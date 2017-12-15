@@ -495,24 +495,13 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
   GetWorld(robot_config_, program, last_viewed_[db_id], &world);
   msgs::Specification spec = temp_spec;
 
-  // update values of template with current program.spec
-  // spec.landmark = program.spec.landmark;
-  // spec.avg_dx = program.spec.avg_dx;
-  // spec.avg_dy = program.spec.avg_dy;
-  // if (!spec.flag1D) {
-  //   spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
-  //   spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
-  // } else {
-  //   spec.avg_dx = program.spec.avg_dx;
-  //   spec.avg_dy = program.spec.avg_dy;
-  // }
-
   std::vector<geometry_msgs::PoseArray> grid;
   spec_inf_.GenerateGrid(spec, world.surface, &grid);
   program.grid = grid;
+  program.spec = spec;
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
-    viz_.PublishSpecMarkers(db_id, world, spec.landmark);
+    viz_.PublishSpecMarkers(db_id, world, grid, spec.landmark);
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
   }
@@ -551,24 +540,21 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   }
 
   msgs::Specification spec = temp_spec;
-  if (!spec.flag1D) {
-    spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
-    spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
-  } else {
-    spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
-    spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
-  }
+  // if (!spec.flag1D) {
+  //   spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
+  //   spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
+  // } else {
+  //   spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
+  //   spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
+  // }
 
   // Create new program that will be modified and run for each grid position
-  // TO DO: Cut off program at first demo
   msgs::Program new_program = program;
   new_program.steps.clear();
   // Get grid positions
   World world;
   GetWorld(robot_config_, program, last_viewed_[db_id], &world);
   std::vector<geometry_msgs::PoseArray> grid = program.grid;
-
-  // spec_inf_.GenerateGrid(spec, world.surface, &grid);
 
   // 1.1 save 'move to cart pose' actions in an array
   // 1.2 get demo reference position by looking for 'open gripper action' and
@@ -622,6 +608,7 @@ endloop:
   int count = 1;
   std::cout << "Grid positions = " << grid.size() * grid[0].poses.size()
             << "\n";
+  std::cout << "Height = " << spec.height_num << "\n";
   for (size_t row = 0; row < grid.size(); ++row) {
     for (size_t col = 0; col < grid[row].poses.size(); ++col) {
       geometry_msgs::Pose pose = grid[row].poses[col];
@@ -664,18 +651,13 @@ endloop:
                     << new_program.steps[s_id].actions[a_id].pose.position.y
                     << "\n";
         }
-        std::cout << "Running program...\n";
-        // for (size_t p_id = 0; p_id < new_program.spec.programs.size();
-        // ++p_id) {
-        //   std::string p_name = new_program.spec.programs[p_id];
-        //   if (p_name == "") {
-        //     p_name = "Pick from top";
-        //   }
-        //   std::cout << "Running program..." << p_name << "\n";
-        //   RunProgram(p_name);
-        // }
+        std::cout << "Running program..." << spec.pick_program << "\n";
+        if (spec.pick_program == "") {
+          spec.pick_program = "Pick from top";
+        }
+        RunProgram(spec.pick_program);
 
-        RunProgram(program.name + "2");
+        std::cout << "Running program..." << program.name << "\n";
         msgs::ExecuteProgramGoal goal;
         goal.program = new_program;
         action_clients_->program_client.sendGoal(goal);
