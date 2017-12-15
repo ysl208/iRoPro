@@ -609,6 +609,7 @@ endloop:
   std::cout << "Grid positions = " << grid.size() * grid[0].poses.size()
             << "\n";
   std::cout << "Height = " << spec.height_num << "\n";
+
   for (size_t row = 0; row < grid.size(); ++row) {
     for (size_t col = 0; col < grid[row].poses.size(); ++col) {
       geometry_msgs::Pose pose = grid[row].poses[col];
@@ -656,6 +657,8 @@ endloop:
           spec.pick_program = "Pick from top";
         }
         RunProgram(spec.pick_program);
+        ROS_INFO("Pick done. Press enter to Place");
+        std::cin.ignore();
 
         std::cout << "Running program..." << program.name << "\n";
         msgs::ExecuteProgramGoal goal;
@@ -664,11 +667,12 @@ endloop:
         bool success =
             action_clients_->program_client.waitForResult(ros::Duration(10));
         if (!success) {
-          ROS_ERROR("Failed to execute program 'place'.");
-          std::cin.ignore();
+          ROS_ERROR("No successful result");
         }
         msgs::ExecuteProgramResult::ConstPtr result =
             action_clients_->program_client.getResult();
+        ROS_INFO("Place done. Press enter to continue");
+        std::cin.ignore();
       }
       ++count;
     }
