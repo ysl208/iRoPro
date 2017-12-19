@@ -494,11 +494,14 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
   World world;
   GetWorld(robot_config_, program, last_viewed_[db_id], &world);
   msgs::Specification spec = temp_spec;
-
+  spec_inf_.GetOffset(temp_spec, &spec.offset);
+  // spec.offset.x = spec.offset.x * spec.avg_dx * 0.5;
+  // spec.offset.y = spec.offset.y * spec.avg_dy * 0.5;
   std::vector<geometry_msgs::PoseArray> grid;
   spec_inf_.GenerateGrid(spec, world.surface, &grid);
   program.grid = grid;
   program.spec = spec;
+
   db_.Update(db_id, program);
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
     viz_.PublishSpecMarkers(db_id, world, grid, spec.landmark);
@@ -561,8 +564,8 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   // taking the latest 'move to cart pose'
   // Note: reference position in demo always aligns with 1st object in grid
   std::pair<int, int> reference_pose;
-  int release_step = -1;
-  int release_action = -1;
+  int release_step = 0;
+  int release_action = 0;
   std::vector<std::pair<int, int> > cart_pose_actions;
 
   for (size_t step_id = 0; step_id < program.steps.size(); ++step_id) {
@@ -604,77 +607,90 @@ endloop:
   // 2. Loop through grid positions
   // 2.1 if landmark on position, skip
   // 2.2 if position empty, modify poses and run program
-  double dx, dy;  // track transformation from 0th to current position
+  double dx, dy, dz;  // track transformation from 0th to current position
   int count = 1;
   std::cout << "Grid positions = " << grid.size() * grid[0].poses.size()
             << "\n";
   std::cout << "Height = " << spec.height_num << "\n";
+  for (size_t height = 0; height < spec.height_num; ++height) {
+    // update z coordinate to stack
+    std::cout << "Current height: " << height + 1 << "\n";
+    dz = (program.spec.landmark.surface_box_dims.z + 0.005) * height;
+    for (size_t row = 0; row < grid.size(); ++row) {
+      for (size_t col = 0; col < grid[row].poses.size(); ++col) {
+        geometry_msgs::Pose pose = grid[row].poses[col];
+        std::cout << "-- #" << count << " grid position is \n"
+                  << pose.position << "\n";
 
-  for (size_t row = 0; row < grid.size(); ++row) {
-    for (size_t col = 0; col < grid[row].poses.size(); ++col) {
-      geometry_msgs::Pose pose = grid[row].poses[col];
-      std::cout << "-- #" << count << " grid position is \n"
-                << pose.position << "\n";
+        dx = pose.position.x - grid[0].poses[0].position.x;
+        dy = pose.position.y - grid[0].poses[0].position.y;
 
-      dx = pose.position.x - grid[0].poses[0].position.x;
-      dy = pose.position.y - grid[0].poses[0].position.y;
+        std::cout << "dx is " << dx << ",";
+        std::cout << "dy is " << dy << "\n";
+        // TO DO: include object dims to check space properly
+        if (CheckGridPositionFree(world.surface_box_landmarks, pose.position) ||
+            height > 0) {
+          // use this grid pose, update cart_pose_actions with new grid pose
+          // find transform from grid pos to ref_pose
+          for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
+            int s_id = cart_pose_actions[id].first;
+            int a_id = cart_pose_actions[id].second;
 
-      std::cout << "dx is " << dx << ",";
-      std::cout << "dy is " << dy << "\n";
-      // TO DO: include object dims to check space properly
-      if (CheckGridPositionFree(world.surface_box_landmarks, pose.position)) {
-        // use this grid pose, update cart_pose_actions with new grid pose
-        // find transform from grid pos to ref_pose
-        for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
-          int s_id = cart_pose_actions[id].first;
-          int a_id = cart_pose_actions[id].second;
+            // reset pose to original demo pose
+            new_program.steps[s_id].actions[a_id].pose.position.x =
+                program.steps[s_id].actions[a_id].pose.position.x;
+            new_program.steps[s_id].actions[a_id].pose.position.y =
+                program.steps[s_id].actions[a_id].pose.position.y;
+            new_program.steps[s_id].actions[a_id].pose.position.z =
+                program.steps[s_id].actions[a_id].pose.position.z;
 
-          // reset pose to original demo pose
-          new_program.steps[s_id].actions[a_id].pose.position.x =
-              program.steps[s_id].actions[a_id].pose.position.x;
-          new_program.steps[s_id].actions[a_id].pose.position.y =
-              program.steps[s_id].actions[a_id].pose.position.y;
+            std::cout << "Reset to original x pose for step/action = " << s_id
+                      << "," << a_id << ": x = "
+                      << new_program.steps[s_id].actions[a_id].pose.position.x
+                      << ", y = "
+                      << new_program.steps[s_id].actions[a_id].pose.position.y
+                      << ", z = "
+                      << new_program.steps[s_id].actions[a_id].pose.position.z
+                      << "\n";
+            // transform pose to new grid position
+            new_program.steps[s_id].actions[a_id].pose.position.x += dx;
+            new_program.steps[s_id].actions[a_id].pose.position.y += dy;
+            new_program.steps[s_id].actions[a_id].pose.position.z += dz;
 
-          std::cout << "Reset to original x pose for step/action = " << s_id
-                    << "," << a_id << ": "
-                    << new_program.steps[s_id].actions[a_id].pose.position.x
-                    << ", and y pose is "
-                    << new_program.steps[s_id].actions[a_id].pose.position.y
-                    << "\n";
-          // transform pose to new grid position
-          new_program.steps[s_id].actions[a_id].pose.position.x += dx;
-          new_program.steps[s_id].actions[a_id].pose.position.y += dy;
+            std::cout << "New x pose for step/action = " << s_id << "," << a_id
+                      << ": x = "
+                      << new_program.steps[s_id].actions[a_id].pose.position.x
+                      << ", y = "
+                      << new_program.steps[s_id].actions[a_id].pose.position.y
+                      << ", z = "
+                      << new_program.steps[s_id].actions[a_id].pose.position.z
+                      << "\n";
+          }
+          std::cout << "Running program..." << spec.pick_program << "\n";
+          if (spec.pick_program != "") {
+            RunProgram(spec.pick_program);
+            ROS_INFO("Pick done. Press enter to Place");
+            std::cin.ignore();
+          }
 
-          std::cout << "New x pose for step/action = " << s_id << "," << a_id
-                    << ": "
-                    << new_program.steps[s_id].actions[a_id].pose.position.x
-                    << ", and y pose is "
-                    << new_program.steps[s_id].actions[a_id].pose.position.y
-                    << "\n";
+          std::cout << "Running program..." << program.name << "\n";
+          msgs::ExecuteProgramGoal goal;
+          goal.program = new_program;
+          action_clients_->program_client.sendGoal(goal);
+          bool success =
+              action_clients_->program_client.waitForResult(ros::Duration(10));
+          if (!success) {
+            ROS_ERROR("No successful result");
+            ROS_INFO("Press enter to continue");
+            std::cin.ignore();
+          }
+          msgs::ExecuteProgramResult::ConstPtr result =
+              action_clients_->program_client.getResult();
+          ROS_INFO("Place done. Press enter to continue");
+          std::cin.ignore();
         }
-        std::cout << "Running program..." << spec.pick_program << "\n";
-        if (spec.pick_program == "") {
-          spec.pick_program = "Pick from top";
-        }
-        RunProgram(spec.pick_program);
-        ROS_INFO("Pick done. Press enter to Place");
-        std::cin.ignore();
-
-        std::cout << "Running program..." << program.name << "\n";
-        msgs::ExecuteProgramGoal goal;
-        goal.program = new_program;
-        action_clients_->program_client.sendGoal(goal);
-        bool success =
-            action_clients_->program_client.waitForResult(ros::Duration(10));
-        if (!success) {
-          ROS_ERROR("No successful result");
-        }
-        msgs::ExecuteProgramResult::ConstPtr result =
-            action_clients_->program_client.getResult();
-        ROS_INFO("Place done. Press enter to continue");
-        std::cin.ignore();
+        ++count;
       }
-      ++count;
     }
   }
 }

@@ -54,8 +54,8 @@ void SpecInference::InitSpec(msgs::Specification* spec) {
 
 void SpecInference::GetOffset(const msgs::Specification& spec,
                               geometry_msgs::Vector3* offset) {
-  offset->x = offset->x * spec.avg_dx * 0.5;
-  offset->y = offset->y * spec.avg_dy * 0.5;
+  offset->x = spec.offset.x * spec.avg_dx * 0.5;
+  offset->y = spec.offset.y * spec.avg_dy * 0.5;
 }
 
 void SpecInference::InitSpecs(std::vector<msgs::Specification>* specs,
@@ -94,13 +94,13 @@ void SpecInference::InitSpecs(std::vector<msgs::Specification>* specs,
   spec.name = "Spec 4";
   spec.row_num = max_rows_;
   spec.col_num = max_rows_;
-  spec.offset.y = spec.avg_dy * 0.5;
+  spec.offset.y = 1;
   specs->push_back(spec);
 
   spec.name = "Spec 5";
   spec.row_num = max_rows_;
   spec.col_num = max_rows_;
-  spec.offset.x = spec.avg_dx * 0.5;
+  spec.offset.x = 1;
   spec.offset.y = 0;
   specs->push_back(spec);
 }
@@ -301,7 +301,7 @@ void SpecInference::GenerateGrid(const msgs::Specification& spec,
   // distance, and a surface
   // generate obj_num positions on the surface
   // Note: assume that starting landmark is on top right corner of the table
-  std::cout << "Generate Grid \n";
+  // std::cout << "Generate Grid \n";
   geometry_msgs::PoseArray pose_array;
   std::vector<geometry_msgs::Pose> positions;
 
@@ -310,47 +310,49 @@ void SpecInference::GenerateGrid(const msgs::Specification& spec,
   obj_distance.y = spec.avg_dy;
   obj_distance.z = spec.landmark.surface_box_dims.z;
 
-  std::cout << "obj_distance = " << obj_distance.x << "," << obj_distance.y
-            << "\n";
+  // std::cout << "obj_distance = " << obj_distance.x << "," << obj_distance.y
+  //           << "\n";
   // set corners of the allowed area
   geometry_msgs::Point min_pos = spec.landmark.pose_stamped.pose.position;
-  std::cout << "min_pos = " << min_pos.x << "," << min_pos.y << "\n";
+  // std::cout << "min_pos = " << min_pos.x << "," << min_pos.y << "\n";
   geometry_msgs::Point max_pos, num_based, surface_based;
   // Fit the number of rows/cols required and stop at the surface border
   // Note: using minus operator for x because we assume that start object is top
   // right
   num_based.x = min_pos.x - (spec.row_num - 1) * obj_distance.x;
   num_based.y = min_pos.y + (spec.col_num - 1) * obj_distance.y;
-  std::cout << "num_based.x = " << num_based.x << " = " << min_pos.x << " - ("
-            << spec.row_num << "-1)*" << obj_distance.x << "\n";
-  std::cout << "num_based.y = " << num_based.y << " = " << min_pos.y << " - ("
-            << spec.col_num << "-1)*" << obj_distance.y << "\n";
+  // std::cout << "num_based.x = " << num_based.x << " = " << min_pos.x << " -
+  // ("
+  //           << spec.row_num << "-1)*" << obj_distance.x << "\n";
+  // std::cout << "num_based.y = " << num_based.y << " = " << min_pos.y << " -
+  // ("
+  //           << spec.col_num << "-1)*" << obj_distance.y << "\n";
 
   surface_based.x =
       surface.pose_stamped.pose.position.x - surface.dimensions.x * 0.5;
   surface_based.y =
       surface.pose_stamped.pose.position.y + surface.dimensions.y * 0.5;
-  std::cout << "surface_based.x = " << surface_based.x << " = "
-            << surface.pose_stamped.pose.position.x << " - "
-            << surface.dimensions.x * 0.5 << "\n";
-  std::cout << "surface_based.y = " << surface_based.y << " = "
-            << surface.pose_stamped.pose.position.y << " - "
-            << surface.dimensions.y * 0.5 << "\n";
+  // std::cout << "surface_based.x = " << surface_based.x << " = "
+  //           << surface.pose_stamped.pose.position.x << " - "
+  //           << surface.dimensions.x * 0.5 << "\n";
+  // std::cout << "surface_based.y = " << surface_based.y << " = "
+  //           << surface.pose_stamped.pose.position.y << " - "
+  //           << surface.dimensions.y * 0.5 << "\n";
 
   // set max_pos as mininum of either end of the border or rows/cols defined
   max_pos.x = fmax(num_based.x, surface_based.x);
   max_pos.y = fmin(num_based.y, surface_based.y);
-  std::cout << "max_pos.x = fmax( " << num_based.x << "," << surface_based.x
-            << "\n";
-  std::cout << "max_pos.y = fmin( " << num_based.y << "," << surface_based.y
-            << "\n";
+  // std::cout << "max_pos.x = fmax( " << num_based.x << "," << surface_based.x
+  //           << "\n";
+  // std::cout << "max_pos.y = fmin( " << num_based.y << "," << surface_based.y
+  //           << "\n";
   max_pos.z =
       surface.pose_stamped.pose.position.z + spec.landmark.surface_box_dims.z;
 
-  std::cout << "GetPositions with \n"
-            << "min_pos:" << min_pos << ", max_pos:" << max_pos
-            << ", lm dims: " << spec.landmark.surface_box_dims
-            << ", obj_dist: " << obj_distance << "\n";
+  // std::cout << "GetPositions with \n"
+  //           << "min_pos:" << min_pos << ", max_pos:" << max_pos
+  //           << ", lm dims: " << spec.landmark.surface_box_dims
+  //           << ", obj_dist: " << obj_distance << "\n";
   GetPositions(min_pos, max_pos, spec.offset,
                spec.landmark.pose_stamped.pose.orientation, obj_distance,
                &positions, spec.obj_num);
@@ -387,8 +389,8 @@ void SpecInference::GetPositions(const geometry_msgs::Point& min_pos,
 
     while (local_min.y <= max_pos.y + 0.001) {
       pose.position.y = local_min.y;
-      std::cout << "x y : " << pose.position.x << " , " << pose.position.y
-                << "\n";
+      // std::cout << "x y : " << pose.position.x << " , " << pose.position.y
+      //           << "\n";
 
       if (evenCol) {
         pose.position.x -= offset.x;
@@ -401,7 +403,7 @@ void SpecInference::GetPositions(const geometry_msgs::Point& min_pos,
       positions->push_back(pose);
 
       local_min.y += obj_distance.y;
-      std::cout << "local_min.y = " << local_min.y << "\n";
+      // std::cout << "local_min.y = " << local_min.y << "\n";
       if (positions->size() >= obj_num) {
         return;
       }

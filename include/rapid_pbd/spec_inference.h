@@ -37,6 +37,8 @@ class SpecInference {
   void GenerateStacks(const rapid_pbd_msgs::Specification& spec,
                       const rapid_pbd_msgs::Surface& surface,
                       std::vector<geometry_msgs::PoseArray>* grid);
+  void GetOffset(const rapid_pbd_msgs::Specification& spec,
+                 geometry_msgs::Vector3* offset);
 
  private:
   World* world_;
@@ -68,8 +70,6 @@ class SpecInference {
                     const geometry_msgs::Vector3& obj_distance,
                     std::vector<geometry_msgs::Pose>* positions,
                     const int& obj_num);
-  void GetOffset(const rapid_pbd_msgs::Specification& spec,
-                 geometry_msgs::Vector3* offset);
 
   bool SimilarSized(const rapid_pbd_msgs::Landmark& landmark1,
                     const rapid_pbd_msgs::Landmark& landmark2);
