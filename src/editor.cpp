@@ -565,6 +565,11 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
 
   bool newProgramSuccess =
       GetCartActions(&cart_pose_actions, program, &new_program);
+  if (!newProgramSuccess) {
+    ROS_ERROR("No cartesian actions found in program \"%s\"", db_id.c_str());
+    return;
+  }
+
   std::cout << "new program has size: " << new_program.steps.size() << "\n";
   int ref_step = reference_pose.first;
   int ref_action = reference_pose.second;
