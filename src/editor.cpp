@@ -597,12 +597,16 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
         if (CheckGridPositionFree(world.surface_box_landmarks, pose.position) ||
             height > 0) {
           // Check current Place program has enough space
-          bool gripperSpace =
-              CheckGripperSpace(world.surface_box_landmarks, pose.position,
-                                main_program.gripper_box);
           msgs::Program alt_program = main_program;
+          bool gripperSpace = true;
+          if (alt_program.gripper_box.surface_box_dims.x > 0) {
+            gripperSpace =
+                CheckGripperSpaceEnough(world.surface_box_landmarks,
+                                        pose.position, alt_program.gripper_box);
+          }
 
           if (!gripperSpace) {
+            std::cout << "Gripper space not enough, checking other programs\n";
             std::vector<std::string> names;
             bool listSuccess = db_.GetList(&names);
             if (!success) {
@@ -615,9 +619,9 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
               if (!programSuccess || names[p_id] == main_program.name) {
                 continue;
               }
-              gripperSpace =
-                  CheckGripperSpace(world.surface_box_landmarks, pose.position,
-                                    alt_program.gripper_box);
+              gripperSpace = CheckGripperSpaceEnough(
+                  world.surface_box_landmarks, pose.position,
+                  alt_program.gripper_box);
               if (gripperSpace) {
                 ROS_INFO("Alternative Place program found: %s",
                          alt_program.name.c_str());
@@ -730,14 +734,64 @@ bool Editor::GetCartActions(
   return new_program->steps.size() > 0;
 }
 
+geometry_msgs::Vector3 Editor::QuaternionToRPY(
+    // same as in ConditionGenerator
+    const geometry_msgs::Quaternion& msg) {
+  tf::Quaternion quat(msg.x, msg.y, msg.z, msg.w);
+  // the tf::Quaternion has a method to access roll pitch and yaw
+  double roll, pitch, yaw;
+  tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+  ROS_INFO("quaternion: %f,%f,%f,%f", msg.w, msg.x, msg.y, msg.z);
+  // the found angles are written in a geometry_msgs::Vector3
+  geometry_msgs::Vector3 rpy;
+  rpy.x = roll * 180.0 / M_PI;
+  rpy.y = pitch * 180.0 / M_PI;
+  rpy.z = yaw * 180.0 / M_PI;
+
+  ROS_INFO("euler: %f,%f,%f", rpy.x, rpy.y, rpy.z);
+  return rpy;
+}
+
 bool Editor::CheckObjectCollision(const std::vector<msgs::Landmark>& landmarks,
                                   const msgs::Landmark& bounding_box) {
   // TO DO: Check if bounding box collides with any landmarks
 }
-bool Editor::CheckGripperSpace(const std::vector<msgs::Landmark>& landmarks,
-                               const geometry_msgs::Point& position,
-                               const msgs::Landmark& bounding_box) {
+bool Editor::CheckGripperSpaceEnough(
+    const std::vector<msgs::Landmark>& landmarks,
+    const geometry_msgs::Point& position, const msgs::Landmark& bounding_box) {
   // Checks if the target pose will not collide with existing landmarks
+  // TO DO: Use Separating Axis Theorem for more accurate results
+  // 1. check orientation of gripper, if > 45deg then swap dims.x and dims.y
+  geometry_msgs::Vector3 bb_orientation =
+      QuaternionToRPY(bounding_box.pose_stamped.pose.orientation);
+
+  geometry_msgs::Vector3 bb_dims = bounding_box.surface_box_dims;
+  if (fabs(fmod(bb_orientation.z, 180)) > 85) {
+    std::cout << "Swapping bb_dims.x and y \n";
+    float temp = bb_dims.x;
+    bb_dims.x = bb_dims.y;
+    bb_dims.y = temp;
+  }
+  for (size_t i = 0; i < landmarks.size(); ++i) {
+    msgs::Landmark lm = landmarks[i];
+    geometry_msgs::Vector3 lm_dims = lm.surface_box_dims;
+    if (fabs(fmod(bb_orientation.z, 180)) > 85) {
+      std::cout << "Swapping lm_dims.x and y \n";
+      float temp = lm_dims.x;
+      lm_dims.x = lm_dims.y;
+      lm_dims.y = temp;
+    }
+
+    double dx = position.x - lm.pose_stamped.pose.position.x;
+    double dy = position.y - lm.pose_stamped.pose.position.y;
+    // double dz = position.z - lm.pose_stamped.pose.position.z;
+
+    if (dx < (bb_dims.x + lm_dims.x) * 0.5 &&
+        dy < (bb_dims.y + lm_dims.y) * 0.5) {
+      std::cout << "Not enough gripper space, because of " << lm.name << "\n";
+      return false;
+    }
+  }
   return true;
 }
 
@@ -753,7 +807,7 @@ bool Editor::CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
     // double dz = position.z - lm.pose_stamped.pose.position.z;
     double squared_distance = dx * dx + dy * dy;  // + dz * dz;
 
-    double lm_diameter = fmin(lm.surface_box_dims.x, lm.surface_box_dims.x);
+    double lm_diameter = (lm.surface_box_dims.x + lm.surface_box_dims.y) * 0.5;
     if (squared_distance < lm_diameter * lm_diameter) {
       std::cout << "Position not free, blocked by " << lm.name << "\n";
       std::cout << "squ distance = " << squared_distance << " < ";
@@ -830,9 +884,32 @@ void Editor::AddAction(const std::string& db_id, size_t step_id,
   }
   msgs::Step* step = &program.steps[step_id];
   step->actions.insert(step->actions.begin(), action);
+  if (program.gripper_box.surface_box_dims.x == 0) {
+    // if the gripper_box has not been assigned yet
+    msgs::Step* cart_step = &program.steps[step_id - 1];
+    AssignGripperBoundingBox(cart_step, &program.gripper_box);
+  }
   Update(db_id, program);
 }
+void Editor::AssignGripperBoundingBox(msgs::Step* cart_step,
+                                      msgs::Landmark* gripper_box) {
+  // Assigns a landmark representing the gripper bounding box
+  // Find move_to_cart action
+  gripper_box->type = msgs::Landmark::TF_FRAME;
+  gripper_box->name = robot_config_.torso_link();
+  gripper_box->surface_box_dims.x = 0.05;
+  gripper_box->surface_box_dims.y = 0.1;
+  gripper_box->surface_box_dims.z = 0.05;
 
+  for (size_t action_id = 0; action_id < cart_step->actions.size();
+       ++action_id) {
+    msgs::Action action = cart_step->actions[action_id];
+    if (action.type == Action::MOVE_TO_CARTESIAN_GOAL) {
+      gripper_box->pose_stamped.pose = action.pose;
+      return;
+    }
+  }
+}
 void Editor::DeleteAction(const std::string& db_id, size_t step_id,
                           size_t action_id) {
   msgs::Program program;

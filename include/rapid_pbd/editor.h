@@ -63,6 +63,8 @@ class Editor {
   void DeleteStep(const std::string& db_id, size_t step_id);
   void AddAction(const std::string& db_id, size_t step_id,
                  rapid_pbd_msgs::Action action);
+  void AssignGripperBoundingBox(rapid_pbd_msgs::Step* cart_step,
+                                rapid_pbd_msgs::Landmark* gripper_box);
   void DeleteAction(const std::string& db_id, size_t step_id, size_t action_id);
   void ViewStep(const std::string& db_id, size_t step_id);
   void DetectSurfaceObjects(const std::string& db_id, size_t step_id);
@@ -114,12 +116,14 @@ class Editor {
   void GetDemonstrationSteps(const rapid_pbd_msgs::Program& program,
                              std::vector<rapid_pbd_msgs::Step>* demo_steps);
   void RunProgram(const std::string& program_name);
+  geometry_msgs::Vector3 QuaternionToRPY(const geometry_msgs::Quaternion& msg);
   bool CheckObjectCollision(
       const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
       const rapid_pbd_msgs::Landmark& bounding_box);
-  bool CheckGripperSpace(const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
-                         const geometry_msgs::Point& position,
-                         const rapid_pbd_msgs::Landmark& bounding_box);
+  bool CheckGripperSpaceEnough(
+      const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
+      const geometry_msgs::Point& position,
+      const rapid_pbd_msgs::Landmark& bounding_box);
   bool CheckGridPositionFree(
       const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
       const geometry_msgs::Point& position);
