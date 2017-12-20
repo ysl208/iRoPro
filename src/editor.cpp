@@ -627,7 +627,6 @@ endloop:
 
         std::cout << "dx is " << dx << ",";
         std::cout << "dy is " << dy << "\n";
-        // TO DO: include object dims to check space properly
         if (CheckGridPositionFree(world.surface_box_landmarks, pose.position) ||
             height > 0) {
           // use this grid pose, update cart_pose_actions with new grid pose
@@ -681,8 +680,6 @@ endloop:
               action_clients_->program_client.waitForResult(ros::Duration(10));
           if (!success) {
             ROS_ERROR("No successful result");
-            ROS_INFO("Press enter to continue");
-            std::cin.ignore();
           }
           msgs::ExecuteProgramResult::ConstPtr result =
               action_clients_->program_client.getResult();
@@ -694,9 +691,16 @@ endloop:
     }
   }
 }
+bool Editor::CheckObjectCollision(const std::vector<msgs::Landmark>& landmarks,
+                                  const msgs::Landmark& bounding_box) {
+  // TO DO: Check if bounding box collides with any landmarks
+}
 
 bool Editor::CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
                                    const geometry_msgs::Point& position) {
+  // TO DO: include object dims to check space properly
+
+  // Checks if position is inside a landmark
   for (size_t i = 0; i < landmarks.size(); ++i) {
     msgs::Landmark lm = landmarks[i];
     double dx = position.x - lm.pose_stamped.pose.position.x;
@@ -709,20 +713,10 @@ bool Editor::CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
       std::cout << "Position not free, blocked by " << lm.name << "\n";
       std::cout << "squ distance = " << squared_distance << " < ";
       std::cout << "lm_diameter = " << lm_diameter * lm_diameter << "\n";
-
       return false;
     }
   }
   return true;
-}
-
-void Editor::ShiftCartActionPose(msgs::Action* action,
-                                 const geometry_msgs::Pose& pose,
-                                 const msgs::Landmark& landmark) {
-  if (action->type == Action::MOVE_TO_CARTESIAN_GOAL &&
-      action->landmark.name == landmark.name) {
-    action->pose = pose;
-  }
 }
 
 void Editor::GetDemonstrationSteps(const msgs::Program& program,
