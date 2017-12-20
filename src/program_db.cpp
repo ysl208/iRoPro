@@ -154,6 +154,16 @@ void ProgramDb::PublishList() {
   list_pub_->publish(msg);
 }
 
+bool ProgramDb::GetList(std::vector<std::string>* names) {
+  vector<pair<shared_ptr<Program>, mongo::BSONObj> > results;
+  db_->query<Program>(results);
+  for (size_t i = 0; i < results.size(); ++i) {
+    std::string name;
+    name = results[i].first->name;
+    names->push_back(name);
+  }
+}
+
 void ProgramDb::PublishProgram(const std::string& db_id) {
   if (program_pubs_.find(db_id) == program_pubs_.end()) {
     ROS_ERROR("No publisher for program ID: \"%s\"", db_id.c_str());

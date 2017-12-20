@@ -42,6 +42,7 @@ class ProgramDb {
   bool GetByName(const std::string& name,
                  rapid_pbd_msgs::Program* program) const;
   void Delete(const std::string& db_id);
+  bool GetList(std::vector<std::string>* names);
 
  private:
   ros::NodeHandle nh_;
