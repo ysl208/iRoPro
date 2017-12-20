@@ -108,7 +108,9 @@ class Editor {
                       const std::vector<double>& default_pose);
   void AddGripperPoseAction(const std::string& db_id, size_t step_id,
                             const std::vector<double>& default_pose);
-
+  bool GetCartActions(std::vector<std::pair<int, int> >* cart_pose_actions,
+                      const rapid_pbd_msgs::Program& program,
+                      rapid_pbd_msgs::Program* new_program);
   void GetDemonstrationSteps(const rapid_pbd_msgs::Program& program,
                              std::vector<rapid_pbd_msgs::Step>* demo_steps);
   void RunProgram(const std::string& program_name);

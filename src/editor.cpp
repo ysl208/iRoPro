@@ -523,10 +523,12 @@ void Editor::RunProgram(const std::string& program_name) {
   msgs::ExecuteProgramResult::ConstPtr result =
       action_clients_->program_client.getResult();
 }
+
 void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
                                  const msgs::Specification& temp_spec) {
   // Assumes that this is called in the 'Place & Infer' program
-  // TO DO: assume that spec.landmark is the last added landmark
+  // TO DO: assume that spec.landmark is the last added landmark, might not be
+  // true
   // get the program
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
@@ -543,13 +545,6 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   }
 
   msgs::Specification spec = temp_spec;
-  // if (!spec.flag1D) {
-  //   spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
-  //   spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
-  // } else {
-  //   spec.avg_dx = fmax(program.spec.avg_dx, spec.avg_dx);
-  //   spec.avg_dy = fmax(program.spec.avg_dy, spec.avg_dy);
-  // }
 
   // Create new program that will be modified and run for each grid position
   msgs::Program new_program = program;
@@ -568,39 +563,14 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   int release_action = 0;
   std::vector<std::pair<int, int> > cart_pose_actions;
 
-  for (size_t step_id = 0; step_id < program.steps.size(); ++step_id) {
-    msgs::Step step = program.steps[step_id];
-    for (size_t action_id = 0; action_id < step.actions.size(); ++action_id) {
-      msgs::Action action = step.actions[action_id];
-      if (action.type == Action::INFER_SPECIFICATION) {
-        std::cout << "Infer action detected, end of demo steps: "
-                  << new_program.steps.size() << "\n";
-        goto endloop;
-      }
-      if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
-          action.landmark.name != robot_config_.torso_link()) {
-        cart_pose_actions.push_back(std::make_pair(step_id, action_id));
-      }
-      if (action.type == Action::ACTUATE_GRIPPER && release_step < 0) {
-        // save the latest added step-action pair
-        reference_pose = cart_pose_actions.back();
-        release_step = step_id;
-        release_action = action_id;
-        std::cout << "* Pushed out Reference pose: " << reference_pose.first
-                  << "," << reference_pose.second << "\n";
-      }
-    }
-    new_program.steps.push_back(step);
-  }
-endloop:
+  bool newProgramSuccess =
+      GetCartActions(&cart_pose_actions, program, &new_program);
   std::cout << "new program has size: " << new_program.steps.size() << "\n";
   int ref_step = reference_pose.first;
   int ref_action = reference_pose.second;
   std::cout << "Release step/actions: " << ref_step << "," << ref_action
             << "\n";
   std::cout << "cart_pose_actions: " << cart_pose_actions.size() << "\n";
-  // if reference_pose with landmark.pose < some variance
-  // geometry_msgs::Pose lm_pose = landmark.pose_stamped.pose;
   geometry_msgs::Pose ref_pose =
       new_program.steps[ref_step].actions[ref_action].pose;
 
@@ -691,6 +661,38 @@ endloop:
     }
   }
 }
+bool Editor::GetCartActions(
+    std::vector<std::pair<int, int> >* cart_pose_actions,
+    const msgs::Program& program, msgs::Program* new_program) {
+  // 1. Extracts step and action pairs with 'move-to-cart-pose'-actions
+  // 2. Creates new program cut off at INF SPEC
+  for (size_t step_id = 0; step_id < program.steps.size(); ++step_id) {
+    msgs::Step step = program.steps[step_id];
+    for (size_t action_id = 0; action_id < step.actions.size(); ++action_id) {
+      msgs::Action action = step.actions[action_id];
+      if (action.type == Action::INFER_SPECIFICATION) {
+        std::cout << "Infer action detected, end of demo steps: "
+                  << new_program->steps.size() << "\n";
+        return new_program->steps.size() > 0;
+      }
+      if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
+          action.landmark.name != robot_config_.torso_link()) {
+        cart_pose_actions->push_back(std::make_pair(step_id, action_id));
+      }
+      // if (action.type == Action::ACTUATE_GRIPPER && release_step < 0) {
+      //   // save the latest added step-action pair
+      //   reference_pose = cart_pose_actions->back();
+      //   release_step = step_id;
+      //   release_action = action_id;
+      //   std::cout << "* Pushed out Reference pose: " << reference_pose.first
+      //             << "," << reference_pose.second << "\n";
+      // }
+    }
+    new_program->steps.push_back(step);
+  }
+  return new_program->steps.size() > 0;
+}
+
 bool Editor::CheckObjectCollision(const std::vector<msgs::Landmark>& landmarks,
                                   const msgs::Landmark& bounding_box) {
   // TO DO: Check if bounding box collides with any landmarks
