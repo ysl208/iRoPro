@@ -221,6 +221,7 @@ double BoxDissimilarity(const std::vector<double>& a,
 
 bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
                    rapid_pbd_msgs::Landmark* match, const double& variance) {
+  // Picks the closest object which is still <= kMaxDistance
   ROS_INFO("Landmark %s", landmark.name.c_str());
   const double kMaxDistance = variance * variance;
   std::vector<double> landmark_dims;
@@ -232,9 +233,15 @@ bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
       std::vector<double> world_landmark_dims;
       GetDims(world_landmark, &world_landmark_dims);
       double distance = BoxDissimilarity(landmark_dims, world_landmark_dims);
-      if (distance < best) {
-        best = distance;
-        *match = world_landmark;
+      if (distance <= kMaxDistance) {
+        // if x-distance of world_landmark is closer than current best match,
+        // then choose this object
+        if (match->name == "" ||
+            world_landmark.pose_stamped.pose.position.x <
+                match->pose_stamped.pose.position.x) {
+          best = distance;
+          *match = world_landmark;
+        }
       }
     }
     return best <= kMaxDistance;
