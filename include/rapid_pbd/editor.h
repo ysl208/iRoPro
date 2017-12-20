@@ -117,6 +117,9 @@ class Editor {
   bool CheckObjectCollision(
       const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
       const rapid_pbd_msgs::Landmark& bounding_box);
+  bool CheckGripperSpace(const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
+                         const geometry_msgs::Point& position,
+                         const rapid_pbd_msgs::Landmark& bounding_box);
   bool CheckGridPositionFree(
       const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
       const geometry_msgs::Point& position);

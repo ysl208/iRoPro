@@ -530,54 +530,45 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   // TO DO: assume that spec.landmark is the last added landmark, might not be
   // true
   // get the program
-  msgs::Program program;
-  bool success = db_.Get(db_id, &program);
+  msgs::Program main_program;
+  bool success = db_.Get(db_id, &main_program);
   if (!success) {
     ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
     return;
   }
-  if (step_id >= program.steps.size()) {
+  if (step_id >= main_program.steps.size()) {
     ROS_ERROR(
         "Unable to get action from step %ld from program \"%s\", which has "
         "%ld steps",
-        step_id, db_id.c_str(), program.steps.size());
+        step_id, db_id.c_str(), main_program.steps.size());
     return;
   }
 
   msgs::Specification spec = temp_spec;
 
   // Create new program that will be modified and run for each grid position
-  msgs::Program new_program = program;
-  new_program.steps.clear();
-  // Get grid positions
-  World world;
-  GetWorld(robot_config_, program, last_viewed_[db_id], &world);
-  std::vector<geometry_msgs::PoseArray> grid = program.grid;
+  msgs::Program new_program = main_program;
+
+  World world;  // needed for surface box landmarks
+  GetWorld(robot_config_, main_program, last_viewed_[db_id], &world);
+  std::vector<geometry_msgs::PoseArray> grid = main_program.grid;
 
   // 1.1 save 'move to cart pose' actions in an array
   // 1.2 get demo reference position by looking for 'open gripper action' and
   // taking the latest 'move to cart pose'
   // Note: reference position in demo always aligns with 1st object in grid
-  std::pair<int, int> reference_pose;
-  int release_step = 0;
-  int release_action = 0;
-  std::vector<std::pair<int, int> > cart_pose_actions;
+  // std::pair<int, int> reference_pose;
+  // int release_step = 0;
+  // int release_action = 0;
 
-  bool newProgramSuccess =
-      GetCartActions(&cart_pose_actions, program, &new_program);
-  if (!newProgramSuccess) {
-    ROS_ERROR("No cartesian actions found in program \"%s\"", db_id.c_str());
-    return;
-  }
-
-  std::cout << "new program has size: " << new_program.steps.size() << "\n";
-  int ref_step = reference_pose.first;
-  int ref_action = reference_pose.second;
-  std::cout << "Release step/actions: " << ref_step << "," << ref_action
-            << "\n";
-  std::cout << "cart_pose_actions: " << cart_pose_actions.size() << "\n";
-  geometry_msgs::Pose ref_pose =
-      new_program.steps[ref_step].actions[ref_action].pose;
+  // std::cout << "new program has size: " << new_program.steps.size() << "\n";
+  // int ref_step = reference_pose.first;
+  // int ref_action = reference_pose.second;
+  // std::cout << "Release step/actions: " << ref_step << "," << ref_action
+  //           << "\n";
+  // std::cout << "cart_pose_actions: " << cart_pose_actions.size() << "\n";
+  // geometry_msgs::Pose ref_pose =
+  //     new_program.steps[ref_step].actions[ref_action].pose;
 
   // 2. Loop through grid positions
   // 2.1 if landmark on position, skip
@@ -590,7 +581,7 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   for (size_t height = 0; height < spec.height_num; ++height) {
     // update z coordinate to stack
     std::cout << "Current height: " << height + 1 << "\n";
-    dz = (program.spec.landmark.surface_box_dims.z + 0.005) * height;
+    dz = (main_program.spec.landmark.surface_box_dims.z + 0.005) * height;
     for (size_t row = 0; row < grid.size(); ++row) {
       for (size_t col = 0; col < grid[row].poses.size(); ++col) {
         geometry_msgs::Pose pose = grid[row].poses[col];
@@ -601,9 +592,50 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
         dy = pose.position.y - grid[0].poses[0].position.y;
 
         std::cout << "dx is " << dx << ",";
-        std::cout << "dy is " << dy << "\n";
+        std::cout << "dy is " << dy << ",";
+        std::cout << "dz is " << dz << "\n";
         if (CheckGridPositionFree(world.surface_box_landmarks, pose.position) ||
             height > 0) {
+          // Check current Place program has enough space
+          bool gripperSpace =
+              CheckGripperSpace(world.surface_box_landmarks, pose.position,
+                                main_program.gripper_box);
+          msgs::Program alt_program = main_program;
+
+          if (!gripperSpace) {
+            std::vector<std::string> names;
+            bool listSuccess = db_.GetList(&names);
+            if (!success) {
+              ROS_ERROR("Unable to get list of programs.");
+              return;
+            }
+
+            for (size_t p_id; p_id < names.size(); ++p_id) {
+              bool programSuccess = db_.GetByName(names[p_id], &alt_program);
+              if (!programSuccess || names[p_id] == main_program.name) {
+                continue;
+              }
+              gripperSpace =
+                  CheckGripperSpace(world.surface_box_landmarks, pose.position,
+                                    alt_program.gripper_box);
+              if (gripperSpace) {
+                ROS_INFO("Alternative Place program found: %s",
+                         alt_program.name.c_str());
+                // new_program.steps = alt_program.steps;
+                break;
+              }
+            }
+          }
+
+          std::vector<std::pair<int, int> > cart_pose_actions;
+          new_program.steps.clear();
+          bool newProgramSuccess =
+              GetCartActions(&cart_pose_actions, alt_program, &new_program);
+          if (!newProgramSuccess) {
+            ROS_ERROR("No cartesian actions found in program \"%s\"",
+                      alt_program.name.c_str());
+            return;
+          }
           // use this grid pose, update cart_pose_actions with new grid pose
           // find transform from grid pos to ref_pose
           for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
@@ -612,11 +644,11 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
 
             // reset pose to original demo pose
             new_program.steps[s_id].actions[a_id].pose.position.x =
-                program.steps[s_id].actions[a_id].pose.position.x;
+                alt_program.steps[s_id].actions[a_id].pose.position.x;
             new_program.steps[s_id].actions[a_id].pose.position.y =
-                program.steps[s_id].actions[a_id].pose.position.y;
+                alt_program.steps[s_id].actions[a_id].pose.position.y;
             new_program.steps[s_id].actions[a_id].pose.position.z =
-                program.steps[s_id].actions[a_id].pose.position.z;
+                alt_program.steps[s_id].actions[a_id].pose.position.z;
 
             std::cout << "Reset to original x pose for step/action = " << s_id
                       << "," << a_id << ": x = "
@@ -647,7 +679,7 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
             std::cin.ignore();
           }
 
-          std::cout << "Running program..." << program.name << "\n";
+          std::cout << "Running program..." << alt_program.name << "\n";
           msgs::ExecuteProgramGoal goal;
           goal.program = new_program;
           action_clients_->program_client.sendGoal(goal);
@@ -701,6 +733,12 @@ bool Editor::GetCartActions(
 bool Editor::CheckObjectCollision(const std::vector<msgs::Landmark>& landmarks,
                                   const msgs::Landmark& bounding_box) {
   // TO DO: Check if bounding box collides with any landmarks
+}
+bool Editor::CheckGripperSpace(const std::vector<msgs::Landmark>& landmarks,
+                               const geometry_msgs::Point& position,
+                               const msgs::Landmark& bounding_box) {
+  // Checks if the target pose will not collide with existing landmarks
+  return true;
 }
 
 bool Editor::CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
