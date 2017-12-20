@@ -117,6 +117,10 @@ class Editor {
                              std::vector<rapid_pbd_msgs::Step>* demo_steps);
   void RunProgram(const std::string& program_name);
   geometry_msgs::Vector3 QuaternionToRPY(const geometry_msgs::Quaternion& msg);
+  bool AABBintersect(const rapid_pbd_msgs::Landmark& lm1,
+                     const rapid_pbd_msgs::Landmark& lm2);
+  void GetMinMax(const rapid_pbd_msgs::Landmark& lm,
+                 geometry_msgs::Vector3* min, geometry_msgs::Vector3* max);
   bool CheckObjectCollision(
       const std::vector<rapid_pbd_msgs::Landmark>& landmarks,
       const rapid_pbd_msgs::Landmark& bounding_box);

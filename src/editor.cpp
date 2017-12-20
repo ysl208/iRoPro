@@ -514,11 +514,12 @@ void Editor::RunProgram(const std::string& program_name) {
   msgs::ExecuteProgramGoal goal;
   goal.name = program_name;
   action_clients_->program_client.sendGoal(goal);
-  bool success =
-      action_clients_->program_client.waitForResult(ros::Duration(10));
-  if (!success) {
-    ROS_ERROR("Failed to execute program 'place'.");
-    return;
+  bool finished_before_timeout =
+      action_clients_->program_client.waitForResult(ros::Duration(30));
+  if (!finished_before_timeout) {
+    ROS_INFO("Program %s did not finish before the time out.",
+             program_name.c_str());
+    // return;
   }
   msgs::ExecuteProgramResult::ConstPtr result =
       action_clients_->program_client.getResult();
@@ -599,7 +600,8 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
           // Check current Place program has enough space
           msgs::Program alt_program = main_program;
           bool gripperSpace = true;
-          if (alt_program.gripper_box.surface_box_dims.x > 0) {
+          if (alt_program.gripper_box.name != "") {
+            ROS_INFO("Checking gripper space for %s", alt_program.name.c_str());
             gripperSpace =
                 CheckGripperSpaceEnough(world.surface_box_landmarks,
                                         pose.position, alt_program.gripper_box);
@@ -619,6 +621,8 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
               if (!programSuccess || names[p_id] == main_program.name) {
                 continue;
               }
+              ROS_INFO("Checking gripper space for %s",
+                       alt_program.name.c_str());
               gripperSpace = CheckGripperSpaceEnough(
                   world.surface_box_landmarks, pose.position,
                   alt_program.gripper_box);
@@ -679,7 +683,8 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
           std::cout << "Running program..." << spec.pick_program << "\n";
           if (spec.pick_program != "") {
             RunProgram(spec.pick_program);
-            ROS_INFO("Pick done. Press enter to Place");
+            ROS_INFO("%s done. Press enter to proceed to Place",
+                     spec.pick_program.c_str());
             std::cin.ignore();
           }
 
@@ -687,10 +692,11 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
           msgs::ExecuteProgramGoal goal;
           goal.program = new_program;
           action_clients_->program_client.sendGoal(goal);
-          bool success =
-              action_clients_->program_client.waitForResult(ros::Duration(10));
-          if (!success) {
-            ROS_ERROR("No successful result");
+          bool finished_before_timeout =
+              action_clients_->program_client.waitForResult(
+                  ros::Duration(30.0));
+          if (!finished_before_timeout) {
+            ROS_INFO("Program did not finish before the time out.");
           }
           msgs::ExecuteProgramResult::ConstPtr result =
               action_clients_->program_client.getResult();
@@ -762,6 +768,7 @@ bool Editor::CheckGripperSpaceEnough(
   // Checks if the target pose will not collide with existing landmarks
   // TO DO: Use Separating Axis Theorem for more accurate results
   // 1. check orientation of gripper, if > 45deg then swap dims.x and dims.y
+
   geometry_msgs::Vector3 bb_orientation =
       QuaternionToRPY(bounding_box.pose_stamped.pose.orientation);
 
@@ -774,6 +781,15 @@ bool Editor::CheckGripperSpaceEnough(
   }
   for (size_t i = 0; i < landmarks.size(); ++i) {
     msgs::Landmark lm = landmarks[i];
+    // ABB TEST
+    ROS_INFO("**Running AABB test...");
+    msgs::Landmark gripper_box = bounding_box;
+    gripper_box.pose_stamped.pose.position = position;
+    bool aabbResult = AABBintersect(lm, gripper_box);
+    std::cout << "AABB result is: " << aabbResult
+              << ". Press Enter to continue. \n";
+    std::cin.ignore();
+
     geometry_msgs::Vector3 lm_dims = lm.surface_box_dims;
     if (fabs(fmod(bb_orientation.z, 180)) > 85) {
       std::cout << "Swapping lm_dims.x and y \n";
@@ -792,7 +808,30 @@ bool Editor::CheckGripperSpaceEnough(
       return false;
     }
   }
+  std::cout << "GripperSpaceEnough returned true. \n";
   return true;
+}
+
+bool Editor::AABBintersect(const msgs::Landmark& lm1,
+                           const msgs::Landmark& lm2) {
+  // AABB = axis aligned bounding boxes
+  geometry_msgs::Vector3 min1, max1;
+  geometry_msgs::Vector3 min2, max2;
+  GetMinMax(lm1, &min1, &max1);
+  GetMinMax(lm2, &min2, &max2);
+  return (min1.x <= max2.x && max1.x >= min2.x) &&
+         (min1.y <= max2.y && max1.y >= min2.y) &&
+         (min1.z <= max2.z && max1.z >= min2.z);
+}
+
+void Editor::GetMinMax(const msgs::Landmark& lm, geometry_msgs::Vector3* min,
+                       geometry_msgs::Vector3* max) {
+  min->x = lm.pose_stamped.pose.position.x - lm.surface_box_dims.x * 0.5;
+  min->y = lm.pose_stamped.pose.position.y - lm.surface_box_dims.y * 0.5;
+  min->z = lm.pose_stamped.pose.position.z - lm.surface_box_dims.z * 0.5;
+  max->x = lm.pose_stamped.pose.position.x - lm.surface_box_dims.x * 0.5;
+  max->y = lm.pose_stamped.pose.position.y - lm.surface_box_dims.y * 0.5;
+  max->z = lm.pose_stamped.pose.position.z - lm.surface_box_dims.z * 0.5;
 }
 
 bool Editor::CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
@@ -807,7 +846,7 @@ bool Editor::CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
     // double dz = position.z - lm.pose_stamped.pose.position.z;
     double squared_distance = dx * dx + dy * dy;  // + dz * dz;
 
-    double lm_diameter = (lm.surface_box_dims.x + lm.surface_box_dims.y) * 0.5;
+    double lm_diameter = fmin(lm.surface_box_dims.x, lm.surface_box_dims.y);
     if (squared_distance < lm_diameter * lm_diameter) {
       std::cout << "Position not free, blocked by " << lm.name << "\n";
       std::cout << "squ distance = " << squared_distance << " < ";
@@ -884,7 +923,7 @@ void Editor::AddAction(const std::string& db_id, size_t step_id,
   }
   msgs::Step* step = &program.steps[step_id];
   step->actions.insert(step->actions.begin(), action);
-  if (program.gripper_box.surface_box_dims.x == 0) {
+  if (program.gripper_box.name == "") {
     // if the gripper_box has not been assigned yet
     msgs::Step* cart_step = &program.steps[step_id - 1];
     AssignGripperBoundingBox(cart_step, &program.gripper_box);
@@ -895,6 +934,8 @@ void Editor::AssignGripperBoundingBox(msgs::Step* cart_step,
                                       msgs::Landmark* gripper_box) {
   // Assigns a landmark representing the gripper bounding box
   // Find move_to_cart action
+  // TO DO: needs to be translated into torso tf
+  ROS_INFO("Assigning gripper bounding box to program");
   gripper_box->type = msgs::Landmark::TF_FRAME;
   gripper_box->name = robot_config_.torso_link();
   gripper_box->surface_box_dims.x = 0.05;
