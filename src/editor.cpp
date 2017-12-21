@@ -615,7 +615,7 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
               ROS_ERROR("Unable to get list of programs.");
               return;
             }
-
+            std::cout << "List of other programs is: " << names.size() << "\n";
             for (size_t p_id; p_id < names.size(); ++p_id) {
               bool programSuccess = db_.GetByName(names[p_id], &alt_program);
               if (!programSuccess || names[p_id] == main_program.name) {
@@ -768,10 +768,13 @@ bool Editor::CheckGripperSpaceEnough(
   // Checks if the target pose will not collide with existing landmarks
   // TO DO: Use Separating Axis Theorem for more accurate results
   // 1. check orientation of gripper, if > 45deg then swap dims.x and dims.y
+  if (bounding_box.name == "") {
+    std::cout << "No bounding box specified. \n";
+    return false;
+  }
 
   geometry_msgs::Vector3 bb_orientation =
       QuaternionToRPY(bounding_box.pose_stamped.pose.orientation);
-
   geometry_msgs::Vector3 bb_dims = bounding_box.surface_box_dims;
   if (fabs(fmod(bb_orientation.z, 180)) > 85) {
     std::cout << "Swapping bb_dims.x and y \n";
@@ -779,6 +782,8 @@ bool Editor::CheckGripperSpaceEnough(
     bb_dims.x = bb_dims.y;
     bb_dims.y = temp;
   }
+  std::cout << "Target Position: " << position << " \n";
+
   for (size_t i = 0; i < landmarks.size(); ++i) {
     msgs::Landmark lm = landmarks[i];
     // ABB TEST
@@ -786,12 +791,14 @@ bool Editor::CheckGripperSpaceEnough(
     msgs::Landmark gripper_box = bounding_box;
     gripper_box.pose_stamped.pose.position = position;
     bool aabbResult = AABBintersect(lm, gripper_box);
-    std::cout << "AABB result is: " << aabbResult
+    std::cout << "AABB result is: " << aabbResult << " for Landmark " << lm.name
               << ". Press Enter to continue. \n";
     std::cin.ignore();
 
+    geometry_msgs::Vector3 lm_orientation =
+        QuaternionToRPY(lm.pose_stamped.pose.orientation);
     geometry_msgs::Vector3 lm_dims = lm.surface_box_dims;
-    if (fabs(fmod(bb_orientation.z, 180)) > 85) {
+    if (fabs(fmod(lm_orientation.z, 180)) > 85) {
       std::cout << "Swapping lm_dims.x and y \n";
       float temp = lm_dims.x;
       lm_dims.x = lm_dims.y;
@@ -923,10 +930,15 @@ void Editor::AddAction(const std::string& db_id, size_t step_id,
   }
   msgs::Step* step = &program.steps[step_id];
   step->actions.insert(step->actions.begin(), action);
-  if (program.gripper_box.name == "") {
+  if (action.type == Action::ACTUATE_GRIPPER && step_id > 0) {
     // if the gripper_box has not been assigned yet
     msgs::Step* cart_step = &program.steps[step_id - 1];
     AssignGripperBoundingBox(cart_step, &program.gripper_box);
+
+    World world;
+    GetWorld(robot_config_, program, last_viewed_[db_id], &world);
+    world.surface_box_landmarks.push_back(program.gripper_box);
+    viz_.Publish(db_id, world);
   }
   Update(db_id, program);
 }
@@ -936,20 +948,30 @@ void Editor::AssignGripperBoundingBox(msgs::Step* cart_step,
   // Find move_to_cart action
   // TO DO: needs to be translated into torso tf
   ROS_INFO("Assigning gripper bounding box to program");
-  gripper_box->type = msgs::Landmark::TF_FRAME;
-  gripper_box->name = robot_config_.torso_link();
-  gripper_box->surface_box_dims.x = 0.05;
-  gripper_box->surface_box_dims.y = 0.1;
-  gripper_box->surface_box_dims.z = 0.05;
-
   for (size_t action_id = 0; action_id < cart_step->actions.size();
        ++action_id) {
     msgs::Action action = cart_step->actions[action_id];
     if (action.type == Action::MOVE_TO_CARTESIAN_GOAL) {
+      ROS_INFO("Cart poses detected...");
+      gripper_box->type = msgs::Landmark::SURFACE_BOX;
+      gripper_box->name = "Gripper Box";
+      gripper_box->surface_box_dims.x = 0.05;
+      gripper_box->surface_box_dims.y = 0.1;
+      gripper_box->surface_box_dims.z = 0.05;
+      // needs to be in base_link frame, same as other world landmarks
+      // TO DO: does it matter if it's base_link or torso_link?
+      if (action.landmark.name != robot_config_.base_link()) {
+        msgs::Landmark landmark;
+        landmark.type = msgs::Landmark::TF_FRAME;
+        landmark.name = robot_config_.base_link();
+        ReinterpretPose(landmark, &action);
+      }
+      gripper_box->pose_stamped.header.frame_id = robot_config_.base_link();
       gripper_box->pose_stamped.pose = action.pose;
       return;
     }
   }
+  ROS_INFO("No cart poses found for bounding box");
 }
 void Editor::DeleteAction(const std::string& db_id, size_t step_id,
                           size_t action_id) {
