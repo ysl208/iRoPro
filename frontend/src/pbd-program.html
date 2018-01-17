@@ -246,9 +246,12 @@
 
         var config = {
           globalOptions: {
-            fixedFrame: fixedFrame,
             background: '#113344',
-            videoServer: 'http://' + window.location.hostname + ':9998'
+            colladaLoader: 'collada2',
+            colladaServer: window.location.protocol + '//' + window.location.hostname + ':8001/',
+            fixedFrame: fixedFrame,
+            videoServer: window.location.protocol + '//' + window.location.hostname + ':9998',
+            url: 'ws://' + window.location.hostname + ':9090'
           },
           displays: [
             {
