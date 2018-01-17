@@ -30,8 +30,8 @@
   </node>
   <node pkg="depthcloud_encoder" type="depthcloud_encoder_node" name="rapid_pbd_depthcloud_encoder">
     <param name="rgb" value="$(arg color_topic)" />
-    <param if="$(arg sim)" name="depth" value="$(arg depth_topic)" />
-    <param unless="$(arg sim)" name="depth" value="$(arg depth_topic)_float" />
+    <param if="$(arg sim)" name="depth" value="$(arg depth_topic)_float" />
+    <param unless="$(arg sim)" name="depth" value="$(arg depth_topic)" />
     <param name="camera_frame_id" value="$(arg camera_frame)" />
   </node>
 
@@ -50,10 +50,11 @@
     </node>
   </group>
 
-  <node pkg="ros_web_video" type="ros_web_video" name="rapid_pbd_video_server">
+  <!-- We assume the PR2 is already running ros_web_video -->
+  <!--node pkg="ros_web_video" type="ros_web_video" name="rapid_pbd_video_server">
     <param name="port" value="9998" />
     <param name="framerate" value="15" />
     <param name="bitrate" value="250000" />
     <param name="profile" value="best" />
-  </node>
+  </node-->
 </launch>
