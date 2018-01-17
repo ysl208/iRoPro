@@ -37,3 +37,4 @@ frontend/node_modules/
 frontend/package-lock.json
 include/.DS_Store
 
+*.pyc
