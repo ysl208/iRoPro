@@ -85,15 +85,29 @@ void ProgramExecutionServer::Execute(
   PublishIsRunning(true);
 
   // Enable controllers.
-  while (ros::ok() && !freeze_arm_client_.waitForExistence(ros::Duration(5))) {
-    ROS_WARN("Waiting for freeze arm service.");
+
+  std::string robot("");
+  bool is_robot_specified = ros::param::get("robot", robot);
+  if (!is_robot_specified) {
+    std::string msg("robot param must be specified. Program \"" + program.name +
+                    "\" was preempted.");
+    Cancel(msg);
+    Finish();
+    ros::spinOnce();
+    return;
   }
-  FreezeArm::Request req;
-  FreezeArm::Response res;
-  req.actuator_group = Action::LEFT_ARM;
-  freeze_arm_client_.call(req, res);
-  req.actuator_group = Action::RIGHT_ARM;
-  freeze_arm_client_.call(req, res);
+  if (robot == "pr2" || robot == "fetch") {
+    while (ros::ok() &&
+           !freeze_arm_client_.waitForExistence(ros::Duration(5))) {
+      ROS_WARN("Waiting for freeze arm service.");
+    }
+    FreezeArm::Request req;
+    FreezeArm::Response res;
+    req.actuator_group = Action::LEFT_ARM;
+    freeze_arm_client_.call(req, res);
+    req.actuator_group = Action::RIGHT_ARM;
+    freeze_arm_client_.call(req, res);
+  }
 
   World world;
   runtime_viz_.PublishSurfaceBoxes(world.surface_box_landmarks);

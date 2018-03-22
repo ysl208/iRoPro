@@ -127,6 +127,7 @@ catkin_package(
     rapid_pbd_action_clients
     rapid_pbd_action_executor
     rapid_pbd_action_utils
+    rapid_pbd_baxter_actions
     rapid_pbd_editor
     rapid_pbd_fetch_actions
     rapid_pbd_joint_state
@@ -216,6 +217,10 @@ target_link_libraries(rapid_pbd_editor
   rapid_pbd_visualizer
   rapid_pbd_world
   ${catkin_LIBRARIES})
+
+add_library(rapid_pbd_baxter_actions src/baxter_actions.cpp)
+add_dependencies(rapid_pbd_baxter_actions ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_baxter_actions ${catkin_LIBRARIES})
 
 add_library(rapid_pbd_fetch_actions src/fetch_actions.cpp)
 add_dependencies(rapid_pbd_fetch_actions ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -316,6 +321,13 @@ target_link_libraries(rapid_pbd_editor_node
   rapid_pbd_robot_config
   ${catkin_LIBRARIES})
 
+add_executable(rapid_pbd_baxter_action_node src/baxter_action_node.cpp)
+set_target_properties(rapid_pbd_baxter_action_node PROPERTIES OUTPUT_NAME baxter_action_node PREFIX "")
+add_dependencies(rapid_pbd_baxter_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_baxter_action_node
+  rapid_pbd_baxter_actions
+  ${catkin_LIBRARIES}
+)
 add_executable(rapid_pbd_fetch_action_node src/fetch_action_node.cpp)
 set_target_properties(rapid_pbd_fetch_action_node PROPERTIES OUTPUT_NAME fetch_action_node PREFIX "")
 add_dependencies(rapid_pbd_fetch_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -398,6 +410,7 @@ install(TARGETS
   rapid_pbd_action_clients
   rapid_pbd_action_executor
   rapid_pbd_action_utils
+  rapid_pbd_baxter_actions
   rapid_pbd_editor
   rapid_pbd_fetch_actions
   rapid_pbd_joint_state
@@ -413,6 +426,7 @@ install(TARGETS
   rapid_pbd_visualizer
   rapid_pbd_world
   # Executables
+  rapid_pbd_baxter_action_node
   rapid_pbd_editor_node
   rapid_pbd_fetch_action_node
   rapid_pbd_program_execution_demo
@@ -441,6 +455,9 @@ install(FILES
   config/sensors_dummy.yaml
   config/surface_segmentation.yaml
   launch/editor.launch
+  launch/baxter_app.launch
+  launch/baxter.launch
+  launch/baxter_moveit.launch
   launch/fetch_app.launch
   launch/fetch.launch
   launch/fetch_moveit.launch

@@ -2,6 +2,12 @@
 Changelog for package rapid_pbd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.0 (2017-11-15)
+------------------
+* Adds support for the Baxter robot (`#18 <https://github.com/jstnhuang/rapid_pbd/issues/18>`_)
+* Added additional runtime deps.
+* Contributors: Justin Huang, ysl208
+
 0.1.6 (2017-11-03)
 ------------------
 * Add detected surfaces as collision objects (`#25 <https://github.com/jstnhuang/rapid_pbd/issues/25>`_)

@@ -1,6 +1,6 @@
 # Rapid PbD
 
-Rapid PbD is a programming by demonstration (PbD) system for the PR2 and Fetch robots.
+Rapid PbD is a programming by demonstration (PbD) system for the PR2, Fetch, and Baxter robots.
 The goal of the system is to provide an easy way to program manipulation actions that can be used in other applications.
 
 ## Getting started

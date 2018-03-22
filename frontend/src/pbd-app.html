@@ -18,49 +18,32 @@
   <template>
     <style include="shared-styles"></style>
     <style>
-      :host {
+       :host {
         display: block;
         @apply(--paper-font-common-base);
         height: 100%;
       }
+
       paper-dialog paper-button:hover {
         background-color: var(--paper-grey-300);
       }
+
       #buttons {
         text-align: right;
       }
     </style>
     <app-location route="{{route}}" use-hash-as-path></app-location>
-    <app-route
-      route="{{route}}"
-      pattern="/:page"
-      data="{{routeData}}"
-      tail="{{routeTail}}"
-    ></app-route>
-    <ros-websocket auto url="{{url}}" id="websocket"
-      on-connection="_handleConnection"
-      on-error="_handleClose"
-      on-close="_handleClose"
-      ros="{{ros}}"
-    ></ros-websocket>
-    <ros-topic auto
-      on-message="_handleRosout"
-      msg-type="rosgraph_msgs/Log"
-      topic="rosout"
-      ros="[[ros]]"
-    ></ros-topic>
-    <ros-param
-      id="param"
-      name="rapid_pbd/robot"
-      string-val="{{_robot}}"
-      ros="[[ros]]"
-    ></ros-param>
+    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{routeTail}}"></app-route>
+    <ros-websocket auto url="{{url}}" id="websocket" on-connection="_handleConnection" on-error="_handleClose" on-close="_handleClose"
+      ros="{{ros}}"></ros-websocket>
+    <ros-topic auto on-message="_handleRosout" msg-type="rosgraph_msgs/Log" topic="rosout" ros="[[ros]]"></ros-topic>
+    <ros-param id="param" name="rapid_pbd/robot" string-val="{{_robot}}" ros="[[ros]]"></ros-param>
     <paper-dialog modal id="dialog">
       <h2>Disconnected from server</h2>
       <p>Please check that the robot's websocket server is running and try again.</p>
       <paper-input id="websocketUrl" label="Websocket URL" value="{{url}}"></paper-input>
       <div id="buttons">
-        <paper-button dialog-confirm on-tap="reconnect">Reconnect</paper-button> 
+        <paper-button dialog-confirm on-tap="reconnect">Reconnect</paper-button>
       </div>
     </paper-dialog>
     <template is="dom-if" if="[[!_shouldShowProgram(routeData.page)]]">
@@ -79,7 +62,7 @@
       properties: {
         routeData: {
           type: Object,
-          value: function() {
+          value: function () {
             return {
               page: ''
             };
@@ -87,7 +70,7 @@
         },
         url: {
           type: String,
-          value: function() {
+          value: function () {
             var hostname = window.location.hostname;
             var protocol = 'ws:';
             if (window.location.protocol === 'https:') {
@@ -98,7 +81,7 @@
         },
         params: {
           type: Object,
-          value: function() {
+          value: function () {
             return {};
           }
         },
@@ -107,27 +90,27 @@
         }
       },
 
-      observers: [ '_robotChanged(_robot)' ],
+      observers: ['_robotChanged(_robot)'],
 
-      reconnect: function() {
+      reconnect: function () {
         var url = this.$.websocketUrl.value;
         this.$.websocket.connect(url);
       },
 
-      _handleConnection: function() {
+      _handleConnection: function () {
         this.$.dialog.close();
       },
 
-      _handleClose: function() {
+      _handleClose: function () {
         this.$.dialog.open();
       },
 
-      _handleRosout: function(evt) {
+      _handleRosout: function (evt) {
         var msg = evt.detail;
         if (msg.name.search("rapid_pbd") === -1) {
           return;
         }
-        if (msg.level == 1 || msg.level == 2)  {
+        if (msg.level == 1 || msg.level == 2) {
           console.info(msg.msg);
         } else if (msg.level == 4) {
           console.warn(msg.msg);
@@ -136,17 +119,28 @@
         }
       },
 
-      _shouldShowProgram: function(page) {
+      _shouldShowProgram: function (page) {
         return page === 'program';
       },
 
-      _robotChanged: function(robot) {
+      _robotChanged: function (robot) {
+        /*
+        manualFreeze is true for robots that require buttons in Rapid PbD to 
+        relax/ freeze the arm.Set manualFreeze to false for robots like 
+        Baxter that can activate gravity compensation by just grasping the wrist.
+        */
         if (robot === 'pr2') {
           this.set('params.robot', robot);
           this.set('params.hasTwoArms', true);
+          this.set('params.manualFreeze', true);
         } else if (robot === 'fetch') {
           this.set('params.robot', robot);
           this.set('params.hasTwoArms', false);
+          this.set('params.manualFreeze', true);
+        } else if (robot === 'baxter') {
+          this.set('params.robot', robot);
+          this.set('params.hasTwoArms', true);
+          this.set('params.manualFreeze', false);
         } else {
           console.error('Unknown robot type:', robot);
         }

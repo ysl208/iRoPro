@@ -1,0 +1,38 @@
+<launch>
+  <arg name="camera_frame" default="/camera_rgb_optical_frame" />
+
+  <arg name="sim" />
+  <arg if="$(arg sim)" name="point_cloud_topic" default="/mock_point_cloud" />
+  <arg if="$(arg sim)" name="depth_topic" default="/camera/depth_registered/image_raw" />
+  <arg if="$(arg sim)" name="color_topic" default="/camera/rgb/image_rect_color" />
+
+  <arg unless="$(arg sim)" name="point_cloud_topic" default="/camera/depth_registered/points" />
+  <arg unless="$(arg sim)" name="depth_topic" default="/camera/depth_registered/image_raw" />
+  <arg unless="$(arg sim)" name="color_topic" default="/camera/rgb/image_rect_color" />
+
+  <node pkg="tf" type="static_transform_publisher" name="world_to_camera" args="0 0 1 0 0 0 base camera_link 10" />
+
+  <group ns="rapid_pbd"> 
+    <param name="robot" value="baxter" />
+    <node pkg="rapid_pbd" type="baxter_action_node" name="baxter_actuator_server" />
+    <node pkg="rapid_pbd" type="program_execution_node" name="program_executor">
+      <remap from="l_arm_joint_action" to="/robot/limb/left/follow_joint_trajectory" />
+      <remap from="r_arm_joint_action" to="/robot/limb/right/follow_joint_trajectory" />
+      <remap from="move_group" to="/move_group" />
+    </node>
+    <rosparam command="load" file="$(find rapid_pbd)/config/surface_segmentation.yaml" />
+    <node pkg="rapid_pbd" type="surface_segmentation_node" name="surface_segmentation_node" args="$(arg point_cloud_topic)" />
+  </group>
+
+  <!-- Depth cloud -->
+  <node pkg="nodelet" type="nodelet" name="rapid_pbd_convert_metric" args="standalone depth_image_proc/convert_metric" if="$(arg sim)">
+    <remap from="image_raw" to="$(arg depth_topic)" />
+    <remap from="image" to="$(arg depth_topic)_float" />
+  </node>
+  <node pkg="depthcloud_encoder" type="depthcloud_encoder_node" name="rapid_pbd_depthcloud_encoder">
+    <param name="rgb" value="$(arg color_topic)" />
+    <param if="$(arg sim)" name="depth" value="$(arg depth_topic)" />
+    <param unless="$(arg sim)" name="depth" value="$(arg depth_topic)_float" />
+    <param name="camera_frame_id" value="$(arg camera_frame)" />
+  </node>
+</launch>

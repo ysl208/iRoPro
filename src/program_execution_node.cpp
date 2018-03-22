@@ -40,6 +40,8 @@ int main(int argc, char** argv) {
     robot_config = new pbd::Pr2RobotConfig();
   } else if (robot == "fetch") {
     robot_config = new pbd::FetchRobotConfig();
+  } else if (robot == "baxter") {
+    robot_config = new pbd::BaxterRobotConfig();
   } else {
     ROS_ERROR("Unsupported robot \"%s\"", robot.c_str());
     return 1;
@@ -86,32 +88,32 @@ int main(int argc, char** argv) {
   mongodb_store::MessageStoreProxy proxy(nh, pbd::kMongoProgramCollectionName,
                                          pbd::kMongoDbName);
   pbd::ProgramDb program_db(nh, &proxy, NULL);
+  if (robot == "fetch" || robot == "pr2") {
+    // Publish floor as obstacle
+    shape_msgs::SolidPrimitive floor_shape;
+    floor_shape.type = shape_msgs::SolidPrimitive::BOX;
+    floor_shape.dimensions.resize(3);
+    floor_shape.dimensions[0] = 2;
+    floor_shape.dimensions[1] = 2;
+    floor_shape.dimensions[2] = 0.01;
 
-  // Publish floor as obstacle
-  shape_msgs::SolidPrimitive floor_shape;
-  floor_shape.type = shape_msgs::SolidPrimitive::BOX;
-  floor_shape.dimensions.resize(3);
-  floor_shape.dimensions[0] = 2;
-  floor_shape.dimensions[1] = 2;
-  floor_shape.dimensions[2] = 0.01;
+    moveit_msgs::CollisionObject floor;
+    floor.header.frame_id = robot_config->base_link();
+    floor.id = "floor";
+    floor.primitives.push_back(floor_shape);
+    geometry_msgs::Pose floor_pose;
+    floor_pose.orientation.w = 1;
+    floor_pose.position.z = 0.005;
+    floor.primitive_poses.push_back(floor_pose);
+    floor.operation = moveit_msgs::CollisionObject::ADD;
 
-  moveit_msgs::CollisionObject floor;
-  floor.header.frame_id = robot_config->base_link();
-  floor.id = "floor";
-  floor.primitives.push_back(floor_shape);
-  geometry_msgs::Pose floor_pose;
-  floor_pose.orientation.w = 1;
-  floor_pose.position.z = 0.005;
-  floor.primitive_poses.push_back(floor_pose);
-  floor.operation = moveit_msgs::CollisionObject::ADD;
+    moveit_msgs::PlanningScene scene;
+    scene.world.collision_objects.push_back(floor);
+    scene.is_diff = true;
+    planning_scene_pub.publish(scene);
 
-  moveit_msgs::PlanningScene scene;
-  scene.world.collision_objects.push_back(floor);
-  scene.is_diff = true;
-
-  planning_scene_pub.publish(scene);
-
-  pbd::JointStateReader js_reader;
+  }
+  pbd::JointStateReader js_reader(robot_config->joint_states_topic());
   js_reader.Start();
 
   pbd::RuntimeRobotState robot_state(*robot_config, tf_listener, js_reader);

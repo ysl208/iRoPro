@@ -11,26 +11,21 @@
     <style include="shared-styles"></style>
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
     <style>
-      :host {
+       :host {
         display: block;
       }
+
       paper-button {
         margin-left: 10px;
       }
     </style>
-    <ros-action-client
-      id="headAction"
-      server="[[_computeServer(params.robot)]]"
-      action-type="control_msgs/FollowJointTrajectoryAction"
-      ros="[[ros]]"
-    ></ros-action-client>
+    <ros-action-client id="headAction" server="[[_computeServer(params.robot)]]" action-type="control_msgs/FollowJointTrajectoryAction"
+      ros="[[ros]]"></ros-action-client>
     <div class="layout vertical">
-      <!-- TODO: this are joint limits for PR2, add Fetch values -->
-      <paper-input type="number" step="1" min="-160" max="160"
-        label="Pan angle (degrees, positive value looks left)"
-        value="{{panDegrees}}" on-change="_save"></paper-input>
-      <paper-input type="number" step="1" min="-30" max="60"
-        label="Tilt angle (degrees, positive value looks down)"
+      <!-- TODO: these are joint limits for PR2, add Fetch values -->
+      <paper-input type="number" step="1" min="-160" max="160" label="Pan angle (degrees, positive value looks left)" value="{{panDegrees}}"
+        on-change="_save"></paper-input>
+      <paper-input hidden$=[[!_canTilt(params.robot)]] type="number" step="1" min="-30" max="60" label="Tilt angle (degrees, positive value looks down)"
         value="{{tiltDegrees}}" on-change="_save"></paper-input>
       <paper-button class="normal" on-tap="_moveHead">Move now</paper-button>
     </div>
@@ -62,7 +57,7 @@
         '_tiltChanged(action.joint_trajectory.points.0.positions.1)',
       ],
 
-      _actionChanged: function(action, old) {
+      _actionChanged: function (action, old) {
         var actionType = action.type;
         var actuatorGroup = action.actuator_group;
         if (actionType !== 'move to joint goal') {
@@ -72,13 +67,13 @@
           return;
         }
         if (!action.joint_trajectory) {
-          this.set('action.joint_trajectory', {points: [{positions: [0, 0]}]});
+          this.set('action.joint_trajectory', { points: [{ positions: [0, 0] }] });
         }
         if (!action.joint_trajectory.points) {
-          this.set('action.joint_trajectory.points', [{positions: [0, 0]}]);
+          this.set('action.joint_trajectory.points', [{ positions: [0, 0] }]);
         }
         if (!action.joint_trajectory.points[0]) {
-          this.set('action.joint_trajectory.points.0', {positions: [0, 0]});
+          this.set('action.joint_trajectory.points.0', { positions: [0, 0] });
         }
 
         var panRadians = this.action.joint_trajectory.points[0].positions[0];
@@ -94,7 +89,13 @@
           }
         }
 
-        var joint_names = ['head_pan_joint', 'head_tilt_joint'];
+        var joint_names = [];
+        if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+          joint_names = ['head_pan_joint', 'head_tilt_joint'];
+        }
+        else if (this.params.robot === "baxter") {
+          joint_names = ['head_pan'];
+        }
         if (!_.isEqual(this.action.joint_trajectory.joint_names, joint_names)) {
           this.set('action.joint_trajectory.joint_names', joint_names);
         }
@@ -112,13 +113,20 @@
         return Math.min(Math.max(val, min), max);
       },
 
-      _save: function(evt) {
+      _save: function (evt) {
         var panRadians = this._clamp(this._degToRad(this.panDegrees), -2.8, 2.8);
         var tiltRadians = this._clamp(this._degToRad(this.tiltDegrees), -0.52, 1.22173);
         if (!this.action.joint_trajectory) {
-          this.set('action.joint_trajectory', {points: []});
+          this.set('action.joint_trajectory', { points: [] });
         }
-        var joint_names = ['head_pan_joint', 'head_tilt_joint'];
+
+        var joint_names = [];
+        if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+          joint_names = ['head_pan_joint', 'head_tilt_joint'];
+        }
+        else if (this.params.robot === "baxter") {
+          joint_names = ['head_pan'];
+        }
         var point = {
           positions: [panRadians, tiltRadians],
           time_from_start: {
@@ -130,17 +138,17 @@
           this.set('action.joint_trajectory.joint_names', joint_names);
         }
         if (this.action.joint_trajectory.points.length === 0
-            || !_.isEqual(this.action.joint_trajectory.points[0], point)) {
+          || !_.isEqual(this.action.joint_trajectory.points[0], point)) {
           this.set('action.joint_trajectory.points.0', point);
         }
       },
 
-      _moveHead: function() {
+      _moveHead: function () {
         var goal = { trajectory: this.action.joint_trajectory };
         this.$.headAction.send(goal);
       },
 
-      _panChanged: function(panRadians) {
+      _panChanged: function (panRadians) {
         if (this.action.actuator_group !== 'head') {
           return;
         }
@@ -169,11 +177,24 @@
         }
       },
 
+      _canTilt(robot) {
+        if (robot === "pr2" || robot === "fetch") {
+          return true;
+        } else if (robot === "baxter") {
+          return false;
+        } else {
+          console.error('Unknown robot type', robot);
+          return false;
+        }
+      },
+
       _computeServer(robot) {
         if (robot === "pr2") {
           return "/head_traj_controller/follow_joint_trajectory";
         } else if (robot === "fetch") {
           return "/head_controller/follow_joint_trajectory";
+        } else if (robot === "baxter") {
+          return "/rapid_pbd/head_action";
         } else {
           return "";
         }

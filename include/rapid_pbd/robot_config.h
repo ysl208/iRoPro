@@ -26,6 +26,7 @@ class RobotConfig {
       const std::string& actuator_group,
       std::vector<std::string>* joint_names) const = 0;
   virtual int num_arms() const = 0;
+  virtual std::string joint_states_topic() const = 0;
 };
 
 class Pr2RobotConfig : public RobotConfig {
@@ -43,6 +44,7 @@ class Pr2RobotConfig : public RobotConfig {
   void joints_for_group(const std::string& actuator_group,
                         std::vector<std::string>* joint_names) const;
   int num_arms() const;
+  std::string joint_states_topic() const;
 };
 
 class FetchRobotConfig : public RobotConfig {
@@ -60,6 +62,25 @@ class FetchRobotConfig : public RobotConfig {
   void joints_for_group(const std::string& actuator_group,
                         std::vector<std::string>* joint_names) const;
   int num_arms() const;
+  std::string joint_states_topic() const;
+};
+
+class BaxterRobotConfig : public RobotConfig {
+ public:
+  BaxterRobotConfig();
+  std::string planning_frame() const;
+  std::string planning_group() const;
+  std::string base_link() const;
+  std::string torso_link() const;
+  std::string ee_frame_for_group(const std::string& actuator_group) const;
+  void gripper_joints_for_group(const std::string& actuator_group,
+                                std::vector<std::string>* joint_names) const;
+  void gripper_open_positions(std::vector<double>* positions) const;
+  void gripper_close_positions(std::vector<double>* positions) const;
+  void joints_for_group(const std::string& actuator_group,
+                        std::vector<std::string>* joint_names) const;
+  int num_arms() const;
+  std::string joint_states_topic() const;
 };
 
 }  // namespace pbd
