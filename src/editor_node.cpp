@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
   visualizer.Init();
 
   // Build editor.
-  pbd::JointStateReader joint_state_reader;
+  pbd::JointStateReader joint_state_reader(robot_config->joint_states_topic());
   pbd::Editor editor(db, scene_db, joint_state_reader, visualizer,
                      &action_clients, *robot_config);
   editor.Start();
