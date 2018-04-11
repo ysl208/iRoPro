@@ -11,8 +11,8 @@
 
 namespace rapid {
 namespace pbd {
-JointStateReader::JointStateReader()
-    : nh_(), topic_("/joint_states"), joint_state_() {}
+// JointStateReader::JointStateReader()
+//     : nh_(), topic_(joint_states_topic), joint_state_() {}
 JointStateReader::JointStateReader(const std::string& joint_states_topic)
     : nh_(), topic_(joint_states_topic), joint_state_() {}
 
@@ -21,6 +21,7 @@ void JointStateReader::Start() {
 }
 
 double JointStateReader::get_position(const std::string& name) const {
+  std::cout << joint_state_.position(name);
   return joint_state_.position(name);
 }
 
