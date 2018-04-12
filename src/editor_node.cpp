@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 
   pbd::SpecInference spec_inf(*robot_config);
   // Build editor.
-  pbd::JointStateReader joint_state_reader;
+  pbd::JointStateReader joint_state_reader(robot_config->joint_states_topic());
   pbd::Editor editor(db, scene_db, joint_state_reader, visualizer,
                      &action_clients, cond_gen, spec_inf, *robot_config);
   editor.Start();

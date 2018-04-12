@@ -165,6 +165,14 @@ std::string MotionPlanning::AddJointGoal(
   }
   builder_.SetJointGoal(goal);
 
+  double max_vel_scale;
+  ros::param::param("max_vel_scale", max_vel_scale, 1.0);
+  double max_acc_scale;
+  ros::param::param("max_acc_scale", max_acc_scale, 1.0);
+  ROS_INFO("Velocity scale: %f, acc scale: %f", max_vel_scale, max_acc_scale);
+  builder_.max_velocity_scaling_factor = max_vel_scale;
+  builder_.max_acceleration_scaling_factor = max_acc_scale;
+
   ++num_goals_;
   return "";
 }
