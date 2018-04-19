@@ -105,12 +105,12 @@ void SurfaceSegmentationAction::Execute(
   // Crop
   double min_x = 0, min_y = 0, min_z = 0;
   double max_x = 0, max_y = 0, max_z = 0;
-  ros::param::param<double>("crop_min_x", min_x, -1);
-  ros::param::param<double>("crop_min_y", min_y, -1);
-  ros::param::param<double>("crop_min_z", min_z, 0.1);
-  ros::param::param<double>("crop_max_x", max_x, 1);
-  ros::param::param<double>("crop_max_y", max_y, 1);
-  ros::param::param<double>("crop_max_z", max_z, 1.5);
+  ros::param::param<double>("surface_segmentation/crop_min_x", min_x, 0);
+  ros::param::param<double>("surface_segmentation/crop_min_y", min_y, -1);
+  ros::param::param<double>("surface_segmentation/crop_min_z", min_z, 0.1);
+  ros::param::param<double>("surface_segmentation/crop_max_x", max_x, 1);
+  ros::param::param<double>("surface_segmentation/crop_max_y", max_y, 1);
+  ros::param::param<double>("surface_segmentation/crop_max_z", max_z, 1.5);
   pcl::PointIndices::Ptr point_indices(new pcl::PointIndices);
   pcl::CropBox<PointC> crop;
   crop.setInputCloud(cloud);
@@ -129,7 +129,7 @@ void SurfaceSegmentationAction::Execute(
     vox.setInputCloud(cloud);
     vox.setIndices(point_indices);
     float leaf_size = 0.01;
-    ros::param::param<float>("vox_leaf_size", leaf_size, 0.01);
+    ros::param::param<float>("surface_segmentation/vox_leaf_size", leaf_size, 0.01);
     vox.setLeafSize(leaf_size, leaf_size, leaf_size);
     vox.filter(*downsampled_cloud);
     sensor_msgs::PointCloud2 downsampled_cloud_msg;
@@ -138,22 +138,28 @@ void SurfaceSegmentationAction::Execute(
   }
 
   double horizontal_tolerance_degrees;
-  ros::param::param("horizontal_tolerance_degrees",
+  ros::param::param("surface_segmentation/horizontal_tolerance_degrees",
                     horizontal_tolerance_degrees, 10.0);
   double margin_above_surface;
-  ros::param::param("margin_above_surface", margin_above_surface, 0.01);
+  ros::param::param("surface_segmentation/margin_above_surface", margin_above_surface, 0.015);
   double cluster_distance;
-  ros::param::param("cluster_distance", cluster_distance, 0.01);
+  ros::param::param("surface_segmentation/cluster_distance", cluster_distance, 0.025);
   int min_cluster_size;
-  ros::param::param("min_cluster_size", min_cluster_size, 50);
+  ros::param::param("surface_segmentation/min_cluster_size", min_cluster_size, 300);
   int max_cluster_size;
-  ros::param::param("max_cluster_size", max_cluster_size, 10000);
+  ros::param::param("surface_segmentation/max_cluster_size", max_cluster_size, 10000);
+  int min_surface_size;
+  ros::param::param("surface_segmentation/min_surface_size", min_surface_size, 8000);
+  double max_point_distance;
+  ros::param::param("surface_segmentation/max_point_distance", max_point_distance, 0.01);
 
   surface_perception::Segmentation seg;
   seg.set_input_cloud(cloud);
   seg.set_indices(point_indices);
   seg.set_horizontal_tolerance_degrees(horizontal_tolerance_degrees);
   seg.set_margin_above_surface(margin_above_surface);
+  seg.set_min_surface_size(min_surface_size);
+  seg.set_max_point_distance(max_point_distance);
   seg.set_cluster_distance(cluster_distance);
   seg.set_min_cluster_size(min_cluster_size);
   seg.set_max_cluster_size(max_cluster_size);
