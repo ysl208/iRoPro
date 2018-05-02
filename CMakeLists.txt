@@ -306,7 +306,8 @@ add_dependencies(rapid_pbd_surface_segmentation_action ${${PROJECT_NAME}_EXPORTE
 target_link_libraries(rapid_pbd_surface_segmentation_action
   rapid_pbd_program_db
   rapid_pbd_robot_config
-  ${catkin_LIBRARIES})
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES})
 
 add_library(rapid_pbd_visualizer src/visualizer.cpp)
 add_dependencies(rapid_pbd_visualizer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
