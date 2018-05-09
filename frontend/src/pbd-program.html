@@ -381,6 +381,7 @@
       },
 
       save: function () {
+        this.program.name = this.$.programName.value;
         var msg = {
           type: 'update program',
           program_info: {
