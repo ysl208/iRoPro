@@ -123,14 +123,25 @@
           }
         }
 
+        var base_link = '';
+        if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+          base_link = 'base_link';
+          torso_link = 'torso_lift_link';
+        } else if (this.params.robot === "baxter") {
+          base_link = 'base';
+          torso_link = 'torso';
+        } else {
+          console.error('Unknown robot type', this.params.robot);
+        }
+        
+
         var landmarks = [
           {
             type: 'tf frame',
-            name: 'base_link'
+            name: base_link
           }, {
             type: 'tf frame',
-            name: 'torso_lift_link'
-          }
+            name: torso_link          }
         ];
         landmarks = landmarks.concat(surfaceLandmarks);
         this.set('landmarks', landmarks);
