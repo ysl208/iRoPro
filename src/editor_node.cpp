@@ -7,6 +7,7 @@
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/visualizer.h"
+#include "rapid_pbd_msgs/DomainInfoList.h"
 #include "rapid_pbd_msgs/ProgramInfoList.h"
 #include "robot_markers/builder.h"
 #include "ros/ros.h"
@@ -49,9 +50,13 @@ int main(int argc, char** argv) {
   ros::Publisher program_list_pub =
       nh.advertise<rapid_pbd_msgs::ProgramInfoList>(pbd::kProgramListTopic, 1,
                                                     true);
+  ros::Publisher domain_list_pub =
+      nh.advertise<rapid_pbd_msgs::DomainInfoList>(pbd::kDomainListTopic, 1,
+                                                    true);
   // Build DBs.
   pbd::ProgramDb db(nh, &proxy, &program_list_pub);
   pbd::SceneDb scene_db(scene_proxy);
+  pbd::DomainDb domain_db(nh, &proxy, &domain_list_pub);
 
   // Build action clients.
   pbd::ActionClients action_clients;
@@ -73,7 +78,7 @@ int main(int argc, char** argv) {
   pbd::SpecInference spec_inf(*robot_config);
   // Build editor.
   pbd::JointStateReader joint_state_reader(robot_config->joint_states_topic());
-  pbd::Editor editor(db, scene_db, joint_state_reader, visualizer,
+  pbd::Editor editor(db, scene_db, domain_db, joint_state_reader, visualizer,
                      &action_clients, cond_gen, spec_inf, *robot_config);
   editor.Start();
 
