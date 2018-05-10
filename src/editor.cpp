@@ -8,6 +8,7 @@
 
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Condition.h"
+#include "rapid_pbd_msgs/Domain.h"
 #include "rapid_pbd_msgs/EditorEvent.h"
 #include "rapid_pbd_msgs/ExecuteProgramGoal.h"
 #include "rapid_pbd_msgs/Landmark.h"
@@ -34,13 +35,14 @@ using rapid_pbd_msgs::Action;
 namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
-Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
+Editor::Editor(const ProgramDb& db, const SceneDb& scene_db, const DomainDb& domain_db,
                const JointStateReader& joint_state_reader,
                const Visualizer& visualizer, ActionClients* action_clients,
                const ConditionGenerator& cond_gen,
                const SpecInference& spec_inf, const RobotConfig& robot_config)
     : db_(db),
       scene_db_(scene_db),
+      domain_db_(domain_db),
       joint_state_reader_(joint_state_reader),
       viz_(visualizer),
       action_clients_(action_clients),
@@ -52,6 +54,7 @@ Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
 
 void Editor::Start() {
   db_.Start();
+  domain_db_.Start();
   joint_state_reader_.Start();
   viz_.Init();
   spec_inf_.Init();

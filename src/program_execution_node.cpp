@@ -4,6 +4,7 @@
 #include "moveit_msgs/PlanningScene.h"
 #include "rapid_pbd/action_executor.h"
 #include "rapid_pbd/action_names.h"
+#include "rapid_pbd/joint_state_reader.h"
 #include "rapid_pbd/program_executor.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/runtime_robot_state.h"

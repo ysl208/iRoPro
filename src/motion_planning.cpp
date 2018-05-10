@@ -4,11 +4,13 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "geometry_msgs/Pose.h"
 #include "moveit_goal_builder/builder.h"
 #include "moveit_msgs/GetPositionIK.h"
 #include "moveit_msgs/MoveGroupAction.h"
+#include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Landmark.h"
 #include "ros/ros.h"
 #include "transform_graph/graph.h"
@@ -161,9 +163,9 @@ std::string MotionPlanning::AddJointGoal(
 
   std::map<std::string, double> goal;
   for (size_t i = 0; i < joint_names.size(); ++i) {
-    goal[joint_names[i]] = joint_positions[i];
+    current_joint_goal_[joint_names[i]] = joint_positions[i];
   }
-  builder_.SetJointGoal(goal);
+  builder_.SetJointGoal(current_joint_goal_);
 
   double max_vel_scale;
   ros::param::param("max_vel_scale", max_vel_scale, 1.0);
@@ -193,6 +195,7 @@ void MotionPlanning::ClearGoals() {
     robot_state_.config.joints_for_group(msgs::Action::RIGHT_ARM, &joints);
     std::vector<double> joint_values;
     robot_state_.js_reader.get_positions(joints, &joint_values);
+    
     current_joint_goal_.clear();
     for (size_t i = 0; i < joints.size(); ++i) {
       current_joint_goal_[joints[i]] = joint_values[i];

@@ -29,7 +29,7 @@ static const char kEditorEventsTopic[] = "editor_events";
 
 class Editor {
  public:
-  Editor(const ProgramDb& db, const SceneDb& scene_db,
+  Editor(const ProgramDb& db, const SceneDb& scene_db, const DomainDb& domain_db, 
          const JointStateReader& joint_state_reader,
          const Visualizer& visualizer, ActionClients* action_clients,
          const ConditionGenerator& cond_gen, const SpecInference& spec_inf,
@@ -133,6 +133,7 @@ class Editor {
       const geometry_msgs::Point& position);
   ProgramDb db_;
   SceneDb scene_db_;
+  DomainDb domain_db_;
   JointStateReader joint_state_reader_;
   Visualizer viz_;
   ActionClients* action_clients_;
