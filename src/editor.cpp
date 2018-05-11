@@ -111,6 +111,26 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
   }
 }
 
+bool Editor::HandleCreateDomain(msgs::CreateDomain::Request& request,
+                                 msgs::CreateDomain::Response& response) {
+  response.domain_id = CreateDomain(request.name);
+  return true;
+}
+
+std::string Editor::CreateDomain(const std::string& name) {
+  // TO DO: Initialise planning domain from .yaml file
+  msgs::Domain domain;
+  domain.name = name;
+
+  // joint_state_reader_.ToMsg(&domain.start_joint_state);
+  std::string id = domain_db_.Insert(domain);
+  // World world;
+  // GetWorld(robot_config_, domain, 0, &world);
+  // viz_.Publish(id, world);
+
+  return id;
+}
+
 bool Editor::HandleCreateProgram(msgs::CreateProgram::Request& request,
                                  msgs::CreateProgram::Response& response) {
   response.db_id = Create(request.name);
