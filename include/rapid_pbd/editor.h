@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "rapid_pbd_msgs/Action.h"
+#include "rapid_pbd_msgs/CreateDomain.h"
 #include "rapid_pbd_msgs/CreateProgram.h"
 #include "rapid_pbd_msgs/EditorEvent.h"
 #include "rapid_pbd_msgs/Program.h"
@@ -38,9 +39,12 @@ class Editor {
   void HandleEvent(const rapid_pbd_msgs::EditorEvent& event);
   bool HandleCreateProgram(rapid_pbd_msgs::CreateProgram::Request&,
                            rapid_pbd_msgs::CreateProgram::Response&);
+  bool HandleCreateDomain(rapid_pbd_msgs::CreateDomain::Request&,
+                           rapid_pbd_msgs::CreateDomain::Response&);
 
  private:
   std::string Create(const std::string& name);
+  std::string CreateDomain(const std::string& name);
   void AddSenseSteps(const std::string& db_id, size_t step_id);
   void Update(const std::string& db_id, const rapid_pbd_msgs::Program& program);
   void Delete(const std::string& db_id);
