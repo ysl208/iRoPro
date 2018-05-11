@@ -93,6 +93,7 @@ int main(int argc, char** argv) {
   mongodb_store::MessageStoreProxy proxy(nh, pbd::kMongoProgramCollectionName,
                                          pbd::kMongoDbName);
   pbd::ProgramDb program_db(nh, &proxy, NULL);
+  pbd::DomainDb domain_db(nh, &proxy, NULL);
   if (robot == "fetch" || robot == "pr2") {
     // Publish floor as obstacle
     shape_msgs::SolidPrimitive floor_shape;
