@@ -88,6 +88,9 @@ int main(int argc, char** argv) {
   ros::ServiceServer editor_server = nh.advertiseService(
       "create_program", &pbd::Editor::HandleCreateProgram, &editor);
 
+  ros::ServiceServer editor_server = nh.advertiseService(
+      "create_domain", &pbd::Editor::HandleCreateDomain, &editor);
+
   ROS_INFO("RapidPBD editor ready.");
   ros::spin();
   if (robot_config) {
