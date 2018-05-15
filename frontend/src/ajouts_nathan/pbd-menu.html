@@ -1,0 +1,114 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/lib/utils/gestures.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="pbd-tasks.html">
+<link rel="import" href="pbd-intro.html">
+<link rel="import" href="pbd-domain.html">
+<link rel="import" href="pbd-new-action.html">
+<link rel="import" href="../pbd-app.html">
+
+<dom-module id="pbd-menu">
+  <template>
+    <style include="../shared-styles"></style>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style>
+        :root {
+            --paper-tabs-selection-bar-color: rgb(127, 189, 14);
+            /* Menu */
+            --paper-tabs: {
+                background: teal;
+                color: rgb(127, 189, 14);
+                margin: 5px;
+                padding: 10px;
+            };
+            --paper-tab-content-unselected: {
+                color: rgb(75, 3, 3);
+            };
+        }
+
+        :host {
+            display: block;
+        }
+
+        #boutons {
+            text-align:center;
+            margin: 20px;
+        }
+
+        .bouton {
+            display:inline-block;
+            vertical-align: middle;
+        }
+
+        #back {
+            margin-left: 5%;
+            float:left;
+        }
+
+        #next {
+            float:right;
+            margin-right: 10%;
+        }
+
+        .indigo {
+            background-color: blue;
+            color: aliceblue;
+        }
+    </style>
+
+    <div>
+        <paper-tabs selected="{{selected}}">
+            <paper-tab>Introduction</paper-tab>
+            <paper-tab>Tasks</paper-tab>
+            <paper-tab>Domain Model</paper-tab>
+            <paper-tab>Action</paper-tab>
+            <paper-tab>Problem</paper-tab>
+            <paper-tab>Solution</paper-tab>
+            <paper-tab>RAPID_PBD</paper-tab>
+        </paper-tabs>
+        
+            
+        <iron-pages selected="{{selected}}">
+            <pbd-intro></pbd-intro>
+            <pbd-tasks></pbd-tasks>
+            <pbd-domain></pbd-domain>
+            <pbd-new-action></pbd-new-action>
+            <div>Not yet</div>
+            <div>Not yet</div>
+            <pbd-app></pbd-app>
+        </iron-pages>
+
+        
+
+        <div id="boutons">
+            <paper-button on-tap="tapBack" id="back" class="bouton indigo"><iron-icon icon="subdirectory-arrow-left"></iron-icon>Back</paper-button>
+            <paper-button on-tap="tapNext" id="next" class="bouton indigo">Next<iron-icon icon="subdirectory-arrow-right"></iron-icon></paper-button>
+        </div>
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+        is: 'pbd-menu',
+
+        properties: {
+            selected: {
+                value:"0"
+            }
+        },
+
+        tapBack: function() {
+            if (this.selected > 0)
+                this.selected--;
+        },
+
+        tapNext: function() {
+            if (this.selected < 5)
+                this.selected++;
+        }
+    });
+  </script>
+</dom-module>
