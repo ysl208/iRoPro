@@ -21,7 +21,7 @@
     <style include="shared-styles"></style>
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
     <style>
-       :host {
+      :host {
         display: block;
         height: 100%;
       }
@@ -161,7 +161,7 @@
           <paper-button class="back clear">
             <iron-icon icon="arrow-back"></iron-icon> Back</paper-button>
         </a>
-        <paper-input class="flex" label="Program name" value="{{program.name}}" on-blur="save"></paper-input>
+        <paper-input class="flex" id="programName" label="Program name" value="{{program.name}}" on-blur="save"></paper-input>
         <paper-button raised class="submit" on-tap="submit">
           Add Sense Steps
         </paper-button>

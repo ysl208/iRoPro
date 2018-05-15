@@ -1,4 +1,4 @@
-#include "rapid_pbd/world.h"
+#include "rapid_pbd/domain.h"
 
 #include <math.h>
 #include <set>
@@ -24,12 +24,8 @@ namespace msgs = rapid_pbd_msgs;
 
 namespace rapid {
 namespace pbd {
-void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
-              size_t step_id, World* world) {
-
-  
-}
-
+void GetDomain(const RobotConfig& robot_config, const msgs::Program& program,
+               size_t step_id, Domain* domain) {}
 
 }  // namespace pbd
 }  // namespace rapid
