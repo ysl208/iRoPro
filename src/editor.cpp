@@ -1100,7 +1100,7 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   goal.save_cloud = true;
   action_clients_->surface_segmentation_client.sendGoal(goal);
   bool success = action_clients_->surface_segmentation_client.waitForResult(
-      ros::Duration(10));
+      ros::Duration(50));
   if (!success) {
     ROS_ERROR("Failed to segment surface.");
     return;
