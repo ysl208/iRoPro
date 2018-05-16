@@ -15,7 +15,7 @@
 
 namespace rapid {
 namespace pbd {
-struct Domain {
+struct PDDLDomain {
  public:
   std::string scene_id;
   JointState joint_state;
@@ -27,9 +27,9 @@ struct Domain {
   std::vector<geometry_msgs::PoseArray> grid;
 };
 
-void GetDomain(const RobotConfig& robot_config,
+void GetPDDLDomain(const RobotConfig& robot_config,
                const rapid_pbd_msgs::Program& program, size_t step_id,
-               Domain* domain);
+               PDDLDomain* domain);
 
 }  // namespace pbd
 }  // namespace rapid

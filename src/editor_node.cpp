@@ -7,7 +7,7 @@
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/visualizer.h"
-#include "rapid_pbd_msgs/DomainInfoList.h"
+#include "rapid_pbd_msgs/PDDLDomainInfoList.h"
 #include "rapid_pbd_msgs/ProgramInfoList.h"
 #include "robot_markers/builder.h"
 #include "ros/ros.h"
@@ -51,12 +51,12 @@ int main(int argc, char** argv) {
       nh.advertise<rapid_pbd_msgs::ProgramInfoList>(pbd::kProgramListTopic, 1,
                                                     true);
   ros::Publisher domain_list_pub =
-      nh.advertise<rapid_pbd_msgs::DomainInfoList>(pbd::kDomainListTopic, 1,
+      nh.advertise<rapid_pbd_msgs::PDDLDomainInfoList>(pbd::kPDDLDomainListTopic, 1,
                                                     true);
   // Build DBs.
   pbd::ProgramDb db(nh, &proxy, &program_list_pub);
   pbd::SceneDb scene_db(scene_proxy);
-  pbd::DomainDb domain_db(nh, &proxy, &domain_list_pub);
+  pbd::PDDLDomainDb domain_db(nh, &proxy, &domain_list_pub);
 
   // Build action clients.
   pbd::ActionClients action_clients;
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
       "create_program", &pbd::Editor::HandleCreateProgram, &editor);
 
   ros::ServiceServer editor_server_domain = nh.advertiseService(
-      "create_domain", &pbd::Editor::HandleCreateDomain, &editor);
+      "create_domain", &pbd::Editor::HandleCreatePDDLDomain, &editor);
 
   ROS_INFO("RapidPBD editor ready.");
   ros::spin();

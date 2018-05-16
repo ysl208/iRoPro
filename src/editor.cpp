@@ -8,7 +8,7 @@
 
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Condition.h"
-#include "rapid_pbd_msgs/Domain.h"
+#include "rapid_pbd_msgs/PDDLDomain.h"
 #include "rapid_pbd_msgs/EditorEvent.h"
 #include "rapid_pbd_msgs/ExecuteProgramGoal.h"
 #include "rapid_pbd_msgs/Landmark.h"
@@ -35,7 +35,7 @@ using rapid_pbd_msgs::Action;
 namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
-Editor::Editor(const ProgramDb& db, const SceneDb& scene_db, const DomainDb& domain_db,
+Editor::Editor(const ProgramDb& db, const SceneDb& scene_db, const PDDLDomainDb& domain_db,
                const JointStateReader& joint_state_reader,
                const Visualizer& visualizer, ActionClients* action_clients,
                const ConditionGenerator& cond_gen,
@@ -111,15 +111,15 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
   }
 }
 
-bool Editor::HandleCreateDomain(msgs::CreateDomain::Request& request,
-                                 msgs::CreateDomain::Response& response) {
-  response.domain_id = CreateDomain(request.name);
+bool Editor::HandleCreatePDDLDomain(msgs::CreatePDDLDomain::Request& request,
+                                 msgs::CreatePDDLDomain::Response& response) {
+  response.domain_id = CreatePDDLDomain(request.name);
   return true;
 }
 
-std::string Editor::CreateDomain(const std::string& name) {
+std::string Editor::CreatePDDLDomain(const std::string& name) {
   // TO DO: Initialise planning domain from .yaml file
-  msgs::Domain domain;
+  msgs::PDDLDomain domain;
   domain.name = name;
 
   // joint_state_reader_.ToMsg(&domain.start_joint_state);

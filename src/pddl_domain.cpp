@@ -1,4 +1,4 @@
-#include "rapid_pbd/domain.h"
+#include "rapid_pbd/pddl_domain.h"
 
 #include <math.h>
 #include <set>
@@ -24,8 +24,8 @@ namespace msgs = rapid_pbd_msgs;
 
 namespace rapid {
 namespace pbd {
-void GetDomain(const RobotConfig& robot_config, const msgs::Program& program,
-               size_t step_id, Domain* domain) {}
+void GetPDDLDomain(const RobotConfig& robot_config, const msgs::Program& program,
+               size_t step_id, PDDLDomain* domain) {}
 
 }  // namespace pbd
 }  // namespace rapid
