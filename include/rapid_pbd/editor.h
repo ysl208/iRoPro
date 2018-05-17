@@ -37,6 +37,7 @@ class Editor {
 
  private:
   std::string Create(const std::string& name);
+  void SaveOnExit(const std::string& db_id);
   void Update(const std::string& db_id, const rapid_pbd_msgs::Program& program);
   void Delete(const std::string& db_id);
   void AddStep(const std::string& db_id);

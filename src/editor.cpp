@@ -48,6 +48,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
   try {
     if (event.type == msgs::EditorEvent::UPDATE) {
       Update(event.program_info.db_id, event.program);
+    } else if (event.type == msgs::EditorEvent::SAVE_ON_EXIT) {
+      SaveOnExit(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::DELETE) {
       Delete(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::ADD_STEP) {
@@ -89,11 +91,27 @@ std::string Editor::Create(const std::string& name) {
   joint_state_reader_.ToMsg(&program.start_joint_state);
   std::string id = db_.Insert(program);
 
+  DetectSurfaceObjects(id, 0);
+
   World world;
   GetWorld(robot_config_, program, 0, &world);
   viz_.Publish(id, world);
-
   return id;
+}
+
+void Editor::SaveOnExit(const std::string& db_id) {
+  msgs::Program program;
+  bool success = db_.Get(db_id, &program);
+  if (!success) {
+    ROS_ERROR("Unable to delete program ID \"%s\"", db_id.c_str());
+    return;
+  }
+  size_t step_id = program.steps.size()-1;
+
+  DetectSurfaceObjects(db_id, step_id);
+
+  Update(db_id, program);
+  
 }
 
 void Editor::Update(const std::string& db_id, const msgs::Program& program) {
