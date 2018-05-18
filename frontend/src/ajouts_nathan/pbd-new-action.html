@@ -8,6 +8,10 @@
 <link rel="import" href="../../bower_components/iron-icons/av-icons.html">
 <link rel="import" href="../shared-styles.html">
 
+<!-- Materialize -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+
 <dom-module id="pbd-new-action">
   <template>
     <style include="../shared-styles"></style>
@@ -18,7 +22,14 @@
       }
 
       paper-button {
-          color: blue;
+        color: blue;
+      }
+
+      .carte {
+        padding: 24px;
+        margin: .5rem 0 1rem 0;
+        border-radius: 2px;
+        background-color: #fff;
       }
     </style>
     <div>
@@ -45,7 +56,7 @@
             <strong>Parameters</strong> are world types that are important for this action. Choose up to 3:
         </p>
 
-        <div>
+        <div class="card-panel">
             <label for="p1-param">p1:</label>
             <select id="p1-param">
                 <option value="Cylinder">Cylinder</option>
@@ -71,7 +82,7 @@
             <strong>Preconditions :</strong>
         </p>
 
-        <div id="precond">
+        <div id="precond" class="carte">
             <template is="dom-repeat" items="[[listPrecond]]" as="nbPre">
                 <br>
                 <select id="precond-{{nbPre}}-1">
@@ -102,7 +113,7 @@
 
         <p><strong>Postconditions :</strong></p>
 
-        <div id="postcond">
+        <div id="postcond" class="card-panel">
             <template is="dom-repeat" items="[[listPostcond]]" as="nbPost">
                 <br>
                 <select id="postcond-{{nbPost}}-1">
