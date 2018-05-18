@@ -20,22 +20,26 @@ struct WorldState {
   std::vector<rapid_pbd_msgs::PDDLObject> objects_;
   // predicates describing object relations
   std::vector<rapid_pbd_msgs::PDDLPredicate> predicates_;
+
+  std::vector<rapid_pbd_msgs::PDDLObject> positions_;
 };
 
 struct Domain {
  public:
   std::string domain_name;
   std::vector<rapid_pbd_msgs::PDDLDomain> domain_;
-
- private:
-  std::vector<rapid_pbd_msgs::PDDLObject> positions_;
 };
 
 // void GetDomain(Domain* domain);
 void InitDomain(Domain* domain);
 void GetWorldState(const World& world, WorldState* world_state);
-void GetTypeFromDims(const geometry_msgs::Vector3& dims, std::string type);
+void GetTypeFromDims(const geometry_msgs::Vector3& dims,
+                     rapid_pbd_msgs::PDDLType* obj_type);
 void GetFixedPositions(std::vector<rapid_pbd_msgs::PDDLObject>* objects);
+bool GetObjectTablePosition(const rapid_pbd_msgs::PDDLType& obj,
+                            WorldState* world_state,
+                            const double squared_distance_cutoff,
+                            rapid_pbd_msgs::PDDLObject* found_position);
 
 }  // namespace pbd
 }  // namespace rapid

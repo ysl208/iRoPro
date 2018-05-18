@@ -39,6 +39,7 @@ void GetWorldState(const World& world, WorldState* world_state) {
     msgs::PDDLObject obj;
     obj.name = "Object " + i;
     msgs::PDDLType obj_type;
+    obj_type.type = msgs::PDDLType::OBJECT;
     GetTypeFromDims(world_landmark.surface_box_dims, &obj_type);
 
     obj.type = obj_type;
@@ -47,11 +48,9 @@ void GetWorldState(const World& world, WorldState* world_state) {
     // IS_ON predicates
     msgs::PDDLPredicate pred;
     pred.predicate = msgs::PDDLPredicate::IS_ON;
-    for (size_t j = 0; j < world_state->positions_.size(); ++j) {
-      // Check which position the object is on
-      const msgs::PDDLObject& position = world_state->positions_[j];
-      GetObjectTablePosition(position->type.pose)
-    }
+    // Check which position the object is on
+    msgs::PDDLObject position;
+    GetObjectTablePosition(obj_type, world_state, 0.5, &position);
 
     world_state->predicates_.push_back(pred);
 
@@ -61,39 +60,44 @@ void GetWorldState(const World& world, WorldState* world_state) {
     // based on IS_ON predicates, we can infer IS_CLEAR
   }
 }
-bool GetObjectTablePosition(const geometry_msgs::Pose& obj_pose,
-                            const msgs::PDDLObject& position) {
-  // Check if object center is inside the position area
-  const double squared_distance_cutoff = 0.05;
+
+bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
+                            const double squared_distance_cutoff,
+                            msgs::PDDLObject* found_position) {
+  // return closest position
   bool success = false;
   double closest_distance = std::numeric_limits<double>::max();
-
-  for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
-    const msgs::Landmark& world_landmark = world.surface_box_landmarks[i];
-    if (landmark.name != world_landmark.name) {
-      geometry_msgs::Point world_pose;
-      world_pose.x = world_landmark.pose_stamped.pose.position.x;
-      world_pose.y = world_landmark.pose_stamped.pose.position.y;
-      world_pose.z = world_landmark.pose_stamped.pose.position.z;
-      double dx = world_pose.x - landmark.pose_stamped.pose.position.x;
-      double dy = world_pose.y - landmark.pose_stamped.pose.position.y;
-      double dz = world_pose.z - landmark.pose_stamped.pose.position.z;
-      double squared_distance = dx * dx + dy * dy + dz * dz;
-      if (squared_distance < closest_distance &&
-          squared_distance <= squared_distance_cutoff) {
-        *reference = world_landmark;
-        closest_distance = squared_distance;
-        success = true;
+  if (obj.type == msgs::PDDLType::OBJECT) {
+    for (size_t i = 0; i < world_state->positions_.size(); ++i) {
+      const msgs::PDDLObject& pos_object = world_state->positions_[i];
+      if (pos_object.type.type == msgs::PDDLType::POSITION) {
+        geometry_msgs::Point pose;
+        pose.x = pos_object.type.pose_stamped.pose.position.x;
+        pose.y = pos_object.type.pose_stamped.pose.position.y;
+        pose.z = pos_object.type.pose_stamped.pose.position.z;
+        double dx = pose.x - obj.pose_stamped.pose.position.x;
+        double dy = pose.y - obj.pose_stamped.pose.position.y;
+        double dz = pose.z - obj.pose_stamped.pose.position.z;
+        double squared_distance = dx * dx + dy * dy + dz * dz;
+        if (squared_distance < closest_distance &&
+            squared_distance <= squared_distance_cutoff) {
+          *found_position = pos_object;
+          closest_distance = squared_distance;
+          success = true;
+        }
       }
     }
+
+    return success;
+  } else {
+    return false;
   }
-  return success;
 }
 
 void GetTypeFromDims(const geometry_msgs::Vector3& dims,
                      msgs::PDDLType* obj_type) {
   // TO DO: check yaml file to decide object type
-  obj_type.type = msgs::PDDLType::OBJECT;
+  // obj_type->type = msgs::PDDLType::OBJECT;
 }
 
 void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
