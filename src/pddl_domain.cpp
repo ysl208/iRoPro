@@ -47,7 +47,9 @@ void GetWorldState(const World& world, WorldState* world_state) {
     // based on IS_ON predicates, we can infer IS_CLEAR
   }
 
-  void GetTypeFromDims(const geometry_msgs::Vector3 dims, std::string type) {}
+  void GetTypeFromDims(const geometry_msgs::Vector3& dims, std::string type) {
+    type = "";
+  }
 
   void GetFixedPositions(std::vector<msgs::PDDLObject> * objects) {
     msgs::PDDLObject obj;

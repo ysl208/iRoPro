@@ -29,12 +29,11 @@ struct Domain {
 
  private:
   std::vector<geometry_msgs::Vector3> positions_;
-
-} 
+};
 
 void GetDomain(Domain* domain);
 void GetWorldState(const World& world, WorldState* world_state);
-void GetTypeFromDims(const geometry_msgs::Vector3 dims, string type)
+void GetTypeFromDims(const geometry_msgs::Vector3 dims, std::string type)
 }  // namespace pbd
 }  // namespace rapid
 
