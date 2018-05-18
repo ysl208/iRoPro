@@ -8,10 +8,10 @@
 
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Condition.h"
-#include "rapid_pbd_msgs/PDDLDomain.h"
 #include "rapid_pbd_msgs/EditorEvent.h"
 #include "rapid_pbd_msgs/ExecuteProgramGoal.h"
 #include "rapid_pbd_msgs/Landmark.h"
+#include "rapid_pbd_msgs/PDDLDomain.h"
 #include "rapid_pbd_msgs/Program.h"
 #include "rapid_pbd_msgs/SegmentSurfacesGoal.h"
 #include "rapid_pbd_msgs/Step.h"
@@ -35,12 +35,8 @@ using rapid_pbd_msgs::Action;
 namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
-<<<<<<< HEAD
 Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
-               const DomainDb& domain_db,
-=======
-Editor::Editor(const ProgramDb& db, const SceneDb& scene_db, const PDDLDomainDb& domain_db,
->>>>>>> 38e69c03d6f2e2c725b21310b82f663efb362335
+               const PDDLDomainDb& domain_db,
                const JointStateReader& joint_state_reader,
                const Visualizer& visualizer, ActionClients* action_clients,
                const ConditionGenerator& cond_gen,
@@ -116,15 +112,10 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
   }
 }
 
-<<<<<<< HEAD
-bool Editor::HandleCreateDomain(msgs::CreateDomain::Request& request,
-                                msgs::CreateDomain::Response& response) {
-  response.domain_id = CreateDomain(request.name);
-=======
-bool Editor::HandleCreatePDDLDomain(msgs::CreatePDDLDomain::Request& request,
-                                 msgs::CreatePDDLDomain::Response& response) {
+bool Editor::HandleCreatePDDLDomain(
+    msgs::CreatePDDLDomain::Request& request,
+    msgs::CreatePDDLDomain::Response& response) {
   response.domain_id = CreatePDDLDomain(request.name);
->>>>>>> 38e69c03d6f2e2c725b21310b82f663efb362335
   return true;
 }
 
