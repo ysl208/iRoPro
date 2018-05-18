@@ -1,4 +1,4 @@
-#include "rapid_pbd/domain.h"
+#include "rapid_pbd/pddl_domain.h"
 
 #include <math.h>
 #include <set>

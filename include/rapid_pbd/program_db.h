@@ -6,7 +6,7 @@
 
 #include "mongodb_store/message_store.h"
 #include "rapid_pbd_msgs/Program.h"
-#include "rapid_pbd_msgs/Domain.h"
+#include "rapid_pbd_msgs/PDDLDomain.h"
 #include "ros/ros.h"
 #include "sensor_msgs/PointCloud2.h"
 
@@ -15,7 +15,7 @@
 namespace rapid {
 namespace pbd {
 static const char kProgramListTopic[] = "program_list";
-static const char kDomainListTopic[] = "domain_list";
+static const char kPDDLDomainListTopic[] = "domain_list";
 
 class SceneDb {
  public:
@@ -56,20 +56,20 @@ class ProgramDb {
   void PublishProgram(const std::string& db_id);
 };
 
-class DomainDb {
+class PDDLDomainDb {
  public:
-  DomainDb(const ros::NodeHandle& nh, mongodb_store::MessageStoreProxy* domain,
+  PDDLDomainDb(const ros::NodeHandle& nh, mongodb_store::MessageStoreProxy* domain,
             ros::Publisher* list_pub);
 
   // Publishes the first message.
   void Start();
 
-  std::string Insert(const rapid_pbd_msgs::Domain& domain);
-  void Update(const std::string& domain_id, const rapid_pbd_msgs::Domain& domain);
-  void StartPublishingDomainById(const std::string& domain_id);
-  bool Get(const std::string& domain_id, rapid_pbd_msgs::Domain* domain) const;
+  std::string Insert(const rapid_pbd_msgs::PDDLDomain& domain);
+  void Update(const std::string& domain_id, const rapid_pbd_msgs::PDDLDomain& domain);
+  void StartPublishingPDDLDomainById(const std::string& domain_id);
+  bool Get(const std::string& domain_id, rapid_pbd_msgs::PDDLDomain* domain) const;
   bool GetByName(const std::string& name,
-                 rapid_pbd_msgs::Domain* domain) const;
+                 rapid_pbd_msgs::PDDLDomain* domain) const;
   void Delete(const std::string& domain_id);
   bool GetList(std::vector<std::string>* names);
 
@@ -80,7 +80,7 @@ class DomainDb {
   std::map<std::string, ros::Publisher> domain_pubs_;
 
   void PublishList();
-  void PublishDomain(const std::string& domain_id);
+  void PublishPDDLDomain(const std::string& domain_id);
 };
 
 }  // namespace pbd
