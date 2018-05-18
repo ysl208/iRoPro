@@ -28,7 +28,7 @@ struct Domain {
   std::vector<rapid_pbd_msgs::PDDLDomain> domain_;
 
  private:
-  std::vector<geometry_msgs::Vector3> positions_;
+  std::vector<rapid_pbd_msgs::PDDLObject> positions_;
 };
 
 // void GetDomain(Domain* domain);
