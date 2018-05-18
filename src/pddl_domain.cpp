@@ -47,7 +47,7 @@ void GetWorldState(const World& world, WorldState* world_state) {
     // based on IS_ON predicates, we can infer IS_CLEAR
   }
 
-  void GetTypeFromDims(const geometry_msgs::Vector3 dims, string type) {}
+  void GetTypeFromDims(const geometry_msgs::Vector3 dims, std::string type) {}
 
   void GetFixedPositions(std::vector<msgs::PDDLObject> * objects) {
     msgs::PDDLObject obj;
@@ -58,9 +58,9 @@ void GetWorldState(const World& world, WorldState* world_state) {
     // Positions A,B,C,D
     obj.name = "Position A";
     double a_center_x = 0, a_center_y = 0, a_center_z = 0;
-    std::vector<std::pair<string, string>> world_positions;
-    ros::param::param<std::vector<std::pair<string, string>>>("world_positions",
-                                                              world_positions);
+    std::vector<std::pair<std::string, std::string>> world_positions;
+    ros::param::param<std::vector<std::pair<std::string, std::string>>>(
+        "world_positions", world_positions);
   }
 
 }  // namespace pbd
