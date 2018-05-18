@@ -62,7 +62,7 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
   // Positions A,B,C,D
   obj.name = "Position A";
   double a_center_x = 0, a_center_y = 0, a_center_z = 0;
-  std::vector<std::pair<std::string, std::string>> world_positions;
+  std::vector<std::pair<std::string, std::string> > world_positions;
   //   ros::param::param<std::vector<std::pair<std::string, std::string>>>(
   //       "world_positions", world_positions);
 }
