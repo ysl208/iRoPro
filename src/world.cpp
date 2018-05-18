@@ -180,21 +180,6 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
     if (grid.size() > 0) {
       world->grid = grid;
     }
-
-    // ROS_INFO("Surface dimensions: (%f,%f,%f)", world->surface.dimensions.x,
-    //          world->surface.dimensions.y, world->surface.dimensions.z);
-    // std::cout << "landmarks: " << world->surface_box_landmarks.size() << " -
-    // "
-    //           << step.landmarks.size() << " for step " << step_id << "\n";
-    // ROS_INFO("world->surface position: (%f,%f,%f)",
-    //          world->surface.pose_stamped.pose.position.x,
-    //          world->surface.pose_stamped.pose.position.y,
-    //          world->surface.pose_stamped.pose.position.z);
-    // ROS_INFO("world->surface orientation: (%f,%f,%f,%f)",
-    //          world->surface.pose_stamped.pose.orientation.x,
-    //          world->surface.pose_stamped.pose.orientation.y,
-    //          world->surface.pose_stamped.pose.orientation.z,
-    //          world->surface.pose_stamped.pose.orientation.w);
   }
 }
 
@@ -218,7 +203,7 @@ double BoxDissimilarity(const std::vector<double>& a,
   double dz = (a[2] - b[2]);
   return dx * dx + dy * dy + dz * dz;
 }
-}
+}  // namespace
 
 bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
                    rapid_pbd_msgs::Landmark* match, const double& variance) {
@@ -237,9 +222,8 @@ bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
       if (distance <= kMaxDistance) {
         // if x-distance of world_landmark is closer than current best match,
         // then choose this object
-        if (match->name == "" ||
-            world_landmark.pose_stamped.pose.position.x <
-                match->pose_stamped.pose.position.x) {
+        if (match->name == "" || world_landmark.pose_stamped.pose.position.x <
+                                     match->pose_stamped.pose.position.x) {
           best = distance;
           *match = world_landmark;
         }
