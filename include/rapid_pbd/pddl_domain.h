@@ -3,34 +3,38 @@
 #include <string>
 #include <vector>
 
-#include "geometry_msgs/Point.h"
-#include "geometry_msgs/Quaternion.h"
-#include "rapid_pbd_msgs/Condition.h"
 #include "rapid_pbd_msgs/Landmark.h"
+#include "rapid_pbd_msgs/PDDLAction.h"
+#include "rapid_pbd_msgs/PDDLDomain.h"
+#include "rapid_pbd_msgs/PDDLObject.h"
+#include "rapid_pbd_msgs/PDDLPredicate.h"
 #include "rapid_pbd_msgs/Program.h"
-#include "rapid_pbd_msgs/Surface.h"
 
-#include "rapid_pbd/joint_state.h"
-#include "rapid_pbd/robot_config.h"
+#include "rapid_pbd/world.h"
 
 namespace rapid {
 namespace pbd {
-struct Domain {
+struct WorldState {
  public:
-  std::string scene_id;
-  JointState joint_state;
-  std::vector<rapid_pbd_msgs::Landmark> surface_box_landmarks;
-  rapid_pbd_msgs::Surface surface;
-
-  std::vector<rapid_pbd_msgs::Condition> domain_conditions;
-  // std::vector<std::vector<std::string> > grid;
-  std::vector<geometry_msgs::PoseArray> grid;
+  // positions, objects, grippers
+  std::vector<rapid_pbd_msgs::PDDLObject> objects_;
+  // predicates describing object relations
+  std::vector<rapid_pbd_msgs::PDDLPredicate> predicates_;
 };
 
-void GetDomain(const RobotConfig& robot_config,
-               const rapid_pbd_msgs::Program& program, size_t step_id,
-               Domain* domain);
+struct Domain {
+ public:
+  std::string domain_name;
+  std::vector<rapid_pbd_msgs::PDDLDomain> domain_;
 
+ private:
+  std::vector<geometry_msgs::Vector3> positions_;
+
+} 
+
+void GetDomain(Domain* domain);
+void GetWorldState(const World& world, WorldState* world_state);
+void GetTypeFromDims(const geometry_msgs / Vector3 dims, string type)
 }  // namespace pbd
 }  // namespace rapid
 

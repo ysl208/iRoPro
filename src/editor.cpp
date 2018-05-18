@@ -35,7 +35,8 @@ using rapid_pbd_msgs::Action;
 namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
-Editor::Editor(const ProgramDb& db, const SceneDb& scene_db, const DomainDb& domain_db,
+Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
+               const DomainDb& domain_db,
                const JointStateReader& joint_state_reader,
                const Visualizer& visualizer, ActionClients* action_clients,
                const ConditionGenerator& cond_gen,
@@ -112,7 +113,7 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
 }
 
 bool Editor::HandleCreateDomain(msgs::CreateDomain::Request& request,
-                                 msgs::CreateDomain::Response& response) {
+                                msgs::CreateDomain::Response& response) {
   response.domain_id = CreateDomain(request.name);
   return true;
 }
@@ -127,43 +128,7 @@ std::string Editor::CreateDomain(const std::string& name) {
   // World world;
   // GetWorld(robot_config_, domain, 0, &world);
   // viz_.Publish(id, world);
-
-  // Positions A,B,C,D
-  double a_center_x = 0, a_center_y = 0, a_center_z = 0;
-  ros::param::param<double>("planning_domain/crop_a_center_x", a_center_x, 0);
-  ros::param::param<double>("planning_domain/crop_a_center_y", a_center_y, -1);
-  ros::param::param<double>("planning_domain/crop_a_center_z", a_center_z, 0.1);
-  double b_center_x = 0, b_center_y = 0, b_center_z = 0;
-  ros::param::param<double>("planning_domain/crop_b_center_x", b_center_x, 0);
-  ros::param::param<double>("planning_domain/crop_b_center_y", b_center_y, -1);
-  ros::param::param<double>("planning_domain/crop_b_center_z", b_center_z, 0.1);
-  double c_center_x = 0, c_center_y = 0, c_center_z = 0;
-  ros::param::param<double>("planning_domain/crop_c_center_x", c_center_x, 0);
-  ros::param::param<double>("planning_domain/crop_c_center_y", c_center_y, -1);
-  ros::param::param<double>("planning_domain/crop_c_center_z", c_center_z, 0.1);
-  double d_center_x = 0, d_center_y = 0, d_center_z = 0;
-  ros::param::param<double>("planning_domain/crop_d_center_x", d_center_x, 0);
-  ros::param::param<double>("planning_domain/crop_d_center_y", d_center_y, -1);
-  ros::param::param<double>("planning_domain/crop_d_center_z", d_center_z, 0.1);
-
-  // Object dimensions
-  double cube_x = 0, cube_y = 0, cube_z = 0;
-  ros::param::param<double>("planning_domain/crop_cube_x", cube_x, 1.0);
-  ros::param::param<double>("planning_domain/crop_cube_y", cube_y, 1.0);
-  ros::param::param<double>("planning_domain/crop_cube_z", cube_z, 1.0);
-  double plate_x = 0, plate_y = 0, plate_z = 0;
-  ros::param::param<double>("planning_domain/crop_plate_x", plate_x, 1.0);
-  ros::param::param<double>("planning_domain/crop_plate_y", plate_y, 1.0);
-  ros::param::param<double>("planning_domain/crop_plate_z", plate_z, 0.25);
-  double tower_x = 0, tower_y = 0, tower_z = 0;
-  ros::param::param<double>("planning_domain/crop_tower_x", tower_x, 1.0);
-  ros::param::param<double>("planning_domain/crop_tower_y", tower_y, 1.0);
-  ros::param::param<double>("planning_domain/crop_tower_z", tower_z, 3.0);
-  double rectangle_x = 0, rectangle_y = 0, rectangle_z = 0;
-  ros::param::param<double>("planning_domain/crop_rectangle_x", rectangle_x, 1.0);
-  ros::param::param<double>("planning_domain/crop_rectangle_y", rectangle_y, 1.0);
-  ros::param::param<double>("planning_domain/crop_rectangle_z", rectangle_z, 0.25);
-
+  // InitDomain(&domain);
   return id;
 }
 

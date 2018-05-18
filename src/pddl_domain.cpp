@@ -24,8 +24,44 @@ namespace msgs = rapid_pbd_msgs;
 
 namespace rapid {
 namespace pbd {
-void GetDomain(const RobotConfig& robot_config, const msgs::Program& program,
-               size_t step_id, Domain* domain) {}
+void InitDomain(Domain* domain) {}
+
+void GetWorldState(const World& world, WorldState* world_state) {
+  // Given: World with landmarks
+  // Create World state of objects
+  world_state->objects_.clear();
+  world_state->predicates_.clear();
+
+  for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
+    const msgs::Landmark& world_landmark = world.surface_box_landmarks[i];
+
+    msgs::PDDLObject obj;
+    obj.name = "Object " + i;
+    world_state->objects_.push_back(obj);
+    // Generate Predicates for type == OBJECT
+    // IS_ON predicates
+
+    // IS_CLEAR predicates
+
+    // Generate Predicates for type == POSITION
+    // based on IS_ON predicates, we can infer IS_CLEAR
+  }
+
+  void GetTypeFromDims(const geometry_msgs::Vector3 dims, string type) {}
+
+  void GetFixedPositions(std::vector<msgs::PDDLObject> * objects) {
+    msgs::PDDLObject obj;
+    msgs::PDDLType obj_type;
+    obj_type.type = msgs::PDDLType::POSITION;
+    obj_type.pose = obj.type = obj_type;
+
+    // Positions A,B,C,D
+    obj.name = "Position A";
+    double a_center_x = 0, a_center_y = 0, a_center_z = 0;
+    std::vector<std::pair<string, string>> world_positions;
+    ros::param::param<std::vector<std::pair<string, string>>>("world_positions",
+                                                              world_positions);
+  }
 
 }  // namespace pbd
-}  // namespace rapid
+}  // namespace pbd
