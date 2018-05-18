@@ -46,24 +46,25 @@ void GetWorldState(const World& world, WorldState* world_state) {
     // Generate Predicates for type == POSITION
     // based on IS_ON predicates, we can infer IS_CLEAR
   }
+}
 
-  void GetTypeFromDims(const geometry_msgs::Vector3& dims, std::string type) {
-    type = "";
-  }
+void GetTypeFromDims(const geometry_msgs::Vector3& dims, std::string type) {
+  type = "";
+}
 
-  void GetFixedPositions(std::vector<msgs::PDDLObject> * objects) {
-    msgs::PDDLObject obj;
-    msgs::PDDLType obj_type;
-    obj_type.type = msgs::PDDLType::POSITION;
-    obj_type.pose = obj.type = obj_type;
+void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
+  msgs::PDDLObject obj;
+  msgs::PDDLType obj_type;
+  obj_type.type = msgs::PDDLType::POSITION;
+  obj_type.pose = obj.type = obj_type;
 
-    // Positions A,B,C,D
-    obj.name = "Position A";
-    double a_center_x = 0, a_center_y = 0, a_center_z = 0;
-    std::vector<std::pair<std::string, std::string>> world_positions;
-    ros::param::param<std::vector<std::pair<std::string, std::string>>>(
-        "world_positions", world_positions);
-  }
+  // Positions A,B,C,D
+  obj.name = "Position A";
+  double a_center_x = 0, a_center_y = 0, a_center_z = 0;
+  std::vector<std::pair<std::string, std::string>> world_positions;
+  ros::param::param<std::vector<std::pair<std::string, std::string>>>(
+      "world_positions", world_positions);
+}
 
 }  // namespace pbd
-}  // namespace pbd
+}  // namespace rapid
