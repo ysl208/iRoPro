@@ -107,8 +107,9 @@ void Editor::SaveOnExit(const std::string& db_id) {
     return;
   }
   size_t step_id = program.steps.size()-1;
-
-  DetectSurfaceObjects(db_id, step_id);
+  if (step_id >= 0){
+    DetectSurfaceObjects(db_id, step_id);
+  }
 
   Update(db_id, program);
   
