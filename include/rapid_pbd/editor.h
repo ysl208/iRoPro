@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "rapid_pbd_msgs/Action.h"
-#include "rapid_pbd_msgs/CreateDomain.h"
+#include "rapid_pbd_msgs/CreatePDDLDomain.h"
 #include "rapid_pbd_msgs/CreateProgram.h"
 #include "rapid_pbd_msgs/EditorEvent.h"
 #include "rapid_pbd_msgs/Program.h"
