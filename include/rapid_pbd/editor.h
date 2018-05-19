@@ -49,6 +49,7 @@ class Editor {
   std::string CreatePDDLDomain(const std::string& name);
   void AddSenseSteps(const std::string& db_id, size_t step_id);
   void Update(const std::string& db_id, const msgs::Program& program);
+  void SaveOnExit(const std::string& db_id);
   void Delete(const std::string& db_id);
   void GenerateConditions(const std::string& db_id, size_t step_id,
                           size_t action_id, const std::string& landmark_name);
