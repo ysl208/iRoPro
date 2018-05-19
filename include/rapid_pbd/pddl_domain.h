@@ -39,7 +39,8 @@ bool PredicateExists(std::vector<rapid_pbd_msgs::PDDLPredicate> predicates,
                      const std::vector<rapid_pbd_msgs::PDDLObject>& args);
 void AddPredicate(std::vector<rapid_pbd_msgs::PDDLPredicate> predicates,
                   const std::string& predicate,
-                  const std::vector<rapid_pbd_msgs::PDDLObject>& args);
+                  const std::vector<rapid_pbd_msgs::PDDLObject>& args,
+                  bool negate);
 void GetTypeFromDims(const geometry_msgs::Vector3& dims,
                      rapid_pbd_msgs::PDDLType* obj_type);
 void GetFixedPositions(std::vector<rapid_pbd_msgs::PDDLObject>* objects);

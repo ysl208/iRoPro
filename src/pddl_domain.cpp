@@ -31,14 +31,19 @@ void GetWorldState(const World& world, WorldState* world_state) {
   // Create World state of objects
   world_state->objects_.clear();
   world_state->predicates_.clear();
+  std::vector<msgs::PDDLObject> args;
+  std::string predicate;
+  double position_radius = 0.05;
+  msgs::PDDLObject position;
+  bool negate = false;
+  msgs::PDDLObject obj;
+  msgs::PDDLType obj_type;
 
   for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
     const msgs::Landmark& world_landmark = world.surface_box_landmarks[i];
 
     // Generate Predicates for type == OBJECT
-    msgs::PDDLObject obj;
     obj.name = "Object " + i;
-    msgs::PDDLType obj_type;
     obj_type.type = msgs::PDDLType::OBJECT;
     GetTypeFromDims(world_landmark.surface_box_dims, &obj_type);
 
@@ -47,41 +52,43 @@ void GetWorldState(const World& world, WorldState* world_state) {
 
     // IS_ON predicates
     // Check which position the object is on
-    double position_radius = 0.05;
-    std::vector<msgs::PDDLObject> args;
-    std::string predicate;
-    msgs::PDDLObject position;
     if (GetObjectTablePosition(obj_type, world_state, position_radius,
                                &position)) {
       predicate = msgs::PDDLPredicate::IS_ON;
       args.push_back(obj);
       args.push_back(position);
-      AddPredicate(world_state->predicates_, predicate, args);
+      AddPredicate(world_state->predicates_, predicate, args, negate);
 
       predicate = msgs::PDDLPredicate::IS_STACKABLE;
-      AddPredicate(world_state->predicates_, predicate, args);
+      AddPredicate(world_state->predicates_, predicate, args, negate);
 
       predicate = msgs::PDDLPredicate::IS_CLEAR;
       args.clear();
       args.push_back(obj);
-      AddPredicate(world_state->predicates_, predicate, args);
+      AddPredicate(world_state->predicates_, predicate, args, negate);
+
+      predicate = msgs::PDDLPredicate::IS_CLEAR;
+      args.clear();
+      args.push_back(obj);
+      negate = true;
+      AddPredicate(world_state->predicates_, predicate, args, negate);
 
     } else {
       ROS_ERROR("Object not on any predefined position");
     }
-
-    // Generate Predicates for type == POSITION
-    // based on IS_ON predicates, we can infer IS_CLEAR
-
-    for (size_t i = 0; i < world_state->positions_.size(); ++i) {
-      const msgs::PDDLObject& pos_object = world_state->positions_[i];
-      predicate = msgs::PDDLPredicate::IS_CLEAR;
-      args.clear();
-      args.push_back(pos_object);
-      AddPredicate(world_state->predicates_, predicate, args);
-    }
+  }
+  // Generate Predicates for type == POSITION
+  // based on IS_ON predicates, we can infer IS_CLEAR
+  for (size_t i = 0; i < world_state->positions_.size(); ++i) {
+    const msgs::PDDLObject& pos_object = world_state->positions_[i];
+    predicate = msgs::PDDLPredicate::IS_CLEAR;
+    args.clear();
+    args.push_back(pos_object);
+    negate = false;
+    AddPredicate(world_state->predicates_, predicate, args, negate);
   }
 }
+
 bool PredicateExists(std::vector<msgs::PDDLPredicate> predicates,
                      const std::string& predicate,
                      const std::vector<msgs::PDDLObject>& args) {
@@ -98,10 +105,10 @@ bool PredicateExists(std::vector<msgs::PDDLPredicate> predicates,
 }
 void AddPredicate(std::vector<msgs::PDDLPredicate> predicates,
                   const std::string& predicate,
-                  const std::vector<msgs::PDDLObject>& args) {
+                  const std::vector<msgs::PDDLObject>& args, bool negate) {
   msgs::PDDLPredicate new_pred;
   new_pred.name = predicate;
-
+  new_pred.negate = negate;
   if (predicate == msgs::PDDLPredicate::IS_ON && args.size() == 2) {
     new_pred.arg1 = args[0];
     new_pred.arg2 = args[1];
