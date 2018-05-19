@@ -12,6 +12,7 @@
 
 #include "rapid_pbd/world.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 struct WorldState {
@@ -33,6 +34,12 @@ struct Domain {
 // void GetDomain(Domain* domain);
 void InitDomain(Domain* domain);
 void GetWorldState(const World& world, WorldState* world_state);
+bool PredicateExists(std::vector<rapid_pbd_msgs::PDDLPredicate> predicates,
+                     const std::string& predicate,
+                     const std::vector<rapid_pbd_msgs::PDDLObject>& args);
+void AddPredicate(std::vector<rapid_pbd_msgs::PDDLPredicate> predicates,
+                  const std::string& predicate,
+                  const std::vector<rapid_pbd_msgs::PDDLObject>& args);
 void GetTypeFromDims(const geometry_msgs::Vector3& dims,
                      rapid_pbd_msgs::PDDLType* obj_type);
 void GetFixedPositions(std::vector<rapid_pbd_msgs::PDDLObject>* objects);

@@ -46,25 +46,81 @@ void GetWorldState(const World& world, WorldState* world_state) {
     world_state->objects_.push_back(obj);
 
     // IS_ON predicates
-    msgs::PDDLPredicate pred;
-    pred.predicate = msgs::PDDLPredicate::IS_ON;
     // Check which position the object is on
+    double position_radius = 0.05;
+    std::vector<msgs::PDDLObject> args;
+    std::string predicate;
     msgs::PDDLObject position;
-    GetObjectTablePosition(obj_type, world_state, 0.5, &position);
+    if (GetObjectTablePosition(obj_type, world_state, position_radius,
+                               &position)) {
+      predicate = msgs::PDDLPredicate::IS_ON;
+      args.push_back(obj);
+      args.push_back(position);
+      AddPredicate(world_state->predicates_, predicate, args);
 
-    world_state->predicates_.push_back(pred);
+      predicate = msgs::PDDLPredicate::IS_STACKABLE;
+      AddPredicate(world_state->predicates_, predicate, args);
 
-    // IS_CLEAR predicates
+      predicate = msgs::PDDLPredicate::IS_CLEAR;
+      args.clear();
+      args.push_back(obj);
+      AddPredicate(world_state->predicates_, predicate, args);
+
+    } else {
+      ROS_ERROR("Object not on any predefined position");
+    }
 
     // Generate Predicates for type == POSITION
     // based on IS_ON predicates, we can infer IS_CLEAR
+
+    for (size_t i = 0; i < world_state->positions_.size(); ++i) {
+      const msgs::PDDLObject& pos_object = world_state->positions_[i];
+      predicate = msgs::PDDLPredicate::IS_CLEAR;
+      args.clear();
+      args.push_back(pos_object);
+      AddPredicate(world_state->predicates_, predicate, args);
+    }
   }
 }
+bool PredicateExists(std::vector<msgs::PDDLPredicate> predicates,
+                     const std::string& predicate,
+                     const std::vector<msgs::PDDLObject>& args) {
+  for (size_t i = 0; i < predicates.size(); ++i) {
+    const msgs::PDDLPredicate& pred = predicates[i];
+    if (pred.name == predicate && pred.arg1.name == args[0].name) {
+      if (args.size() > 1) {
+        return pred.arg1.name == args[1].name;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+void AddPredicate(std::vector<msgs::PDDLPredicate> predicates,
+                  const std::string& predicate,
+                  const std::vector<msgs::PDDLObject>& args) {
+  msgs::PDDLPredicate new_pred;
+  new_pred.name = predicate;
 
+  if (predicate == msgs::PDDLPredicate::IS_ON && args.size() == 2) {
+    new_pred.arg1 = args[0];
+    new_pred.arg2 = args[1];
+  } else if (predicate == msgs::PDDLPredicate::IS_CLEAR && args.size() == 1) {
+    new_pred.arg1 = args[0];
+  } else if (predicate == msgs::PDDLPredicate::IS_STACKABLE &&
+             args.size() == 2) {
+    new_pred.arg1 = args[0];
+    new_pred.arg2 = args[1];
+  }
+  if (!PredicateExists(predicates, predicate, args)) {
+    predicates.push_back(new_pred);
+  }
+}
 bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
                             const double squared_distance_cutoff,
                             msgs::PDDLObject* found_position) {
   // return closest position
+  // TO DO: get squared_distance_cutoff from yaml file
   bool success = false;
   double closest_distance = std::numeric_limits<double>::max();
   if (obj.type == msgs::PDDLType::OBJECT) {
