@@ -20,9 +20,10 @@ using boost::shared_ptr;
 using rapid_pbd_msgs::Action;
 using rapid_pbd_msgs::Step;
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
-StepExecutor::StepExecutor(const rapid_pbd_msgs::Step& step,
+StepExecutor::StepExecutor(const msgs::Step& step,
                            ActionClients* action_clients,
                            const RuntimeRobotState& robot_state, World* world,
                            const RuntimeVisualizer& runtime_viz,
@@ -37,7 +38,7 @@ StepExecutor::StepExecutor(const rapid_pbd_msgs::Step& step,
       condition_checker_(world, condition_check_pub),
       executors_() {}
 
-bool StepExecutor::IsValid(const rapid_pbd_msgs::Step& step) {
+bool StepExecutor::IsValid(const msgs::Step& step) {
   for (size_t i = 0; i < step.actions.size(); ++i) {
     const Action& action = step.actions[i];
     if (!ActionExecutor::IsValid(action)) {

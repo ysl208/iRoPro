@@ -12,6 +12,7 @@
 
 #include "rapid_pbd/world.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 // ConditionGenerator takes landmarks and infers conditions that can be used for
@@ -23,41 +24,35 @@ class ConditionGenerator {
   void AssignConditions(World* world);
   void AssignLandmarkCondition(const World& world,
                                const std::string& landmark_name,
-                               rapid_pbd_msgs::Condition* condition);
-  void UpdateReferenceLandmark(const World& world,
-                               rapid_pbd_msgs::Condition* condition,
-                               const rapid_pbd_msgs::Landmark& reference);
+                               msgs::Condition* condition);
+  void UpdateReferenceLandmark(const World& world, msgs::Condition* condition,
+                               const msgs::Landmark& reference);
 
  private:
   World* world_;
   const RobotConfig& robot_config_;
 
-  bool IsLandmarkName(const rapid_pbd_msgs::Landmark& landmark,
-                      const std::string& name);
-  void GetPropertyConditions(const rapid_pbd_msgs::Landmark& landmark,
-                             const World& world,
-                             rapid_pbd_msgs::Condition* condition,
+  bool IsLandmarkName(const msgs::Landmark& landmark, const std::string& name);
+  void GetPropertyConditions(const msgs::Landmark& landmark, const World& world,
+                             msgs::Condition* condition,
                              const float& defaultVariance);
-  void GetRelativeConditions(const rapid_pbd_msgs::Landmark& landmark,
-                             const World& world,
-                             rapid_pbd_msgs::Condition* condition,
+  void GetRelativeConditions(const msgs::Landmark& landmark, const World& world,
+                             msgs::Condition* condition,
                              const float& defaultVariance);
   geometry_msgs::Vector3 QuaternionToRPY(const geometry_msgs::Quaternion& msg);
-  void SetReferenceConditions(rapid_pbd_msgs::Condition* condition,
-                              const rapid_pbd_msgs::Landmark& reference,
-                              const rapid_pbd_msgs::Landmark& landmark,
+  void SetReferenceConditions(msgs::Condition* condition,
+                              const msgs::Landmark& reference,
+                              const msgs::Landmark& landmark,
                               const geometry_msgs::Vector3& defaultVarVector);
-  bool ReferencedLandmark(const rapid_pbd_msgs::Landmark& landmark,
-                          const World& world,
+  bool ReferencedLandmark(const msgs::Landmark& landmark, const World& world,
                           const double squared_distance_cutoff,
-                          rapid_pbd_msgs::Landmark* reference);
-  void GetDisplacementVector(const rapid_pbd_msgs::Landmark& landmark,
-                             const rapid_pbd_msgs::Landmark& reference,
-                             rapid_pbd_msgs::Condition* condition);
-  void GetSpatialRelation(rapid_pbd_msgs::Condition* condition);
-  void GetRelativeAlignment(rapid_pbd_msgs::Condition* condition);
-  void CheckRelevantProperties(const World& world,
-                               rapid_pbd_msgs::Condition* condition);
+                          msgs::Landmark* reference);
+  void GetDisplacementVector(const msgs::Landmark& landmark,
+                             const msgs::Landmark& reference,
+                             msgs::Condition* condition);
+  void GetSpatialRelation(msgs::Condition* condition);
+  void GetRelativeAlignment(msgs::Condition* condition);
+  void CheckRelevantProperties(const World& world, msgs::Condition* condition);
   // void GetPositionsAroundObject(
   //     msgs::Condition* condition, const geometry_msgs::Vector3& dimensions,
   //     const geometry_msgs::Vector3& obj_distance,

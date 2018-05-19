@@ -9,8 +9,8 @@ namespace msgs = rapid_pbd_msgs;
 
 namespace rapid {
 namespace pbd {
-void ProcessSurfaceBox(const rapid_pbd_msgs::Landmark& landmark_in,
-                       rapid_pbd_msgs::Landmark* landmark_out) {
+void ProcessSurfaceBox(const msgs::Landmark& landmark_in,
+                       msgs::Landmark* landmark_out) {
   *landmark_out = landmark_in;
   if (landmark_in.type != msgs::Landmark::SURFACE_BOX) {
     ROS_ERROR("Called ProcessSurfaceBox with non-surface box landmark.");

@@ -15,11 +15,12 @@
 #include "rapid_pbd/visualizer.h"
 #include "rapid_pbd/world.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 class StepExecutor {
  public:
-  StepExecutor(const rapid_pbd_msgs::Step& step, ActionClients* action_clients,
+  StepExecutor(const msgs::Step& step, ActionClients* action_clients,
                const RuntimeRobotState& robot_state, World* world,
                const RuntimeVisualizer& runtime_viz,
                const ros::Publisher& planning_scene_pub,
@@ -27,7 +28,7 @@ class StepExecutor {
 
   // Returns true if the Step message is valid, false otherwise.
   // You should call this method to verify the step message before executing it.
-  static bool IsValid(const rapid_pbd_msgs::Step& step);
+  static bool IsValid(const msgs::Step& step);
 
   // Initializes the step. This should be called before calling Start().
   void Init();
@@ -43,7 +44,7 @@ class StepExecutor {
   void Cancel();
 
  private:
-  rapid_pbd_msgs::Step step_;
+  msgs::Step step_;
   ActionClients* action_clients_;
   const RuntimeRobotState& robot_state_;
   World* world_;

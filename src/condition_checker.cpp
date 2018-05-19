@@ -68,7 +68,7 @@ std::string ConditionChecker::CheckConditions(
   return "";
 }
 
-rapid_pbd_msgs::ConditionCheckInfo ConditionChecker::GetConditionCheckMsg() {
+msgs::ConditionCheckInfo ConditionChecker::GetConditionCheckMsg() {
   return info_;
 }
 

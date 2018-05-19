@@ -14,6 +14,7 @@
 
 #include "rapid_pbd/world.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 // ConditionGenerator takes landmarks and infers conditions that can be used for
@@ -21,23 +22,22 @@ namespace pbd {
 class SpecInference {
  public:
   std::vector<float> priors_, posteriors_;
-  std::vector<rapid_pbd_msgs::Specification> specs_;
+  std::vector<msgs::Specification> specs_;
   SpecInference(const RobotConfig& robot_config);
   void Init();
-  void InitSpec(rapid_pbd_msgs::Specification* spec);
-  void InitSpecs(std::vector<rapid_pbd_msgs::Specification>* specs,
-                 const rapid_pbd_msgs::Landmark& landmark);
-  void UpdatePosteriors(const World& world,
-                        const rapid_pbd_msgs::Landmark& landmark,
+  void InitSpec(msgs::Specification* spec);
+  void InitSpecs(std::vector<msgs::Specification>* specs,
+                 const msgs::Landmark& landmark);
+  void UpdatePosteriors(const World& world, const msgs::Landmark& landmark,
                         std::vector<float>* posteriors,
-                        rapid_pbd_msgs::Specification* spec);
-  void GenerateGrid(const rapid_pbd_msgs::Specification& spec,
-                    const rapid_pbd_msgs::Surface& surface,
+                        msgs::Specification* spec);
+  void GenerateGrid(const msgs::Specification& spec,
+                    const msgs::Surface& surface,
                     std::vector<geometry_msgs::PoseArray>* grid);
-  void GenerateStacks(const rapid_pbd_msgs::Specification& spec,
-                      const rapid_pbd_msgs::Surface& surface,
+  void GenerateStacks(const msgs::Specification& spec,
+                      const msgs::Surface& surface,
                       std::vector<geometry_msgs::PoseArray>* grid);
-  void GetOffset(const rapid_pbd_msgs::Specification& spec,
+  void GetOffset(const msgs::Specification& spec,
                  geometry_msgs::Vector3* offset);
 
  private:
@@ -49,14 +49,13 @@ class SpecInference {
   float avg_dx, avg_dy;
   int max_rows_, min_rows_;
 
-  bool ReferencedLandmark(const rapid_pbd_msgs::Landmark& landmark,
-                          const World& world,
+  bool ReferencedLandmark(const msgs::Landmark& landmark, const World& world,
                           const double squared_distance_cutoff,
-                          rapid_pbd_msgs::Landmark* reference);
+                          msgs::Landmark* reference);
 
   void GetPatternPositions(const int& s,
                            std::vector<geometry_msgs::Pose>* positions,
-                           const rapid_pbd_msgs::Landmark& landmark,
+                           const msgs::Landmark& landmark,
                            geometry_msgs::Vector3 obj_distance,
                            const int& obj_num);
   int GetPatternIndex(const std::string& s);
@@ -71,8 +70,8 @@ class SpecInference {
                     std::vector<geometry_msgs::Pose>* positions,
                     const int& obj_num);
 
-  bool SimilarSized(const rapid_pbd_msgs::Landmark& landmark1,
-                    const rapid_pbd_msgs::Landmark& landmark2);
+  bool SimilarSized(const msgs::Landmark& landmark1,
+                    const msgs::Landmark& landmark2);
 };
 }  // namespace pbd
 }  // namespace rapid

@@ -1,8 +1,8 @@
-#include "rapid_pbd/editor.h"
 #include "mongodb_store/message_store.h"
 #include "rapid_pbd/action_clients.h"
 #include "rapid_pbd/condition_generator.h"
 #include "rapid_pbd/db_names.h"
+#include "rapid_pbd/editor.h"
 #include "rapid_pbd/joint_state_reader.h"
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
@@ -16,6 +16,7 @@
 #include "visualization_msgs/MarkerArray.h"
 
 namespace pbd = rapid::pbd;
+namespace msgs = rapid_pbd_msgs;
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "rapid_pbd_editor_node");
@@ -48,11 +49,9 @@ int main(int argc, char** argv) {
       new mongodb_store::MessageStoreProxy(nh, pbd::kMongoSceneCollectionName,
                                            pbd::kMongoDbName);
   ros::Publisher program_list_pub =
-      nh.advertise<rapid_pbd_msgs::ProgramInfoList>(pbd::kProgramListTopic, 1,
-                                                    true);
-  ros::Publisher domain_list_pub =
-      nh.advertise<rapid_pbd_msgs::PDDLDomainInfoList>(pbd::kPDDLDomainListTopic, 1,
-                                                    true);
+      nh.advertise<msgs::ProgramInfoList>(pbd::kProgramListTopic, 1, true);
+  ros::Publisher domain_list_pub = nh.advertise<msgs::PDDLDomainInfoList>(
+      pbd::kPDDLDomainListTopic, 1, true);
   // Build DBs.
   pbd::ProgramDb db(nh, &proxy, &program_list_pub);
   pbd::SceneDb scene_db(scene_proxy);

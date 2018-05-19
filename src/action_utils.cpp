@@ -5,13 +5,14 @@
 
 #include "rapid_pbd_msgs/Action.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
-bool HasJointValues(const rapid_pbd_msgs::Action& action) {
+bool HasJointValues(const msgs::Action& action) {
   return action.joint_trajectory.points.size() > 0;
 }
 
-void GetJointPositions(const rapid_pbd_msgs::Action& action,
+void GetJointPositions(const msgs::Action& action,
                        std::vector<std::string>* joint_names,
                        std::vector<double>* joint_positions) {
   if (!HasJointValues(action)) {
@@ -26,7 +27,7 @@ void GetJointPositions(const rapid_pbd_msgs::Action& action,
 
 void SetJointPositions(const std::vector<std::string>& joint_names,
                        const std::vector<double>& joint_positions,
-                       rapid_pbd_msgs::Action* action) {
+                       msgs::Action* action) {
   action->joint_trajectory.joint_names = joint_names;
 
   if (action->joint_trajectory.points.size() == 0) {

@@ -27,6 +27,7 @@
 using surface_perception::Object;
 using surface_perception::SurfaceObjects;
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 SurfaceSegmentationAction::SurfaceSegmentationAction(
@@ -47,14 +48,14 @@ SurfaceSegmentationAction::SurfaceSegmentationAction(
 void SurfaceSegmentationAction::Start() { as_.start(); }
 
 void SurfaceSegmentationAction::Execute(
-    const rapid_pbd_msgs::SegmentSurfacesGoalConstPtr& goal) {
+    const msgs::SegmentSurfacesGoalConstPtr& goal) {
   ros::Time start = ros::Time::now();
   boost::shared_ptr<const sensor_msgs::PointCloud2> cloud_in;
   for (size_t i = 0; i < 10; ++i) {
     cloud_in = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(
         topic_, ros::Duration(10.0));
     if (!cloud_in) {
-      rapid_pbd_msgs::SegmentSurfacesResult result;
+      msgs::SegmentSurfacesResult result;
       ROS_ERROR("Failed to get point cloud on topic: %s.", topic_.c_str());
       as_.setAborted(result);
       return;
@@ -85,7 +86,7 @@ void SurfaceSegmentationAction::Execute(
                                 ros::Time(0), transform);
   } catch (tf::TransformException& e) {
     ROS_ERROR("%s", e.what());
-    rapid_pbd_msgs::SegmentSurfacesResult result;
+    msgs::SegmentSurfacesResult result;
     as_.setAborted(result, std::string(e.what()));
     return;
   }
@@ -95,7 +96,7 @@ void SurfaceSegmentationAction::Execute(
                                cloud_msg);
 
   // Start processing cloud with PCL
-  rapid_pbd_msgs::SegmentSurfacesResult result;
+  msgs::SegmentSurfacesResult result;
   PointCloudC::Ptr cloud(new PointCloudC);
   pcl::fromROSMsg(cloud_msg, *cloud);
 
@@ -129,7 +130,8 @@ void SurfaceSegmentationAction::Execute(
     vox.setInputCloud(cloud);
     vox.setIndices(point_indices);
     float leaf_size = 0.01;
-    ros::param::param<float>("surface_segmentation/vox_leaf_size", leaf_size, 0.01);
+    ros::param::param<float>("surface_segmentation/vox_leaf_size", leaf_size,
+                             0.01);
     vox.setLeafSize(leaf_size, leaf_size, leaf_size);
     vox.filter(*downsampled_cloud);
     sensor_msgs::PointCloud2 downsampled_cloud_msg;
@@ -141,17 +143,23 @@ void SurfaceSegmentationAction::Execute(
   ros::param::param("surface_segmentation/horizontal_tolerance_degrees",
                     horizontal_tolerance_degrees, 10.0);
   double margin_above_surface;
-  ros::param::param("surface_segmentation/margin_above_surface", margin_above_surface, 0.015);
+  ros::param::param("surface_segmentation/margin_above_surface",
+                    margin_above_surface, 0.015);
   double cluster_distance;
-  ros::param::param("surface_segmentation/cluster_distance", cluster_distance, 0.025);
+  ros::param::param("surface_segmentation/cluster_distance", cluster_distance,
+                    0.025);
   int min_cluster_size;
-  ros::param::param("surface_segmentation/min_cluster_size", min_cluster_size, 300);
+  ros::param::param("surface_segmentation/min_cluster_size", min_cluster_size,
+                    300);
   int max_cluster_size;
-  ros::param::param("surface_segmentation/max_cluster_size", max_cluster_size, 10000);
+  ros::param::param("surface_segmentation/max_cluster_size", max_cluster_size,
+                    10000);
   int min_surface_size;
-  ros::param::param("surface_segmentation/min_surface_size", min_surface_size, 8000);
+  ros::param::param("surface_segmentation/min_surface_size", min_surface_size,
+                    8000);
   double max_point_distance;
-  ros::param::param("surface_segmentation/max_point_distance", max_point_distance, 0.01);
+  ros::param::param("surface_segmentation/max_point_distance",
+                    max_point_distance, 0.01);
 
   surface_perception::Segmentation seg;
   seg.set_input_cloud(cloud);
@@ -183,7 +191,7 @@ void SurfaceSegmentationAction::Execute(
     // get tabletop objects as landmarks
     num_objects += surface_scene.objects.size();
     if (i == 0) {
-      rapid_pbd_msgs::Surface surface;
+      msgs::Surface surface;
       surface.dimensions = surface_objects[i].surface.dimensions;
       surface.pose_stamped = surface_objects[i].surface.pose_stamped;
       result.surface = surface;
@@ -199,8 +207,8 @@ void SurfaceSegmentationAction::Execute(
         max_size = cloud_size;
       }
       ++obj_count;
-      rapid_pbd_msgs::Landmark landmark;
-      landmark.type = rapid_pbd_msgs::Landmark::SURFACE_BOX;
+      msgs::Landmark landmark;
+      landmark.type = msgs::Landmark::SURFACE_BOX;
       landmark.marker_type = visualization_msgs::Marker::CUBE;
       std::stringstream ss;
       ss << "Obj " << obj_count;

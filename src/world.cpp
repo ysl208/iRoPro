@@ -205,8 +205,8 @@ double BoxDissimilarity(const std::vector<double>& a,
 }
 }  // namespace
 
-bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
-                   rapid_pbd_msgs::Landmark* match, const double& variance) {
+bool MatchLandmark(const World& world, const msgs::Landmark& landmark,
+                   msgs::Landmark* match, const double& variance) {
   // Picks the closest object which is still <= kMaxDistance
   ROS_INFO("Landmark %s", landmark.name.c_str());
   const double kMaxDistance = variance * variance;
@@ -250,11 +250,11 @@ void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v) {
   v->z = p.z;
 }
 
-void CheckLandmarkProperties(const rapid_pbd_msgs::Landmark& landmark) {
+void CheckLandmarkProperties(const msgs::Landmark& landmark) {
   // Given a landmark on the grid, check if
 }
 
-void UpdateGrid(const rapid_pbd_msgs::Landmark& landmark,
+void UpdateGrid(const msgs::Landmark& landmark,
                 std::vector<std::vector<std::string> >* grid) {
   float lm_length, lm_width;  // no. of cells for landmark
 

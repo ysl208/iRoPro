@@ -12,6 +12,7 @@
 #include "rapid_pbd/runtime_robot_state.h"
 #include "rapid_pbd/visualizer.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 class ProgramExecutionServer {
@@ -28,7 +29,7 @@ class ProgramExecutionServer {
 
  private:
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<rapid_pbd_msgs::ExecuteProgramAction> server_;
+  actionlib::SimpleActionServer<msgs::ExecuteProgramAction> server_;
   ros::ServiceClient freeze_arm_client_;
   ros::Publisher is_running_pub_;
   ActionClients* action_clients_;
@@ -38,8 +39,8 @@ class ProgramExecutionServer {
   ros::Publisher planning_scene_pub_;
   ros::Publisher condition_check_pub_;
 
-  void Execute(const rapid_pbd_msgs::ExecuteProgramGoalConstPtr& goal);
-  static bool IsValid(const rapid_pbd_msgs::Program& program);
+  void Execute(const msgs::ExecuteProgramGoalConstPtr& goal);
+  static bool IsValid(const msgs::Program& program);
   void PublishIsRunning(bool is_running);
   void Cancel(const std::string& error);
 

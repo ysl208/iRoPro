@@ -25,6 +25,7 @@ using rapid_pbd_msgs::FreezeArm;
 using rapid_pbd_msgs::Program;
 using rapid_pbd_msgs::Step;
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 ProgramExecutionServer::ProgramExecutionServer(
@@ -51,7 +52,7 @@ void ProgramExecutionServer::Start() {
 }
 
 void ProgramExecutionServer::Execute(
-    const rapid_pbd_msgs::ExecuteProgramGoalConstPtr& goal) {
+    const msgs::ExecuteProgramGoalConstPtr& goal) {
   Program program;
   if (goal->db_id != "") {
     bool success = program_db_.Get(goal->db_id, &program);
@@ -168,7 +169,7 @@ void ProgramExecutionServer::Execute(
   server_.setSucceeded();
 }
 
-bool ProgramExecutionServer::IsValid(const rapid_pbd_msgs::Program& program) {
+bool ProgramExecutionServer::IsValid(const msgs::Program& program) {
   for (size_t i = 0; i < program.steps.size(); ++i) {
     const Step& step = program.steps[i];
     if (!StepExecutor::IsValid(step)) {

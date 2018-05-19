@@ -17,6 +17,7 @@
 
 #include "rapid_pbd/world.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 class ConditionChecker {
@@ -25,18 +26,16 @@ class ConditionChecker {
   // Returns an error message, or empty string if no error.
   // Set seed_joint_names and seed_joint_positions to empty vectors if you do
   // not want to specify an IK seed.
-  std::string CheckConditions(const rapid_pbd_msgs::Condition& condition);
+  std::string CheckConditions(const msgs::Condition& condition);
 
   int num_goals() const;
 
-  std::string CheckPropertyConditions(
-      const rapid_pbd_msgs::Condition& conditions,
-      const rapid_pbd_msgs::Landmark& match);
-  std::string CheckRelativeConditions(
-      const rapid_pbd_msgs::Condition& conditions);
+  std::string CheckPropertyConditions(const msgs::Condition& conditions,
+                                      const msgs::Landmark& match);
+  std::string CheckRelativeConditions(const msgs::Condition& conditions);
   bool PointDissimilarity(const float& value, const float& match,
                           const float& variance);
-  rapid_pbd_msgs::ConditionCheckInfo GetConditionCheckMsg();
+  msgs::ConditionCheckInfo GetConditionCheckMsg();
   bool VectorDissimilarity(const geometry_msgs::Vector3& actual,
                            const geometry_msgs::Vector3& match,
                            const geometry_msgs::Vector3& variance);
@@ -46,7 +45,7 @@ class ConditionChecker {
   World* world_;
   int num_goals_;
   ros::Publisher condition_check_pub_;
-  rapid_pbd_msgs::ConditionCheckInfo info_;
+  msgs::ConditionCheckInfo info_;
 };
 
 std::string ErrorCodeToString(const moveit_msgs::MoveItErrorCodes& code);

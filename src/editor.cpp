@@ -939,7 +939,7 @@ void Editor::DeleteStep(const std::string& db_id, size_t step_id) {
 }
 
 void Editor::AddAction(const std::string& db_id, size_t step_id,
-                       rapid_pbd_msgs::Action action) {
+                       msgs::Action action) {
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
@@ -1165,7 +1165,7 @@ void Editor::GetJointValues(const std::string& db_id, size_t step_id,
 
 void Editor::GetPose(const std::string& db_id, size_t step_id, size_t action_id,
                      const std::string& actuator_group,
-                     const rapid_pbd_msgs::Landmark& landmark) {
+                     const msgs::Landmark& landmark) {
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
@@ -1213,9 +1213,9 @@ void Editor::GetPose(const std::string& db_id, size_t step_id, size_t action_id,
 
 // Gets the current pose of the end-effector relative to the given landmark.
 // action.pose and action.landmark are mutated.
-void Editor::GetNewPose(const rapid_pbd_msgs::Landmark& landmark,
-                        const World& world, const std::string& actuator_group,
-                        rapid_pbd_msgs::Action* action) {
+void Editor::GetNewPose(const msgs::Landmark& landmark, const World& world,
+                        const std::string& actuator_group,
+                        msgs::Action* action) {
   // Get transform from landmark to end-effector.
   transform_graph::Graph graph;
 
@@ -1323,8 +1323,8 @@ void Editor::GetNewPose(const rapid_pbd_msgs::Landmark& landmark,
 // Reinterpret the existing pose to be relative to the given landmark.
 // Assumes as a precondition that action->pose is not empty.
 // action->pose and action->landmark are mutated.
-void Editor::ReinterpretPose(const rapid_pbd_msgs::Landmark& new_landmark,
-                             rapid_pbd_msgs::Action* action) {
+void Editor::ReinterpretPose(const msgs::Landmark& new_landmark,
+                             msgs::Action* action) {
   transform_graph::Graph graph;
   graph.Add("end effector", transform_graph::RefFrame("old landmark"),
             action->pose);
@@ -1405,7 +1405,7 @@ void Editor::ReinterpretPose(const rapid_pbd_msgs::Landmark& new_landmark,
 bool Editor::ClosestLandmark(const geometry_msgs::Vector3& ee_position,
                              const World& world,
                              const double squared_distance_cutoff,
-                             rapid_pbd_msgs::Landmark* landmark) {
+                             msgs::Landmark* landmark) {
   bool success = false;
   double closest_distance = std::numeric_limits<double>::max();
   for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
@@ -1439,7 +1439,7 @@ void Editor::DeleteScene(const std::string& scene_id) {
 }
 
 void Editor::DeleteLandmarks(const std::string& landmark_type,
-                             rapid_pbd_msgs::Step* step) {
+                             msgs::Step* step) {
   std::vector<msgs::Landmark> cleaned;
   for (size_t i = 0; i < step->landmarks.size(); ++i) {
     const msgs::Landmark& landmark = step->landmarks[i];

@@ -3,16 +3,16 @@
 #include <string>
 #include <vector>
 
-#include "msgs/Landmark.h"
-#include "msgs/PDDLAction.h"
-#include "msgs/PDDLDomain.h"
-#include "msgs/PDDLObject.h"
-#include "msgs/PDDLPredicate.h"
-#include "msgs/Program.h"
+#include "rapid_pbd_msgs/Landmark.h"
+#include "rapid_pbd_msgs/PDDLAction.h"
+#include "rapid_pbd_msgs/PDDLDomain.h"
+#include "rapid_pbd_msgs/PDDLObject.h"
+#include "rapid_pbd_msgs/PDDLPredicate.h"
+#include "rapid_pbd_msgs/Program.h"
 
 #include "rapid_pbd/world.h"
 
-namespace msgs = msgs;
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 struct WorldState {
