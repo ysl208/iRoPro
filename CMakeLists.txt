@@ -221,6 +221,7 @@ target_link_libraries(rapid_pbd_editor
   rapid_pbd_action_clients
   rapid_pbd_action_utils
   rapid_pbd_landmarks
+  rapid_pbd_pddl_domain
   rapid_pbd_program_db
   rapid_pbd_joint_state_reader
   rapid_pbd_robot_config
