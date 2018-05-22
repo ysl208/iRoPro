@@ -34,6 +34,7 @@ void GetWorldState(const World& world, WorldState* world_state) {
 
   world_state->objects_.clear();
   world_state->predicates_.clear();
+  world_state->positions_.clear();
   std::vector<msgs::PDDLObject> args;
   std::string predicate;
   double position_radius = 0.9;
@@ -50,10 +51,11 @@ void GetWorldState(const World& world, WorldState* world_state) {
 
   for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
     const msgs::Landmark& world_landmark = world.surface_box_landmarks[i];
-    ROS_INFO("Generating predicates for %s at (%f,%f)",
+    ROS_INFO("Generating predicates for %s at (%f,%f,%f)",
              world_landmark.name.c_str(),
              world_landmark.pose_stamped.pose.position.x,
-             world_landmark.pose_stamped.pose.position.y);
+             world_landmark.pose_stamped.pose.position.y,
+             world_landmark.pose_stamped.pose.position.z);
     // Generate Predicates for type == OBJECT
     std::stringstream ss;
     ss << "Obj " << i + 1;
@@ -180,9 +182,8 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
   bool success = false;
   double closest_distance = std::numeric_limits<double>::max();
   if (obj.name == msgs::PDDLType::OBJECT) {
-    std::cout << world_state->objects_.size() << std::endl;
-    for (size_t i = 0; i < world_state->objects_.size(); ++i) {
-      const msgs::PDDLObject& pos_object = world_state->objects_[i];
+    for (size_t i = 0; i < world_state->positions_.size(); ++i) {
+      const msgs::PDDLObject& pos_object = world_state->positions_[i];
       if (pos_object.type.name == msgs::PDDLType::POSITION) {
         geometry_msgs::Point pose;
         pose.x = pos_object.type.pose.position.x;
@@ -192,11 +193,10 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
         double dy = pose.y - obj.pose.position.y;
         double dz = pose.z - obj.pose.position.z;
         double squared_distance = dx * dx + dy * dy + dz * dz;
+        ROS_INFO("Dist = %f < cutoff %f", squared_distance, squ_dist_cutoff);
+
         if (squared_distance < closest_distance &&
             squared_distance <= squ_dist_cutoff) {
-          ROS_INFO("Obj name %s, pos_obj %s", obj.name.c_str(),
-                   pos_object.type.name.c_str());
-          ROS_INFO("Dist = %f < cutoff %f", squared_distance, squ_dist_cutoff);
           *found_position = pos_object;
           closest_distance = squared_distance;
           success = true;
@@ -227,9 +227,9 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
     ss << "Position " << i + 1;
     obj.name = ss.str();
     geometry_msgs::Pose pose;
-    pose.position.x = 0.5 + 0.5 * (i % 2);
-    pose.position.y = -0.5 + (i % 2);
-    pose.position.z = -0.5;
+    pose.position.x = 0.8 + 0.2 * (i % 2);
+    pose.position.y = -0.25 + 0.5 * (i % 2);
+    pose.position.z = -0.05;
     pose.orientation.w = 1;
     pose.orientation.x = 0;
     pose.orientation.y = 0;
@@ -237,6 +237,8 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
     obj_type.name = msgs::PDDLType::POSITION;
     obj_type.pose = pose;
     obj.type = obj_type;
+    ROS_INFO("%s at %f,%f,%f", obj.name.c_str(), pose.position.x,
+             pose.position.y, pose.position.z);
     AddObject(objects, obj);
   }
   double a_center_x = 0, a_center_y = 0, a_center_z = 0;
