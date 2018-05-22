@@ -36,14 +36,17 @@ void GetWorldState(const World& world, WorldState* world_state) {
   world_state->predicates_.clear();
   std::vector<msgs::PDDLObject> args;
   std::string predicate;
-  double position_radius = 0.1;
+  double position_radius = 0.8;
   msgs::PDDLObject position;
   bool negate = false;
   msgs::PDDLObject obj;
   msgs::PDDLType obj_type;
 
   // Add positions to world state objects
-  GetFixedPositions(&world_state->objects_);
+  std::vector<msgs::PDDLObject> fixed_positions;
+  GetFixedPositions(&fixed_positions);
+  world_state->objects_ = fixed_positions;
+  world_state->positions_ = fixed_positions;
 
   for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
     const msgs::Landmark& world_landmark = world.surface_box_landmarks[i];
@@ -80,7 +83,7 @@ void GetWorldState(const World& world, WorldState* world_state) {
 
       predicate = msgs::PDDLPredicate::IS_CLEAR;
       args.clear();
-      args.push_back(obj);
+      args.push_back(position);
       negate = true;
       AddPredicate(&world_state->predicates_, predicate, args, negate);
       ROS_INFO("Predicates now: %zd", world_state->predicates_.size());
@@ -98,15 +101,18 @@ void GetWorldState(const World& world, WorldState* world_state) {
     negate = false;
     AddPredicate(&world_state->predicates_, predicate, args, negate);
   }
+  ROS_INFO("Number of Objects: %zu", world_state->objects_);
+  ROS_INFO("Number of Positions: %zu", world_state->positions_);
+  ROS_INFO("Number of Predicates: %zu", world_state->predicates_);
 }
 
 void AddObject(std::vector<msgs::PDDLObject>* objects,
                const msgs::PDDLObject& new_obj) {
   if (!ObjectExists(objects, new_obj.name)) {
     objects->push_back(new_obj);
-    ROS_INFO("Added %zd-th object %s", objects->size(), new_obj.name.c_str());
+    ROS_INFO("Added object #%zd: %s", objects->size(), new_obj.name.c_str());
   } else {
-    ROS_INFO("object %s already exists", new_obj.name.c_str());
+    ROS_INFO("%s already exists", new_obj.name.c_str());
   }
 }
 
@@ -135,10 +141,13 @@ void AddPredicate(std::vector<msgs::PDDLPredicate>* predicates,
   } else if (name == msgs::PDDLPredicate::IS_STACKABLE && args.size() == 2) {
     new_pred.arg1 = args[0];
     new_pred.arg2 = args[1];
+  } else {
+    ROS_ERROR("Predicate %s is incorrect with %zu args: arg1 = %s",
+              name.c_str(), args.size(), args[0].name);
   }
   if (!PredicateExists(predicates, name, args)) {
     predicates->push_back(new_pred);
-    ROS_INFO("Added %zd-th predicate %s", predicates->size(), name.c_str());
+    ROS_INFO("Added predicate #%zd: %s", predicates->size(), name.c_str());
   } else {
     ROS_INFO("Predicate %s(%s) already exists", name.c_str(),
              args[0].name.c_str());
@@ -267,7 +276,7 @@ std::string PrintPredicate(msgs::PDDLPredicate predicate) {
   std::string print_out = "";
   print_out += predicate.arg1.name + " is ";
   if (predicate.negate) {
-    print_out += " not ";
+    print_out += "not ";
   }
   print_out += predicate.name;
   if (predicate.arg2.name != "") {
