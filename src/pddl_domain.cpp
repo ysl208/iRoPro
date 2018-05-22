@@ -36,7 +36,7 @@ void GetWorldState(const World& world, WorldState* world_state) {
   world_state->predicates_.clear();
   std::vector<msgs::PDDLObject> args;
   std::string predicate;
-  double position_radius = 0.8;
+  double position_radius = 0.9;
   msgs::PDDLObject position;
   bool negate = false;
   msgs::PDDLObject obj;
@@ -68,7 +68,9 @@ void GetWorldState(const World& world, WorldState* world_state) {
     // Check which position the object is on
     if (GetObjectTablePosition(obj_type, world_state, position_radius,
                                &position)) {
+      negate = false;
       predicate = msgs::PDDLPredicate::IS_ON;
+      args.clear();
       args.push_back(obj);
       args.push_back(position);
       AddPredicate(&world_state->predicates_, predicate, args, negate);
@@ -101,9 +103,9 @@ void GetWorldState(const World& world, WorldState* world_state) {
     negate = false;
     AddPredicate(&world_state->predicates_, predicate, args, negate);
   }
-  ROS_INFO("Number of Objects: %zu", world_state->objects_);
-  ROS_INFO("Number of Positions: %zu", world_state->positions_);
-  ROS_INFO("Number of Predicates: %zu", world_state->predicates_);
+  ROS_INFO("Number of Objects: %zd", world_state->objects_.size());
+  ROS_INFO("Number of Positions: %zd", world_state->positions_.size());
+  ROS_INFO("Number of Predicates: %zd", world_state->predicates_.size());
 }
 
 void AddObject(std::vector<msgs::PDDLObject>* objects,
@@ -142,8 +144,8 @@ void AddPredicate(std::vector<msgs::PDDLPredicate>* predicates,
     new_pred.arg1 = args[0];
     new_pred.arg2 = args[1];
   } else {
-    ROS_ERROR("Predicate %s is incorrect with %zu args: arg1 = %s",
-              name.c_str(), args.size(), args[0].name);
+    ROS_ERROR("Predicate %s is incorrect with %zd args: arg1 = %s",
+              name.c_str(), args.size(), args[0].name.c_str());
   }
   if (!PredicateExists(predicates, name, args)) {
     predicates->push_back(new_pred);
