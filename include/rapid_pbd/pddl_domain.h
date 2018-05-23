@@ -34,6 +34,8 @@ struct Domain {
 // void GetDomain(Domain* domain);
 void InitDomain(Domain* domain);
 void GetWorldState(const World& world, WorldState* world_state);
+void AddType(std::vector<msgs::PDDLType>* types,
+             const msgs::PDDLType& new_type);
 void AddObject(std::vector<msgs::PDDLObject>* objects,
                const msgs::PDDLObject& new_obj);
 bool ObjectExists(std::vector<msgs::PDDLObject>* objects,
