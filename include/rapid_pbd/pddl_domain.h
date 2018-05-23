@@ -10,6 +10,7 @@
 #include "rapid_pbd_msgs/PDDLPredicate.h"
 #include "rapid_pbd_msgs/Program.h"
 
+#include "ros/ros.h"
 #include "rapid_pbd/world.h"
 
 namespace msgs = rapid_pbd_msgs;
@@ -25,12 +26,15 @@ struct WorldState {
   std::vector<msgs::PDDLObject> positions_;
 };
 
-struct PDDLDomain {
+class PDDLDomain {
  public:
   std::string domain_name;
   msgs::PDDLDomain domain_;
+  PDDLDomain(const ros::Publisher& pub);
+  void Init(msgs::PDDLDomain* domain, const std::string& name);
   // void GetDomain(Domain* domain);
-  void Init(const std::string& name);
+  void PublishPDDLDomain(const msgs::PDDLDomain& domain);
+  ros::Publisher pddl_domain_pub_;
 };
 
 void GetWorldState(const World& world, WorldState* world_state);

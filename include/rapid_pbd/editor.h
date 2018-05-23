@@ -36,7 +36,9 @@ class Editor {
          const PDDLDomainDb& domain_db,
          const JointStateReader& joint_state_reader,
          const Visualizer& visualizer, ActionClients* action_clients,
-         const ConditionGenerator& cond_gen, const SpecInference& spec_inf,
+         const ConditionGenerator& cond_gen, 
+         const SpecInference& spec_inf,
+         const ros::Publisher pddl_domain_pub,
          const RobotConfig& robot_config);
   void Start();
   void HandleEvent(const msgs::EditorEvent& event);
@@ -136,12 +138,12 @@ class Editor {
   ProgramDb db_;
   SceneDb scene_db_;
   PDDLDomainDb domain_db_;
+  PDDLDomain pddl_domain_;
   JointStateReader joint_state_reader_;
   Visualizer viz_;
   ActionClients* action_clients_;
   ConditionGenerator cond_gen_;
   SpecInference spec_inf_;
-  PDDLDomain pddl_domain_;
   const RobotConfig& robot_config_;
   tf::TransformListener tf_listener_;
   std::map<std::string, size_t> last_viewed_;

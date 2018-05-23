@@ -41,7 +41,9 @@ Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
                const JointStateReader& joint_state_reader,
                const Visualizer& visualizer, ActionClients* action_clients,
                const ConditionGenerator& cond_gen,
-               const SpecInference& spec_inf, const RobotConfig& robot_config)
+               const SpecInference& spec_inf, 
+               const ros::Publisher pddl_domain_pub,
+               const RobotConfig& robot_config)
     : db_(db),
       scene_db_(scene_db),
       domain_db_(domain_db),
@@ -49,7 +51,7 @@ Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
       viz_(visualizer),
       action_clients_(action_clients),
       cond_gen_(cond_gen),
-      pddl_domain_(),
+      pddl_domain_(pddl_domain_pub),
       spec_inf_(spec_inf),
       robot_config_(robot_config),
       tf_listener_(),
@@ -61,8 +63,8 @@ void Editor::Start() {
   joint_state_reader_.Start();
   viz_.Init();
   spec_inf_.Init();
-  pddl_domain_.Init("Main Domain");
-  std::string id = domain_db_.Insert(pddl_domain_.domain_);
+  CreatePDDLDomain("Main Domain");
+  
 }
 
 void Editor::HandleEvent(const msgs::EditorEvent& event) {
@@ -126,10 +128,15 @@ bool Editor::HandleCreatePDDLDomain(
 }
 
 std::string Editor::CreatePDDLDomain(const std::string& name) {
-  PDDLDomain domain;
-  domain.Init(name);
-  std::string id = domain_db_.Insert(domain.domain_);
+  msgs::PDDLDomain domain;
+  if(!domain_db_.GetByName(name, &domain)){
+    pddl_domain_.Init(&domain, name);
+    std::string id = domain_db_.Insert(domain);
+    pddl_domain_.domain_ = domain;
+    pddl_domain_.PublishPDDLDomain(domain);
   return id;
+  }
+  return "";
 }
 
 bool Editor::HandleCreateProgram(msgs::CreateProgram::Request& request,
@@ -938,11 +945,13 @@ void Editor::AddStep(const std::string& db_id) {
 void Editor::UpdatePDDL(const std::string& domain_id,
                         const msgs::PDDLDomain& domain, const World& world) {
   domain_db_.Update(domain_id, domain);
+  
   if (last_viewed_.find(domain_id) != last_viewed_.end()) {
     viz_.Publish(domain_id, world);
   } else {
     ROS_ERROR("Unable to publish visualization: unknown step");
   }
+  pddl_domain_.PublishPDDLDomain(domain);
 }
 
 void Editor::DeleteStep(const std::string& db_id, size_t step_id) {
@@ -1133,7 +1142,7 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   Update(db_id, program);
 
   // PDDL: update action
-  msgs::PDDLDomain domain;
+  // msgs::PDDLDomain domain;
   /* success = domain_db_.Get(domain_id, &domain);
   if (!success) {
     ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
@@ -1164,6 +1173,7 @@ void Editor::AddPDDLAction(const std::string& domain_id,
   action.name = action_name;
   domain.actions.push_back(action);
   domain_db_.Update(domain_id, domain);
+  pddl_domain_.PublishPDDLDomain(domain);
 }
 
 void Editor::GetJointValues(const std::string& db_id, size_t step_id,

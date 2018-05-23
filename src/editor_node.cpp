@@ -7,6 +7,7 @@
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/visualizer.h"
+#include "rapid_pbd_msgs/PDDLDomain.h"
 #include "rapid_pbd_msgs/PDDLDomainInfoList.h"
 #include "rapid_pbd_msgs/ProgramInfoList.h"
 #include "robot_markers/builder.h"
@@ -64,6 +65,10 @@ int main(int argc, char** argv) {
          ros::ok()) {
     ROS_WARN("Waiting for surface segmentation server.");
   }
+// PDDL domain publisher
+  ros::Publisher pddl_domain_pub =
+      nh.advertise<rapid_pbd_msgs::PDDLDomain>("pddl_domain", 5,
+                                                       true);
 
   // Build visualizer
   urdf::Model model;
@@ -78,7 +83,7 @@ int main(int argc, char** argv) {
   // Build editor.
   pbd::JointStateReader joint_state_reader(robot_config->joint_states_topic());
   pbd::Editor editor(db, scene_db, domain_db, joint_state_reader, visualizer,
-                     &action_clients, cond_gen, spec_inf, *robot_config);
+                     &action_clients, cond_gen, spec_inf, pddl_domain_pub, *robot_config);
   editor.Start();
 
   ros::Subscriber editor_sub = nh.subscribe(pbd::kEditorEventsTopic, 10,

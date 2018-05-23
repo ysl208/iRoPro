@@ -22,8 +22,11 @@ namespace msgs = rapid_pbd_msgs;
 
 namespace rapid {
 namespace pbd {
-void PDDLDomain::Init(const std::string& name) {
-  domain_.name = name;
+ PDDLDomain::PDDLDomain(const ros::Publisher& pub)
+    : pddl_domain_pub_(pub) {}
+
+void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
+  domain->name = name;
 
   msgs::PDDLType type;
   geometry_msgs::Vector3 obj_dims;
@@ -33,19 +36,19 @@ void PDDLDomain::Init(const std::string& name) {
   obj_dims.x = 1.0;
 
   type.name = msgs::PDDLType::TABLE_ENTITY;
-  domain_.types.push_back(type);
+  domain->types.push_back(type);
 
   type.name = msgs::PDDLType::OBJECT;
   type.parent = msgs::PDDLType::TABLE_ENTITY;
-  domain_.types.push_back(type);
+  domain->types.push_back(type);
   type.name = msgs::PDDLType::CUBE_OBJECT;
-  AddType(&domain_.types, type);
+  AddType(&domain->types, type);
   type.name = msgs::PDDLType::TOWER_OBJECT;
-  AddType(&domain_.types, type);
+  AddType(&domain->types, type);
   type.name = msgs::PDDLType::PLATE_OBJECT;
-  AddType(&domain_.types, type);
+  AddType(&domain->types, type);
   type.name = msgs::PDDLType::POSITION;
-  AddType(&domain_.types, type);
+  AddType(&domain->types, type);
 
   msgs::PDDLPredicate predicate;
   // Predicate has at least 1 arg of type table_entity
@@ -55,7 +58,7 @@ void PDDLDomain::Init(const std::string& name) {
   predicate.arg1 = obj;
 
   predicate.name = msgs::PDDLPredicate::IS_CLEAR;
-  domain_.predicates.push_back(predicate);
+  domain->predicates.push_back(predicate);
 
   // Predicates with 2 args, 1st arg needs to be an object
   predicate.name = msgs::PDDLPredicate::IS_ON;
@@ -65,21 +68,25 @@ void PDDLDomain::Init(const std::string& name) {
   type.name = msgs::PDDLType::OBJECT;
   obj2.type = type;
   predicate.arg1 = obj2;
-  domain_.predicates.push_back(predicate);
+  domain->predicates.push_back(predicate);
 
   predicate.name = msgs::PDDLPredicate::IS_STACKABLE;
-  domain_.predicates.push_back(predicate);
-  ROS_INFO("# Predicates now: %zd", domain_.predicates.size());
+  domain->predicates.push_back(predicate);
+  ROS_INFO("# Predicates now: %zd", domain->predicates.size());
 }
 
+void PDDLDomain::PublishPDDLDomain(const msgs::PDDLDomain& domain) {
+  ROS_INFO("Publish PDDL Domain..");
+  pddl_domain_pub_.publish(domain);
+}
 void AddType(std::vector<msgs::PDDLType>* types,
              const msgs::PDDLType& new_type) {
-  /* if (find(types->begin(), types->end(), new_type) != types->end()) {
+  //if (find(types->begin(), types->end(), new_type) != types->end()) {
     types->push_back(new_type);
     ROS_INFO("Added type #%zd: %s", types->size(), new_type.name.c_str());
-  } else {
-    ROS_INFO("%s already exists", new_type.name.c_str());
-  } */
+ // } else {
+  //  ROS_INFO("%s already exists", new_type.name.c_str());
+  //}
 }
 
 void GetWorldState(const World& world, WorldState* world_state) {
