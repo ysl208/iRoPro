@@ -260,10 +260,7 @@ target_link_libraries(rapid_pbd_motion_planning
 add_library(rapid_pbd_pddl_domain src/pddl_domain.cpp)
 add_dependencies(rapid_pbd_pddl_domain ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_pddl_domain
-  rapid_pbd_action_utils
-  rapid_pbd_joint_state
   rapid_pbd_landmarks
-  rapid_pbd_robot_config
   ${catkin_LIBRARIES})
 
 add_library(rapid_pbd_pr2_actions src/pr2_actions.cpp)

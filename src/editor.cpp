@@ -49,6 +49,7 @@ Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
       viz_(visualizer),
       action_clients_(action_clients),
       cond_gen_(cond_gen),
+      pddl_domain_(),
       spec_inf_(spec_inf),
       robot_config_(robot_config),
       tf_listener_(),
@@ -143,6 +144,10 @@ std::string Editor::Create(const std::string& name) {
 
   joint_state_reader_.ToMsg(&program.start_joint_state);
   std::string id = db_.Insert(program);
+
+  World world;
+  GetWorld(robot_config_, program, 0, &world);
+  viz_.Publish(id, world);
   AddStep(id);
   return id;
 }
@@ -926,7 +931,17 @@ void Editor::AddStep(const std::string& db_id) {
   // Get World State if 1st step is added
   ROS_INFO("Program has now steps: %zd ", program.steps.size());
   if (program.steps.size() == 1) {
-    AddDetectTTObjectsAction(db_id, 0);
+    DetectSurfaceObjects(db_id, 0);
+  }
+}
+
+void Editor::UpdatePDDL(const std::string& domain_id,
+                        const msgs::PDDLDomain& domain, const World& world) {
+  domain_db_.Update(domain_id, domain);
+  if (last_viewed_.find(domain_id) != last_viewed_.end()) {
+    viz_.Publish(domain_id, world);
+  } else {
+    ROS_ERROR("Unable to publish visualization: unknown step");
   }
 }
 
@@ -1117,14 +1132,38 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   }
   Update(db_id, program);
 
+  // PDDL: update action
+  msgs::PDDLDomain domain;
+  /* success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  } */
+
+  msgs::Step step;
+  program.steps.push_back(step);
+  Update(db_id, program);
+
   World world;
   GetWorld(robot_config_, program, step_id, &world);
-  // viz_.Publish(db_id, world);
-
   WorldState world_state;
   GetWorldState(world, &world_state);
-  PrintAllPredicates(world_state.predicates_, "PDDL");
+  // PrintAllPredicates(world_state.predicates_, "PDDL");
   PrintAllPredicates(world_state.predicates_, "");
+}
+
+void Editor::AddPDDLAction(const std::string& domain_id,
+                           const std::string& action_name) {
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  }
+  msgs::PDDLAction action;
+  action.name = action_name;
+  domain.actions.push_back(action);
+  domain_db_.Update(domain_id, domain);
 }
 
 void Editor::GetJointValues(const std::string& db_id, size_t step_id,

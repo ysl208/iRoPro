@@ -17,6 +17,7 @@
 #include "rapid_pbd/action_clients.h"
 #include "rapid_pbd/condition_generator.h"
 #include "rapid_pbd/joint_state_reader.h"
+#include "rapid_pbd/pddl_domain.h"
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/spec_inference.h"
@@ -74,6 +75,10 @@ class Editor {
   void DetectSurfaceObjects(const std::string& db_id, size_t step_id);
   void GetJointValues(const std::string& db_id, size_t step_id,
                       size_t action_id, const std::string& actuator_group);
+  void AddPDDLAction(const std::string& domain_id,
+                     const std::string& action_name);
+  void UpdatePDDL(const std::string& domain_id, const msgs::PDDLDomain& domain,
+                  const World& world);
   // Pose actions
   // Main handler
   void GetPose(const std::string& db_id, size_t step_id, size_t action_id,
