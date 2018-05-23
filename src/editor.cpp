@@ -60,6 +60,8 @@ void Editor::Start() {
   joint_state_reader_.Start();
   viz_.Init();
   spec_inf_.Init();
+  pddl_domain_.Init("Main Domain");
+  std::string id = domain_db_.Insert(pddl_domain_.domain_);
 }
 
 void Editor::HandleEvent(const msgs::EditorEvent& event) {
@@ -123,17 +125,9 @@ bool Editor::HandleCreatePDDLDomain(
 }
 
 std::string Editor::CreatePDDLDomain(const std::string& name) {
-  // TO DO: Initialise planning domain from .yaml file
-  msgs::PDDLDomain domain;
-  domain.name = name;
-
-  // joint_state_reader_.ToMsg(&domain.start_joint_state);
-  std::string id = domain_db_.Insert(domain);
-  World world;
-  // GetWorld(robot_config_, 0, &world);
-  // viz_.Publish(id, world);
-  WorldState world_state;
-  GetWorldState(world, &world_state);
+  PDDLDomain domain;
+  domain.Init(name);
+  std::string id = domain_db_.Insert(domain.domain_);
   return id;
 }
 

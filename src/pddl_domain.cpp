@@ -25,8 +25,8 @@ namespace msgs = rapid_pbd_msgs;
 
 namespace rapid {
 namespace pbd {
-void InitDomain(Domain* domain, const std::string& name) {
-  domain->name = name;
+void PDDLDomain::Init(const std::string& name) {
+  domain_.name = name;
 
   msgs::PDDLType type;
   geometry_msgs::Vector3 obj_dims;
@@ -36,19 +36,19 @@ void InitDomain(Domain* domain, const std::string& name) {
   obj_dims.x = 1.0;
 
   type.name = msgs::PDDLType::TABLE_ENTITY;
-  domain->types.push_back(type);
+  domain_.types.push_back(type);
 
   type.name = msgs::PDDLType::OBJECT;
   type.parent = msgs::PDDLType::TABLE_ENTITY;
-  domain->types.push_back(type);
+  domain_.types.push_back(type);
   type.name = msgs::PDDLType::CUBE_OBJECT;
-  AddType(domain->types, type);
+  AddType(domain_.types, type);
   type.name = msgs::PDDLType::TOWER_OBJECT;
-  AddType(domain->types, type);
+  AddType(domain_.types, type);
   type.name = msgs::PDDLType::PLATE_OBJECT;
-  AddType(domain->types, type);
+  AddType(domain_.types, type);
   type.name = msgs::PDDLType::POSITION;
-  AddType(domain->types, type);
+  AddType(domain_.types, type);
 
   msgs::PDDLPredicate predicate;
   // Predicate has at least 1 arg of type table_entity
@@ -58,7 +58,7 @@ void InitDomain(Domain* domain, const std::string& name) {
   predicate.arg1 = obj;
 
   predicate.name = msgs::PDDLPredicate::IS_CLEAR;
-  domain->predicates_.push_back(predicate);
+  domain_.predicates_.push_back(predicate);
 
   // Predicates with 2 args, 1st arg needs to be an object
   predicate.name = msgs::PDDLPredicate::IS_ON;
@@ -68,11 +68,11 @@ void InitDomain(Domain* domain, const std::string& name) {
   type.name = msgs::PDDLType::OBJECT;
   obj2.type = type;
   predicate.arg1 = obj2;
-  domain->predicates_.push_back(predicate);
+  domain_.predicates_.push_back(predicate);
 
   predicate.name = msgs::PDDLPredicate::IS_STACKABLE;
-  domain->predicates_.push_back(predicate);
-  ROS_INFO("# Predicates now: %zd", domain->predicates_.size());
+  domain_.predicates_.push_back(predicate);
+  ROS_INFO("# Predicates now: %zd", domain_.predicates_.size());
 }
 
 void AddType(std::vector<msgs::PDDLType>* types,

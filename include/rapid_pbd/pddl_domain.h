@@ -25,14 +25,14 @@ struct WorldState {
   std::vector<msgs::PDDLObject> positions_;
 };
 
-struct Domain {
+struct PDDLDomain {
  public:
   std::string domain_name;
-  std::vector<msgs::PDDLDomain> domain_;
+  msgs::PDDLDomain domain_;
+  // void GetDomain(Domain* domain);
+  void Init(const std::string& name);
 };
 
-// void GetDomain(Domain* domain);
-void InitDomain(Domain* domain);
 void GetWorldState(const World& world, WorldState* world_state);
 void AddType(std::vector<msgs::PDDLType>* types,
              const msgs::PDDLType& new_type);

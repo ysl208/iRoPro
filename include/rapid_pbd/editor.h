@@ -136,6 +136,7 @@ class Editor {
   ActionClients* action_clients_;
   ConditionGenerator cond_gen_;
   SpecInference spec_inf_;
+  PDDLDomain pddl_domain_;
   const RobotConfig& robot_config_;
   tf::TransformListener tf_listener_;
   std::map<std::string, size_t> last_viewed_;
