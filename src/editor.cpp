@@ -132,11 +132,12 @@ std::string Editor::CreatePDDLDomain(const std::string& name) {
   if(!domain_db_.GetByName(name, &domain)){
     pddl_domain_.Init(&domain, name);
     std::string id = domain_db_.Insert(domain);
+    domain.domain_id = id;
     pddl_domain_.domain_ = domain;
-    pddl_domain_.PublishPDDLDomain(domain);
   return id;
   }
-  return "";
+    pddl_domain_.PublishPDDLDomain(domain);
+  return domain.domain_id;
 }
 
 bool Editor::HandleCreateProgram(msgs::CreateProgram::Request& request,
@@ -1142,23 +1143,28 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   Update(db_id, program);
 
   // PDDL: update action
-  // msgs::PDDLDomain domain;
+
   /* success = domain_db_.Get(domain_id, &domain);
   if (!success) {
     ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   } */
 
-  msgs::Step step;
-  program.steps.push_back(step);
-  Update(db_id, program);
-
-  World world;
-  GetWorld(robot_config_, program, step_id, &world);
-  WorldState world_state;
-  GetWorldState(world, &world_state);
+  msgs::PDDLDomain domain;
+  if(domain_db_.GetByName("Main Domain", &domain)){
+    World world;
+    GetWorld(robot_config_, program, step_id, &world);
+    WorldState world_state;
+    GetWorldState(world, &world_state);
+    domain.predicates = world_state.predicates_;
+    pddl_domain_.domain_ = domain;
+    domain_db_.Update(domain.domain_id, domain);
+    pddl_domain_.PublishPDDLDomain(domain);
   // PrintAllPredicates(world_state.predicates_, "PDDL");
-  PrintAllPredicates(world_state.predicates_, "");
+  PrintAllPredicates(domain.predicates, "");
+  } else{
+    ROS_ERROR("Could not get PDDL Domain 'Main Domain'");
+  }
 }
 
 void Editor::AddPDDLAction(const std::string& domain_id,

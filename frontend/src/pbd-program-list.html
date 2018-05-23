@@ -13,52 +13,46 @@
       :host {
         display: block;
       }
+
       .paper-material {
         margin-top: 10px;
       }
+
       table {
         border-spacing: 0;
         width: 100%;
       }
-      td, th {
+
+      td,
+      th {
         padding: 10px;
         text-align: left;
       }
+
       td {
         border-top: 1px solid rgba(0, 0, 0, var(--light-divider-opacity));
       }
+
       .deleteButtons {
         text-align: right;
       }
+
       a {
         color: #000;
         text-decoration: none;
       }
     </style>
-    <ros-topic auto
-      last-message="{{programList}}"
-      msg-type="rapid_pbd_msgs/ProgramInfoList"
-      topic="rapid_pbd/program_list"
-      ros="[[ros]]"
-    ></ros-topic>
-    <ros-topic auto
-      id="eventPub"
-      msg-type="rapid_pbd_msgs/EditorEvent"
-      topic="rapid_pbd/editor_events"
-      ros="[[ros]]"
-    ></ros-topic>
-    <ros-service auto
-      id="createSrv"
-      on-fail="_handleServiceError"
-      on-response="_handleServiceResponse"
-      name="/rapid_pbd/create_program"
-      ros="[[ros]]"
-      service-type="rapid_pbd_msgs/CreateProgram"
-    ></ros-service>
+    <ros-topic auto last-message="{{programList}}" msg-type="rapid_pbd_msgs/ProgramInfoList" topic="rapid_pbd/program_list" ros="[[ros]]"></ros-topic>
+    <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+    <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
+      ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service>
     <paper-button id="createButton" class="important" raised on-tap="_handleCreate">+ Create new program</paper-button>
     <div class="paper-material">
       <table>
-        <tr><th>Name</th><th>Actions</th></tr>
+        <tr>
+          <th>Name</th>
+          <th>Actions</th>
+        </tr>
         <template is="dom-if" if="[[!programList.programs.length]]">
           <tr>
             <td colspan="2">No programs have been created yet.</td>
@@ -68,7 +62,9 @@
           <tr>
             <td>{{program.name}}</td>
             <td>
-              <a href="#/program/{{program.db_id}}"><paper-button class="clear">Open</paper-button></a>
+              <a href="#/program/{{program.db_id}}">
+                <paper-button class="clear">Open</paper-button>
+              </a>
               <paper-button class="delete" data-db-id="{{program.db_id}}" on-tap="_maybeDelete">Delete</paper-button>
             </td>
           </tr>
@@ -94,19 +90,19 @@
         route: Object,
         programList: {
           type: Object,
-          value: function() {
+          value: function () {
             return { programs: [] };
           }
         }
       },
 
-      _maybeDelete: function(evt) {
+      _maybeDelete: function (evt) {
         var db_id = evt.model.get('program.db_id');
         this._idToDelete = db_id;
         this.$.deleteDialog.open();
       },
 
-      _handleDelete: function(evt) {
+      _handleDelete: function (evt) {
         this.$.deleteDialog.close();
         var msg = {
           type: 'delete program',
@@ -117,7 +113,7 @@
         this.$.eventPub.publish(msg);
       },
 
-      _handleCreate: function(evt) {
+      _handleCreate: function (evt) {
         var now = new Date();
         var name = 'Untitled program ' + now.toLocaleString();
         var request = {
@@ -132,7 +128,7 @@
         window.dispatchEvent(new CustomEvent("location-changed"));
       },
 
-      _handleServiceError: function(evt) {
+      _handleServiceError: function (evt) {
         console.error(evt.detail);
       },
     });

@@ -1,0 +1,189 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../bower_components/ros-service/ros-service.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="pbd-action-list">
+    <template>
+        <style include="shared-styles"></style>
+        <style>
+            :host {
+                display: block;
+            }
+
+            .paper-material {
+                margin-top: 10px;
+            }
+
+            table {
+                border-spacing: 0;
+                width: 100%;
+            }
+
+            td,
+            th {
+                padding: 10px;
+                text-align: left;
+            }
+
+            td {
+                border-top: 1px solid rgba(0, 0, 0, var(--light-divider-opacity));
+            }
+
+            .deleteButtons {
+                text-align: right;
+            }
+
+            a {
+                color: #000;
+                text-decoration: none;
+            }
+        </style>
+        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+        <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+        <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
+            ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service>
+        <paper-button id="createButton" class="important" raised on-tap="_handleCreate">+ Create new action</paper-button>
+        <br> [[pddlDomain.name]]
+        <div class="paper-material">
+            <paper-dropdown-menu label="Entity 1">
+                <paper-listbox slot="dropdown-content" attr-for-selected="arg1">
+                    <template is="dom-repeat" items="[[_getName(types)]]">
+                        <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
+                    </template>
+                </paper-listbox>
+            </paper-dropdown-menu>
+
+            <paper-dropdown-menu label="Predicate">
+                <paper-listbox slot="dropdown-content" attr-for-selected="predicate">
+                    <template is="dom-repeat" items="[[_getName(predicates)]]">
+                        <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
+                    </template>
+                </paper-listbox>
+            </paper-dropdown-menu>
+            
+            <paper-dropdown-menu label="Entity 2">
+                <paper-listbox slot="dropdown-content" attr-for-selected="arg2">
+                    <template is="dom-repeat" items="[[_getName(types)]]">
+                        <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
+                    </template>
+                </paper-listbox>
+            </paper-dropdown-menu>
+        </div>
+        <div class="paper-material">
+            <table>
+                <tr>
+                    <th>Predicates</th>
+                    <th></th>
+                </tr>
+                <template is="dom-if" if="[[!pddlDomain.predicates.length]]">
+                    <tr>
+                        <td colspan="2">No predicates have been created yet.</td>
+                    </tr>
+                </template>
+                <template is="dom-repeat" items="[[pddlDomain.predicates]]" as="predicates">
+                    <tr>
+                        <td>
+                            <i> {{predicates.arg1.type.name}}</i> is {{predicates.name}}
+                            <i>{{predicates.arg2.type.name}}</i>
+                        </td>
+                        <td>
+
+                        </td>
+                    </tr>
+                </template>
+            </table>
+        </div>
+
+    </template>
+
+    <script>
+        Polymer({
+
+            is: 'pbd-action-list',
+
+            properties: {
+                ros: Object,
+                route: Object,
+                pddlDomain: {
+                    type: Object,
+                    value: function () {
+                        return { actions: [] };
+                    }
+                },
+                types: Array,
+                predicates: Array,
+                actions: Array,
+            },
+
+            observers: [
+                'load(pddlDomain.*)',
+                '_domainUpdated(pddlDomain.*)'
+            ],
+            load: function (changedDomain) {
+                console.debug('Loading domain...', changedDomain);
+            },
+            _domainUpdated(changedDomain) {
+                console.debug('Updating domain...', changedDomain);
+                if (changedDomain.value) {
+                    this.types = changedDomain.value.types;
+                    this.predicates = changedDomain.value.predicates;
+                    this.actions = changedDomain.value.actions;
+                    console.debug('Loading types...', this.types);
+                    console.debug('Loading predicates...', this.predicates);
+
+                }
+
+            },
+            _maybeDelete: function (evt) {
+                var db_id = evt.model.get('domain.db_id');
+                this._idToDelete = db_id;
+                this.$.deleteDialog.open();
+            },
+
+            _handleDelete: function (evt) {
+                this.$.deleteDialog.close();
+                var msg = {
+                    type: 'delete program',
+                    program_info: {
+                        db_id: this._idToDelete
+                    },
+                };
+                this.$.eventPub.publish(msg);
+            },
+
+            _handleCreate: function (evt) {
+                var now = new Date();
+                var name = 'Untitled program ' + now.toLocaleString();
+                var request = {
+                    name: name,
+                };
+                this.$.createSrv.call(request);
+            },
+
+            _handleServiceResponse(evt) {
+                var id = evt.detail.db_id;
+                window.history.pushState({}, null, "#/program/" + id);
+                window.dispatchEvent(new CustomEvent("location-changed"));
+            },
+
+            _handleServiceError: function (evt) {
+                console.error(evt.detail);
+            },
+            _getName: function (obj_array) {
+                var names = ['-'];
+                for (var i = 0; i < obj_array.length; ++i) {
+                    names.push(obj_array[i].name);
+
+                }
+                return names;
+            },
+            _updateDomain: function () {
+                // TO DO
+            }
+        });
+    </script>
+</dom-module>

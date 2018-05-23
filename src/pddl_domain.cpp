@@ -53,6 +53,7 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   msgs::PDDLPredicate predicate;
   // Predicate has at least 1 arg of type table_entity
   msgs::PDDLObject obj;
+  obj.name = "Obj 1";
   type.name = msgs::PDDLType::TABLE_ENTITY;
   obj.type = type;
   predicate.arg1 = obj;
@@ -65,6 +66,7 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   predicate.arg2 = obj;
 
   msgs::PDDLObject obj2;
+  obj2.name = "Obj 2";
   type.name = msgs::PDDLType::OBJECT;
   obj2.type = type;
   predicate.arg1 = obj2;
