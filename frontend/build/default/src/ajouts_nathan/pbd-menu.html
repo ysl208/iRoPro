@@ -69,7 +69,8 @@
             <paper-tab>Solution</paper-tab>
             <paper-tab>RAPID_PBD</paper-tab>
         </paper-tabs>
-         
+        
+            
         <iron-pages selected="{{selected}}">
             <pbd-intro></pbd-intro>
             <pbd-tasks></pbd-tasks>
@@ -79,7 +80,9 @@
             <div>Not yet</div>
             <pbd-app></pbd-app>
         </iron-pages>
- 
+
+        
+
         <div id="boutons">
             <paper-button on-tap="tapBack" id="back" class="bouton indigo"><iron-icon icon="subdirectory-arrow-left"></iron-icon>Back</paper-button>
             <paper-button on-tap="tapNext" id="next" class="bouton indigo">Next<iron-icon icon="subdirectory-arrow-right"></iron-icon></paper-button>
@@ -87,25 +90,18 @@
     </div>
 
   </template>
-  <script>
-    Polymer({
-        is: 'pbd-menu',
-
-        properties: {
-            selected: {
-                value:"0"
-            }
-        },
-
-        tapBack: function() {
-            if (this.selected > 0)
-                this.selected--;
-        },
-
-        tapNext: function() {
-            if (this.selected < 5)
-                this.selected++;
-        }
-    });
-  </script>
+  <script>Polymer({
+  is: 'pbd-menu',
+  properties: {
+    selected: {
+      value: "0"
+    }
+  },
+  tapBack: function () {
+    if (this.selected > 0) this.selected--;
+  },
+  tapNext: function () {
+    if (this.selected < 5) this.selected++;
+  }
+});</script>
 </dom-module>

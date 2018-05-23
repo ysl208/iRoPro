@@ -1,0 +1,281 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<dom-module id="pbd-new-action">
+    <template>
+        <style>
+            :host {
+            display: block;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            height: 100%;
+            }
+            div#div {
+                box-sizing: border-box;
+                position: absolute;
+                top: 10px;
+                left: 20px;
+                width: 953px;
+                height: 94px;
+                border: 1px solid;
+                transform: none;
+            }
+            paper-button#paper_button12 {
+                box-sizing: border-box;
+                position: relative;
+                top: 20px;
+                left: 20px;
+                transform: none;
+            }
+            paper-button#paper_button11 {
+                box-sizing: border-box;
+                position: relative;
+                top: 20px;
+            left: 30px;
+            transform: none;
+            }
+            a paper-button,
+            a:active paper-button,
+            a:visited paper-button {
+                color: #000;
+            }
+            paper-button#paper_button10 {
+                box-sizing: border-box;
+                position: relative;
+                top: 20px;
+                left: 40px;
+                transform: none;
+            }
+            p#p {
+            box-sizing: border-box;
+            position: absolute;
+            top: 106px;
+            left: 300px;
+            transform: none;
+            width: 420px;
+            height: 74px;
+            font-size: 300%;
+            }
+            paper-button#paper_button2 {
+            box-sizing: border-box;
+            position: absolute;
+            top: 830px;
+            left: 674px;
+            transform: none;
+            }
+            div#div1 {
+            box-sizing: border-box;
+            position: absolute;
+            top: 250px;
+            left: 40px;
+            transform: none;
+            width: 903px;
+            height: 584px;
+            border: 2px solid;
+            }
+            input#input {
+            box-sizing: border-box;
+            position: relative;
+            top: 30px;
+            left: 270px;
+            transform: none;
+            }
+            p#p1 {
+            box-sizing: border-box;
+            position: relative;
+            top: -30px;
+            left: 10px;
+            width: 250px;
+            height: 24px;
+            transform: none;
+            font-size: 150%;
+            }
+            paper-button#paper_button {
+            box-sizing: border-box;
+            position: relative;
+            top: -20px;
+            left: 50px;
+            transform: none;
+            }
+            div#div2 {
+            box-sizing: border-box;
+            position: absolute;
+            top: 200px;
+            left: 40px;
+            transform: translate(-20px, 0px);
+            width: 539px;
+            height: 164px;
+            border: 1px solid;
+            }
+            p#p3 {
+            box-sizing: border-box;
+            position: relative;
+            top: -10px;
+            left: 10px;
+            width: 140px;
+            height: 24px;
+            transform: none;
+            }
+            p#p4 {
+            box-sizing: border-box;
+            position: relative;
+            top: -10px;
+            left: 70px;
+            transform: none;
+            width: 120px;
+            height: 24px;
+            }
+            p#p5 {
+            box-sizing: border-box;
+            position: absolute;
+            top: 90px;
+            left: 70px;
+            width: 60px;
+            height: 34px;
+            transform: translate(-10px, -30px);
+            border: 1px solid;
+            }
+            p#p6 {
+            box-sizing: border-box;
+            position: relative;
+            top: -50px;
+            left: 190px;
+            transform: none;
+            width: 60px;
+            height: 24px;
+            }
+            p#p7 {
+            box-sizing: border-box;
+            position: absolute;
+            top: 90px;
+            left: 200px;
+            width: 60px;
+            height: 34px;
+            transform: translate(-10px, -30px);
+            border: 1px solid;
+            }
+            iron-icon#iron_icon {
+            box-sizing: border-box;
+            position: relative;
+            top: -60px;
+            left: 290px;
+            transform: none;
+            }
+            paper-button#paper_button1 {
+            box-sizing: border-box;
+            position: relative;
+            top: -10px;
+            left: 40px;
+            width: 171.233px;
+            height: 27.9333px;
+            font-size: 80%;
+            transform: none;
+            }
+            img#img {
+            box-sizing: border-box;
+            position: relative;
+            top: 210px;
+            left: 400px;
+            transform: none;
+            }
+            div#div3 {
+            box-sizing: border-box;
+            position: absolute;
+            top: 410px;
+            left: 20px;
+            transform: none;
+            width: 539px;
+            height: 144px;
+            border: 1px solid;
+            }
+            p#p9 {
+            box-sizing: border-box;
+            position: relative;
+            top: -10px;
+            left: 10px;
+            transform: none;
+            width: 170px;
+            height: 24px;
+            }
+            p#p10 {
+            box-sizing: border-box;
+            position: relative;
+            top: -20px;
+            left: 30px;
+            transform: none;
+            width: 50px;
+            height: 34px;
+            border: 1px solid;
+            }
+            p#p8 {
+            box-sizing: border-box;
+            position: relative;
+            top: -70px;
+            left: 120px;
+            transform: none;
+            width: 50.05px;
+            height: 34px;
+            border: 1px solid;
+            }
+            p#p11 {
+            box-sizing: border-box;
+            position: relative;
+            top: -120px;
+            left: 210px;
+            transform: none;
+            width: 50.05px;
+            height: 34px;
+            border: 1px solid;
+            }
+            paper-button#paper_button3 {
+            box-sizing: border-box;
+            position: relative;
+            top: -120px;
+            left: 70px;
+            transform: none;
+            width: 179.95px;
+            height: 26.4px;
+            font-size: 80%;
+            }
+        </style>
+        <div id="div" class="style-scope canvas-view">
+                <a href="#/help"><paper-button raised elevation="1" id="paper_button12" class="style-scope canvas-view">Help</paper-button></a>
+                <a href="#/problem-list"><paper-button raised elevation="1" id="paper_button11" class="style-scope canvas-view">Problems menu</paper-button></a>
+                <a href="#/home"><paper-button raised elevation="1" id="paper_button10" class="style-scope canvas-view">Home</paper-button></a>
+        </div>
+        <p id="p" class="style-scope canvas-view">Create an action</p>
+        <paper-button raised elevation="1" id="paper_button2" class="style-scope canvas-view">Start teaching module</paper-button>
+        <div id="div1" class="style-scope canvas-view">
+            <input id="input" class="style-scope canvas-view">
+            <p id="p1" class="style-scope canvas-view">Name of the action :</p>
+            <paper-button raised elevation="1" id="paper_button" class="style-scope canvas-view">Redetect world state</paper-button>
+            <div id="div2" class="style-scope canvas-view">
+            <p id="p3" class="style-scope canvas-view">Object detected</p>
+            <p id="p4" class="style-scope canvas-view">Name</p>
+            <p id="p5" class="style-scope canvas-view">obj1</p>
+            <p id="p6" class="style-scope canvas-view">Type</p>
+            <p id="p7" class="style-scope canvas-view">Cube</p>
+            <iron-icon icon="icons:delete" id="iron_icon" class="style-scope canvas-view"></iron-icon>
+            <paper-button raised elevation="1" id="paper_button1" class="style-scope canvas-view">+ add new instance</paper-button>
+            </div>
+            <img id="img" class="style-scope canvas-view" height="0">CURRENT WORLD STATE
+            <div id="div3" class="style-scope canvas-view">
+            <p id="p9" class="style-scope canvas-view">Initial world state</p>
+            <p id="p10" class="style-scope canvas-view">obj1</p>
+            <p id="p8" class="style-scope canvas-view">is on</p>
+            <p id="p11" class="style-scope canvas-view">A</p>
+            <paper-button raised elevation="1" id="paper_button3" class="style-scope canvas-view">+ add new predicate</paper-button>
+            </div>
+        </div>
+        </template>
+    <script>
+        Polymer({
+            is: 'pbd-new-action',
+        });        
+    </script>
+</dom-module>

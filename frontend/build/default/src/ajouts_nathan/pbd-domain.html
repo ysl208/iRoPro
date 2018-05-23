@@ -1,0 +1,81 @@
+<link rel="import" href="../../bower_components/polymer/lib/utils/gestures.html">
+<link rel="import" href="../../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="pbd-domain">
+  <template>
+    <style include="../shared-styles"></style>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style>
+        :host {
+            display: block;
+        }
+
+        p > p {
+            margin: 10px;
+        }
+
+    </style>
+
+    <div>
+        <h3>Creating a new planning domain model</h3>
+
+        <p>
+            A domain model describes the world that the robot operates in. <br>
+            It consists of 1. <strong>Types</strong>, 2. <strong>Predicates</strong>, and 3. <strong>Actions</strong>.
+        </p>
+        
+        <p> 
+            Enter a name for the planning domain 
+            <iron-input bind-value="{{domainName}}">
+                <input is="iron-input">
+            </iron-input>
+        </p>
+
+        <p>
+            The <strong>predicates</strong> describing the relation between the types are: <br>
+            </p><p>
+                <i>&lt;table&gt; has clear top <br>
+                    &lt;object&gt; is on &lt;table&gt; <br>
+                    &lt;object&gt; is stackable on &lt;table&gt; <br>
+                </i>
+            </p>
+            
+            <br>
+            These predicates can be used as <strong>conditions</strong> for an action. <br>
+            E.g. move block from A to B <br>
+        <p></p>
+
+        <img src="../../img/intro.png" width="30%">
+
+        <img src="../../img/domain.png" style="position: absolute; left: 50%; top: 100px">
+
+        <p>
+            Existing <strong>Actions</strong>: <br>
+            - move(cube,A,B)    <a href="#/"><paper-button>view</paper-button></a> <br>
+            <a href="#/"><paper-button>add new action</paper-button></a>
+        </p>
+
+        <!--<div id="boutons">
+            <a href="#/" id="back" class="bouton"><paper-button><iron-icon icon="subdirectory-arrow-left"></iron-icon>Back</paper-button></a>
+            <a href="#/" id="next" class="bouton"><paper-button>Next<iron-icon icon="subdirectory-arrow-right"></iron-icon></paper-button></a>
+        </div>-->
+    </div>
+
+  </template>
+  <script>Polymer({
+  is: 'pbd-domain',
+  properties: {
+    domainName: {
+      type: String,
+      value: ''
+    }
+  }
+});</script>
+</dom-module>

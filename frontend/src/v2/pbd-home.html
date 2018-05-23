@@ -1,0 +1,95 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<base href="https://polygit.org/polymer+:master/webcomponents+:master/shadycss+webcomponents+:master/paper*+polymerelements+:master/iron*+polymerelements+:master/app*+polymerelements+:master/neon*+polymerelements+:master/components/">
+<script src="webcomponentsjs/webcomponents-loader.js"></script>
+
+<dom-module id="pbd-home">
+  <template>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', 'Noto', sans-serif;
+            line-height: 1.5;
+            background-color: white;
+        }
+      :host {
+        display: block;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        height: 100%;
+      }
+
+        #flexHorizontal {
+          display:flex;
+          flex-direction:row;
+          background:white;
+          padding:10px;
+          width:300px;
+        }
+       #flexHorizontal1, #flexHorizontal2, #flexHorizontal3 {
+         width:50px;
+         height:50px;
+         border:2px solid #673AB7;
+         margin:10px;
+       }
+      
+      span#span {
+        box-sizing: border-box;
+        position: absolute;
+        top: 40px;
+        left: 130px;
+        transform: none;
+        font-size: 150%;
+      }
+      paper-button#paper_button {
+        box-sizing: border-box;
+        position: absolute;
+        top: 140px;
+        left: 99.2667px;
+        transform: none;
+        width: 361.233px;
+        height: 216.4px;
+      }
+      paper-button#paper_button1 {
+        box-sizing: border-box;
+        position: absolute;
+        top: 140px;
+        left: 528.533px;
+        transform: none;
+        width: 361.233px;
+        height: 216.4px;
+      }
+      paper-button#paper_button2 {
+        box-sizing: border-box;
+        position: absolute;
+        top: 450px;
+        left: 432.433px;
+        transform: none;
+        width: 122.233px;
+        height: 68.4px;
+      }
+      a paper-button,
+      a:active paper-button,
+      a:visited paper-button {
+        color: #000;
+      }
+    </style>
+
+    <div>
+        <span id="span" class="style-scope canvas-view">Welcome to the Programming by Demonstration Planning tool</span>
+        <a href="#/action-list"><paper-button raised id="paper_button" class="style-scope canvas-view">Actions menu</paper-button></a>
+        <a href="#/problem-list"><paper-button raised id="paper_button1" class="style-scope canvas-view">Problems menu</paper-button></a>
+        <a href="#/help"><paper-button raised id="paper_button2" class="style-scope canvas-view">help</paper-button></a>
+    </div>    
+  </template>
+  <script>
+    Polymer ({
+        is: "pbd-home",
+    });
+  </script>
+</dom-module>
