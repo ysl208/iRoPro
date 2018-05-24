@@ -17,8 +17,12 @@
 <link rel="import" href="pbd-action-list.html">
 <link rel="import" href="pbd-problem-list.html">
 <link rel="import" href="pbd-help.html">
+<<<<<<< HEAD
 <link rel="import" href="pbd-new-action-1.html">
 <link rel="import" href="pbd-new-action-2.html">
+=======
+<link rel="import" href="pbd-robot-control.html">
+>>>>>>> 9baf44732226af99c08647f45bf2cea07c702343
 
 <dom-module id="pbd-menu2">
   <template>
@@ -88,6 +92,13 @@
       showHelp: function(typePage) {
           return typePage === "help";
       },
+<<<<<<< HEAD
+=======
+      showRobotControl: function(typePage) {
+          return typePage === "robot-control";
+      },
+
+>>>>>>> 9baf44732226af99c08647f45bf2cea07c702343
       attached: function() {
           if (!this.route.path)
             this.set('route.path','/home');
