@@ -15,6 +15,7 @@
 <link rel="import" href="pbd-action-list.html">
 <link rel="import" href="pbd-problem-list.html">
 <link rel="import" href="pbd-help.html">
+<link rel="import" href="pbd-robot-control.html">
 
 <dom-module id="pbd-menu2">
   <template>
@@ -49,6 +50,9 @@
     <template is="dom-if" if="[[showHelp(routeData.page)]]">
         <pbd-help></pbd-help>
     </template>
+    <template is="dom-if" if="[[showRobotControl(routeData.page)]]">
+        <pbd-robot-control></pbd-robot-control>
+    </template>
   </template>
 
   <script>
@@ -67,6 +71,9 @@
       },
       showHelp: function(typePage) {
           return typePage === "help";
+      },
+      showRobotControl: function(typePage) {
+          return typePage === "robot-control";
       },
 
       attached: function() {
