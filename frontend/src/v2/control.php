@@ -5,8 +5,8 @@
 	}
 	if (isset($_GET["display"]) && $_GET["display"]=== "eyes") {
 		displayEyes();
-	} else if (isset($_GET["display"]) && isset($_GET["camerasList"])) {
-		displayCamera();
+	} else if (isset($_GET["display"]) && isset($_GET["top_left"]) && isset($_GET["bottom_left"]) && isset($_GET["top_right"]) && isset($_GET["bottom_right"])) {
+		displayCamera($_GET["top_left"], $_GET["bottom_left"], $_GET["top_right"], $_GET["bottom_right"]);
 	}
 
 	function launchScript($commandLine) {
