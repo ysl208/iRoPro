@@ -68,6 +68,7 @@
         <a href="#/problem-list"><paper-button raised elevation="1" id="paper_button11" class="style-scope canvas-view">Problems menu</paper-button></a>
     </div>
     <h1 align="center">Robot Control</h1>
+
     <fieldset>
         <legend>Arms control</legend>
             <paper-button class="style-scope canvas-view" raised on-tap="tuckArmRequest">Tuck arms</paper-button>
@@ -86,8 +87,10 @@
                 params='{"untuckArm":"true"}'
         ></iron-ajax>
     </fieldset>
+
     <fieldset>
         <legend>Display on robot screen</legend>
+
         <paper-button class="style-scope canvas-view" raised on-tap="displayEyesRequest">Eyes</paper-button>
         <iron-ajax
                 id="displayEyes"
@@ -101,6 +104,7 @@
                 method="GET"
                 url="src/v2/control.php"
         ></iron-ajax>
+        
         <paper-dialog modal id="dialog">
             <h2>Can't open camera</h2>
             <p>Baxter is unable to open more than two camera at the same time. Please change the camera you want to see.</p>
