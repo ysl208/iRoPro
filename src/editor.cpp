@@ -323,8 +323,8 @@ void Editor::SaveOnExit(const std::string& db_id) {
       World world;
       GetWorld(robot_config_, program, step_id, &world);
       // Add world state to Preconditions of action
-      AddActionCondition(action, "Effect", world);
-      pddl_domain_.domain_.push_back(action);
+      AddActionCondition(&action, "Effect", world);
+      pddl_domain_.domain_.actions.push_back(action);
       domain_db_.Update(pddl_domain_.domain_.domain_id, pddl_domain_.domain_);
       pddl_domain_.PublishPDDLDomain(pddl_domain_.domain_);
     }
@@ -964,8 +964,8 @@ void Editor::AddStep(const std::string& db_id) {
     World world;
     GetWorld(robot_config_, program, 0, &world);
     // Add world state to Preconditions of action
-    AddActionCondition(new_action, "Precondition", world);
-    pddl_domain_.domain_.push_back(new_action);
+    AddActionCondition(&new_action, "Precondition", world);
+    pddl_domain_.domain_.actions.push_back(new_action);
     domain_db_.Update(pddl_domain_.domain_.domain_id, pddl_domain_.domain_);
     pddl_domain_.PublishPDDLDomain(pddl_domain_.domain_);
   }
