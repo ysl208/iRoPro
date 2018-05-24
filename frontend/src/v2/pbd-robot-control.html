@@ -144,15 +144,26 @@
             this.$$('#displayEyes').generateRequest();
         },
         displayCameraRequest: function (event) {
+            top_left = this.$$("#top_left");
+            bottom_left = this.$$("#bottom_left");
+            top_right = this.$$("#top_right");
+            bottom_right = this.$$("#bottom_right");
             camerasList = [];
             for (var i = 0; i<this.selectCam.length; i++)  {
                 currentSelect = this.$$("#" + this.selectCam[i]);
                 camerasList.push(currentSelect.options[currentSelect.selectedIndex].value);
             }
+            console.log(camerasList);
             if (camerasList.indexOf("/cameras/left_hand_camera/image")!=-1 && camerasList.indexOf("/cameras/right_hand_camera/image")!=-1 && camerasList.indexOf("/cameras/head_camera/image")!=-1) {
                 this.$.dialog.open();
             } else {
-                this.$$('#displayCamera').set( 'params', {"display":"camera", "camerasList":camerasList});
+                this.$$('#displayCamera').set( 'params', {"display":"camera", 
+                                                            "top_left":top_left.options[top_left.selectedIndex].value,
+                                                            "bottom_left":bottom_left.options[bottom_left.selectedIndex].value,
+                                                            "top_right":top_right.options[top_right.selectedIndex].value,
+                                                            "bottom_right":bottom_right.options[bottom_right.selectedIndex].value,
+                                                            });
+                console.log(this.$$('#displayCamera').params);
                 this.$$('#displayCamera').generateRequest();
             }}        
     });
