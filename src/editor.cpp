@@ -41,7 +41,7 @@ Editor::Editor(const ProgramDb& db, const SceneDb& scene_db,
                const JointStateReader& joint_state_reader,
                const Visualizer& visualizer, ActionClients* action_clients,
                const ConditionGenerator& cond_gen,
-               const SpecInference& spec_inf, 
+               const SpecInference& spec_inf,
                const ros::Publisher pddl_domain_pub,
                const RobotConfig& robot_config)
     : db_(db),
@@ -64,7 +64,6 @@ void Editor::Start() {
   viz_.Init();
   spec_inf_.Init();
   CreatePDDLDomain("Main Domain");
-  
 }
 
 void Editor::HandleEvent(const msgs::EditorEvent& event) {
@@ -129,14 +128,14 @@ bool Editor::HandleCreatePDDLDomain(
 
 std::string Editor::CreatePDDLDomain(const std::string& name) {
   msgs::PDDLDomain domain;
-  if(!domain_db_.GetByName(name, &domain)){
+  if (!domain_db_.GetByName(name, &domain)) {
     pddl_domain_.Init(&domain, name);
     std::string id = domain_db_.Insert(domain);
     domain.domain_id = id;
     pddl_domain_.domain_ = domain;
-  return id;
+    return id;
   }
-    pddl_domain_.PublishPDDLDomain(domain);
+  pddl_domain_.PublishPDDLDomain(domain);
   return domain.domain_id;
 }
 
@@ -307,11 +306,29 @@ void Editor::SaveOnExit(const std::string& db_id) {
     return;
   }
   size_t step_id = program.steps.size() - 1;
-  if (step_id >= 0) {
-    DetectSurfaceObjects(db_id, step_id);
-  }
-
   Update(db_id, program);
+  if (step_id > 0) {
+    msgs::PDDLAction action;
+    for (size_t i = 0; i < pddl_domain_.domain_.actions.size(); ++i) {
+      if (pddl_domain_.domain_.actions[i].name == program.name) {
+        action = pddl_domain_.domain_.actions[i];
+        return;
+      }
+    }
+    if (action.name == "") {
+      ROS_ERROR("Could not find PDDL action named %s", program.name.c_str());
+    } else {
+      DetectSurfaceObjects(db_id, step_id);
+      // Get World state
+      World world;
+      GetWorld(robot_config_, program, step_id, &world);
+      // Add world state to Preconditions of action
+      AddActionCondition(action, "Effect", world);
+      pddl_domain_.domain_.push_back(action);
+      domain_db_.Update(pddl_domain_.domain_.domain_id, pddl_domain_.domain_);
+      pddl_domain_.PublishPDDLDomain(pddl_domain_.domain_);
+    }
+  }
 }
 
 void Editor::Update(const std::string& db_id, const msgs::Program& program) {
@@ -936,17 +953,28 @@ void Editor::AddStep(const std::string& db_id) {
   msgs::Step step;
   program.steps.push_back(step);
   Update(db_id, program);
-  // Get World State if 1st step is added
   ROS_INFO("Program has now steps: %zd ", program.steps.size());
+  // If 1st step is added
   if (program.steps.size() == 1) {
     DetectSurfaceObjects(db_id, 0);
+    // Create new action
+    msgs::PDDLAction new_action;
+    new_action.name = program.name;
+    // Get World state
+    World world;
+    GetWorld(robot_config_, program, 0, &world);
+    // Add world state to Preconditions of action
+    AddActionCondition(new_action, "Precondition", world);
+    pddl_domain_.domain_.push_back(new_action);
+    domain_db_.Update(pddl_domain_.domain_.domain_id, pddl_domain_.domain_);
+    pddl_domain_.PublishPDDLDomain(pddl_domain_.domain_);
   }
 }
 
 void Editor::UpdatePDDL(const std::string& domain_id,
                         const msgs::PDDLDomain& domain, const World& world) {
   domain_db_.Update(domain_id, domain);
-  
+
   if (last_viewed_.find(domain_id) != last_viewed_.end()) {
     viz_.Publish(domain_id, world);
   } else {
@@ -1141,30 +1169,6 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
     // std::cout << i << "th landmark: " << landmark.pose_stamped.pose << "\n";
   }
   Update(db_id, program);
-
-  // PDDL: update action
-
-  /* success = domain_db_.Get(domain_id, &domain);
-  if (!success) {
-    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
-    return;
-  } */
-
-  msgs::PDDLDomain domain;
-  if(domain_db_.GetByName("Main Domain", &domain)){
-    World world;
-    GetWorld(robot_config_, program, step_id, &world);
-    WorldState world_state;
-    GetWorldState(world, &world_state);
-    domain.predicates = world_state.predicates_;
-    pddl_domain_.domain_ = domain;
-    domain_db_.Update(domain.domain_id, domain);
-    pddl_domain_.PublishPDDLDomain(domain);
-  // PrintAllPredicates(world_state.predicates_, "PDDL");
-  PrintAllPredicates(domain.predicates, "");
-  } else{
-    ROS_ERROR("Could not get PDDL Domain 'Main Domain'");
-  }
 }
 
 void Editor::AddPDDLAction(const std::string& domain_id,
@@ -1180,6 +1184,21 @@ void Editor::AddPDDLAction(const std::string& domain_id,
   domain.actions.push_back(action);
   domain_db_.Update(domain_id, domain);
   pddl_domain_.PublishPDDLDomain(domain);
+}
+
+void Editor::AddActionCondition(msgs::PDDLAction* action,
+                                const std::string& cond, const World& world) {
+  WorldState world_state;
+  GetWorldState(world, &world_state);
+  action->params = world_state.objects_;
+  if (cond == "Precondition") {
+    action->preconditions = world_state.predicates_;
+  } else if (cond == "Effect") {
+    action->effects = world_state.predicates_;
+  } else {
+    ROS_ERROR("Unknown condition type: %s", cond.c_str());
+  }
+  PrintAllPredicates(world_state.predicates_, "");
 }
 
 void Editor::GetJointValues(const std::string& db_id, size_t step_id,

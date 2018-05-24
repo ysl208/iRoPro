@@ -36,10 +36,8 @@ class Editor {
          const PDDLDomainDb& domain_db,
          const JointStateReader& joint_state_reader,
          const Visualizer& visualizer, ActionClients* action_clients,
-         const ConditionGenerator& cond_gen, 
-         const SpecInference& spec_inf,
-         const ros::Publisher pddl_domain_pub,
-         const RobotConfig& robot_config);
+         const ConditionGenerator& cond_gen, const SpecInference& spec_inf,
+         const ros::Publisher pddl_domain_pub, const RobotConfig& robot_config);
   void Start();
   void HandleEvent(const msgs::EditorEvent& event);
   bool HandleCreateProgram(msgs::CreateProgram::Request&,
@@ -49,38 +47,16 @@ class Editor {
 
  private:
   std::string Create(const std::string& name);
-  std::string CreatePDDLDomain(const std::string& name);
-  void AddSenseSteps(const std::string& db_id, size_t step_id);
   void Update(const std::string& db_id, const msgs::Program& program);
-  void SaveOnExit(const std::string& db_id);
   void Delete(const std::string& db_id);
-  void GenerateConditions(const std::string& db_id, size_t step_id,
-                          size_t action_id, const std::string& landmark_name);
-  void UpdateConditions(const std::string& db_id, size_t step_id,
-                        size_t action_id, const msgs::Landmark& reference);
-  void ViewConditions(const std::string& db_id, size_t step_id,
-                      size_t action_id);
-  void InferSpecification(const std::string& db_id, size_t step_id,
-                          size_t action_id, const msgs::Landmark& landmark);
-  void ViewSpecification(const std::string& db_id, size_t step_id,
-                         const msgs::Specification& spec);
-  void SelectSpecification(const std::string& db_id, size_t step_id,
-                           const msgs::Specification& spec);
-
   void AddStep(const std::string& db_id);
   void DeleteStep(const std::string& db_id, size_t step_id);
   void AddAction(const std::string& db_id, size_t step_id, msgs::Action action);
-  void AssignGripperBoundingBox(msgs::Step* cart_step,
-                                msgs::Landmark* gripper_box);
   void DeleteAction(const std::string& db_id, size_t step_id, size_t action_id);
   void ViewStep(const std::string& db_id, size_t step_id);
   void DetectSurfaceObjects(const std::string& db_id, size_t step_id);
   void GetJointValues(const std::string& db_id, size_t step_id,
                       size_t action_id, const std::string& actuator_group);
-  void AddPDDLAction(const std::string& domain_id,
-                     const std::string& action_name);
-  void UpdatePDDL(const std::string& domain_id, const msgs::PDDLDomain& domain,
-                  const World& world);
   // Pose actions
   // Main handler
   void GetPose(const std::string& db_id, size_t step_id, size_t action_id,
@@ -109,21 +85,39 @@ class Editor {
   // Removes all landmarks of the given type from the given step.
   // The types are defined in Landmark.msg.
   void DeleteLandmarks(const std::string& landmark_type, msgs::Step* step);
+  void AddJointStates(msgs::Action* action,
+                      const std::vector<double>& default_pose);
+  void GetDemonstrationSteps(const msgs::Program& program,
+                             std::vector<msgs::Step>* demo_steps);
+  void RunProgram(const std::string& program_name);
+
+  // Add Sense steps functions
+  void AddSenseSteps(const std::string& db_id, size_t step_id);
   void AddDetectTTObjectsAction(const std::string& db_id, size_t step_id);
   void AddCheckConditionsAction(const std::string& db_id, size_t step_id);
   void AddMoveHeadAction(const std::string& db_id, size_t step_id, size_t pan,
                          size_t tilt);
   void AddOpenGripperAction(const std::string& db_id, size_t step_id,
                             size_t position, size_t max_effort);
-  void AddJointStates(msgs::Action* action,
-                      const std::vector<double>& default_pose);
   void AddGripperPoseAction(const std::string& db_id, size_t step_id,
                             const std::vector<double>& default_pose);
+  // Condition check functions
+  void GenerateConditions(const std::string& db_id, size_t step_id,
+                          size_t action_id, const std::string& landmark_name);
+  void UpdateConditions(const std::string& db_id, size_t step_id,
+                        size_t action_id, const msgs::Landmark& reference);
+  void ViewConditions(const std::string& db_id, size_t step_id,
+                      size_t action_id);
+  // Specification Inference functions
+  void InferSpecification(const std::string& db_id, size_t step_id,
+                          size_t action_id, const msgs::Landmark& landmark);
+  void ViewSpecification(const std::string& db_id, size_t step_id,
+                         const msgs::Specification& spec);
+  void SelectSpecification(const std::string& db_id, size_t step_id,
+                           const msgs::Specification& spec);
   bool GetCartActions(std::vector<std::pair<int, int> >* cart_pose_actions,
                       const msgs::Program& program, msgs::Program* new_program);
-  void GetDemonstrationSteps(const msgs::Program& program,
-                             std::vector<msgs::Step>* demo_steps);
-  void RunProgram(const std::string& program_name);
+
   geometry_msgs::Vector3 QuaternionToRPY(const geometry_msgs::Quaternion& msg);
   bool AABBintersect(const msgs::Landmark& lm1, const msgs::Landmark& lm2);
   void GetMinMax(const msgs::Landmark& lm, geometry_msgs::Vector3* min,
@@ -135,6 +129,19 @@ class Editor {
                                const msgs::Landmark& bounding_box);
   bool CheckGridPositionFree(const std::vector<msgs::Landmark>& landmarks,
                              const geometry_msgs::Point& position);
+  void AssignGripperBoundingBox(msgs::Step* cart_step,
+                                msgs::Landmark* gripper_box);
+
+  // PDDL domain functions
+  void SaveOnExit(const std::string& db_id);
+  std::string CreatePDDLDomain(const std::string& name);
+  void AddActionCondition(msgs::PDDLAction* action, const std::string& cond,
+                          const World& world);
+  void AddPDDLAction(const std::string& domain_id,
+                     const std::string& action_name);
+  void UpdatePDDL(const std::string& domain_id, const msgs::PDDLDomain& domain,
+                  const World& world);
+
   ProgramDb db_;
   SceneDb scene_db_;
   PDDLDomainDb domain_db_;
