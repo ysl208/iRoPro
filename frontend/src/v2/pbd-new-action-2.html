@@ -64,55 +64,44 @@
             }
         </style>
         <body class="fullbleed layout vertical">
-            <paper-header-panel class="flex">
-                <paper-toolbar slot="header">
-                    <paper-button slot="top">Home</paper-button>
-                    <paper-button slot="top">Actions menu</paper-button>
-                    <paper-button slot="top">Problems menu</paper-button>
-                    <paper-button slot="top">Help</paper-button>
-                </paper-toolbar>
+            <h1 align="center">Create an Action</h1>
 
-                <div id="content">
-                    <h1 align="center">Create an Action</h1>
+            <div id="form">
+                <div id="left">
+                    <paper-input label="Enter a name for the action"></paper-input>
 
-                    <div id="form">
-                        <div id="left">
-                            <paper-input label="Enter a name for the action"></paper-input>
+                    <paper-button id="detect" class="button-visible" raised>Redetect world state</paper-button>
 
-                            <paper-button id="detect" class="button-visible" raised>Redetect world state</paper-button>
+                    <p>The world types have been detected as shown on the right :</p>
+                    
+                    <fieldset>
+                        <legend>Objects detected</legend>
+                        <p>Instance name</p>
+                        <p id="label2">Instance type</p>
+                        <br>
 
-                            <p>The world types have been detected as shown on the right :</p>
-                            
-                            <fieldset>
-                                <legend>Objects detected</legend>
-                                <p>Instance name</p>
-                                <p id="label2">Instance type</p>
-                                <br>
-
-                                <div id="listeObjet">
-                                    <pbd-object-select id="selectObj1" on-delete="deleteObj" num="1"></pbd-object-select>
-                                </div>
-
-                                <br>
-                                <paper-button noink class="petit" on-click="newObj">+ add new instance</paper-button>
-                            </fieldset>
-
-                            <fieldset>
-                                <legend>Final world state</legend>
-                                <div id="listeWorldState">
-                                    <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1"></pbd-world-state-select>
-                                </div>
-                                <paper-button noink class="petit" on-click="newPrecond">+ add new postcondition</paper-button>
-                            </fieldset>
+                        <div id="listeObjet">
+                            <pbd-object-select id="selectObj1" on-delete="deleteObj" num="1"></pbd-object-select>
                         </div>
-                        <div id="right">
-                            <img src="https://scontent-mrs1-1.xx.fbcdn.net/v/t1.0-0/c0.0.960.347/s480x480/31934882_1832788050356834_1049582663024771072_n.jpg?_nc_cat=0&oh=45782e55428fe654fbb2bcded42496d7&oe=5B92D8F3" alt="image">
+
+                        <br>
+                        <paper-button noink class="petit" on-click="newObj">+ add new instance</paper-button>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Final world state</legend>
+                        <div id="listeWorldState">
+                            <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1"></pbd-world-state-select>
                         </div>
-                    </div>
-                    <paper-button id="back" raised class="button-visible">Back</paper-button>
-                    <paper-button id="next" raised class="button-visible">Save action</paper-button>
+                        <paper-button noink class="petit" on-click="newPrecond">+ add new postcondition</paper-button>
+                    </fieldset>
                 </div>
-            </paper-header-panel>            
+                <div id="right">
+                    <img src="https://scontent-mrs1-1.xx.fbcdn.net/v/t1.0-0/c0.0.960.347/s480x480/31934882_1832788050356834_1049582663024771072_n.jpg?_nc_cat=0&oh=45782e55428fe654fbb2bcded42496d7&oe=5B92D8F3" alt="image">
+                </div>
+            </div>
+            <paper-button id="back" raised class="button-visible">Back</paper-button>
+            <paper-button id="next" raised class="button-visible">Save action</paper-button>     
         </body>                  
     </template>
     <script>
