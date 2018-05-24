@@ -17,12 +17,9 @@
 <link rel="import" href="pbd-action-list.html">
 <link rel="import" href="pbd-problem-list.html">
 <link rel="import" href="pbd-help.html">
-<<<<<<< HEAD
 <link rel="import" href="pbd-new-action-1.html">
 <link rel="import" href="pbd-new-action-2.html">
-=======
 <link rel="import" href="pbd-robot-control.html">
->>>>>>> 9baf44732226af99c08647f45bf2cea07c702343
 
 <dom-module id="pbd-menu2">
   <template>
@@ -54,6 +51,7 @@
             <a href="#/home" slot="top"><paper-button noink raised>Home</paper-button></a>
             <a href="#/action-list" slot="top"><paper-button noink raised>Actions menu</paper-button></a>
             <a href="#/problem-list" slot="top"><paper-button noink raised>Problems menu</paper-button></a>
+            <a href="#/robot-control" slot="top"><paper-button noink raised>Robot control</paper-button></a>                        
             <a href="#/help" slot="top"><paper-button noink raised>Help</paper-button></a>
         </paper-toolbar>
         <div id="content" class="fit">
@@ -70,6 +68,7 @@
               <pbd-help name="help"></pbd-help>
               <pbd-new-action-1 name="new-action-1"></pbd-new-action-1>
               <pbd-new-action-2 name="new-action-2"></pbd-new-action-2>
+              <pbd-robot-control name="robot-control"></pbd-robot-control>
           </iron-pages>
         </div>
     </paper-header-panel>
@@ -80,25 +79,6 @@
 
       is: 'pbd-menu2',
 
-      showHome: function(typePage) {
-          return typePage === "home";
-      },
-      showActionList: function(typePage) {
-          return typePage === "action-list";
-      },
-      showProblemList: function(typePage) {
-          return typePage === "problem-list";
-      },
-      showHelp: function(typePage) {
-          return typePage === "help";
-      },
-<<<<<<< HEAD
-=======
-      showRobotControl: function(typePage) {
-          return typePage === "robot-control";
-      },
-
->>>>>>> 9baf44732226af99c08647f45bf2cea07c702343
       attached: function() {
           if (!this.route.path)
             this.set('route.path','/home');
