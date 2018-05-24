@@ -10,11 +10,15 @@
 <link rel="import" href="../../bower_components/ros-param/ros-param.html">
 <link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
 <link rel="import" href="../../bower_components/ros-websocket/ros-websocket.html">
+<link rel="import" href="../../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="../shared-styles.html">
 <link rel="import" href="pbd-home.html">
 <link rel="import" href="pbd-action-list.html">
 <link rel="import" href="pbd-problem-list.html">
 <link rel="import" href="pbd-help.html">
+<link rel="import" href="pbd-new-action-1.html">
+<link rel="import" href="pbd-new-action-2.html">
 
 <dom-module id="pbd-menu2">
   <template>
@@ -25,30 +29,46 @@
         @apply(--paper-font-common-base);
         height: 100%;
       }
-
       paper-dialog paper-button:hover {
         background-color: var(--paper-grey-300);
       }
-
       #buttons {
         text-align: right;
       }
+      #content {
+        padding: 2%;
+      }
+      a paper-button,
+      a:active paper-button,
+      a:visited paper-button {
+        color: white;
+      }
     </style>
 
-    <app-location route="{{route}}" use-hash-as-path></app-location>
-    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{routeTail}}"></app-route>
-    <template is="dom-if" if="[[showHome(routeData.page)]]">
-        <pbd-home></pbd-home>
-    </template>
-    <template is="dom-if" if="[[showActionList(routeData.page)]]">
-        <pbd-action-list></pbd-action-list>
-    </template>
-    <template is="dom-if" if="[[showProblemList(routeData.page)]]">
-        <pbd-problem-list></pbd-problem-list>
-    </template>
-    <template is="dom-if" if="[[showHelp(routeData.page)]]">
-        <pbd-help></pbd-help>
-    </template>
+    <paper-header-panel class="flex">
+        <paper-toolbar slot="header">
+            <a href="#/home" slot="top"><paper-button noink raised>Home</paper-button></a>
+            <a href="#/action-list" slot="top"><paper-button noink raised>Actions menu</paper-button></a>
+            <a href="#/problem-list" slot="top"><paper-button noink raised>Problems menu</paper-button></a>
+            <a href="#/help" slot="top"><paper-button noink raised>Help</paper-button></a>
+        </paper-toolbar>
+        <div id="content" class="fit">
+          <app-location route="{{route}}" use-hash-as-path></app-location>
+
+          <app-route  route="{{route}}" 
+                      pattern="/:page" 
+                      data="{{routeData}}"></app-route>
+
+          <iron-pages selected="[[routeData.page]]" attr-for-selected="name">
+              <pbd-home name="home"></pbd-home>
+              <pbd-action-list name="action-list"></pbd-action-list>
+              <pbd-problem-list name="problem-list"></pbd-problem-list>
+              <pbd-help name="help"></pbd-help>
+              <pbd-new-action-1 name="new-action-1"></pbd-new-action-1>
+              <pbd-new-action-2 name="new-action-2"></pbd-new-action-2>
+          </iron-pages>
+        </div>
+    </paper-header-panel>
   </template>
 
   <script>
@@ -68,12 +88,10 @@
       showHelp: function(typePage) {
           return typePage === "help";
       },
-
       attached: function() {
           if (!this.route.path)
             this.set('route.path','/home');
-      },
-      
+      },      
     });
   </script>
 </dom-module>

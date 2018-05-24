@@ -1,0 +1,87 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="pbd-object-select">
+    <template>
+        <style>
+            .styled-select {
+                background: url(http://i62.tinypic.com/15xvbd5.png) no-repeat 96% 0;
+                height: 29px;
+                overflow: hidden;
+                width: 220px;
+                display: inline-block;
+            }
+            .styled-select select {
+                background: transparent;
+                border: none;
+                font-size: 14px;
+                height: 29px;
+                padding: 5px; /* If you add too much padding here, the options won't show in IE */
+                width: 248px;
+            }
+            .styled-select.slate {
+                background: url(http://i62.tinypic.com/2e3ybe1.jpg) no-repeat right center;
+                height: 34px;
+                width: 220px;
+            }
+            .styled-select.slate select {
+                border: 1px solid #ccc;
+                font-size: 16px;
+                height: 34px;
+                width: 248px;
+            }
+            iron-icon {
+                display: inline-block;
+                vertical-align: top;
+                margin-top: 5px;
+            }
+        </style>
+        <!-- div uniquement pour le style du select -->
+        <div class="styled-select slate">
+        <select id="nomObj-[[num]]">
+            <option value="obj1">obj1</option>
+            <option value="obj2">obj2</option>
+            <option value="obj3">obj3</option>
+        </select>
+        </div>
+        <div class="styled-select slate">
+        <select id="typeObj-[[num]]">
+            <optgroup label="Object">
+                    <option value="Cylinder">Cylinder</option>
+                    <option value="Cube">Cube</option>
+            </optgroup>
+            <optgroup label="Position">
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+            </optgroup>                                
+        </select>
+        </div>
+        <!-- data-index$ permet de passer un parametre, récupéré par event.target.dataset.index -->
+        <iron-icon on-click="delete" icon="delete-forever"></iron-icon>
+    </template>
+    <script>
+        Polymer({
+            is: 'pbd-object-select',
+
+            properties: {
+                num: {
+                    type: Number,
+                }
+            },
+
+            delete: function(e, detail) {
+                this.dispatchEvent(new CustomEvent('delete', {detail : {id: this.num}, bubble: true, composed : true}));
+                this.remove();
+            },
+
+            hello: function() {
+                console.log("hello");
+            }
+        });
+    </script>
+
+</dom-module>

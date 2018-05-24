@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="pbd-test.html">
 
 <dom-module id="pbd-help">
     <template>
@@ -93,12 +94,18 @@
             <p id="p" class="style-scope canvas-view">Help</h1>
             <div id="div1" class="style-scope canvas-view">
                 <p><strong>Programming by Demonstration (PbD)</strong> is a technique that allows you to teach the robot a new action by moving its arms and showing how the action should be performed.</p>
-            </div>            
+            </div>  
+            
+        <pbd-test on-kick="oui" oui="lol"></pbd-test>          
         </div>    
     </template>
     <script>
         Polymer ({
             is: "pbd-help",
+
+            oui: function() {
+                console.log("test");
+            }
         });
     </script>
 </dom-module>
