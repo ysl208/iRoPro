@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="pbd-test.html">
 
 <dom-module id="pbd-help">
     <template>
@@ -48,6 +49,10 @@
     <script>
         Polymer ({
             is: "pbd-help",
+
+            oui: function() {
+                console.log("test");
+            }
         });
     </script>
 </dom-module>
