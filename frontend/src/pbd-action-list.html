@@ -64,7 +64,7 @@
                     </template>
                 </paper-listbox>
             </paper-dropdown-menu>
-            
+
             <paper-dropdown-menu label="Entity 2">
                 <paper-listbox slot="dropdown-content" attr-for-selected="arg2">
                     <template is="dom-repeat" items="[[_getName(types)]]">
@@ -76,19 +76,18 @@
         <div class="paper-material">
             <table>
                 <tr>
-                    <th>Predicates</th>
+                    <th>Actions</th>
                     <th></th>
                 </tr>
-                <template is="dom-if" if="[[!pddlDomain.predicates.length]]">
+                <template is="dom-if" if="[[!pddlDomain.actions.length]]">
                     <tr>
                         <td colspan="2">No predicates have been created yet.</td>
                     </tr>
                 </template>
-                <template is="dom-repeat" items="[[pddlDomain.predicates]]" as="predicates">
+                <template is="dom-repeat" items="[[pddlDomain.actions]]" as="actions">
                     <tr>
                         <td>
-                            <i> {{predicates.arg1.type.name}}</i> is {{predicates.name}}
-                            <i>{{predicates.arg2.type.name}}</i>
+                            <i> {{actions.name}}</i>
                         </td>
                         <td>
 
@@ -134,6 +133,7 @@
                     this.actions = changedDomain.value.actions;
                     console.debug('Loading types...', this.types);
                     console.debug('Loading predicates...', this.predicates);
+                    console.debug('Loading actions...', this.actions);
 
                 }
 

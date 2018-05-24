@@ -306,29 +306,39 @@ void Editor::SaveOnExit(const std::string& db_id) {
     return;
   }
   size_t step_id = program.steps.size() - 1;
-  Update(db_id, program);
+  ROS_INFO("Program step id is: %zd", step_id);
   if (step_id > 0) {
     msgs::PDDLAction action;
+    size_t index;
+  ROS_INFO("Start looking for action...");
     for (size_t i = 0; i < pddl_domain_.domain_.actions.size(); ++i) {
-      if (pddl_domain_.domain_.actions[i].name == program.name) {
+      
+  ROS_INFO("%zd", i);
+  std::cout << pddl_domain_.domain_.actions[i].program << " vs " << program.name;
+      if (pddl_domain_.domain_.actions[i].program == program.name) {
         action = pddl_domain_.domain_.actions[i];
+        index = i;
         return;
       }
     }
+  ROS_INFO("Done looking for action...");
     if (action.name == "") {
       ROS_ERROR("Could not find PDDL action named %s", program.name.c_str());
     } else {
+  ROS_INFO("Action found...");
       DetectSurfaceObjects(db_id, step_id);
       // Get World state
       World world;
       GetWorld(robot_config_, program, step_id, &world);
       // Add world state to Preconditions of action
       AddActionCondition(&action, "Effect", world);
-      pddl_domain_.domain_.actions.push_back(action);
+
+      pddl_domain_.domain_.actions.at(index) = action;
       domain_db_.Update(pddl_domain_.domain_.domain_id, pddl_domain_.domain_);
       pddl_domain_.PublishPDDLDomain(pddl_domain_.domain_);
     }
   }
+  Update(db_id, program);
 }
 
 void Editor::Update(const std::string& db_id, const msgs::Program& program) {
@@ -959,7 +969,8 @@ void Editor::AddStep(const std::string& db_id) {
     DetectSurfaceObjects(db_id, 0);
     // Create new action
     msgs::PDDLAction new_action;
-    new_action.name = program.name;
+    new_action.name = "New Action";
+    new_action.program = program.name;
     // Get World state
     World world;
     GetWorld(robot_config_, program, 0, &world);
@@ -1027,7 +1038,7 @@ void Editor::AddAction(const std::string& db_id, size_t step_id,
   if (action.type == Action::ACTUATE_GRIPPER && step_id > 0) {
     // if the gripper_box has not been assigned yet
     msgs::Step* cart_step = &program.steps[step_id - 1];
-    AssignGripperBoundingBox(cart_step, &program.gripper_box);
+    //AssignGripperBoundingBox(cart_step, &program.gripper_box);
 
     World world;
     GetWorld(robot_config_, program, last_viewed_[db_id], &world);
@@ -1193,8 +1204,10 @@ void Editor::AddActionCondition(msgs::PDDLAction* action,
   action->params = world_state.objects_;
   if (cond == "Precondition") {
     action->preconditions = world_state.predicates_;
+    ROS_INFO("Updated action %s", cond.c_str());
   } else if (cond == "Effect") {
     action->effects = world_state.predicates_;
+    ROS_INFO("Updated action %s", cond.c_str());
   } else {
     ROS_ERROR("Unknown condition type: %s", cond.c_str());
   }
