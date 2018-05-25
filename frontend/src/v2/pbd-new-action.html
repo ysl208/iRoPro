@@ -1,0 +1,486 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/ros-action-client/ros-action-client.html">
+
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../../bower_components/ros-rviz/ros-rviz.html">
+<link rel="import" href="pbd-object-select.html">
+<link rel="import" href="pbd-world-state-select.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../underscore.html">
+
+<dom-module id="pbd-new-action">
+    <template>
+        <style include="shared-styles"></style>
+        <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+        <style>
+            :host {
+                display: block;
+                height: 100%;
+            }
+
+            a {
+                color: #000;
+                text-decoration: none;
+            }
+
+            .add {
+                height: 25px;
+                padding: 5px 5px;
+                line-height: 14px;
+                margin-bottom: 5px;
+            }
+
+
+            paper-button {
+                float: right;
+                margin: 10px;
+            }
+
+            paper-input {
+                width: 40%;
+                display: inline-block;
+            }
+
+            .stepDiv {
+                min-width: 350px;
+                margin-bottom: 10px;
+                overflow-y: auto;
+                padding-left: 2px;
+                padding-right: 2px;
+                padding-bottom: 2px;
+                display: inline-block;
+            }
+
+            #rviz {
+                display: block;
+                height: 500px;
+            }
+
+            fieldset>p {
+                display: inline-block;
+            }
+
+            fieldset iron-icon {
+                display: inline-block;
+                vertical-align: top;
+                margin-top: 5px;
+            }
+
+            .petit {
+                font-size: 80%;
+                margin-left: 20%;
+                color: steelblue;
+            }
+
+            @media (min-width: 768px) {
+                #layout {
+                    height: 100%;
+                }
+                .content {
+                    @apply(--layout-horizontal);
+                    @apply(--layout-flex);
+                }
+                .stepDiv {
+                    width: 350px;
+                    max-height: 100%;
+                    margin-bottom: 0px;
+                    margin-right: 10px;
+                    padding: 2%;
+                }
+                #rviz {
+                    height: 100%;
+                    width: 350px;
+                    @apply(--layout-flex);
+                }
+            }
+        </style>
+        <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
+        <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{routeData.id}}"
+            ros="[[ros]]"></ros-topic>
+        <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+        <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
+            on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>
+        <ros-topic auto last-message="{{isRunning}}" msg-type="std_msgs/Bool" topic="rapid_pbd/is_running" ros="[[ros]]"></ros-topic>
+        <div id="layout" class="layout vertical">
+            <div class="content">
+                <div id="stepContent" class="stepDiv">
+                    <paper-input id="actionName" label="Action name" value="[[action.name]]" on-blur="save"></paper-input>
+                    <paper-button id="detect" class="normal" raised on-tap="_detect">Detect world state</paper-button>
+
+                    <fieldset>
+                        <legend>Objects detected</legend>
+                        <p>Instance name</p>
+                        <p id="label2">Instance type</p>
+                        <br>
+
+                        <div id="listeObjet">
+                            <pbd-object-select id="selectObj1" on-delete="deleteObj" num="1"></pbd-object-select>
+                        </div>
+
+                        <br>
+                        <paper-button noink class="petit" on-click="newObj">+ add new instance</paper-button>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Initial world state</legend>
+                        <div id="listeWorldState">
+                            <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1"></pbd-world-state-select>
+                        </div>
+                        <paper-button noink class="petit" on-click="newPrecond">+ add new predicate</paper-button>
+                    </fieldset>
+                    <paper-button id="next" raised class="important">Demonstrate action</paper-button>
+
+                </div>
+                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
+            </div>
+        </div>
+        <paper-dialog id="errorDialog" modal>
+            <h2>Error running the program</h2>
+            <p>[[error]]</p>
+            <div class="buttons">
+                <paper-button dialog-confirm class="clear">OK</paper-button>
+            </div>
+        </paper-dialog>
+        </div>
+        </paper-dialog>
+    </template>
+
+    <script>
+        Polymer({
+            is: 'pbd-new-action',
+
+            properties: {
+                action: Object,
+                currentStepNum: {
+                    type: Number,
+                    value: 0,
+                },
+                params: Object,
+                program: {
+                    type: Object,
+                    observer: '_programChanged',
+                },
+                ros: Object,
+                route: Object,
+                isRunning: {
+                    type: Object,
+                    value: function () {
+                        return { data: false };
+                    }
+                },
+                submitted: {
+                    type: Boolean,
+                    value: false,
+                },
+                actionName: {
+                    type: String,
+                    value: ''
+                },
+                nbObj: {
+                    type: Number,
+                    value: 1
+                },
+                nbPrecond: {
+                    type: Number,
+                    value: 1
+                },
+                // a remplacer si possible mais comment ?
+                // tableau d'entier [1,2,3] allant jusqu'a nbPrecond, utilisé pour dom-repeat qui veut un array et non un number
+                listObj: {
+                    type: Array,
+                    value: [1]
+                },
+                listPrecond: {
+                    type: Array,
+                    value: [1]
+                },
+            },
+
+            observers: [
+                'load(routeData.id, params.*)',
+                '_programUpdated(program.*)',
+                '_isRunningChanged(isRunning.data)',
+            ],
+
+            load: function (db_id, paramsChangeRecord) {
+                /* if (!db_id) {
+                    return;
+                } */
+                if (!this.params.robot) {
+                    return;
+                }
+                this.$.programSub.subscribe();
+                this.currentStepNum = 0;
+                this.currentCondition = "";
+
+                var depthCloudFrameId = '';
+                if (this.params.robot === "pr2") {
+                    depthCloudFrameId = '/head_mount_kinect_rgb_optical_frame';
+                } else if (this.params.robot === "fetch") {
+                    depthCloudFrameId = '/head_camera_rgb_optical_frame';
+                } else if (this.params.robot === "baxter") {
+                    depthCloudFrameId = '/kinect2_rgb_optical_frame';
+                } else {
+                    console.error('Unknown robot type', this.params.robot);
+                }
+
+                var fixedFrame = '';
+                if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+                    fixedFrame = '/base_link';
+                } else if (this.params.robot === "baxter") {
+                    fixedFrame = '/base';
+                } else {
+                    console.error('Unknown robot type', this.params.robot);
+                }
+
+                var config = {
+                    globalOptions: {
+                        background: '#113344',
+                        colladaLoader: 'collada2',
+                        colladaServer: window.location.protocol + '//' + window.location.hostname + ':8001/',
+                        fixedFrame: fixedFrame,
+                        videoServer: window.location.protocol + '//' + window.location.hostname + ':9998',
+                        url: 'ws://' + window.location.hostname + ':9090'
+                    },
+                    displays: [
+                        {
+                            isShown: true,
+                            name: 'Grid',
+                            type: 'grid',
+                            options: {
+                                cellSize: 1,
+                                color: '#cccccc',
+                                numCells: 20,
+                            },
+                        }, {
+                            isShown: true,
+                            name: 'Program robot model',
+                            type: 'markerArray',
+                            options: {
+                                topic: '/rapid_pbd/robot/' + db_id,
+                            },
+                        }, {
+                            isShown: true,
+                            name: 'Scene',
+                            type: 'pointCloud2',
+                            options: {
+                                size: 0.01,
+                                topic: '/rapid_pbd/scene/' + db_id,
+                            },
+                        }, {
+                            isShown: true,
+                            name: 'Surface segmentation',
+                            type: 'markerArray',
+                            options: {
+                                topic: '/rapid_pbd/surface_segmentation/' + db_id,
+                            },
+                        }, {
+                            isShown: false,
+                            name: 'Current robot model',
+                            type: 'urdf',
+                            options: {
+                                param: 'robot_description',
+                                tfPrefix: ''
+                            },
+                        }, {
+                            isShown: false,
+                            name: 'Current surface segmentation',
+                            type: 'markerArray',
+                            options: {
+                                topic: '/rapid_pbd/runtime_segmentation',
+                            },
+                        }, {
+                            isShown: false,
+                            name: 'Current depth cloud',
+                            type: 'depthCloud',
+                            options: {
+                                topic: 'depthcloud_encoded',
+                                frameId: depthCloudFrameId
+                            },
+                        },
+                    ],
+                    sidebarOpened: false,
+                };
+                if (this.$.rviz) {
+                    this.$.rviz.config = config;
+                } else {
+                    console.error('rviz not ready');
+                }
+            },
+
+            saveOnExit: function () {
+                this.action.name = this.$.actionName.value;
+                var msg = {
+                    type: 'save on exit action',
+                    program_info: {
+                        db_id: this.routeData.id,
+                        name: this.action.name,
+                    },
+                    action: this.action
+                };
+                console.debug('Saving on exit ', this.action);
+                this.$.eventPub.publish(msg);
+            },
+
+            save: function () {
+                this.action.name = this.$.actionName.value;
+                var msg = {
+                    type: 'update action',
+                    program_info: {
+                        db_id: this.routeData.id,
+                        name: this.action.name,
+                    },
+                    action: this.action
+                };
+                console.debug('Saving ', this.action);
+                this.$.eventPub.publish(msg);
+            },
+
+            _programUpdated: function (changeRecord) {
+                if (changeRecord.base) {
+                    if (changeRecord.path !== 'program') {
+                        if (changeRecord.path.endsWith('.length')) {
+                            return;
+                        }
+                        var that = this;
+                        this.debounce('save', function () {
+                            that.save();
+                        }, 100);
+                    }
+                }
+            },
+
+            submit: function () {
+                var msg = {
+                    type: 'add sense steps',
+                    program_info: {
+                        db_id: this.routeData.id,
+                    },
+                    //program: this.program,
+                    step_num: this.program.steps.length
+
+                };
+                this.submitted = true;
+
+                console.debug('Adding sense steps', this.program);
+                this.$.eventPub.publish(msg);
+            },
+
+            // If a new program is loaded, select step 0.
+            _programChanged: function (program, oldProgram) {
+
+                console.log("Program changed: " + program);
+                if (!program) {
+                    return;
+                }
+                if (program.steps.length > 0) {
+                    this.$.selector.select(program.steps[0]);
+                }
+            },
+
+            _stepNum: function (index) {
+                return parseInt(index) + 1;
+            },
+
+            _handleFeedback: function (evt) {
+                this.currentStepNum = evt.detail.step_number;
+            },
+
+            _handleResult: function (evt) {
+                var error = evt.detail.error;
+                if (error) {
+                    this.error = evt.detail.error;
+                    this.$.errorDialog.open();
+                } else {
+
+                }
+            },
+
+            _handleProgram: function (evt) {
+                var program = evt.detail;
+                if (!this.program) {
+                    this.set('program', program);
+                    return;
+                }
+                if (!_.isEqual(this.program, program)) {
+                    this.set('program', program);
+                }
+            },
+
+            _isRunningChanged: function (isRunning) {
+                if (isRunning) {
+                    this.$.rviz.set('config.displays.1.isShown', false);
+                    this.$.rviz.set('config.displays.2.isShown', false);
+                    this.$.rviz.set('config.displays.3.isShown', false);
+                    this.$.rviz.set('config.displays.4.isShown', true);
+                    this.$.rviz.set('config.displays.5.isShown', true);
+                    this.$.rviz.set('config.displays.6.isShown', true);
+                } else {
+                    this.$.rviz.set('config.displays.1.isShown', true);
+                    this.$.rviz.set('config.displays.2.isShown', true);
+                    this.$.rviz.set('config.displays.3.isShown', true);
+                    this.$.rviz.set('config.displays.4.isShown', false);
+                    this.$.rviz.set('config.displays.5.isShown', false);
+                    this.$.rviz.set('config.displays.6.isShown', false);
+                }
+            },
+
+            _detect: function () {
+                if (!this.ros) {
+                    console.error('Unable to call detection right now.');
+                    return;
+                }
+                var msg = {
+                    type: 'detect surface objects',
+                    program_info: {
+                        db_id: this.programId
+                    },
+                    step_num: 0//this.stepNum
+                };
+                this.$.eventPub.publish(msg);
+            },
+
+            newPrecond: function () {
+                this.nbPrecond++;
+                this.push('listPrecond', this.nbPrecond);
+                // On rajoute dynamiquement l'objet
+                var dynamicSelect = document.createElement("pbd-world-state-select");
+                dynamicSelect.num = this.nbPrecond;
+                var newId = "selectPrecond" + this.nbPrecond;
+                dynamicSelect.id = newId;
+                dynamicSelect.addEventListener('delete', this.deletePred);
+                Polymer.dom(this.root).querySelector("#listeWorldState").appendChild(dynamicSelect);
+            },
+            newObj: function () {
+                this.nbObj++;
+                this.push('listObj', this.nbObj);
+                // On rajoute dynamiquement l'objet
+                var dynamicSelect = document.createElement("pbd-object-select");
+                dynamicSelect.num = this.nbObj;
+                var newId = "selectObj" + this.nbObj;
+                dynamicSelect.id = newId;
+                dynamicSelect.addEventListener('delete', this.deleteObj);
+                Polymer.dom(this.root).querySelector("#listeObjet").appendChild(dynamicSelect);
+            },
+            deleteObj: function (e) {
+                var name = "selectObj" + e.detail.id;
+                this.$.name.hello();
+            },
+            deletePred: function (e) {
+                // TODO
+            },
+
+        });
+    </script>
+</dom-module>

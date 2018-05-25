@@ -3,8 +3,10 @@
 <link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../../bower_components/paper-header-panel/paper-header-panel.html">
-<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../../bower_components/ros-rviz/ros-rviz.html">
 <link rel="import" href="../shared-styles.html">
 <link rel="import" href="pbd-object-select.html">
 <link rel="import" href="pbd-world-state-select.html">
@@ -12,12 +14,26 @@
 <dom-module id="pbd-new-action-1">
     <template>
         <style include="shared-styles"></style>
+        <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
         <style>
-            body {
-                height: 100%;
-                box-sizing: border-box;
-                margin: 0;
-                padding: 8px;
+            #rviz {
+                display: block;
+                height: 500px;
+            }
+
+            @media (min-width: 768px) {
+                #layout {
+                    height: 100%;
+                }
+                .content {
+                    @apply(--layout-horizontal);
+                    @apply(--layout-flex);
+                }
+                #rviz {
+                    height: 100%;
+                    width: 350px;
+                    @apply(--layout-flex);
+                }
             }
 
             #form {
@@ -32,16 +48,11 @@
             }
 
             #left {
-                width: 60%;
+                width: 40%;
             }
 
             #right {
-                width: 39%;
-            }
-
-            img {
-                max-width: 100%;
-                max-height: 100%;
+                width: 59%;
             }
 
             fieldset iron-icon {
@@ -79,53 +90,72 @@
                 display: inline-block;
             }
         </style>
+        <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
 
-        <body class="fullbleed layout vertical">
-            <!--             <h1 align="center">Create new action</h1>
- -->
-            <div id="form">
-                <div id="left">
-                    <paper-input label="Enter action name"></paper-input>
+        <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+        <ros-topic auto last-message="{{isRunning}}" msg-type="std_msgs/Bool" topic="rapid_pbd/is_running" ros="[[ros]]"></ros-topic>
 
-                    <paper-button id="detect" class="important" raised>Detect world state</paper-button>
+        <!-- <body class="fullbleed layout vertical"> -->
+        <div id="form">
+            <div id="left">
+                <paper-input label="Enter action name"></paper-input>
 
-                    <p>The world types have been detected as shown on the right :</p>
+                <paper-button id="detect" class="normal" raised on-tap="_detect">Detect world state</paper-button>
 
-                    <fieldset>
-                        <legend>Objects detected</legend>
-                        <p>Instance name</p>
-                        <p id="label2">Instance type</p>
-                        <br>
+                <p>The world types have been detected as shown on the right :</p>
 
-                        <div id="listeObjet">
-                            <pbd-object-select id="selectObj1" on-delete="deleteObj" num="1"></pbd-object-select>
-                        </div>
+                <fieldset>
+                    <legend>Objects detected</legend>
+                    <p>Instance name</p>
+                    <p id="label2">Instance type</p>
+                    <br>
 
-                        <br>
-                        <paper-button noink class="petit" on-click="newObj">+ add new instance</paper-button>
-                    </fieldset>
+                    <div id="listeObjet">
+                        <pbd-object-select id="selectObj1" on-delete="deleteObj" num="1"></pbd-object-select>
+                    </div>
 
-                    <fieldset>
-                        <legend>Initial world state</legend>
-                        <div id="listeWorldState">
-                            <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1"></pbd-world-state-select>
-                        </div>
-                        <paper-button noink class="petit" on-click="newPrecond">+ add new predicate</paper-button>
-                    </fieldset>
-                </div>
-                <div id="right">
-                    <img src="https://scontent-mrs1-1.xx.fbcdn.net/v/t1.0-0/c0.0.960.347/s480x480/31934882_1832788050356834_1049582663024771072_n.jpg?_nc_cat=0&oh=45782e55428fe654fbb2bcded42496d7&oe=5B92D8F3"
-                        alt="image">
-                </div>
+                    <br>
+                    <paper-button noink class="petit" on-click="newObj">+ add new instance</paper-button>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Initial world state</legend>
+                    <div id="listeWorldState">
+                        <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1"></pbd-world-state-select>
+                    </div>
+                    <paper-button noink class="petit" on-click="newPrecond">+ add new predicate</paper-button>
+                </fieldset>
             </div>
-            <paper-button id="next" raised class="button-visible">Start teaching module</paper-button>
-        </body>
+            <div id="right">
+                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
+            </div>
+        </div>
+        <paper-button id="next" raised class="important">Start teaching module</paper-button>
+        
     </template>
     <script>
         Polymer({
             is: 'pbd-new-action-1',
 
             properties: {
+                ros: Object,
+                route: Object,
+                isRunning: {
+                    type: Object,
+                    value: function () {
+                        return { data: false };
+                    }
+                },
+                pddlDomain: {
+                    type: Object,
+                    value: function () {
+                        return { actions: [] };
+                    }
+                },
+                types: Array,
+                predicates: Array,
+                actions: Array,
+
                 actionName: {
                     type: String,
                     value: ''
@@ -150,6 +180,10 @@
                 },
             },
 
+            observers: [
+                'load(routeData.id, params.*)',
+                '_isRunningChanged(isRunning.data)',
+            ],
             newPrecond: function () {
                 this.nbPrecond++;
                 this.push('listPrecond', this.nbPrecond);
@@ -178,7 +212,40 @@
             },
             deletePred: function (e) {
                 // TODO
-            }
+            },
+
+            _detect: function () {
+                if (!this.ros) {
+                    console.error('Unable to call detection right now.');
+                    return;
+                }
+                var msg = {
+                    type: 'detect surface objects',
+                    program_info: {
+                        db_id: this.programId
+                    },
+                    step_num: 0//this.stepNum
+                };
+                this.$.eventPub.publish(msg);
+            },
+            _isRunningChanged: function (isRunning) {
+                if (isRunning) {
+                    this.$.rviz.set('config.displays.1.isShown', false);
+                    this.$.rviz.set('config.displays.2.isShown', false);
+                    this.$.rviz.set('config.displays.3.isShown', false);
+                    this.$.rviz.set('config.displays.4.isShown', true);
+                    this.$.rviz.set('config.displays.5.isShown', true);
+                    this.$.rviz.set('config.displays.6.isShown', true);
+                } else {
+                    this.$.rviz.set('config.displays.1.isShown', true);
+                    this.$.rviz.set('config.displays.2.isShown', true);
+                    this.$.rviz.set('config.displays.3.isShown', true);
+                    this.$.rviz.set('config.displays.4.isShown', false);
+                    this.$.rviz.set('config.displays.5.isShown', false);
+                    this.$.rviz.set('config.displays.6.isShown', false);
+                }
+            },
+
         });
     </script>
 </dom-module>

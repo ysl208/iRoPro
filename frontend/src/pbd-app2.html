@@ -208,10 +208,6 @@
         }
       },
 
-      attached: function () {
-        if (!this.route.path)
-          this.set('route.path', '/home');
-      },
       onLayoutChange: function (wide) {
         var drawer = this.$.drawer;
         if (wide && drawer.opened) {
@@ -219,8 +215,7 @@
         }
       },
 
-      observers: ['_robotChanged(_robot)',
-        'selectChanged(selected)'],
+      observers: ['_robotChanged(_robot)'],
 
       reconnect: function () {
         var url = this.$.websocketUrl.value;
@@ -254,8 +249,6 @@
       },
 
       isSelected: function (selected, page) {
-
-        console.debug("isSelected ", selected, page);
         return this.selected === page;
       },
       _robotChanged: function (robot) {
@@ -280,10 +273,6 @@
           console.error('Unknown robot type:', robot);
         }
       },
-      selectChanged: function (evt) {
-        console.debug("selectedChanged", this.selected);
-
-      }
     });
   </script>
 </dom-module>

@@ -4,6 +4,7 @@
 <link rel="import" href="../bower_components/paper-styles/color.html">
 <link rel="import" href="../bower_components/ros-topic/ros-topic.html">
 <link rel="import" href="../bower_components/ros-service/ros-service.html">
+<link rel="import" href="v2/pbd-new-action.html">
 <link rel="import" href="v2/pbd-new-action-1.html">
 <link rel="import" href="shared-styles.html">
 
@@ -62,19 +63,19 @@
                     </tr>
                     <template is="dom-if" if="[[!pddlDomain.actions.length]]">
                         <tr>
-                            <td colspan="2">No predicates have been created yet.</td>
+                            <td colspan="2">No actions have been created yet.</td>
                         </tr>
                     </template>
-                    <template is="dom-repeat" items="[[pddlDomain.actions]]" as="actions">
+                    <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
                         <tr>
                             <td>
-                                <i> {{actions.name}}</i>
+                                <i> {{action.name}}</i>
                             </td>
                             <td>
-                                <paper-button class="clear">
+                                <paper-button class="clear" on-tap="_handleCreate(action)">
                                     <paper-icon-button icon="create"></paper-icon-button>
                                 </paper-button>
-                                <paper-button class="delete" data-db-id="{{actions.program}}" on-tap="_maybeDelete">
+                                <paper-button class="delete" data-db-id="{{action.program}}" on-tap="_maybeDelete">
                                     <paper-icon-button icon="delete"></paper-icon-button>
                                 </paper-button>
                             </td>
@@ -84,7 +85,7 @@
 
                 <template is="dom-if" restamp if="[[_addNewAction]]">
                     <tr>
-                        <th> Create new action </th>
+                        <th> Create new action [[action.name]] </th>
                         <th>
                             <paper-button class="clear" on-tap="_cancelCreate">
                                 <paper-icon-button icon="cancel"></paper-icon-button>
@@ -92,8 +93,8 @@
                         </th>
                     </tr>
                     <tr>
-                        <pbd-new-action-1 name="new-action-1"></pbd-new-action-1>
-                        <!-- <pbd-new-action-2 name="new-action-2"></pbd-new-action-2> -->
+                        <pbd-new-action name="new-action" params="[[params]]" ros="[[ros]]" route="{{routeTail}}" pddlDomain="[[pddlDomain]]"></pbd-new-action>
+                        <!-- <pbd-new-action-1 name="new-action-1"></pbd-new-action-1> -->
                     </tr>
                 </template>
             </table>
@@ -168,7 +169,6 @@
                     console.debug('Loading types...', this.types);
                     console.debug('Loading predicates...', this.predicates);
                     console.debug('Loading actions...', this.actions);
-
                 }
 
             },
@@ -196,6 +196,7 @@
                     name: name,
                 };
                 /* this.$.createSrv.call(request); */
+                console.debug("handleCreate");
                 this._addNewAction = true;
             },
 
