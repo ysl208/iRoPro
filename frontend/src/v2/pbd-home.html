@@ -1,0 +1,58 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="./pbd-help.html">
+<base href="https://polygit.org/polymer+:master/webcomponents+:master/shadycss+webcomponents+:master/paper*+polymerelements+:master/iron*+polymerelements+:master/app*+polymerelements+:master/neon*+polymerelements+:master/components/">
+<script src="webcomponentsjs/webcomponents-loader.js"></script>
+
+<dom-module id="pbd-home">
+  <template>
+    <style>
+      h1 {
+        text-align: center;
+        font-size: 150%;
+        margin-top: 0;
+      }
+
+      paper-button {
+        vertical-align: top;
+        width: 30%;
+        height: 50%;
+        margin-left: 2%;
+      }
+
+      #help {
+        width: 10%;
+        height: 10%;
+        margin: 10% 45% 0% 45%;
+      }
+
+      a paper-button,
+      a:active paper-button,
+      a:visited paper-button {
+        color: #000;
+      }
+    </style>
+
+    <h1 class="style-scope canvas-view">Welcome to the Programming by Demonstration Planning tool</h1>
+    <a href="#/action-list">
+      <paper-button raised id="actionsMenu" class="style-scope canvas-view">Teach actions</paper-button>
+    </a>
+    <a href="#/problem-list">
+      <paper-button raised id="problemsMenu" class="style-scope canvas-view">Solve problems</paper-button>
+    </a>
+    <a href="#/robot-control">
+      <paper-button raised id="robotControl" class="style-scope canvas-view">Robot control</paper-button>
+    </a>
+    <a href="#/help">
+      <paper-button raised id="help" class="style-scope canvas-view">Help</paper-button>
+    </a>
+  </template>
+  <script>
+    Polymer({
+      is: "pbd-home",
+    });
+  </script>
+</dom-module>

@@ -4,6 +4,7 @@
 <link rel="import" href="../bower_components/paper-styles/color.html">
 <link rel="import" href="../bower_components/ros-topic/ros-topic.html">
 <link rel="import" href="../bower_components/ros-service/ros-service.html">
+<link rel="import" href="v2/pbd-new-action-1.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="pbd-action-list">
@@ -46,9 +47,66 @@
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
         <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
             ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service>
-        <paper-button id="createButton" class="important" raised on-tap="_handleCreate">+ Create new action</paper-button>
-        <br> [[pddlDomain.name]]
+
         <div class="paper-material">
+
+            <table>
+                <template is="dom-if" restamp if="[[!_addNewAction]]">
+                    <tr>
+                        <th>Programmed actions</th>
+                        <th>
+                            <paper-button id="createButton" class="important" on-tap="_handleCreate">
+                                + new action
+                            </paper-button>
+                        </th>
+                    </tr>
+                    <template is="dom-if" if="[[!pddlDomain.actions.length]]">
+                        <tr>
+                            <td colspan="2">No predicates have been created yet.</td>
+                        </tr>
+                    </template>
+                    <template is="dom-repeat" items="[[pddlDomain.actions]]" as="actions">
+                        <tr>
+                            <td>
+                                <i> {{actions.name}}</i>
+                            </td>
+                            <td>
+                                <paper-button class="clear">
+                                    <paper-icon-button icon="create"></paper-icon-button>
+                                </paper-button>
+                                <paper-button class="delete" data-db-id="{{actions.program}}" on-tap="_maybeDelete">
+                                    <paper-icon-button icon="delete"></paper-icon-button>
+                                </paper-button>
+                            </td>
+                        </tr>
+                    </template>
+                </template>
+
+                <template is="dom-if" restamp if="[[_addNewAction]]">
+                    <tr>
+                        <th> Create new action </th>
+                        <th>
+                            <paper-button class="clear" on-tap="_cancelCreate">
+                                <paper-icon-button icon="cancel"></paper-icon-button>
+                            </paper-button>
+                        </th>
+                    </tr>
+                    <tr>
+                        <pbd-new-action-1 name="new-action-1"></pbd-new-action-1>
+                        <!-- <pbd-new-action-2 name="new-action-2"></pbd-new-action-2> -->
+                    </tr>
+                </template>
+            </table>
+            <paper-dialog id="deleteDialog" modal>
+                <h2>Delete action?</h2>
+                <div class="deleteButtons">
+                    <paper-button class="clear" dialog-dismiss>Cancel</paper-button>
+                    <paper-button dialog-confirm on-tap="_handleDelete" class="delete">Delete</paper-button>
+                </div>
+            </paper-dialog>
+
+        </div>
+        <!--         <div class="paper-material">
             <paper-dropdown-menu label="Entity 1">
                 <paper-listbox slot="dropdown-content" attr-for-selected="arg1">
                     <template is="dom-repeat" items="[[_getName(types)]]">
@@ -72,38 +130,14 @@
                     </template>
                 </paper-listbox>
             </paper-dropdown-menu>
-        </div>
-        <div class="paper-material">
-            <table>
-                <tr>
-                    <th>Actions</th>
-                    <th></th>
-                </tr>
-                <template is="dom-if" if="[[!pddlDomain.actions.length]]">
-                    <tr>
-                        <td colspan="2">No predicates have been created yet.</td>
-                    </tr>
-                </template>
-                <template is="dom-repeat" items="[[pddlDomain.actions]]" as="actions">
-                    <tr>
-                        <td>
-                            <i> {{actions.name}}</i>
-                        </td>
-                        <td>
-
-                        </td>
-                    </tr>
-                </template>
-            </table>
-        </div>
-
+        </div> -->
     </template>
 
     <script>
         Polymer({
 
             is: 'pbd-action-list',
-
+            _addNewAction: false,
             properties: {
                 ros: Object,
                 route: Object,
@@ -161,9 +195,13 @@
                 var request = {
                     name: name,
                 };
-                this.$.createSrv.call(request);
+                /* this.$.createSrv.call(request); */
+                this._addNewAction = true;
             },
 
+            _cancelCreate: function (evt) {
+                this._addNewAction = false;
+            },
             _handleServiceResponse(evt) {
                 var id = evt.detail.db_id;
                 window.history.pushState({}, null, "#/program/" + id);

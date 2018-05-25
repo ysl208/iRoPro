@@ -1,0 +1,173 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/paper-styles/typography.html">
+<link rel="import" href="../bower_components/ros-param/ros-param.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../bower_components/ros-websocket/ros-websocket.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="v2/pbd-home.html">
+<link rel="import" href="v2/pbd-action-list.html">
+<link rel="import" href="v2/pbd-problem-list.html">
+<link rel="import" href="v2/pbd-help.html">
+<link rel="import" href="v2/pbd-new-action-1.html">
+<link rel="import" href="v2/pbd-new-action-2.html">
+<link rel="import" href="v2/pbd-robot-control.html">
+
+<dom-module id="pbd-menu2">
+  <template>
+    <style include="shared-styles"></style>
+    <style>
+      :host {
+        display: block;
+        @apply(--paper-font-common-base);
+        height: 100%;
+      }
+
+      paper-dialog paper-button:hover {
+        background-color: var(--paper-grey-300);
+      }
+
+      #buttons {
+        text-align: right;
+      }
+
+      #content {
+        padding: 2%;
+      }
+
+      iron-pages {
+        width: 100%;
+        height: 100%;
+      }
+
+      a paper-button,
+      a:active paper-button,
+      a:visited paper-button {
+        color: white;
+      }
+    </style>
+
+    <paper-header-panel class="flex">
+      <paper-toolbar slot="header">
+        <a href="#/home" slot="top">
+          <paper-button noink>Home</paper-button>
+        </a>
+        <a href="#/action-list" slot="top">
+          <paper-button noink>Actions menu</paper-button>
+        </a>
+        <a href="#/problem-list" slot="top">
+          <paper-button noink>Problems menu</paper-button>
+        </a>
+        <a href="#/robot-control" slot="top">
+          <paper-button noink>Robot control</paper-button>
+        </a>
+        <a href="#/help" slot="top">
+          <paper-button noink>Help</paper-button>
+        </a>
+      </paper-toolbar>
+      <div id="content" class="fit">
+        <app-location route="{{route}}" use-hash-as-path></app-location>
+        <app-route route="{{route}}" pattern="/:page" data="{{routeData}}"></app-route>
+        <iron-pages selected="[[routeData.page]]" attr-for-selected="name">
+          <ros-topic auto on-message="_handleRosout" msg-type="rosgraph_msgs/Log" topic="rosout" ros="[[ros]]"></ros-topic>
+          <ros-param id="param" name="rapid_pbd/robot" string-val="{{_robot}}" ros="[[ros]]"></ros-param>
+
+          <pbd-home name="home"></pbd-home>
+          <pbd-action-list name="action-list" ros="[[ros]]"></pbd-action-list>
+          <pbd-problem-list name="problem-list"></pbd-problem-list>
+          <pbd-help name="help"></pbd-help>
+          <pbd-new-action-1 name="new-action-1"></pbd-new-action-1>
+          <pbd-new-action-2 name="new-action-2"></pbd-new-action-2>
+          <pbd-robot-control name="robot-control"></pbd-robot-control>
+        </iron-pages>
+      </div>
+    </paper-header-panel>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'pbd-menu2',
+
+      properties: {
+        routeData: {
+          type: Object,
+          value: function () {
+            return {
+              page: ''
+            };
+          }
+        },
+        url: {
+          type: String,
+          value: function () {
+            var hostname = window.location.hostname;
+            var protocol = 'ws:';
+            if (window.location.protocol === 'https:') {
+              protocol = 'wss:';
+            }
+            return protocol + '//' + hostname + ':9090';
+          },
+        },
+        params: {
+          type: Object,
+          value: function () {
+            return {};
+          }
+        },
+        _robot: {
+          type: String,
+        }
+      },
+
+      observers: ['_robotChanged(_robot)'],
+      attached: function () {
+        if (!this.route.path)
+          this.set('route.path', '/home');
+      },
+      _handleRosout: function (evt) {
+        var msg = evt.detail;
+        if (msg.name.search("rapid_pbd") === -1) {
+          return;
+        }
+        if (msg.level == 1 || msg.level == 2) {
+          console.info(msg.msg);
+        } else if (msg.level == 4) {
+          console.warn(msg.msg);
+        } else if (msg.level == 8 || msg.level == 16) {
+          console.error(msg.msg);
+        }
+      },
+      _robotChanged: function (robot) {
+        /*
+        manualFreeze is true for robots that require buttons in Rapid PbD to 
+        relax/ freeze the arm.Set manualFreeze to false for robots like 
+        Baxter that can activate gravity compensation by just grasping the wrist.
+        */
+        if (robot === 'pr2') {
+          this.set('params.robot', robot);
+          this.set('params.hasTwoArms', true);
+          this.set('params.manualFreeze', true);
+        } else if (robot === 'fetch') {
+          this.set('params.robot', robot);
+          this.set('params.hasTwoArms', false);
+          this.set('params.manualFreeze', true);
+        } else if (robot === 'baxter') {
+          this.set('params.robot', robot);
+          this.set('params.hasTwoArms', true);
+          this.set('params.manualFreeze', false);
+        } else {
+          console.error('Unknown robot type:', robot);
+        }
+      },
+    });
+  </script>
+</dom-module>
