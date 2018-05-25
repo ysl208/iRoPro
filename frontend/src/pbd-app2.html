@@ -104,7 +104,7 @@
     <!-- Interface -->
     <app-drawer-layout force-narrow>
       <app-drawer id="drawer" slot="drawer">
-        <app-toolbar></app-toolbar>
+        <!-- <app-toolbar></app-toolbar> -->
 
         <!-- Nav on mobile: side nav menu -->
         <paper-menu selected="{{selected}}" attr-for-selected="name">
@@ -117,10 +117,10 @@
       <app-header-layout>
         <app-header class="main-header" slot="header">
 
-          <app-toolbar>
-            <!-- drawer toggle button -->
-            <paper-icon-button class="menu-button" icon="menu" drawer-toggle hidden$="{{wideLayout}}"></paper-icon-button>
-          </app-toolbar>
+          <!-- <app-toolbar>
+            <!- drawer toggle button ->
+          <paper-icon-button class="menu-button" icon="menu" drawer-toggle hidden$="{{wideLayout}}"></paper-icon-button>
+          </app-toolbar> -->
 
           <app-toolbar class="tabs-bar" hidden$="{{!wideLayout}}">
             <!-- Nav on desktop: tabs -->

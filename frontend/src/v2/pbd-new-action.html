@@ -12,6 +12,7 @@
 <link rel="import" href="../../bower_components/ros-action-client/ros-action-client.html">
 
 <link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/ros-service/ros-service.html">
 <link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
 <link rel="import" href="../../bower_components/ros-rviz/ros-rviz.html">
 <link rel="import" href="pbd-object-select.html">
@@ -112,6 +113,7 @@
         <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
             on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>
         <ros-topic auto last-message="{{isRunning}}" msg-type="std_msgs/Bool" topic="rapid_pbd/is_running" ros="[[ros]]"></ros-topic>
+        <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"></ros-service>
         <div id="layout" class="layout vertical">
             <div class="content">
                 <div id="stepContent" class="stepDiv">
@@ -139,7 +141,9 @@
                         </div>
                         <paper-button noink class="petit" on-click="newPrecond">+ add new predicate</paper-button>
                     </fieldset>
-                    <paper-button id="next" raised class="important">Demonstrate action</paper-button>
+                    <paper-button id="next" raised class="important" on-click="_startDemo">
+                        Start demonstration
+                    </paper-button>
 
                 </div>
                 <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
@@ -417,6 +421,15 @@
                     this.set('program', program);
                 }
             },
+            _handleServiceResponse(evt) {
+                var id = evt.detail.db_id;
+                window.history.pushState({}, null, "#/program/" + id);
+                window.dispatchEvent(new CustomEvent("location-changed"));
+            },
+
+            _handleServiceError: function (evt) {
+                console.error(evt.detail);
+            },
 
             _isRunningChanged: function (isRunning) {
                 if (isRunning) {
@@ -434,6 +447,14 @@
                     this.$.rviz.set('config.displays.5.isShown', false);
                     this.$.rviz.set('config.displays.6.isShown', false);
                 }
+            },
+            _startDemo: function (evt) {
+                var now = new Date();
+                var name = 'Program for Action: ' + actionName;
+                var request = {
+                    name: name,
+                };
+                this.$.createSrv.call(request);
             },
 
             _detect: function () {
