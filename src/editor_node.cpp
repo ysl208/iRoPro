@@ -46,17 +46,19 @@ int main(int argc, char** argv) {
   // Build program DB.
   mongodb_store::MessageStoreProxy proxy(nh, pbd::kMongoProgramCollectionName,
                                          pbd::kMongoDbName);
+  mongodb_store::MessageStoreProxy pddl_proxy(nh, pbd::kMongoPddlCollectionName,
+                                              pbd::kMongoDbName);
   mongodb_store::MessageStoreProxy* scene_proxy =
       new mongodb_store::MessageStoreProxy(nh, pbd::kMongoSceneCollectionName,
                                            pbd::kMongoDbName);
   ros::Publisher program_list_pub =
       nh.advertise<msgs::ProgramInfoList>(pbd::kProgramListTopic, 1, true);
-  ros::Publisher domain_list_pub = nh.advertise<msgs::PDDLDomainInfoList>(
+  ros::Publisher pddl_list_pub = nh.advertise<msgs::PDDLDomainInfoList>(
       pbd::kPDDLDomainListTopic, 1, true);
   // Build DBs.
   pbd::ProgramDb db(nh, &proxy, &program_list_pub);
   pbd::SceneDb scene_db(scene_proxy);
-  pbd::PDDLDomainDb domain_db(nh, &proxy, &domain_list_pub);
+  pbd::PDDLDomainDb domain_db(nh, &pddl_proxy, &pddl_list_pub);
 
   // Build action clients.
   pbd::ActionClients action_clients;
@@ -65,10 +67,9 @@ int main(int argc, char** argv) {
          ros::ok()) {
     ROS_WARN("Waiting for surface segmentation server.");
   }
-// PDDL domain publisher
+  // PDDL domain publisher
   ros::Publisher pddl_domain_pub =
-      nh.advertise<rapid_pbd_msgs::PDDLDomain>("pddl_domain", 5,
-                                                       true);
+      nh.advertise<rapid_pbd_msgs::PDDLDomain>("pddl_domain", 5, true);
 
   // Build visualizer
   urdf::Model model;
@@ -83,7 +84,8 @@ int main(int argc, char** argv) {
   // Build editor.
   pbd::JointStateReader joint_state_reader(robot_config->joint_states_topic());
   pbd::Editor editor(db, scene_db, domain_db, joint_state_reader, visualizer,
-                     &action_clients, cond_gen, spec_inf, pddl_domain_pub, *robot_config);
+                     &action_clients, cond_gen, spec_inf, pddl_domain_pub,
+                     *robot_config);
   editor.Start();
 
   ros::Subscriber editor_sub = nh.subscribe(pbd::kEditorEventsTopic, 10,

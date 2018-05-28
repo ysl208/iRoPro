@@ -22,8 +22,7 @@ namespace msgs = rapid_pbd_msgs;
 
 namespace rapid {
 namespace pbd {
- PDDLDomain::PDDLDomain(const ros::Publisher& pub)
-    : pddl_domain_pub_(pub) {}
+PDDLDomain::PDDLDomain(const ros::Publisher& pub) : pddl_domain_pub_(pub) {}
 
 void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   domain->name = name;
@@ -79,23 +78,24 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
 
 void PDDLDomain::PublishPDDLDomain(const msgs::PDDLDomain& domain) {
   ROS_INFO("Publish PDDL Domain..");
+  domain_ = domain;
   pddl_domain_pub_.publish(domain);
 }
 void AddType(std::vector<msgs::PDDLType>* types,
              const msgs::PDDLType& new_type) {
-  //if (find(types->begin(), types->end(), new_type) != types->end()) {
-    types->push_back(new_type);
-    ROS_INFO("Added type #%zd: %s", types->size(), new_type.name.c_str());
- // } else {
+  // if (find(types->begin(), types->end(), new_type) != types->end()) {
+  types->push_back(new_type);
+  ROS_INFO("Added type #%zd: %s", types->size(), new_type.name.c_str());
+  // } else {
   //  ROS_INFO("%s already exists", new_type.name.c_str());
   //}
 }
 
-void GetWorldState(const World& world, WorldState* world_state) {
-  // Given: World with landmarks
+void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
+                   WorldState* world_state) {
+  // Given: World_landmarks
   // Create World state of objects
-  ROS_INFO("Getting World State with %zd landmarks...",
-           world.surface_box_landmarks.size());
+  ROS_INFO("Getting World State with %zd landmarks...", world_landmarks.size());
 
   world_state->objects_.clear();
   world_state->predicates_.clear();
@@ -114,8 +114,8 @@ void GetWorldState(const World& world, WorldState* world_state) {
   world_state->objects_ = fixed_positions;
   world_state->positions_ = fixed_positions;
 
-  for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
-    const msgs::Landmark& world_landmark = world.surface_box_landmarks[i];
+  for (size_t i = 0; i < world_landmarks.size(); ++i) {
+    const msgs::Landmark& world_landmark = world_landmarks[i];
     ROS_INFO("Generating predicates for %s at (%f,%f,%f)",
              world_landmark.name.c_str(),
              world_landmark.pose_stamped.pose.position.x,

@@ -6,7 +6,7 @@ namespace pbd {
 static const char kMongoDbName[] = "rapid_pbd";
 static const char kMongoProgramCollectionName[] = "programs";
 static const char kMongoSceneCollectionName[] = "scene_clouds";
-static const char kMongoDomainCollectionName[] = "domains";
+static const char kMongoPddlCollectionName[] = "pddl";
 }  // namespace pbd
 }  // namespace rapid
 

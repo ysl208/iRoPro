@@ -145,10 +145,10 @@
       <pbd-home data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-home>
     </template>
     <template is="dom-if" restamp if="[[isSelected(selected,'Actions')]]">
-      <pbd-action-list data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-action-list>
+      <pbd-action-list data-page="" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-action-list>
     </template>
-    <template is="dom-if" restamp if="[[isSelected(selected,'Actions')]]">
-      <pbd-problem-list data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-problem-list>
+    <template is="dom-if" restamp if="[[isSelected(selected,'Problems')]]">
+      <pbd-problem-list data-page="" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-problem-list>
     </template>
     <template is="dom-if" restamp if="[[isSelected(selected,'Robot Control')]]">
       <pbd-robot-control name="robot-control"></pbd-robot-control>

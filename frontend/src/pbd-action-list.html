@@ -72,10 +72,10 @@
                                 <i> {{action.name}}</i>
                             </td>
                             <td>
-                                <paper-button class="clear" on-tap="_handleCreate(action)">
+                                <paper-button class="clear" on-tap="">
                                     <paper-icon-button icon="create"></paper-icon-button>
                                 </paper-button>
-                                <paper-button class="delete" data-db-id="{{action.program}}" on-tap="_maybeDelete">
+                                <paper-button class="delete" data-db-id="{{action.name}}" on-tap="_maybeDelete">
                                     <paper-icon-button icon="delete"></paper-icon-button>
                                 </paper-button>
                             </td>
@@ -93,8 +93,9 @@
                         </th>
                     </tr>
                     <tr>
-                        <pbd-new-action name="new-action" params="[[params]]" ros="[[ros]]" route="{{routeTail}}" pddlDomain="[[pddlDomain]]"></pbd-new-action>
-                        <!-- <pbd-new-action-1 name="new-action-1"></pbd-new-action-1> -->
+                        <!-- <pbd-new-action name="new-action" params="[[params]]" ros="[[ros]]" route="{{routeTail}}" pddlDomain="[[pddlDomain]]" actionName={{selectedActionName}}
+                            action={{selectedAction}}></pbd-new-action> -->
+                        <pbd-new-action-1 name="new-action-1"></pbd-new-action-1>
                     </tr>
                 </template>
             </table>
@@ -107,41 +108,43 @@
             </paper-dialog>
 
         </div>
-        <!--         <div class="paper-material">
-            <paper-dropdown-menu label="Entity 1">
-                <paper-listbox slot="dropdown-content" attr-for-selected="arg1">
-                    <template is="dom-repeat" items="[[_getName(types)]]">
-                        <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
-                    </template>
-                </paper-listbox>
-            </paper-dropdown-menu>
+        <!--     <div class="paper-material">
+      <paper-dropdown-menu label="Entity 1">
+        <paper-listbox slot="dropdown-content" attr-for-selected="arg1">
+          <template is="dom-repeat" items="[[_getName(types)]]">
+            <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
 
-            <paper-dropdown-menu label="Predicate">
-                <paper-listbox slot="dropdown-content" attr-for-selected="predicate">
-                    <template is="dom-repeat" items="[[_getName(predicates)]]">
-                        <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
-                    </template>
-                </paper-listbox>
-            </paper-dropdown-menu>
+      <paper-dropdown-menu label="Predicate">
+        <paper-listbox slot="dropdown-content" attr-for-selected="predicate">
+          <template is="dom-repeat" items="[[_getName(predicates)]]">
+            <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
 
-            <paper-dropdown-menu label="Entity 2">
-                <paper-listbox slot="dropdown-content" attr-for-selected="arg2">
-                    <template is="dom-repeat" items="[[_getName(types)]]">
-                        <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
-                    </template>
-                </paper-listbox>
-            </paper-dropdown-menu>
-        </div> -->
+      <paper-dropdown-menu label="Entity 2">
+        <paper-listbox slot="dropdown-content" attr-for-selected="arg2">
+          <template is="dom-repeat" items="[[_getName(types)]]">
+            <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+    </div> -->
     </template>
 
     <script>
         Polymer({
 
             is: 'pbd-action-list',
+            selectedActionName: String,
             _addNewAction: false,
             properties: {
                 ros: Object,
                 route: Object,
+                domain_id: String,
                 pddlDomain: {
                     type: Object,
                     value: function () {
@@ -155,7 +158,8 @@
 
             observers: [
                 'load(pddlDomain.*)',
-                '_domainUpdated(pddlDomain.*)'
+                '_domainUpdated(pddlDomain.*)',
+                'selectedActionChanged(selectedAction)'
             ],
             load: function (changedDomain) {
                 console.debug('Loading domain...', changedDomain);
@@ -166,37 +170,45 @@
                     this.types = changedDomain.value.types;
                     this.predicates = changedDomain.value.predicates;
                     this.actions = changedDomain.value.actions;
-                    console.debug('Loading types...', this.types);
+
+                    /* console.debug('Loading types...', this.types);
                     console.debug('Loading predicates...', this.predicates);
-                    console.debug('Loading actions...', this.actions);
+                    console.debug('Loading actions...', this.actions); */
                 }
 
             },
+            selectedActionChanged(selectedAction) {
+                this.selectedActionName = selectedAction.name;
+                console.debug('selectedActionChanged to ', this.selectedActionName);
+            },
             _maybeDelete: function (evt) {
-                var db_id = evt.model.get('domain.db_id');
-                this._idToDelete = db_id;
+                var action_name = evt.model.get('action.name');
+                this._actionToDelete = action_name;
                 this.$.deleteDialog.open();
+                console.debug("maybeDel", this._actionToDelete);
             },
 
             _handleDelete: function (evt) {
                 this.$.deleteDialog.close();
                 var msg = {
-                    type: 'delete program',
-                    program_info: {
-                        db_id: this._idToDelete
-                    },
+                    type: 'delete pddl action',
+                    domain_id: this.domain_id,
+                    action_name: this._actionToDelete
                 };
                 this.$.eventPub.publish(msg);
             },
 
             _handleCreate: function (evt) {
-                var now = new Date();
-                var name = 'Untitled program ' + now.toLocaleString();
-                var request = {
-                    name: name,
+                var actionNo = this.actions.length + 1;
+                var name = 'Action ' + actionNo;
+                console.debug('handleCreate', name, this.pddlDomain);
+                var msg = {
+                    type: 'add pddl action',
+                    domain_id: this.domain_id,
+                    action_name: name
                 };
-                /* this.$.createSrv.call(request); */
-                console.debug("handleCreate");
+                this.$.eventPub.publish(msg);
+                console.debug('handleCreate', name, this.domain_id);
                 this._addNewAction = true;
             },
 

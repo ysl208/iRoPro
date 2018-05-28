@@ -109,7 +109,9 @@
         <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
         <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{routeData.id}}"
             ros="[[ros]]"></ros-topic>
-        <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+        <ros-topic auto last-message={{pddlDomain}} id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events"
+            ros="[[ros]]"></ros-topic>
+        <ros-topic auto id="pddlSub" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
         <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
             on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>
         <ros-topic auto last-message="{{isRunning}}" msg-type="std_msgs/Bool" topic="rapid_pbd/is_running" ros="[[ros]]"></ros-topic>
@@ -117,7 +119,7 @@
         <div id="layout" class="layout vertical">
             <div class="content">
                 <div id="stepContent" class="stepDiv">
-                    <paper-input id="actionName" label="Action name" value="[[action.name]]" on-blur="save"></paper-input>
+                    <paper-input id="actionName" label="Action name" value="[[actionName]]" on-blur="save"></paper-input>
                     <paper-button id="detect" class="normal" raised on-tap="_detect">Detect world state</paper-button>
 
                     <fieldset>
@@ -183,14 +185,12 @@
                         return { data: false };
                     }
                 },
-                submitted: {
-                    type: Boolean,
-                    value: false,
-                },
+                pddlDomain: Object,
                 actionName: {
                     type: String,
                     value: ''
                 },
+                action: Object,
                 nbObj: {
                     type: Number,
                     value: 1
@@ -214,6 +214,7 @@
             observers: [
                 'load(routeData.id, params.*)',
                 '_programUpdated(program.*)',
+                '_domainUpdated(pddlDomain.*)',
                 '_isRunningChanged(isRunning.data)',
             ],
 
@@ -221,6 +222,7 @@
                 /* if (!db_id) {
                     return;
                 } */
+                console.debug("load", this.pddlDomain);
                 if (!this.params.robot) {
                     return;
                 }
@@ -327,10 +329,8 @@
                 this.action.name = this.$.actionName.value;
                 var msg = {
                     type: 'save on exit action',
-                    program_info: {
-                        db_id: this.routeData.id,
-                        name: this.action.name,
-                    },
+                    domain_id: this.domain_id,
+                    action_name: this.actionName,
                     action: this.action
                 };
                 console.debug('Saving on exit ', this.action);
@@ -338,14 +338,11 @@
             },
 
             save: function () {
-                this.action.name = this.$.actionName.value;
+                this.action.name = this.actionName;
                 var msg = {
-                    type: 'update action',
-                    program_info: {
-                        db_id: this.routeData.id,
-                        name: this.action.name,
-                    },
-                    action: this.action
+                    type: 'update pddl action',
+                    domain_id: this.domain_id,
+                    pddl_action: this.action
                 };
                 console.debug('Saving ', this.action);
                 this.$.eventPub.publish(msg);
@@ -365,21 +362,10 @@
                 }
             },
 
-            submit: function () {
-                var msg = {
-                    type: 'add sense steps',
-                    program_info: {
-                        db_id: this.routeData.id,
-                    },
-                    //program: this.program,
-                    step_num: this.program.steps.length
-
-                };
-                this.submitted = true;
-
-                console.debug('Adding sense steps', this.program);
-                this.$.eventPub.publish(msg);
+            _domainUpdated: function (changeRecord) {
+                console.debug("domainUpdated", pddlDomain);
             },
+
 
             // If a new program is loaded, select step 0.
             _programChanged: function (program, oldProgram) {
@@ -432,7 +418,7 @@
             },
 
             _isRunningChanged: function (isRunning) {
-                if (isRunning) {
+                if (isRunning && this.$.rviz != null) {
                     this.$.rviz.set('config.displays.1.isShown', false);
                     this.$.rviz.set('config.displays.2.isShown', false);
                     this.$.rviz.set('config.displays.3.isShown', false);

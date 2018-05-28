@@ -117,7 +117,7 @@ bool ProgramDb::GetByName(const std::string& name,
   bool success = db_->query(msg_and_metas, query, meta_query, sort_query,
                             find_one, decode_metas, limit);
   if (!success || msg_and_metas.size() < 1) {
-    ROS_ERROR("Can't get program with name: \"%s\"", name.c_str());
+    ROS_INFO("Can't get program with name: \"%s\"", name.c_str());
     return false;
   }
   shared_ptr<Program> program_p = msg_and_metas[0].first;
@@ -200,6 +200,8 @@ std::string PDDLDomainDb::Insert(const msgs::PDDLDomain& domain) {
 
 void PDDLDomainDb::Update(const std::string& domain_id,
                           const msgs::PDDLDomain& domain) {
+  ROS_INFO("Updating %s with domain (%s)", domain_id.c_str(),
+           domain.name.c_str());
   bool success = domain_->updateID(domain_id, domain);
   if (!success) {
     ROS_ERROR("Failed to update domain with ID: \"%s\"", domain_id.c_str());

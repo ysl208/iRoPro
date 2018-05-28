@@ -70,11 +70,21 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
   try {
     if (event.type == msgs::EditorEvent::UPDATE) {
       Update(event.program_info.db_id, event.program);
-    } else if (event.type == msgs::EditorEvent::SAVE_ON_EXIT) {
-      SaveOnExit(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::DELETE) {
       Delete(event.program_info.db_id);
-    } else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
+    }
+    // PDDL events
+    else if (event.type == msgs::EditorEvent::SAVE_ON_EXIT) {
+      SaveOnExit(event.domain_id, event.action_name);
+    } else if (event.type == msgs::EditorEvent::ADD_PDDL_ACTION) {
+      AddPDDLAction(event.domain_id, event.action_name);
+    } else if (event.type == msgs::EditorEvent::DELETE_PDDL_ACTION) {
+      DeletePDDLAction(event.domain_id, event.action_name);
+    } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_ACTION) {
+      UpdatePDDLAction(event.domain_id, event.pddl_action);
+    }
+    // Condition events
+    else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
       GenerateConditions(event.program_info.db_id, event.step_num,
                          event.action_num, event.landmark.name);
     } else if (event.type == msgs::EditorEvent::VIEW_CONDITIONS) {
@@ -83,7 +93,9 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     } else if (event.type == msgs::EditorEvent::UPDATE_CONDITIONS) {
       UpdateConditions(event.program_info.db_id, event.step_num,
                        event.action_num, event.action.condition.reference);
-    } else if (event.type == msgs::EditorEvent::INFER_SPECIFICATION) {
+    }
+    // Specification Inference events
+    else if (event.type == msgs::EditorEvent::INFER_SPECIFICATION) {
       InferSpecification(event.program_info.db_id, event.step_num,
                          event.action_num, event.landmark);
     } else if (event.type == msgs::EditorEvent::VIEW_SPECIFICATION) {
@@ -131,12 +143,12 @@ std::string Editor::CreatePDDLDomain(const std::string& name) {
   if (!domain_db_.GetByName(name, &domain)) {
     pddl_domain_.Init(&domain, name);
     std::string id = domain_db_.Insert(domain);
-    domain.domain_id = id;
-    pddl_domain_.domain_ = domain;
-    return id;
+    pddl_domain_.domain_id = id;
   }
   pddl_domain_.PublishPDDLDomain(domain);
-  return domain.domain_id;
+  ROS_INFO("PDDL domain name: %s with ID %s", name.c_str(),
+           pddl_domain_.domain_id.c_str());
+  return pddl_domain_.domain_id;
 }
 
 bool Editor::HandleCreateProgram(msgs::CreateProgram::Request& request,
@@ -297,48 +309,6 @@ void Editor::AddGripperPoseAction(const std::string& db_id, size_t step_id,
     AddJointStates(&move_r_arm_action, r_default_pose);
     AddAction(db_id, step_id, move_r_arm_action);
   }
-}
-void Editor::SaveOnExit(const std::string& db_id) {
-  msgs::Program program;
-  bool success = db_.Get(db_id, &program);
-  if (!success) {
-    ROS_ERROR("Unable to delete program ID \"%s\"", db_id.c_str());
-    return;
-  }
-  size_t step_id = program.steps.size() - 1;
-  ROS_INFO("Program step id is: %zd", step_id);
-  if (step_id > 0) {
-    msgs::PDDLAction action;
-    size_t index;
-  ROS_INFO("Start looking for action...");
-    for (size_t i = 0; i < pddl_domain_.domain_.actions.size(); ++i) {
-      
-  ROS_INFO("%zd", i);
-  std::cout << pddl_domain_.domain_.actions[i].program << " vs " << program.name;
-      if (pddl_domain_.domain_.actions[i].program == program.name) {
-        action = pddl_domain_.domain_.actions[i];
-        index = i;
-        return;
-      }
-    }
-  ROS_INFO("Done looking for action...");
-    if (action.name == "") {
-      ROS_ERROR("Could not find PDDL action named %s", program.name.c_str());
-    } else {
-  ROS_INFO("Action found...");
-      DetectSurfaceObjects(db_id, step_id);
-      // Get World state
-      World world;
-      GetWorld(robot_config_, program, step_id, &world);
-      // Add world state to Preconditions of action
-      AddActionCondition(&action, "Effect", world);
-
-      pddl_domain_.domain_.actions.at(index) = action;
-      domain_db_.Update(pddl_domain_.domain_.domain_id, pddl_domain_.domain_);
-      pddl_domain_.PublishPDDLDomain(pddl_domain_.domain_);
-    }
-  }
-  Update(db_id, program);
 }
 
 void Editor::Update(const std::string& db_id, const msgs::Program& program) {
@@ -963,35 +933,6 @@ void Editor::AddStep(const std::string& db_id) {
   msgs::Step step;
   program.steps.push_back(step);
   Update(db_id, program);
-  ROS_INFO("Program has now steps: %zd ", program.steps.size());
-  // If 1st step is added
-  if (program.steps.size() == 1) {
-    DetectSurfaceObjects(db_id, 0);
-    // Create new action
-    msgs::PDDLAction new_action;
-    new_action.name = "New Action";
-    new_action.program = program.name;
-    // Get World state
-    World world;
-    GetWorld(robot_config_, program, 0, &world);
-    // Add world state to Preconditions of action
-    AddActionCondition(&new_action, "Precondition", world);
-    pddl_domain_.domain_.actions.push_back(new_action);
-    domain_db_.Update(pddl_domain_.domain_.domain_id, pddl_domain_.domain_);
-    pddl_domain_.PublishPDDLDomain(pddl_domain_.domain_);
-  }
-}
-
-void Editor::UpdatePDDL(const std::string& domain_id,
-                        const msgs::PDDLDomain& domain, const World& world) {
-  domain_db_.Update(domain_id, domain);
-
-  if (last_viewed_.find(domain_id) != last_viewed_.end()) {
-    viz_.Publish(domain_id, world);
-  } else {
-    ROS_ERROR("Unable to publish visualization: unknown step");
-  }
-  pddl_domain_.PublishPDDLDomain(domain);
 }
 
 void Editor::DeleteStep(const std::string& db_id, size_t step_id) {
@@ -1038,7 +979,7 @@ void Editor::AddAction(const std::string& db_id, size_t step_id,
   if (action.type == Action::ACTUATE_GRIPPER && step_id > 0) {
     // if the gripper_box has not been assigned yet
     msgs::Step* cart_step = &program.steps[step_id - 1];
-    //AssignGripperBoundingBox(cart_step, &program.gripper_box);
+    // AssignGripperBoundingBox(cart_step, &program.gripper_box);
 
     World world;
     GetWorld(robot_config_, program, last_viewed_[db_id], &world);
@@ -1182,36 +1123,147 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   Update(db_id, program);
 }
 
-void Editor::AddPDDLAction(const std::string& domain_id,
-                           const std::string& action_name) {
-  msgs::PDDLDomain domain;
-  bool success = domain_db_.Get(domain_id, &domain);
+void Editor::SaveOnExit(const std::string& db_id,
+                        const std::string& action_name) {
+  msgs::Program program;
+  bool success = db_.Get(db_id, &program);
   if (!success) {
-    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    ROS_ERROR("Unable to delete program ID \"%s\"", db_id.c_str());
     return;
   }
-  msgs::PDDLAction action;
-  action.name = action_name;
-  domain.actions.push_back(action);
-  domain_db_.Update(domain_id, domain);
-  pddl_domain_.PublishPDDLDomain(domain);
+  if (program.steps.size() > 0) {
+    msgs::PDDLAction action;
+    int index = FindPDDLAction(action_name, pddl_domain_.domain_.actions);
+    if (index >= 0) {
+      action = pddl_domain_.domain_.actions[index];
+      ROS_INFO("Action found...");
+      // Add world state to Effects of action
+      AddActionCondition(action, "Effect");
+    } else {
+      ROS_ERROR("Could not save PDDL action named %s because it does not exist",
+                action_name.c_str());
+    }
+  }
+  Update(db_id, program);
 }
 
-void Editor::AddActionCondition(msgs::PDDLAction* action,
-                                const std::string& cond, const World& world) {
+void Editor::AddActionCondition(const msgs::PDDLAction& action,
+                                const std::string& cond) {
+  // first detect surface landmarks
+  msgs::SegmentSurfacesGoal goal;
+  goal.save_cloud = true;
+  action_clients_->surface_segmentation_client.sendGoal(goal);
+  bool success = action_clients_->surface_segmentation_client.waitForResult(
+      ros::Duration(50));
+  if (!success) {
+    ROS_ERROR("Failed to segment surface.");
+    return;
+  }
+  msgs::SegmentSurfacesResult::ConstPtr result =
+      action_clients_->surface_segmentation_client.getResult();
+  std::vector<msgs::Landmark> world_landmarks;
+  for (size_t i = 0; i < result->landmarks.size(); ++i) {
+    msgs::Landmark landmark;
+    ProcessSurfaceBox(result->landmarks[i], &landmark);
+    world_landmarks.push_back(landmark);
+  }
+  msgs::PDDLAction new_action = action;
   WorldState world_state;
-  GetWorldState(world, &world_state);
-  action->params = world_state.objects_;
+  GetWorldState(world_landmarks, &world_state);
+  new_action.params = world_state.objects_;
   if (cond == "Precondition") {
-    action->preconditions = world_state.predicates_;
+    new_action.preconditions = world_state.predicates_;
     ROS_INFO("Updated action %s", cond.c_str());
   } else if (cond == "Effect") {
-    action->effects = world_state.predicates_;
+    new_action.effects = world_state.predicates_;
     ROS_INFO("Updated action %s", cond.c_str());
   } else {
     ROS_ERROR("Unknown condition type: %s", cond.c_str());
   }
   PrintAllPredicates(world_state.predicates_, "");
+  UpdatePDDLAction(pddl_domain_.domain_id, new_action);
+}
+
+void Editor::AddPDDLAction(const std::string& domain_id,
+                           const std::string& action_name) {
+  ROS_INFO("Start add pddl action: %s", action_name.c_str());
+
+  ROS_INFO("Trying to get %s from db", pddl_domain_.domain_id.c_str());
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(pddl_domain_.domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"",
+              pddl_domain_.domain_id.c_str());
+    return;
+  }
+  int index = FindPDDLAction(action_name, pddl_domain_.domain_.actions);
+  std::cout << "index is " << index << std::endl;
+  if (index >= 0) {
+    ROS_ERROR("Pddl action called %s already exists", action_name.c_str());
+    return;
+  } else {
+    ROS_INFO("Creating new pddl action %s", action_name.c_str());
+    msgs::PDDLAction action;
+    action.name = action_name;
+    domain.actions.push_back(action);
+    domain_db_.Update(pddl_domain_.domain_id, domain);
+    pddl_domain_.PublishPDDLDomain(domain);
+  }
+}
+
+void Editor::UpdatePDDLAction(const std::string& domain_id,
+                              const msgs::PDDLAction& action) {
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(pddl_domain_.domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"",
+              pddl_domain_.domain_id.c_str());
+    return;
+  }
+  // TO DO: Test if it works
+  int index = FindPDDLAction(action.name, pddl_domain_.domain_.actions);
+  if (index < 0) {
+    ROS_ERROR("Unable to find pddl action %s", action.name.c_str());
+  } else {
+    domain.actions.at(index) = action;
+    domain_db_.Update(pddl_domain_.domain_id, domain);
+    pddl_domain_.PublishPDDLDomain(domain);
+  }
+}
+
+void Editor::DeletePDDLAction(const std::string& domain_id,
+                              const std::string& action_name) {
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(pddl_domain_.domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"",
+              pddl_domain_.domain_id.c_str());
+    return;
+  }
+  // TO DO: Test if it works
+  msgs::PDDLAction action;
+  int index = FindPDDLAction(action_name, pddl_domain_.domain_.actions);
+  if (index < 0) {
+    ROS_ERROR("Unable to find pddl action %s for domain %s",
+              action_name.c_str(), pddl_domain_.domain_id.c_str());
+  } else {
+  }
+  domain.actions.erase(domain.actions.begin() + index);
+  domain_db_.Update(pddl_domain_.domain_id, domain);
+  pddl_domain_.PublishPDDLDomain(domain);
+}
+
+int Editor::FindPDDLAction(const std::string name,
+                           const std::vector<msgs::PDDLAction>& actions) {
+  ROS_INFO("Start looking for action %s out of %zu actions", name.c_str(),
+           actions.size());
+  for (int i = 0; i < actions.size(); ++i) {
+    std::cout << "i is " << i << std::endl;
+    if (actions[i].name == name) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 void Editor::GetJointValues(const std::string& db_id, size_t step_id,

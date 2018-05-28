@@ -133,15 +133,18 @@ class Editor {
                                 msgs::Landmark* gripper_box);
 
   // PDDL domain functions
-  void SaveOnExit(const std::string& db_id);
+  void SaveOnExit(const std::string& db_id, const std::string& action_name);
   std::string CreatePDDLDomain(const std::string& name);
-  void AddActionCondition(msgs::PDDLAction* action, const std::string& cond,
-                          const World& world);
+  void AddActionCondition(const msgs::PDDLAction& action,
+                          const std::string& cond);
   void AddPDDLAction(const std::string& domain_id,
                      const std::string& action_name);
-  void UpdatePDDL(const std::string& domain_id, const msgs::PDDLDomain& domain,
-                  const World& world);
-
+  void DeletePDDLAction(const std::string& domain_id,
+                        const std::string& action_name);
+  void UpdatePDDLAction(const std::string& domain_id,
+                        const msgs::PDDLAction& action);
+  int FindPDDLAction(const std::string name,
+                      const std::vector<msgs::PDDLAction>& actions);
   ProgramDb db_;
   SceneDb scene_db_;
   PDDLDomainDb domain_db_;
