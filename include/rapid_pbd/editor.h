@@ -135,8 +135,9 @@ class Editor {
   // PDDL domain functions
   void SaveOnExit(const std::string& db_id, const std::string& action_name);
   std::string CreatePDDLDomain(const std::string& name);
-  void AddActionCondition(const msgs::PDDLAction& action,
-                          const std::string& cond);
+  void AddActionCondition(const std::string& domain_id,
+                          const std::string& action_name,
+                          const std::string& state_name);
   void AddPDDLAction(const std::string& domain_id,
                      const std::string& action_name);
   void DeletePDDLAction(const std::string& domain_id,

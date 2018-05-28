@@ -45,6 +45,10 @@
             }
         </style>
         <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+        <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
+            ros="[[ros]]"></ros-topic>
+        <!-- <ros-topic auto last-message="{{programList}}" msg-type="rapid_pbd_msgs/ProgramInfoList" topic="rapid_pbd/program_list" ros="[[ros]]"></ros-topic> -->
+
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
         <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
             ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service>
@@ -144,6 +148,12 @@
             properties: {
                 ros: Object,
                 route: Object,
+                domainList: {
+                    type: Object,
+                    value: function () {
+                        return { domains: [] };
+                    }
+                },
                 domain_id: String,
                 pddlDomain: {
                     type: Object,
@@ -157,20 +167,26 @@
             },
 
             observers: [
-                'load(pddlDomain.*)',
+                'load(pddlDomain.*,domainList.*)',
                 '_domainUpdated(pddlDomain.*)',
                 'selectedActionChanged(selectedAction)'
             ],
-            load: function (changedDomain) {
+            load: function (changedDomain, changedList) {
                 console.debug('Loading domain...', changedDomain);
+                console.debug('Loading domainlist...', changedList);
+                if (this.domainList && this.domainList.domains.length == 1) {
+                    this.domain_id = this.domainList.domains[0].domain_id;
+                }
+                console.debug('domain_id is ', this.domain_id);
             },
-            _domainUpdated(changedDomain) {
+            _domainUpdated(changedDomain, changedList) {
                 console.debug('Updating domain...', changedDomain);
+                console.debug('Updating domain...', changedList);
+
                 if (changedDomain.value) {
                     this.types = changedDomain.value.types;
                     this.predicates = changedDomain.value.predicates;
                     this.actions = changedDomain.value.actions;
-
                     /* console.debug('Loading types...', this.types);
                     console.debug('Loading predicates...', this.predicates);
                     console.debug('Loading actions...', this.actions); */
@@ -198,9 +214,9 @@
                 this.$.eventPub.publish(msg);
             },
 
+
             _handleCreate: function (evt) {
-                var actionNo = this.actions.length + 1;
-                var name = 'Action ' + actionNo;
+                var name = this.getActionName(this.actions);
                 console.debug('handleCreate', name, this.pddlDomain);
                 var msg = {
                     type: 'add pddl action',
@@ -210,6 +226,18 @@
                 this.$.eventPub.publish(msg);
                 console.debug('handleCreate', name, this.domain_id);
                 this._addNewAction = true;
+            },
+
+            getActionName: function (actions) {
+                var actionNo = actions.length + 1;
+                for (var i = 0; i < actions.length; ++i) {
+                    var action_name = 'Action ' + actionNo;
+                    if (actions[i].name == action_name) {
+                        actionNo++;
+                        action_name = 'Action ' + actionNo;
+                    }
+                }
+                return action_name;
             },
 
             _cancelCreate: function (evt) {

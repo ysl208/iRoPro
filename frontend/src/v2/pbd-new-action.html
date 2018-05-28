@@ -449,11 +449,10 @@
                     return;
                 }
                 var msg = {
-                    type: 'detect surface objects',
-                    program_info: {
-                        db_id: this.programId
-                    },
-                    step_num: 0//this.stepNum
+                    type: 'detect world state',
+                    domain_id: this.domain_id,
+                    action_name: name,
+                    
                 };
                 this.$.eventPub.publish(msg);
             },
