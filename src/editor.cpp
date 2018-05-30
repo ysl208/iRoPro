@@ -167,7 +167,7 @@ std::string Editor::Create(const std::string& name) {
   World world;
   GetWorld(robot_config_, program, 0, &world);
   viz_.Publish(id, world);
-  AddStep(id);
+  //AddStep(id);
   return id;
 }
 
@@ -1206,7 +1206,7 @@ void Editor::AddActionCondition(const std::string& domain_id,
 
 void Editor::AddPDDLAction(const std::string& domain_id,
                            const std::string& action_name) {
-    domain_db_.StartPublishingPDDLDomainById(id);
+    domain_db_.StartPublishingPDDLDomainById(domain_id);
   ROS_INFO("Start add pddl action: %s", action_name.c_str());
 
   ROS_INFO("Trying to get %s from db", domain_id.c_str());

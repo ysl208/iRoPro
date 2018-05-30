@@ -1,6 +1,8 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../shared-styles.html">
 
 <dom-module id="pbd-object-select">
@@ -10,28 +12,33 @@
                 background: url(http://i62.tinypic.com/15xvbd5.png) no-repeat 96% 0;
                 height: 29px;
                 overflow: hidden;
-                width: 220px;
+                width: 120px;
                 display: inline-block;
             }
+
             .styled-select select {
                 background: transparent;
                 border: none;
                 font-size: 14px;
                 height: 29px;
-                padding: 5px; /* If you add too much padding here, the options won't show in IE */
+                padding: 5px;
+                /* If you add too much padding here, the options won't show in IE */
                 width: 248px;
             }
+
             .styled-select.slate {
                 background: url(http://i62.tinypic.com/2e3ybe1.jpg) no-repeat right center;
                 height: 34px;
-                width: 220px;
+                width: 120px;
             }
+
             .styled-select.slate select {
                 border: 1px solid #ccc;
                 font-size: 16px;
                 height: 34px;
-                width: 248px;
+                width: 130px;
             }
+
             iron-icon {
                 display: inline-block;
                 vertical-align: top;
@@ -39,27 +46,31 @@
             }
         </style>
         <!-- div uniquement pour le style du select -->
-        <div class="styled-select slate">
-        <select id="nomObj-[[num]]">
-            <option value="obj1">obj1</option>
-            <option value="obj2">obj2</option>
-            <option value="obj3">obj3</option>
-        </select>
+        <!--         <div class="styled-select slate">
+            <select id="nomObj-[[num]]">
+                <option value="[[name]]">[[name]]</option>
+                <option value="obj1">obj1</option>
+                <option value="obj2">obj2</option>
+                <option value="obj3">obj3</option>
+            </select>
         </div>
+
         <div class="styled-select slate">
-        <select id="typeObj-[[num]]">
-            <optgroup label="Object">
+            <select id="typeObj-[[num]]">
+                <optgroup label="Object">
                     <option value="Cylinder">Cylinder</option>
                     <option value="Cube">Cube</option>
-            </optgroup>
-            <optgroup label="Position">
+                </optgroup>
+                <optgroup label="Position">
                     <option value="A">A</option>
                     <option value="B">B</option>
                     <option value="C">C</option>
                     <option value="D">D</option>
-            </optgroup>                                
-        </select>
-        </div>
+                </optgroup>
+            </select>
+        </div> -->
+
+        [[name]] ([[type]])
         <!-- data-index$ permet de passer un parametre, récupéré par event.target.dataset.index -->
         <iron-icon on-click="delete" icon="delete-forever"></iron-icon>
     </template>
@@ -68,19 +79,68 @@
             is: 'pbd-object-select',
 
             properties: {
+                params: Object,
+                pddlAction: {
+                    type: Object,
+                    value: function () {
+                        return { params: [] };
+                    }
+                },
+                pddlDomain: {
+                    type: Object,
+                    value: function () {
+                        return {
+                            types: [],
+                            predicates: []
+                        };
+                    }
+                },
+                name: {
+                    type: String,
+                },
+                type: {
+                    type: String,
+                },
                 num: {
                     type: Number,
                 }
             },
+            _pddlActionChanged: function (actionChanged) {
+                console.debug('_pddlActionChanged', actionChanged.value);
+            },
 
-            delete: function(e, detail) {
-                this.dispatchEvent(new CustomEvent('delete', {detail : {id: this.num}, bubble: true, composed : true}));
+            delete: function (e, detail) {
+                this.dispatchEvent(new CustomEvent('delete', { detail: { id: this.num }, bubble: true, composed: true }));
                 this.remove();
             },
 
-            hello: function() {
+            hello: function () {
                 console.log("hello");
-            }
+            },
+
+
+            _getType: function (all_types) {
+                var names = ['-'];
+                console.debug('_getType: ', all_types);
+
+                if (all_types) {
+                    for (var i = 0; i < all_types.length; ++i) {
+                        names.push(all_types[i].type.name);
+                    }
+                }
+                return names;
+            },
+            _getName: function (all_types) {
+                var names = ['-'];
+                console.debug('_getName: ', all_types);
+
+                if (all_types) {
+                    for (var i = 0; i < all_types.length; ++i) {
+                        names.push(all_types[i].name);
+                    }
+                }
+                return names;
+            },
         });
     </script>
 

@@ -4,6 +4,7 @@
 <link rel="import" href="../bower_components/paper-styles/color.html">
 <link rel="import" href="../bower_components/ros-topic/ros-topic.html">
 <link rel="import" href="../bower_components/ros-service/ros-service.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="v2/pbd-new-action.html">
 <link rel="import" href="v2/pbd-new-action-1.html">
 <link rel="import" href="shared-styles.html">
@@ -11,6 +12,8 @@
 <dom-module id="pbd-action-list">
     <template>
         <style include="shared-styles"></style>
+        <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+
         <style>
             :host {
                 display: block;
@@ -39,30 +42,35 @@
                 text-align: right;
             }
 
+            .cancelButtons {
+                text-align: right;
+            }
+
             a {
                 color: #000;
                 text-decoration: none;
             }
         </style>
-        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
-        <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
-            ros="[[ros]]"></ros-topic>
-        <!-- <ros-topic auto last-message="{{programList}}" msg-type="rapid_pbd_msgs/ProgramInfoList" topic="rapid_pbd/program_list" ros="[[ros]]"></ros-topic> -->
-
+        <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{routeTail}}"></app-route>
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
         <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
             ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service>
+        <!-- PDDL -->
+        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+        <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
+            ros="[[ros]]"></ros-topic>
 
         <div class="paper-material">
-
-            <table>
-                <template is="dom-if" restamp if="[[!_addNewAction]]">
+            <template is="dom-if" restamp if="[[!_showActionProperties]]">
+                <table>
                     <tr>
                         <th>Programmed actions</th>
                         <th>
+                            <!-- <a href="#/[[domain_id]]"> -->
                             <paper-button id="createButton" class="important" on-tap="_handleCreate">
                                 + new action
                             </paper-button>
+                            <!-- </a> -->
                         </th>
                     </tr>
                     <template is="dom-if" if="[[!pddlDomain.actions.length]]">
@@ -76,7 +84,7 @@
                                 <i> {{action.name}}</i>
                             </td>
                             <td>
-                                <paper-button class="clear" on-tap="">
+                                <paper-button class="clear" on-tap="_openAction">
                                     <paper-icon-button icon="create"></paper-icon-button>
                                 </paper-button>
                                 <paper-button class="delete" data-db-id="{{action.name}}" on-tap="_maybeDelete">
@@ -85,69 +93,53 @@
                             </td>
                         </tr>
                     </template>
-                </template>
+                </table>
+            </template>
 
-                <template is="dom-if" restamp if="[[_addNewAction]]">
+            <template is="dom-if" restamp if="[[_showActionProperties]]">
+                <table>
                     <tr>
-                        <th> Create new action [[action.name]] </th>
+                        <th>Action Properties</th>
                         <th>
-                            <paper-button class="clear" on-tap="_cancelCreate">
-                                <paper-icon-button icon="cancel"></paper-icon-button>
-                            </paper-button>
+                            <div class="cancelButtons">
+                                <paper-button class="cancel" on-tap="_hideAction">
+                                    <paper-icon-button icon="cancel"></paper-icon-button>
+                                </paper-button>
+                            </div>
                         </th>
-                    </tr>
-                    <tr>
-                        <!-- <pbd-new-action name="new-action" params="[[params]]" ros="[[ros]]" route="{{routeTail}}" pddlDomain="[[pddlDomain]]" actionName={{selectedActionName}}
-                            action={{selectedAction}}></pbd-new-action> -->
-                        <pbd-new-action-1 name="new-action-1"></pbd-new-action-1>
-                    </tr>
-                </template>
-            </table>
-            <paper-dialog id="deleteDialog" modal>
-                <h2>Delete action?</h2>
-                <div class="deleteButtons">
-                    <paper-button class="clear" dialog-dismiss>Cancel</paper-button>
-                    <paper-button dialog-confirm on-tap="_handleDelete" class="delete">Delete</paper-button>
-                </div>
-            </paper-dialog>
+                        <tr>
+                            <td>
+                                <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
+                                    <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
+                                        <pbd-new-action name="new-action" params="[[params]]" ros="[[ros]]"></pbd-new-action>
+                                    </template>
+                                </template>
+                            </td>
+                        </tr>
 
+                </table>
+            </template>
         </div>
-        <!--     <div class="paper-material">
-      <paper-dropdown-menu label="Entity 1">
-        <paper-listbox slot="dropdown-content" attr-for-selected="arg1">
-          <template is="dom-repeat" items="[[_getName(types)]]">
-            <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
-          </template>
-        </paper-listbox>
-      </paper-dropdown-menu>
 
-      <paper-dropdown-menu label="Predicate">
-        <paper-listbox slot="dropdown-content" attr-for-selected="predicate">
-          <template is="dom-repeat" items="[[_getName(predicates)]]">
-            <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
-          </template>
-        </paper-listbox>
-      </paper-dropdown-menu>
+        <paper-dialog id="deleteDialog" modal>
+            <h2>Delete action?</h2>
+            <div class="deleteButtons">
+                <paper-button class="clear" dialog-dismiss>Cancel</paper-button>
+                <paper-button dialog-confirm on-tap="_handleDelete" class="delete">Delete</paper-button>
+            </div>
+        </paper-dialog>
 
-      <paper-dropdown-menu label="Entity 2">
-        <paper-listbox slot="dropdown-content" attr-for-selected="arg2">
-          <template is="dom-repeat" items="[[_getName(types)]]">
-            <paper-item name="[[item]]" on-tap="_updateDomain">[[item]]</paper-item>
-          </template>
-        </paper-listbox>
-      </paper-dropdown-menu>
-    </div> -->
     </template>
-
     <script>
         Polymer({
 
             is: 'pbd-action-list',
-            selectedActionName: String,
-            _addNewAction: false,
+            _showActionProperties: false,
             properties: {
                 ros: Object,
                 route: Object,
+                params: Object,
+                selectedActionName: String,
                 domainList: {
                     type: Object,
                     value: function () {
@@ -169,33 +161,25 @@
             observers: [
                 'load(pddlDomain.*,domainList.*)',
                 '_domainUpdated(pddlDomain.*)',
-                'selectedActionChanged(selectedAction)'
             ],
             load: function (changedDomain, changedList) {
-                console.debug('Loading domain...', changedDomain);
-                console.debug('Loading domainlist...', changedList);
                 if (this.domainList && this.domainList.domains.length == 1) {
                     this.domain_id = this.domainList.domains[0].domain_id;
                 }
                 console.debug('domain_id is ', this.domain_id);
             },
             _domainUpdated(changedDomain, changedList) {
-                console.debug('Updating domain...', changedDomain);
-                console.debug('Updating domain...', changedList);
 
                 if (changedDomain.value) {
                     this.types = changedDomain.value.types;
                     this.predicates = changedDomain.value.predicates;
                     this.actions = changedDomain.value.actions;
+                    this.pddlDomain = changedDomain.value;
                     /* console.debug('Loading types...', this.types);
                     console.debug('Loading predicates...', this.predicates);
                     console.debug('Loading actions...', this.actions); */
                 }
 
-            },
-            selectedActionChanged(selectedAction) {
-                this.selectedActionName = selectedAction.name;
-                console.debug('selectedActionChanged to ', this.selectedActionName);
             },
             _maybeDelete: function (evt) {
                 var action_name = evt.model.get('action.name');
@@ -225,23 +209,26 @@
                 };
                 this.$.eventPub.publish(msg);
                 console.debug('handleCreate', name, this.domain_id);
-                this._addNewAction = true;
+                this._showActionProperties = true;
+                this.params['actionName'] = name;
+                console.debug('handleCreate: params is ', this.params);
             },
 
             getActionName: function (actions) {
                 var actionNo = actions.length + 1;
+                var action_name = 'Action ' + actionNo;
                 for (var i = 0; i < actions.length; ++i) {
-                    var action_name = 'Action ' + actionNo;
                     if (actions[i].name == action_name) {
                         actionNo++;
-                        action_name = 'Action ' + actionNo;
                     }
+                    action_name = 'Action ' + actionNo;
                 }
                 return action_name;
             },
 
-            _cancelCreate: function (evt) {
-                this._addNewAction = false;
+            _hideAction: function (evt) {
+                console.debug("hide action");
+                this._showActionProperties = false;
             },
             _handleServiceResponse(evt) {
                 var id = evt.detail.db_id;
@@ -249,20 +236,34 @@
                 window.dispatchEvent(new CustomEvent("location-changed"));
             },
 
+            _showActionList: function (page) {
+                return (!this._showActionProperties);
+            },
+            _showAction: function (page) {
+                console.debug("_showAction ");
+                return (this._showActionProperties && page !== 'program');
+            },
+            _shouldShowProgram: function (page) {
+                return page === 'program';
+            },
             _handleServiceError: function (evt) {
                 console.error(evt.detail);
             },
-            _getName: function (obj_array) {
-                var names = ['-'];
-                for (var i = 0; i < obj_array.length; ++i) {
-                    names.push(obj_array[i].name);
-
-                }
-                return names;
+            _openAction: function (evt) {
+                var name = evt.model.get('action.name');
+                this.selectedActionName = name;
+                this._showActionProperties = true;
+                this.params['actionName'] = name;
+                console.debug("_openAction ", name);
             },
-            _updateDomain: function () {
-                // TO DO
-            }
+            _displayAction: function (selected, actionname) {
+                return (selected && selected.length > 0 && selected == actionname);
+            },
+
+            attached: function () {
+                if (!this.route.path)
+                    this.set('route.path', '/action-list');
+            },
         });
     </script>
 </dom-module>

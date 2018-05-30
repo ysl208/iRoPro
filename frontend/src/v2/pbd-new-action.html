@@ -7,7 +7,11 @@
 <link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 <link rel="import" href="../../bower_components/ros-action-client/ros-action-client.html">
 
@@ -28,6 +32,10 @@
             :host {
                 display: block;
                 height: 100%;
+            }
+
+            .paper-material {
+                margin-top: 7px;
             }
 
             a {
@@ -109,46 +117,92 @@
         <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
         <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{routeData.id}}"
             ros="[[ros]]"></ros-topic>
-        <ros-topic auto last-message={{pddlDomain}} id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events"
-            ros="[[ros]]"></ros-topic>
-        <ros-topic auto id="pddlSub" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+        <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
         <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
             on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>
         <ros-topic auto last-message="{{isRunning}}" msg-type="std_msgs/Bool" topic="rapid_pbd/is_running" ros="[[ros]]"></ros-topic>
-        <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"></ros-service>
+        <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
+            ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service>
+        <!-- PDDL -->
+        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+        <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
+            ros="[[ros]]"></ros-topic>
+
         <div id="layout" class="layout vertical">
             <div class="content">
-                <div id="stepContent" class="stepDiv">
-                    <paper-input id="actionName" label="Action name" value="[[actionName]]" on-blur="save"></paper-input>
-                    <paper-button id="detect" class="normal" raised on-tap="_detect">Detect world state</paper-button>
+                <div id="stepContent">
+                    <paper-input id="actionName1" label="Action name" value="[[actionName]]" on-blur="save"></paper-input>
+
+                    <paper-button id="compare" class="petit" raised on-tap="_generateConditions">Generate Conditions</paper-button>
 
                     <fieldset>
-                        <legend>Objects detected</legend>
-                        <p>Instance name</p>
-                        <p id="label2">Instance type</p>
+                        <legend>Detected world instances</legend>
+                        <p>
+                            <b>Name</b>
+                        </p>
+                        <p id="label2">(type)</p>
                         <br>
+                        <template is="dom-repeat" items="{{pddlAction.params}}" as="item" index-as="paramIndex">
+                            <div id="listeObjet">
+                                <pbd-object-select id="selectObj1" on-delete="deleteObj" num="1" pddlDomain="[[pddlDomain]]" pddlAction="[[pddlAction]]"
+                                    name="[[item.name]]" type="[[item.type.name]]" params="[[pddlAction.params]]"></pbd-object-select>
+                            </div>
+                        </template>
 
-                        <div id="listeObjet">
-                            <pbd-object-select id="selectObj1" on-delete="deleteObj" num="1"></pbd-object-select>
-                        </div>
-
+                        <span hidden$=[[!_newObj]]>
+                            <paper-dropdown-menu label="Name">
+                                <paper-listbox slot="dropdown-content" selected="[[name]]" attr-for-selected="arg1">
+                                    <template is="dom-repeat" items="[[params]]">
+                                        <paper-item name="[[item]]" on-tap="">[[item.name]]</paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                            <paper-dropdown-menu label="Instance 2">
+                                <paper-listbox slot="dropdown-content" selected="[[type]]" attr-for-selected="arg2">
+                                    <template is="dom-repeat" items="[[_getType(params)]]">
+                                        <paper-item name="[[item]]" on-tap="">[[item]]</paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                        </span>
                         <br>
                         <paper-button noink class="petit" on-click="newObj">+ add new instance</paper-button>
                     </fieldset>
 
                     <fieldset>
-                        <legend>Initial world state</legend>
-                        <div id="listeWorldState">
-                            <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1"></pbd-world-state-select>
-                        </div>
+                        <legend>Detected world state</legend>
+                        <template is="dom-repeat" items="{{pddlAction.preconditions}}" as="item" index-as="paramIndex">
+                            <div id="listeWorldState">
+                                <!-- [[item.arg1.name]] is [[item.name]] [[item.arg2.name]] -->
+                                <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1" pddlDomain="[[pddlDomain]]" pddlAction="[[pddlAction]]"
+                                    name="[[item.name]]" newElem="0" predicate="[[item]]" params="[[pddlAction.params]]"></pbd-world-state-select>
+                            </div>
+                        </template>
+                        <paper-button id="detect" class="petit" raised on-tap="_detect" data-args="Precondition">Detect world state</paper-button>
+
                         <paper-button noink class="petit" on-click="newPrecond">+ add new predicate</paper-button>
                     </fieldset>
-                    <paper-button id="next" raised class="important" on-click="_startDemo">
-                        Start demonstration
-                    </paper-button>
 
+                    <fieldset>
+                        <legend>Effects</legend>
+                        <template is="dom-repeat" items="{{pddlAction.effects}}" as="item" index-as="paramIndex">
+                            <div id="listeWorldState2">
+                                <!-- [[item.arg1.name]] is [[item.name]] [[item.arg2.name]] -->
+                                <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1" pddlDomain="[[pddlDomain]]" pddlAction="[[pddlAction]]"
+                                    name="[[item.name]]" predicate="[[item]]" params="[[pddlAction.params]]"></pbd-world-state-select>
+                            </div>
+                        </template>
+                        <paper-button id="detect2" class="petit" raised on-tap="_detect" data-args="Effect">Detect world state</paper-button>
+
+                        <paper-button noink class="petit" on-click="newPrecond">+ add new predicate</paper-button>
+                    </fieldset>
+                    <a href="#/program/{{program.db_id}}">
+                        <paper-button id="next" raised class="important" on-click="_startDemo">
+                            Start demonstration
+                        </paper-button>
+                    </a>
                 </div>
-                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
+                <!-- <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz> -->
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -167,11 +221,7 @@
             is: 'pbd-new-action',
 
             properties: {
-                action: Object,
-                currentStepNum: {
-                    type: Number,
-                    value: 0,
-                },
+                pddlAction: Object,
                 params: Object,
                 program: {
                     type: Object,
@@ -185,12 +235,27 @@
                         return { data: false };
                     }
                 },
-                pddlDomain: Object,
-                actionName: {
-                    type: String,
-                    value: ''
+                _newObj: {
+                    type: Boolean,
+                    value: false
                 },
-                action: Object,
+                _newPrecond: {
+                    type: Boolean,
+                    value: false
+                },
+                domainList: {
+                    type: Object,
+                    value: function () {
+                        return { domains: [] };
+                    }
+                },
+                pddlDomain: {
+                    type: Object,
+                    value: function () {
+                        return { actions: [] };
+                    }
+                },
+                actionName: Object,
                 nbObj: {
                     type: Number,
                     value: 1
@@ -214,22 +279,42 @@
             observers: [
                 'load(routeData.id, params.*)',
                 '_programUpdated(program.*)',
-                '_domainUpdated(pddlDomain.*)',
+                '_domainUpdated(pddlDomain.*,domainList.*)',
+                '_actionUpdated(actionName.*,action.*)',
                 '_isRunningChanged(isRunning.data)',
             ],
-
+            _actionUpdated: function (actionName, action) {
+                if (actionName.value) {
+                    console.debug('_actionUpdated: actionName =  ', actionName.value);
+                    this.getAction(actionName.value);
+                }
+                if (action.value) {
+                    console.debug('_actionUpdated: action =  ', action.value);
+                }
+            },
+            getAction: function (actionName) {
+                if (this.pddlDomain) {
+                    for (var i = 0; i < this.pddlDomain.actions.length; ++i) {
+                        var action = this.pddlDomain.actions[i];
+                        if (action.name === actionName) {
+                            this.pddlAction = action;
+                            //console.debug('Action found ', this.pddlAction);
+                            return;
+                        }
+                    }
+                }
+                console.info('No action found with name ', actionName);
+                return;
+            },
             load: function (db_id, paramsChangeRecord) {
                 /* if (!db_id) {
                     return;
                 } */
-                console.debug("load", this.pddlDomain);
+
                 if (!this.params.robot) {
                     return;
                 }
                 this.$.programSub.subscribe();
-                this.currentStepNum = 0;
-                this.currentCondition = "";
-
                 var depthCloudFrameId = '';
                 if (this.params.robot === "pr2") {
                     depthCloudFrameId = '/head_mount_kinect_rgb_optical_frame';
@@ -321,30 +406,37 @@
                 if (this.$.rviz) {
                     this.$.rviz.config = config;
                 } else {
-                    console.error('rviz not ready');
+                    console.info('rviz not ready');
+                }
+
+                if (this.params.actionName) {
+                    this.actionName = this.params.actionName;
+                    if (!this.pddlAction) {
+                        //this._detect();
+                    }
                 }
             },
 
             saveOnExit: function () {
-                this.action.name = this.$.actionName.value;
+                this.pddlAction.name = this.actionName;
                 var msg = {
                     type: 'save on exit action',
                     domain_id: this.domain_id,
                     action_name: this.actionName,
-                    action: this.action
+                    action: this.pddlAction
                 };
-                console.debug('Saving on exit ', this.action);
+                console.debug('Saving on exit ', this.pddlAction);
                 this.$.eventPub.publish(msg);
             },
 
             save: function () {
-                this.action.name = this.actionName;
+                this.pddlAction.name = this.actionName;
                 var msg = {
                     type: 'update pddl action',
                     domain_id: this.domain_id,
-                    pddl_action: this.action
+                    pddl_action: this.pddlAction
                 };
-                console.debug('Saving ', this.action);
+                console.debug('Saving ', this.pddlAction);
                 this.$.eventPub.publish(msg);
             },
 
@@ -362,15 +454,25 @@
                 }
             },
 
-            _domainUpdated: function (changeRecord) {
-                console.debug("domainUpdated", pddlDomain);
+            _domainUpdated: function (changedDomain, changedList) {
+                if (changedDomain.value) {
+                    this.pddlDomain = changedDomain.value;
+                    this.getAction(this.actionName);
+                }
+
+                if (this.domainList && this.domainList.domains.length == 1) {
+                    this.domain_id = this.domainList.domains[0].domain_id;
+                }
+                /* console.debug('_domainUpdated ', this.pddlDomain);
+                console.debug('pddlAction is ', this.pddlAction); */
+
             },
 
 
             // If a new program is loaded, select step 0.
             _programChanged: function (program, oldProgram) {
 
-                console.log("Program changed: " + program);
+                console.log("Program changed:" + program);
                 if (!program) {
                     return;
                 }
@@ -384,7 +486,7 @@
             },
 
             _handleFeedback: function (evt) {
-                this.currentStepNum = evt.detail.step_number;
+                /* this.currentStepNum = evt.detail.step_number; */
             },
 
             _handleResult: function (evt) {
@@ -418,7 +520,7 @@
             },
 
             _isRunningChanged: function (isRunning) {
-                if (isRunning && this.$.rviz != null) {
+                /* if (isRunning && this.$.rviz != null) {
                     this.$.rviz.set('config.displays.1.isShown', false);
                     this.$.rviz.set('config.displays.2.isShown', false);
                     this.$.rviz.set('config.displays.3.isShown', false);
@@ -432,27 +534,28 @@
                     this.$.rviz.set('config.displays.4.isShown', false);
                     this.$.rviz.set('config.displays.5.isShown', false);
                     this.$.rviz.set('config.displays.6.isShown', false);
-                }
+                } */
             },
             _startDemo: function (evt) {
                 var now = new Date();
-                var name = 'Program for Action: ' + actionName;
+                var name = 'Program for: ' + this.actionName;
                 var request = {
                     name: name,
                 };
                 this.$.createSrv.call(request);
             },
 
-            _detect: function () {
+            _detect: function (evt) {
                 if (!this.ros) {
                     console.error('Unable to call detection right now.');
                     return;
                 }
+                var state = evt.target.getAttribute('data-args');
                 var msg = {
                     type: 'detect world state',
                     domain_id: this.domain_id,
-                    action_name: name,
-                    
+                    action_name: this.actionName,
+                    state_name: state
                 };
                 this.$.eventPub.publish(msg);
             },
@@ -465,6 +568,7 @@
                 dynamicSelect.num = this.nbPrecond;
                 var newId = "selectPrecond" + this.nbPrecond;
                 dynamicSelect.id = newId;
+                this._newPrecond = true;
                 dynamicSelect.addEventListener('delete', this.deletePred);
                 Polymer.dom(this.root).querySelector("#listeWorldState").appendChild(dynamicSelect);
             },
@@ -476,17 +580,112 @@
                 dynamicSelect.num = this.nbObj;
                 var newId = "selectObj" + this.nbObj;
                 dynamicSelect.id = newId;
+                this._newObj = true;
                 dynamicSelect.addEventListener('delete', this.deleteObj);
                 Polymer.dom(this.root).querySelector("#listeObjet").appendChild(dynamicSelect);
             },
             deleteObj: function (e) {
                 var name = "selectObj" + e.detail.id;
-                this.$.name.hello();
             },
             deletePred: function (e) {
                 // TODO
             },
 
+            _getName: function (all_types) {
+                var names = ['-'];
+                if (all_types) {
+                    for (var i = 0; i < all_types.length; ++i) {
+                        names.push(all_types[i].name);
+                    }
+                }
+                return names;
+            },
+
+            _getType: function (all_types) {
+                var names = ['-'];
+                console.debug('_getType: ', all_types);
+
+                if (all_types) {
+                    for (var i = 0; i < all_types.length; ++i) {
+                        names.push(all_types[i].type.name);
+                    }
+                }
+                return names;
+            },
+            _generateConditions: function () {
+                // check preconditions and effects are there
+                if (this.pddlAction.preconditions.length == 0) {
+                    console.error('No preconditions');
+                }
+                if (this.pddlAction.effects.length == 0) {
+                    console.error('No effects');
+                }
+                console.debug('#pre:', this.pddlAction.preconditions.length);
+                console.debug('#eff:', this.pddlAction.effects.length);
+
+                this._removeDuplicates(this.pddlAction.preconditions, this.pddlAction.effects);
+                console.debug('pre:', this.pddlAction.preconditions);
+                console.debug('eff:', this.pddlAction.effects);
+                console.debug('#pre:', this.pddlAction.preconditions.length);
+                console.debug('#eff:', this.pddlAction.effects.length);
+                var predList = this.pddlAction.preconditions.concat(this.pddlAction.effects)
+                var parms = this._getParams(predList);
+                console.debug('parms:', parms);
+                //this.save();
+            },
+            _removeDuplicates: function (list1, list2) {
+                // removes predicates which are in both lists
+
+                for (var i = 0; i < list1.length; ++i) {
+                    console.debug("_removeDuplicates: checking for... ", list1[i]);
+                    for (var j = 0; j < list2.length; ++j) {
+                        if (this._samePredicate(list1[i], list2[j])) {
+                            list1.splice(i, 1);
+                            list2.splice(j, 1);
+                            i--;
+                            break;
+                        }
+                    }
+                    console.debug("kept ", list1[i]);
+                }
+                return [list1, list2];
+            },
+            _samePredicate: function (pred1, pred2) {
+                if (pred1.name != pred2.name) {
+                    console.debug("_samePredicate: name ", pred1, pred2);
+                    return false;
+                }
+                if (pred1.arg1.name != pred2.arg1.name) {
+                    console.debug("_samePredicate: arg1 ", pred1, pred2);
+                    return false;
+                }
+                if (pred1.negate != pred2.negate) {
+                    console.debug("_samePredicate: negate ", pred1, pred2);
+                    return false;
+                }
+                if (pred1.arg2 && pred2.arg2 && pred1.arg2.name != pred2.arg2.name) {
+                    console.debug("_samePredicate: arg2 ", pred1, pred2);
+                    return false;
+                }
+                return true;
+            },
+            _getParams: function (predList) {
+                // use as predList = l1.concat(l2)
+                const params = new Set([]);
+
+                const nameList = new Set([]);
+                for (var i = 0; i < predList.length; ++i) {
+
+                    if (!nameList.has(predList[i].arg1.name)) {
+                        params.add(predList[i].arg1);
+
+                    }
+                    if (predList[i].arg2 && !nameList.has(predList[i].arg2)) {
+                        params.add(predList[i].arg2);
+                    }
+                }
+                return params;
+            }
         });
     </script>
 </dom-module>
