@@ -17,10 +17,7 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
-<link rel="import" href="../bower_components/paper-styles/color.html">
-<link rel="import" href="../bower_components/paper-styles/typography.html">
 
 <link rel="import" href="../bower_components/ros-param/ros-param.html">
 <link rel="import" href="../bower_components/ros-topic/ros-topic.html">
@@ -28,9 +25,9 @@
 <link rel="import" href="pbd-action-list.html">
 <link rel="import" href="pbd-program.html">
 <!-- <link rel="import" href="pbd-program-list.html"> -->
-<!-- <link rel="import" href="v2/pbd-help.html">
+<link rel="import" href="v2/pbd-help.html">
 <link rel="import" href="v2/pbd-home.html">
-<link rel="import" href="v2/pbd-robot-control.html"> -->
+<link rel="import" href="v2/pbd-robot-control.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="pbd-app2">
@@ -126,11 +123,8 @@
             <!-- Nav on desktop: tabs -->
             <paper-tabs selected="{{selected}}" attr-for-selected="name" bottom-item>
               <template is="dom-repeat" items="{{items}}">
-
                 <paper-tab name="{{item}}">
-
                   {{item}}
-
                 </paper-tab>
 
               </template>
