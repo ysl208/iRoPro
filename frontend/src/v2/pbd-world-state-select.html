@@ -44,10 +44,9 @@
             }
         </style>
         <!-- div uniquement pour le style du select -->
-        <div>
-
-            [[predicate.arg1.name]] is [[_negate(predicate.negate)]] [[name]] [[predicate.arg2.name]]
-            <!-- <select id="precond-[[num]]-1">
+        [[predicate.arg1.name]] is [[_negate(predicate.negate)]] [[name]] [[predicate.arg2.name]]
+        <!-- <div>
+            <select id="precond-[[num]]-1">
                 <option value="obj1">obj1</option>
                 <option value="obj2">obj2</option>
                 <option value="obj3">obj3</option>
@@ -67,8 +66,8 @@
                 <option value="obj1">obj1</option>
                 <option value="obj2" selected>obj2</option>
                 <option value="obj3">obj3</option>
-            </select>-->
-        </div>
+            </select>
+        </div>-->
         <!-- data-index$ permet de passer un parametre, récupéré par event.target.dataset.index -->
         <iron-icon on-click="delete" icon="delete-forever"></iron-icon>
     </template>

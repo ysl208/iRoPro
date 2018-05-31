@@ -13,13 +13,13 @@
 <link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="shared-styles.html">
-<link rel="import" href="v2/pbd-home.html">
-<link rel="import" href="v2/pbd-action-list.html">
-<link rel="import" href="v2/pbd-problem-list.html">
-<link rel="import" href="v2/pbd-help.html">
-<link rel="import" href="v2/pbd-new-action-1.html">
-<link rel="import" href="v2/pbd-new-action-2.html">
-<link rel="import" href="v2/pbd-robot-control.html">
+<link rel="import" href="pbd-home.html">
+<link rel="import" href="pbd-action-list.html">
+<link rel="import" href="pbd-problem-list.html">
+<link rel="import" href="pbd-help.html">
+<link rel="import" href="pbd-new-action-1.html">
+<link rel="import" href="pbd-new-action-2.html">
+<link rel="import" href="pbd-robot-control.html">
 
 <dom-module id="pbd-menu2">
   <template>
@@ -81,7 +81,7 @@
           <ros-param id="param" name="rapid_pbd/robot" string-val="{{_robot}}" ros="[[ros]]"></ros-param>
 
           <pbd-home name="home"></pbd-home>
-          <pbd-action-list name="action-list" ros="[[ros]]"></pbd-action-list>
+          <!-- <pbd-action-list name="action-list" ros="[[ros]]"></pbd-action-list> -->
           <pbd-problem-list name="problem-list"></pbd-problem-list>
           <pbd-help name="help"></pbd-help>
           <pbd-new-action-1 name="new-action-1"></pbd-new-action-1>

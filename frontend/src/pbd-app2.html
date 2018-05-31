@@ -128,7 +128,9 @@
               <template is="dom-repeat" items="{{items}}">
 
                 <paper-tab name="{{item}}">
-                  <a href="#/{{item}}">{{item}}</a>
+
+                  {{item}}
+
                 </paper-tab>
 
               </template>
@@ -147,7 +149,7 @@
       <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-program>
     </template>
     <template is="dom-if" restamp if="[[isSelected(selected,'Home')]]">
-      <!-- <pbd-home data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-home> -->
+      <pbd-home data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-home>
     </template>
     <template is="dom-if" restamp if="[[isSelected(selected,'Actions')]]">
       <pbd-action-list name="action-list" data-page="action-list" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-action-list>
@@ -159,7 +161,7 @@
       <pbd-robot-control data-page="robot-control" name="robot-control"></pbd-robot-control>
     </template>
     <template is="dom-if" restamp if="[[isSelected(selected,'Help')]]">
-      <!-- <pbd-help name="help"></pbd-help> -->
+      <pbd-help name="help"></pbd-help>
     </template>
 
 

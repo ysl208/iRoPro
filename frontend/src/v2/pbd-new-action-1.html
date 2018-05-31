@@ -127,11 +127,12 @@
                 </fieldset>
             </div>
             <div id="right">
-<!--                 <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
- -->            </div>
+                <!--                 <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
+ -->
+            </div>
         </div>
         <paper-button id="next" raised class="important">Start teaching module</paper-button>
-        
+
     </template>
     <script>
         Polymer({
@@ -229,7 +230,7 @@
                 this.$.eventPub.publish(msg);
             },
             _isRunningChanged: function (isRunning) {
-                if (isRunning) {
+                /* if (isRunning) {
                     this.$.rviz.set('config.displays.1.isShown', false);
                     this.$.rviz.set('config.displays.2.isShown', false);
                     this.$.rviz.set('config.displays.3.isShown', false);
@@ -243,7 +244,7 @@
                     this.$.rviz.set('config.displays.4.isShown', false);
                     this.$.rviz.set('config.displays.5.isShown', false);
                     this.$.rviz.set('config.displays.6.isShown', false);
-                }
+                } */
             },
 
         });
