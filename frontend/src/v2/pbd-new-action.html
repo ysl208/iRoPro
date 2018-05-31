@@ -755,6 +755,7 @@
                 var predList = this.pddlAction.preconditions.concat(this.pddlAction.effects)
                 var parms = this._getParams(predList);
                 console.debug('parms:', parms);
+                this.pddlAction.params = parms;
                 this.save();
             },
             _getPredicateDiff: function (list1, list2) {
@@ -792,18 +793,18 @@
                 return true;
             },
             _getParams: function (predList) {
-                // use as predList = l1.concat(l2)
-                const params = new Set([]);
+                var params = [];
 
                 const nameList = new Set([]);
                 for (var i = 0; i < predList.length; ++i) {
-
-                    if (!nameList.has(predList[i].arg1.name)) {
-                        params.add(predList[i].arg1);
+                    if (predList[i].arg1.name != '' && !nameList.has(predList[i].arg1.name)) {
+                        params.push(predList[i].arg1);
+                        nameList.add(predList[i].arg1.name);
 
                     }
-                    if (predList[i].arg2 && !nameList.has(predList[i].arg2)) {
-                        params.add(predList[i].arg2);
+                    if (predList[i].arg2 && predList[i].arg2.name != '' && !nameList.has(predList[i].arg2.name)) {
+                        params.push(predList[i].arg2);
+                        nameList.add(predList[i].arg2.name);
                     }
                 }
                 return params;
