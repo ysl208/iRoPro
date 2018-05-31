@@ -100,9 +100,16 @@
                 url="src/v2/control.php"
         ></iron-ajax>
         
-        <paper-dialog modal id="dialog">
+        <paper-dialog modal id="alertCameraBaxter">
             <h2>Can't open camera</h2>
             <p>Baxter is unable to open more than two camera at the same time. Please change the camera you want to see.</p>
+            <div id="buttons">
+              <paper-button dialog-confirm on-tap="close">Close</paper-button>
+            </div>
+        </paper-dialog>
+        <paper-dialog modal id="alertNone">
+            <h2>No camera to display</h2>
+            <p>Please change your choice of camera to display.</p>
             <div id="buttons">
               <paper-button dialog-confirm on-tap="close">Close</paper-button>
             </div>
@@ -148,18 +155,25 @@
                 currentSelect = this.$$("#" + this.selectCam[i]);
                 camerasList.push(currentSelect.options[currentSelect.selectedIndex].value);
             }
-            console.log(camerasList);
             if (camerasList.indexOf("/cameras/left_hand_camera/image")!=-1 && camerasList.indexOf("/cameras/right_hand_camera/image")!=-1 && camerasList.indexOf("/cameras/head_camera/image")!=-1) {
-                this.$.dialog.open();
+                this.$.alertCameraBaxter.open();
             } else {
-                this.$$('#displayCamera').set( 'params', {"display":"camera", 
+                var i = 0;
+                while (i < camerasList.length && camerasList[i] != "none") {
+                    i++;
+                }
+                if (i == 0) {
+                    this.$.alertNone.open();
+                } else {
+                    this.$$('#displayCamera').set( 'params', {"display":"camera", 
                                                             "top_left":top_left.options[top_left.selectedIndex].value,
                                                             "bottom_left":bottom_left.options[bottom_left.selectedIndex].value,
                                                             "top_right":top_right.options[top_right.selectedIndex].value,
                                                             "bottom_right":bottom_right.options[bottom_right.selectedIndex].value,
                                                             });
-                console.log(this.$$('#displayCamera').params);
-                this.$$('#displayCamera').generateRequest();
+                    this.$$('#displayCamera').generateRequest();
+                }
+                
             }}        
     });
   </script>

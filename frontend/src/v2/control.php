@@ -22,15 +22,15 @@
 
 	function tuckArms($state) {
 		$tucking = ($state == "true") ? "-u" : "-t";
-		$cmd = "./arms.sh $tucking";
+		$cmd = "./controlRobot.sh $tucking";
 		launchScript($cmd);
 	}
 
 	function displayEyes() {
-		launchScript("./displayEyes.sh");
+		launchScript("./controlRobot.sh -e");
 	}
 
 	function displayCamera($top_left_camera, $bottom_left_camera, $top_right_camera, $bottom_right_camera) {
-		launchScript("./displayCamera.sh $top_left_camera $bottom_left_camera $top_right_camera $bottom_right_camera");
+		launchScript("./controlRobot.sh -c $top_left_camera $bottom_left_camera $top_right_camera $bottom_right_camera");
 	}
 ?>
