@@ -19,8 +19,6 @@
 <link rel="import" href="../../bower_components/ros-service/ros-service.html">
 <link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
 <link rel="import" href="../../bower_components/ros-rviz/ros-rviz.html">
-<link rel="import" href="pbd-object-select.html">
-<link rel="import" href="pbd-world-state-select.html">
 <link rel="import" href="../shared-styles.html">
 <link rel="import" href="../underscore.html">
 
@@ -92,6 +90,13 @@
                 margin-top: 5px;
             }
 
+            .delete {
+                font-size: 80%;
+                padding: 0;
+                width: 5px;
+                color: black;
+            }
+
             .petit {
                 font-size: 80%;
                 /* margin-left: 20%; */
@@ -137,131 +142,134 @@
         <div id="layout" class="layout vertical">
             <div class="content">
                 <div id="stepContent">
-
                     <div>
+                        <paper-button class="back clear" on-tap="_goBeforeDemo" hidden$=[[!_finishedDemo]]>
+                            <iron-icon icon="arrow-back"></iron-icon> Back</paper-button>
                         <paper-input id="actionName" label="Action name" value="{{actionName}}" on-blur="save"></paper-input>
                         <a href="#/program/{{program.db_id}}">
                             <paper-button id="next" raised class="important" on-click="_startDemo">
-                                Start demo
+                                Demo Mode >
                             </paper-button>
                         </a>
                     </div>
-                    <fieldset>
 
-                        <paper-button class="petit" raised on-tap="_generateConditions">
-                            Generate Conditions
-                        </paper-button>
-                    </fieldset>
-                    <fieldset>
-                        <legend>
-                            World Instances
-                        </legend>
-                        <p>
-                            <b>Name</b>(type)
-                        </p>
-                        <br>
-                        <template is="dom-repeat" items="{{pddlAction.params}}" as="item" index-as="paramIndex">
-                            <div id="listeObjet">
-                                <pbd-object-select id="selectObj1" on-delete="deleteObj" num="1" pddlDomain="[[pddlDomain]]" pddlAction="[[pddlAction]]"
-                                    name="[[item.name]]" type="[[item.type.name]]" params="[[pddlAction.params]]"></pbd-object-select>
-                            </div>
-                        </template>
-                        <br>
-
-                        <paper-dropdown-menu label="New Instance">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInstance}}">
-                                <template is="dom-repeat" items="[[pddlAction.params]]">
-                                    <paper-item name="[[item]]">[[item.name]]([[item.type.name]])</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                        <br>
-                        <paper-button noink class="petit" on-click="addPredicate" data-args="Instance">+ add new instance</paper-button>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>
-                            <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
-                                Detect Preconditions
-                            </paper-button>
-                        </legend>
-
-                        <template is="dom-repeat" items="{{pddlAction.preconditions}}" as="item" index-as="paramIndex">
-                            <div id="listeWorldState">
-                                <!-- [[item.arg1.name]] is [[item.name]] [[item.arg2.name]] -->
-                                <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1" pddlDomain="[[pddlDomain]]" pddlAction="[[pddlAction]]"
-                                    name="[[item.name]]" newElem="0" predicate="[[item]]" params="[[pddlAction.params]]"></pbd-world-state-select>
-                            </div>
-                        </template>
-
-                        <paper-dropdown-menu label="Instance 1">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg1}}">
-                                <template is="dom-repeat" items="[[pddlAction.params]]">
-                                    <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg1">
-                                        [[item.name]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                        <paper-dropdown-menu label="Predicate">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.name}}">
-                                <template is="dom-repeat" items="[[pddlDomain.predicates]]">
-                                    <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newPrecondition.predicate.name">is [[item.name]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                        <paper-dropdown-menu label="Instance 2">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
-                                <template is="dom-repeat" items="[[pddlAction.params]]">
-                                    <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
-                                        [[item.name]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                        <br>
-                        <paper-button noink class="petit" on-click="addPredicate" data-args="Precondition">+ add new predicate</paper-button>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>
-                            <paper-button id="detect2" raised class="clear" on-tap="_detect" data-args="Effect">
+                    <!-- ***** BEFORE DEMO **** 1/2 -->
+                    <div id="beforeDemo" hidden$=[[_finishedDemo]]>
+                        <fieldset>
+                            <legend>
+                                <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
+                                    Detect World Instances
+                                </paper-button>
+                            </legend>
+                            <p>Verify all objects have been detected before proceeding.
+                                <br>
+                                <b>Name</b> (type)</p>
+                            <br>
+                            <template is="dom-repeat" items="{{sortByName(pddlAction.params)}}" as="item" index-as="paramIndex">
+                                <div id="listeObjet">
+                                    <paper-icon-button icon="check"></paper-icon-button>
+                                    [[item.name]] ([[item.type.name]])
+                                </div>
+                            </template>
+                            <br>
+                        </fieldset>
+                    </div>
+                    <!-- ***** AFTER DEMO **** 2/2 -->
+                    <div id="afterDemo" hidden$=[[!_finishedDemo]]>
+                        <fieldset>
+                            <paper-button id="detect2" raised class="petit" on-tap="_detect" data-args="Effect">
                                 Detect Effects
                             </paper-button>
-                        </legend>
+                            <paper-button class="petit" raised on-tap="_generateConditions">
+                                Generate Conditions
+                            </paper-button>
 
-                        <template is="dom-repeat" items="{{pddlAction.effects}}" as="item" index-as="paramIndex">
-                            <div id="listeWorldState2">
-                                <!-- [[item.arg1.name]] is [[item.name]] [[item.arg2.name]] -->
-                                <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1" pddlDomain="[[pddlDomain]]" pddlAction="[[pddlAction]]"
-                                    name="[[item.name]]" predicate="[[item]]" params="[[pddlAction.params]]"></pbd-world-state-select>
-                            </div>
-                        </template>
+                            <paper-button id="next" raised class="important" on-click="save">
+                                Save
+                            </paper-button>
+                        </fieldset>
+                        <fieldset>
+                            <legend>
+                                Preconditions
+                            </legend>
+                            <template is="dom-repeat" items="{{pddlAction.preconditions}}" as="item" index-as="paramIndex">
+                                <div id="listeWorldState">
+                                    [[item.arg1.name]] is [[item.name]] [[item.arg2.name]]
+                                    <paper-button class="delete" data-db-id="{{item}}" on-tap="deletePred">
+                                        <paper-icon-button icon="delete"></paper-icon-button>
+                                    </paper-button>
+                                </div>
+                            </template>
 
-                        <paper-dropdown-menu label="Instance 1">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg1}}">
-                                <template is="dom-repeat" items="[[pddlAction.params]]">
-                                    <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg1">
-                                        [[item.name]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                        <paper-dropdown-menu label="Predicate">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.name}}">
-                                <template is="dom-repeat" items="[[pddlDomain.predicates]]">
-                                    <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newEffect.predicate.name">is [[item.name]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                        <paper-dropdown-menu label="Instance 2">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
-                                <template is="dom-repeat" items="[[pddlAction.params]]">
-                                    <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
-                                        [[item.name]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                        <br>
-                        <paper-button noink class="petit" on-click="addPredicate" data-args="Effect">+ add new predicate</paper-button>
-                    </fieldset>
+                            <paper-dropdown-menu label="Instance 1">
+                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg1}}">
+                                    <template is="dom-repeat" items="[[pddlAction.params]]">
+                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg1">
+                                            [[item.name]]
+                                        </paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                            <paper-dropdown-menu label="Predicate">
+                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.name}}">
+                                    <template is="dom-repeat" items="[[pddlDomain.predicates]]">
+                                        <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newPrecondition.predicate.name">is [[item.name]]</paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                            <paper-dropdown-menu label="Instance 2">
+                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
+                                    <template is="dom-repeat" items="[[pddlAction.params]]">
+                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
+                                            [[item.name]]</paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                            <br>
+                            <paper-button noink class="petit" on-click="addPredicate" data-args="Precondition">+ add new predicate</paper-button>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>
+                                Effects
+                            </legend>
+
+                            <template is="dom-repeat" items="{{pddlAction.effects}}" as="item" index-as="paramIndex">
+                                <div id="listeWorldState2">
+                                    [[item.arg1.name]] is [[item.name]] [[item.arg2.name]]
+                                    <paper-button class="delete" data-db-id="{{item}}" on-tap="deletePred">
+                                        <paper-icon-button icon="delete"></paper-icon-button>
+                                    </paper-button>
+                                </div>
+                            </template>
+
+                            <paper-dropdown-menu label="Instance 1">
+                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg1}}">
+                                    <template is="dom-repeat" items="[[pddlAction.params]]">
+                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg1">
+                                            [[item.name]]</paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                            <paper-dropdown-menu label="Predicate">
+                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.name}}">
+                                    <template is="dom-repeat" items="[[pddlDomain.predicates]]">
+                                        <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newEffect.predicate.name">is [[item.name]]</paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                            <paper-dropdown-menu label="Instance 2">
+                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
+                                    <template is="dom-repeat" items="[[pddlAction.params]]">
+                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
+                                            [[item.name]]</paper-item>
+                                    </template>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                            <br>
+                            <paper-button noink class="petit" on-click="addPredicate" data-args="Effect">+ add new predicate</paper-button>
+                        </fieldset>
+                    </div>
                 </div>
                 <!-- <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz> -->
             </div>
@@ -280,7 +288,7 @@
     <script>
         Polymer({
             is: 'pbd-new-action',
-
+            _finishedDemo: false,
             properties: {
                 pddlAction: Object,
                 params: Object,
@@ -338,7 +346,7 @@
                     }
                 },
 
-                actionName: Object,
+                actionName: String,
                 nbObj: {
                     type: Number,
                     value: 1
@@ -501,7 +509,7 @@
             },
 
             saveOnExit: function () {
-                this.pddlAction.name = this.actionName;
+                //this.pddlAction.name = this.actionName;
                 var msg = {
                     type: 'save on exit action',
                     domain_id: this.domain_id,
@@ -546,16 +554,17 @@
                     console.debug("added Instance ", this.pddlAction.params);
                 }
 
-                this.save();
+                //this.save();
             },
             save: function () {
-                this.pddlAction.name = this.actionName;
+                //this.pddlAction.name = this.actionName;
                 var msg = {
                     type: 'update pddl action',
                     domain_id: this.domain_id,
-                    pddl_action: this.pddlAction,
+                    action_name: this.actionName,
+                    action: this.pddlAction
                 };
-                console.debug('Saving ', this.pddlAction);
+                console.debug('Saving ', this.pddlAction, " with name ", this.actionName);
                 this.$.eventPub.publish(msg);
             },
 
@@ -630,6 +639,7 @@
             },
             _handleServiceResponse(evt) {
                 var id = evt.detail.db_id;
+                this.pddlAction.program_id = id;
                 window.history.pushState({}, null, "#/program/" + id);
                 window.dispatchEvent(new CustomEvent("location-changed"));
             },
@@ -656,12 +666,19 @@
                 } */
             },
             _startDemo: function (evt) {
-                var now = new Date();
-                var name = 'Program for: ' + this.actionName;
-                var request = {
-                    name: name,
-                };
-                this.$.createSrv.call(request);
+                if (!this.pddlAction.program_id) {
+                    console.debug('New Program being created ... ');
+                    var name = 'Program for: ' + this.actionName;
+                    var request = {
+                        name: name,
+                    };
+                    this.$.createSrv.call(request);
+                } else {
+                    console.debug('Program already exists ... ', this.pddlAction.program_id);
+                    window.history.pushState({}, null, "#/program/" + this.pddlAction.program_id);
+                    window.dispatchEvent(new CustomEvent("location-changed"));
+                }
+                this._finishedDemo = true;
             },
 
             _detect: function (evt) {
@@ -756,7 +773,7 @@
                 var parms = this._getParams(predList);
                 console.debug('parms:', parms);
                 this.pddlAction.params = parms;
-                this.save();
+                //this.save();
             },
             _getPredicateDiff: function (list1, list2) {
                 // removes predicates which are in both lists
@@ -808,6 +825,17 @@
                     }
                 }
                 return params;
+            },
+            sortByName: function (arr) {
+                arr.sort(function (a, b) {
+                    if (a.name < b.name) return -1;
+                    if (a.name > b.name) return 1;
+                    return 0;
+                })
+                return arr;
+            },
+            _goBeforeDemo: function () {
+                this._finishedDemo = false;
             }
         });
     </script>

@@ -81,7 +81,7 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     } else if (event.type == msgs::EditorEvent::DELETE_PDDL_ACTION) {
       DeletePDDLAction(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_ACTION) {
-      UpdatePDDLAction(event.domain_id, event.pddl_action);
+      UpdatePDDLAction(event.domain_id, event.pddl_action, event.action_name);
     } else if (event.type == msgs::EditorEvent::DETECT_WORLD_STATE) {
       AddActionCondition(event.domain_id, event.action_name, event.state_name);
     }
@@ -144,7 +144,7 @@ std::string Editor::CreatePDDLDomain(const std::string& name) {
   msgs::PDDLDomain domain;
   if (!domain_db_.GetByName(name, &domain)) {
     pddl_domain_.Init(&domain, name);
-    std::string id = domain_db_.Insert(domain);  
+    std::string id = domain_db_.Insert(domain);
   }
 
   pddl_domain_.PublishPDDLDomain(domain);
@@ -167,7 +167,7 @@ std::string Editor::Create(const std::string& name) {
   World world;
   GetWorld(robot_config_, program, 0, &world);
   viz_.Publish(id, world);
-  //AddStep(id);
+  // AddStep(id);
   return id;
 }
 
@@ -1138,7 +1138,7 @@ void Editor::SaveOnExit(const std::string& db_id,
       action = pddl_domain_.domain_.actions[index];
       ROS_INFO("Action found...");
       // Add world state to Effects of action
-      //AddActionCondition(action, "Effect");
+      // AddActionCondition(action, "Effect");
     } else {
       ROS_ERROR("Could not save PDDL action named %s because it does not exist",
                 action_name.c_str());
@@ -1150,13 +1150,11 @@ void Editor::SaveOnExit(const std::string& db_id,
 void Editor::AddActionCondition(const std::string& domain_id,
                                 const std::string& action_name,
                                 const std::string& state_name) {
-
   // look for pddl domain
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
   if (!success) {
-    ROS_ERROR("Unable to get domain from \"%s\"",
-              domain_id.c_str());
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
 
@@ -1199,57 +1197,58 @@ void Editor::AddActionCondition(const std::string& domain_id,
       ROS_ERROR("Unknown condition type: %s", state_name.c_str());
     }
     PrintAllPredicates(world_state.predicates_, "");
-    UpdatePDDLAction(domain_id, new_action);
-
+    UpdatePDDLAction(domain_id, new_action, "");
   }
 }
 
 void Editor::AddPDDLAction(const std::string& domain_id,
                            const std::string& action_name) {
-    domain_db_.StartPublishingPDDLDomainById(domain_id);
+  domain_db_.StartPublishingPDDLDomainById(domain_id);
   ROS_INFO("Start add pddl action: %s", action_name.c_str());
 
   ROS_INFO("Trying to get %s from db", domain_id.c_str());
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
   if (!success) {
-    ROS_ERROR("Unable to get domain from \"%s\"",
-              domain_id.c_str());
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
   int index = FindPDDLAction(action_name, domain.actions);
   if (index >= 0) {
     ROS_INFO("Pddl action called %s already exists", action_name.c_str());
-    
-  } 
-    ROS_INFO("Creating new pddl action %s", action_name.c_str());
-    msgs::PDDLAction action;
-    action.name = action_name;
-    domain.actions.push_back(action);
-    domain_db_.Update(domain_id, domain);
-    pddl_domain_.PublishPDDLDomain(domain);
-  
+  }
+  ROS_INFO("Creating new pddl action %s", action_name.c_str());
+  msgs::PDDLAction action;
+  action.name = action_name;
+  domain.actions.push_back(action);
+  domain_db_.Update(domain_id, domain);
+  pddl_domain_.PublishPDDLDomain(domain);
 }
 
 void Editor::UpdatePDDLAction(const std::string& domain_id,
-                              const msgs::PDDLAction& action) {
+                              const msgs::PDDLAction& action,
+                              const std::string& action_name) {
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
   if (!success) {
-    ROS_ERROR("Unable to get domain from \"%s\"",
-              domain_id.c_str());
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
-  // TO DO: Test if it works
+
   int index = FindPDDLAction(action.name, domain.actions);
   if (index < 0) {
-    ROS_INFO("Pddl action %s does not exist but will be added", action.name.c_str());
+    ROS_INFO("Pddl action %s does not exist but will be added",
+             action.name.c_str());
     domain.actions.push_back(action);
   } else {
     domain.actions.at(index) = action;
   }
-    domain_db_.Update(domain_id, domain);
-    pddl_domain_.PublishPDDLDomain(domain);
+  // Update action name
+  if (action_name != "") {
+    domain.actions[index].name = action_name;
+  }
+  domain_db_.Update(domain_id, domain);
+  pddl_domain_.PublishPDDLDomain(domain);
 }
 
 void Editor::DeletePDDLAction(const std::string& domain_id,
@@ -1257,8 +1256,7 @@ void Editor::DeletePDDLAction(const std::string& domain_id,
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
   if (!success) {
-    ROS_ERROR("Unable to get domain from \"%s\"",
-              domain_id.c_str());
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
   // TO DO: Test if it works
