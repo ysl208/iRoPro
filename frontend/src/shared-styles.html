@@ -10,36 +10,62 @@
         @apply(--paper-font-button);
         margin-left: 0;
       }
+
       paper-button.normal {
         background-color: var(--paper-grey-300);
       }
+
       paper-button.normal:hover {
         background-color: var(--paper-grey-500);
       }
+
       paper-button.clear {
         color: #000;
         background-color: transparent;
       }
+
       paper-button.clear:hover {
         background-color: var(--paper-grey-300);
       }
+
+      paper-button.cancel {
+        color: #000;
+        background-color: transparent;
+        text-align: right;
+      }
+
+      paper-button.cancel:hover {
+        background-color: var(--paper-grey-300);
+      }
+
       paper-button.important {
         color: #000;
         background-color: var(--paper-amber-500);
       }
+
       paper-button.important:hover {
         background-color: var(--paper-amber-300);
       }
+
       paper-button.delete {
         background-color: transparent;
         color: var(--paper-red-500);
       }
+
       paper-button.delete:hover {
         background-color: var(--paper-red-100);
       }
+
+      paper-icon-button {
+        width: 20px;
+        height: 20px;
+        padding: 1px;
+      }
+
       .paper-material {
         @apply --paper-material-elevation-1;
       }
+
       [hidden] {
         display: none;
       }
@@ -54,9 +80,11 @@
         border: none;
         font-size: 14px;
         height: 29px;
-        padding: 5px; /* If you add too much padding here, the options won't show in IE */
+        padding: 5px;
+        /* If you add too much padding here, the options won't show in IE */
         width: 248px;
       }
+
       .styled-select.slate {
         background: url(http://i62.tinypic.com/2e3ybe1.jpg) no-repeat right center;
         height: 34px;

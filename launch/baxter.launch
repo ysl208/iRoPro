@@ -23,6 +23,8 @@
     </node>
     <rosparam command="load" file="$(find rapid_pbd)/config/surface_segmentation.yaml" />
     <node pkg="rapid_pbd" type="surface_segmentation_node" name="surface_segmentation_node" args="$(arg point_cloud_topic)" />
+
+    <rosparam command="load" file="$(find rapid_pbd)/config/planning_domain.yaml" />
   </group>
 
   <!-- Depth cloud -->

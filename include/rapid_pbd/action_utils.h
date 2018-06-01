@@ -6,14 +6,15 @@
 
 #include "rapid_pbd_msgs/Action.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 // Gets the first point of the joint trajectory specified in the action.
-bool HasJointValues(const rapid_pbd_msgs::Action& action);
+bool HasJointValues(const msgs::Action& action);
 
 // Gets the joint positions for the first point of the action's joint
 // trajectory.
-void GetJointPositions(const rapid_pbd_msgs::Action& action,
+void GetJointPositions(const msgs::Action& action,
                        std::vector<std::string>* joint_names,
                        std::vector<double>* joint_positions);
 
@@ -21,7 +22,7 @@ void GetJointPositions(const rapid_pbd_msgs::Action& action,
 // trajectory.
 void SetJointPositions(const std::vector<std::string>& joint_names,
                        const std::vector<double>& joint_positions,
-                       rapid_pbd_msgs::Action* action);
+                       msgs::Action* action);
 }  // namespace pbd
 }  // namespace rapid
 

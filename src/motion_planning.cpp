@@ -71,7 +71,8 @@ string MotionPlanning::AddPoseGoal(
     graph.Add("landmark", tg::RefFrame(base_link), st);
   } else if (landmark.type == msgs::Landmark::SURFACE_BOX) {
     msgs::Landmark match;
-    bool success = MatchLandmark(*world_, landmark, &match);
+    double variance = 0.075;
+    bool success = MatchLandmark(*world_, landmark, &match, variance);
     if (!success) {
       return errors::kNoLandmarksMatch;
     }
@@ -122,6 +123,11 @@ string MotionPlanning::AddPoseGoal(
       ik_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
   if (!success) {
     std::string error("No IK solution found");
+    // std::cout << pose_in_base << std::endl;
+    ROS_INFO("%f %f %f, %f %f %f %f", pose_in_base.position.x,
+             pose_in_base.position.y, pose_in_base.position.z,
+             pose_in_base.orientation.x, pose_in_base.orientation.y,
+             pose_in_base.orientation.z, pose_in_base.orientation.w);
     ROS_ERROR("%s", error.c_str());
     return error;
   }
@@ -155,6 +161,7 @@ std::string MotionPlanning::AddJointGoal(
     return error;
   }
 
+  std::map<std::string, double> goal;
   for (size_t i = 0; i < joint_names.size(); ++i) {
     current_joint_goal_[joint_names[i]] = joint_positions[i];
   }
@@ -188,6 +195,7 @@ void MotionPlanning::ClearGoals() {
     robot_state_.config.joints_for_group(msgs::Action::RIGHT_ARM, &joints);
     std::vector<double> joint_values;
     robot_state_.js_reader.get_positions(joints, &joint_values);
+    
     current_joint_goal_.clear();
     for (size_t i = 0; i < joints.size(); ++i) {
       current_joint_goal_[joints[i]] = joint_values[i];
@@ -280,7 +288,8 @@ std::string ErrorCodeToString(const MoveItErrorCodes& code) {
   return ss.str();
 }
 
-void MotionPlanning::PublishCollisionObject(const moveit_msgs::CollisionObject& obj) {
+void MotionPlanning::PublishCollisionObject(
+    const moveit_msgs::CollisionObject& obj) {
   moveit_msgs::PlanningScene scene;
   scene.world.collision_objects.push_back(obj);
   scene.is_diff = true;

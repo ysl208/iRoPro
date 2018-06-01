@@ -31,6 +31,12 @@ static const char kSurfaceSegmentationActionName[] = "segment_surfaces_action";
 namespace pr2 {
 static const char kLeftGripperActionName[] =
     "/l_gripper_controller/gripper_action";
+// rostopics for l_gripper controller - same as head
+// Type: pr2_controllers_msgs/Pr2GripperCommandActionGoal
+// subscribers: /l_gripper_controller/gripper_action_node
+// node publishes:  /l_gripper_controller/command
+// [pr2_controllers_msgs/Pr2GripperCommand]
+
 static const char kRightGripperActionName[] =
     "/r_gripper_controller/gripper_action";
 static const char kListControllersService[] =
@@ -39,6 +45,14 @@ static const char kSwitchControllerService[] =
     "/pr2_controller_manager/switch_controller";
 static const char kHeadActionName[] =
     "/head_traj_controller/follow_joint_trajectory";
+// rostopics for head traj when loading sim
+// type: control_msgs/FollowJointTrajectoryActionGoal
+
+// /head_traj_controller/follow_joint_trajectory/cancel
+// /head_traj_controller/follow_joint_trajectory/feedback
+// /head_traj_controller/follow_joint_trajectory/goal
+// /head_traj_controller/follow_joint_trajectory/result
+// /head_traj_controller/follow_joint_trajectory/status
 }  // namespace pr2
 
 namespace fetch {

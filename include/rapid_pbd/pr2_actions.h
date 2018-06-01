@@ -15,6 +15,7 @@
 #include "rapid_pbd_msgs/FreezeArm.h"
 #include "rapid_pbd_msgs/RelaxArm.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace {
 typedef actionlib::SimpleActionClient<
     pr2_controllers_msgs::Pr2GripperCommandAction>
@@ -49,10 +50,10 @@ class ArmControllerManager {
   // Publishes an initial state message.
   void Start();
 
-  bool HandleFreeze(rapid_pbd_msgs::FreezeArmRequest& request,
-                    rapid_pbd_msgs::FreezeArmResponse& response);
-  bool HandleRelax(rapid_pbd_msgs::RelaxArmRequest& request,
-                   rapid_pbd_msgs::RelaxArmResponse& response);
+  bool HandleFreeze(msgs::FreezeArmRequest& request,
+                    msgs::FreezeArmResponse& response);
+  bool HandleRelax(msgs::RelaxArmRequest& request,
+                   msgs::RelaxArmResponse& response);
 
  private:
   void Update();

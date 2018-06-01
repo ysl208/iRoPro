@@ -53,6 +53,11 @@
       <paper-input label="x" value="[[action.pose.position.x]]" on-change="_xChanged"></paper-input>
       <paper-input label="y" value="[[action.pose.position.y]]" on-change="_yChanged"></paper-input>
       <paper-input label="z" value="[[action.pose.position.z]]" on-change="_zChanged"></paper-input>
+
+      <paper-input label="w" value="[[action.pose.orientation.w]]" on-change="_wOriChanged"></paper-input>
+      <paper-input label="x" value="[[action.pose.orientation.x]]" on-change="_xOriChanged"></paper-input>
+      <paper-input label="y" value="[[action.pose.orientation.y]]" on-change="_yOriChanged"></paper-input>
+      <paper-input label="z" value="[[action.pose.orientation.z]]" on-change="_zOriChanged"></paper-input>
     </div>
   </template>
   <script>
@@ -161,6 +166,18 @@
       },
       _zChanged: function (evt) {
         this._parseString(evt.target.value, 'action.pose.position.z');
+      },
+      _wOriChanged: function (evt) {
+        this._parseString(evt.target.value, 'action.pose.orientation.w');
+      },
+      _xOriChanged: function (evt) {
+        this._parseString(evt.target.value, 'action.pose.orientation.x');
+      },
+      _yOriChanged: function (evt) {
+        this._parseString(evt.target.value, 'action.pose.orientation.y');
+      },
+      _zOriChanged: function (evt) {
+        this._parseString(evt.target.value, 'action.pose.orientation.z');
       },
 
       _parseString: function (s, key) {

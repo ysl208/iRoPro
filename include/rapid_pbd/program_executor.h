@@ -12,6 +12,7 @@
 #include "rapid_pbd/runtime_robot_state.h"
 #include "rapid_pbd/visualizer.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 class ProgramExecutionServer {
@@ -22,12 +23,13 @@ class ProgramExecutionServer {
                          const RuntimeRobotState& robot_state,
                          const RuntimeVisualizer& runtime_viz,
                          const ProgramDb& program_db,
-                         const ros::Publisher& planning_scene_pub);
+                         const ros::Publisher& planning_scene_pub,
+                         const ros::Publisher& condition_check_pub);
   void Start();
 
  private:
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<rapid_pbd_msgs::ExecuteProgramAction> server_;
+  actionlib::SimpleActionServer<msgs::ExecuteProgramAction> server_;
   ros::ServiceClient freeze_arm_client_;
   ros::Publisher is_running_pub_;
   ActionClients* action_clients_;
@@ -35,13 +37,15 @@ class ProgramExecutionServer {
   RuntimeVisualizer runtime_viz_;
   const ProgramDb& program_db_;
   ros::Publisher planning_scene_pub_;
+  ros::Publisher condition_check_pub_;
 
-  void Execute(const rapid_pbd_msgs::ExecuteProgramGoalConstPtr& goal);
-  static bool IsValid(const rapid_pbd_msgs::Program& program);
+  void Execute(const msgs::ExecuteProgramGoalConstPtr& goal);
+  static bool IsValid(const msgs::Program& program);
   void PublishIsRunning(bool is_running);
   void Cancel(const std::string& error);
 
-  // Runs all necessary steps to finish up a program execution, regardless of whether it succeeded or failed.
+  // Runs all necessary steps to finish up a program execution, regardless of
+  // whether it succeeded or failed.
   void Finish();
 };
 }  // namespace pbd

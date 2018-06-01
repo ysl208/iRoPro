@@ -10,171 +10,145 @@
 <link rel="import" href="../shared-styles.html">
 
 <dom-module id="pbd-robot-control">
-  <template>
-    <style include="../shared-styles"></style>
-    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
-    <style>
-      :host {
-        display: block;
-      }
-
-      #next {
-        margin-right: 10%;
-        float: right;
-      }
-
-      paper-button {
-          margin: 1%;
-      }
-
-      fieldset {
-          margin-bottom: 2%;
-      }
-
-      .styled-select {
-          display: inline-block;
-          vertical-align: top;
-          margin: 2%;
-      }
-      .styled-select {
-            background: url(http://i62.tinypic.com/15xvbd5.png) no-repeat 96% 0;
-            height: 29px;
-            overflow: hidden;
-            width: 174px;
-        }
-        .styled-select select {
-            background: transparent;
-            border: none;
-            font-size: 14px;
-            height: 29px;
-            padding: 5px; /* If you add too much padding here, the options won't show in IE */
-            width: 202px;
-        }
-        .styled-select.slate {
-            background: url(http://i62.tinypic.com/2e3ybe1.jpg) no-repeat right center;
-            height: 34px;
-            width: 174px;
-        }
-        .styled-select.slate select {
-            border: 1px solid #ccc;
-            font-size: 16px;
-            height: 34px;
-            width: 202px;
-        }
-    </style>
-    <h1 align="center">Robot Control</h1>
-
-    <fieldset>
-        <legend>Arms control</legend>
-            <paper-button class="style-scope canvas-view" raised on-tap="tuckArmRequest">Tuck arms</paper-button>
-            <iron-ajax
-                id="tuckArm"
-                method="GET"
-                url="src/v2/control.php"
-                params='{"untuckArm":"false"}'
-            ></iron-ajax>
-            
-        <paper-button class="style-scope canvas-view" raised on-tap="untuckArmRequest">Untuck arms</paper-button>
-        <iron-ajax
-                id="untuckArm"
-                method="GET"
-                url="src/v2/control.php"
-                params='{"untuckArm":"true"}'
-        ></iron-ajax>
-    </fieldset>
-
-    <fieldset>
-        <legend>Display on robot screen</legend>
-
-        <paper-button class="style-scope canvas-view" raised on-tap="displayEyesRequest">Eyes</paper-button>
-        <iron-ajax
-                id="displayEyes"
-                method="GET"
-                url="src/v2/control.php"
-                params='{"display":"eyes"}'
-        ></iron-ajax>
-        <paper-button class="style-scope canvas-view" raised on-tap="displayCameraRequest">Camera</paper-button>
-        <iron-ajax
-                id="displayCamera"
-                method="GET"
-                url="src/v2/control.php"
-        ></iron-ajax>
-        
-        <paper-dialog modal id="alertCameraBaxter">
-            <h2>Can't open camera</h2>
-            <p>Baxter is unable to open more than two camera at the same time. Please change the camera you want to see.</p>
-            <div id="buttons">
-              <paper-button dialog-confirm on-tap="close">Close</paper-button>
-            </div>
-        </paper-dialog>
-        <paper-dialog modal id="alertNone">
-            <h2>No camera to display</h2>
-            <p>Please change your choice of camera to display.</p>
-            <div id="buttons">
-              <paper-button dialog-confirm on-tap="close">Close</paper-button>
-            </div>
-          </paper-dialog>
-        <fieldset>
-            <legend>Camera's image to display</legend>
-            <template is="dom-repeat" items="{{selectCam}}">
-                <div class="styled-select slate">
-                    <select id="{{item}}">
-                        <option value="/cameras/left_hand_camera/image">left hand camera</option>
-                        <option value="/cameras/right_hand_camera/image">right hand camera</option>
-                        <option value="/cameras/head_camera/image">head camera</option>
-                        <option value="/kinect2/hd/image_color">kinect camera</option>
-                        <option value="none" selected>none</option>
-                    </select>
-                </div>
-            </template>
-        </fieldset>
-    </fieldset>
-  </template>
-  <script>
-    Polymer({
-        is: 'pbd-robot-control',
-        ready: function() {
-            this.selectCam = ["top_left", "bottom_left", "top_right", "bottom_right"];
-        },
-        tuckArmRequest: function (event) {
-            this.$$('#tuckArm').generateRequest();
-        },
-        untuckArmRequest: function (event) {
-            this.$$('#untuckArm').generateRequest();
-        },
-        displayEyesRequest: function (event) {
-            this.$$('#displayEyes').generateRequest();
-        },
-        displayCameraRequest: function (event) {
-            top_left = this.$$("#top_left");
-            bottom_left = this.$$("#bottom_left");
-            top_right = this.$$("#top_right");
-            bottom_right = this.$$("#bottom_right");
-            camerasList = [];
-            for (var i = 0; i<this.selectCam.length; i++)  {
-                currentSelect = this.$$("#" + this.selectCam[i]);
-                camerasList.push(currentSelect.options[currentSelect.selectedIndex].value);
+    <template>
+        <style include="../shared-styles"></style>
+        <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+        <style>
+            :host {
+                display: block;
             }
-            if (camerasList.indexOf("/cameras/left_hand_camera/image")!=-1 && camerasList.indexOf("/cameras/right_hand_camera/image")!=-1 && camerasList.indexOf("/cameras/head_camera/image")!=-1) {
-                this.$.alertCameraBaxter.open();
-            } else {
-                var i = 0;
-                while (i < camerasList.length && camerasList[i] != "none") {
-                    i++;
+
+            #next {
+                margin-right: 10%;
+                float: right;
+            }
+
+            paper-button {
+                margin: 1%;
+            }
+
+            fieldset {
+                margin-bottom: 2%;
+            }
+
+            .styled-select {
+                display: inline-block;
+                vertical-align: top;
+                margin: 2%;
+            }
+
+            .styled-select {
+                background: url(http://i62.tinypic.com/15xvbd5.png) no-repeat 96% 0;
+                height: 29px;
+                overflow: hidden;
+                width: 174px;
+            }
+
+            .styled-select select {
+                background: transparent;
+                border: none;
+                font-size: 14px;
+                height: 29px;
+                padding: 5px;
+                /* If you add too much padding here, the options won't show in IE */
+                width: 202px;
+            }
+
+            .styled-select.slate {
+                background: url(http://i62.tinypic.com/2e3ybe1.jpg) no-repeat right center;
+                height: 34px;
+                width: 174px;
+            }
+
+            .styled-select.slate select {
+                border: 1px solid #ccc;
+                font-size: 16px;
+                height: 34px;
+                width: 202px;
+            }
+        </style>
+        <!-- <h1 align="center">Robot Control</h1> -->
+
+        <fieldset>
+            <legend>Arms control</legend>
+            <paper-button class="style-scope canvas-view" raised on-tap="tuckArmRequest">Tuck arms</paper-button>
+            <iron-ajax id="tuckArm" method="GET" url="src/v2/control.php" params='{"untuckArm":"false"}'></iron-ajax>
+
+            <paper-button class="style-scope canvas-view" raised on-tap="untuckArmRequest">Untuck arms</paper-button>
+            <iron-ajax id="untuckArm" method="GET" url="src/v2/control.php" params='{"untuckArm":"true"}'></iron-ajax>
+        </fieldset>
+
+        <fieldset>
+            <legend>Display on robot screen</legend>
+
+            <paper-button class="style-scope canvas-view" raised on-tap="displayEyesRequest">Eyes</paper-button>
+            <iron-ajax id="displayEyes" method="GET" url="src/v2/control.php" params='{"display":"eyes"}'></iron-ajax>
+            <paper-button class="style-scope canvas-view" raised on-tap="displayCameraRequest">Camera</paper-button>
+            <iron-ajax id="displayCamera" method="GET" url="src/v2/control.php"></iron-ajax>
+
+            <paper-dialog modal id="dialog">
+                <h2>Can't open camera</h2>
+                <p>Baxter is unable to open more than two camera at the same time. Please change the camera you want to see.</p>
+                <div id="buttons">
+                    <paper-button dialog-confirm on-tap="close">Close</paper-button>
+                </div>
+            </paper-dialog>
+            <fieldset>
+                <legend>Camera's image to display</legend>
+                <template is="dom-repeat" items="{{selectCam}}">
+                    <div class="styled-select slate">
+                        <select id="{{item}}">
+                            <option value="/cameras/left_hand_camera/image">left hand camera</option>
+                            <option value="/cameras/right_hand_camera/image">right hand camera</option>
+                            <option value="/cameras/head_camera/image">head camera</option>
+                            <option value="/kinect2/hd/image_color">kinect camera</option>
+                            <option value="none" selected>none</option>
+                        </select>
+                    </div>
+                </template>
+            </fieldset>
+        </fieldset>
+    </template>
+    <script>
+        Polymer({
+            is: 'pbd-robot-control',
+            ready: function () {
+                this.selectCam = ["top_left", "bottom_left", "top_right", "bottom_right"];
+            },
+            tuckArmRequest: function (event) {
+                this.$$('#tuckArm').generateRequest();
+            },
+            untuckArmRequest: function (event) {
+                this.$$('#untuckArm').generateRequest();
+            },
+            displayEyesRequest: function (event) {
+                this.$$('#displayEyes').generateRequest();
+            },
+            displayCameraRequest: function (event) {
+                top_left = this.$$("#top_left");
+                bottom_left = this.$$("#bottom_left");
+                top_right = this.$$("#top_right");
+                bottom_right = this.$$("#bottom_right");
+                camerasList = [];
+                for (var i = 0; i < this.selectCam.length; i++) {
+                    currentSelect = this.$$("#" + this.selectCam[i]);
+                    camerasList.push(currentSelect.options[currentSelect.selectedIndex].value);
                 }
-                if (i == 0) {
-                    this.$.alertNone.open();
+                console.log(camerasList);
+                if (camerasList.indexOf("/cameras/left_hand_camera/image") != -1 && camerasList.indexOf("/cameras/right_hand_camera/image") != -1 && camerasList.indexOf("/cameras/head_camera/image") != -1) {
+                    this.$.dialog.open();
                 } else {
-                    this.$$('#displayCamera').set( 'params', {"display":"camera", 
-                                                            "top_left":top_left.options[top_left.selectedIndex].value,
-                                                            "bottom_left":bottom_left.options[bottom_left.selectedIndex].value,
-                                                            "top_right":top_right.options[top_right.selectedIndex].value,
-                                                            "bottom_right":bottom_right.options[bottom_right.selectedIndex].value,
-                                                            });
+                    this.$$('#displayCamera').set('params', {
+                        "display": "camera",
+                        "top_left": top_left.options[top_left.selectedIndex].value,
+                        "bottom_left": bottom_left.options[bottom_left.selectedIndex].value,
+                        "top_right": top_right.options[top_right.selectedIndex].value,
+                        "bottom_right": bottom_right.options[bottom_right.selectedIndex].value,
+                    });
+                    console.log(this.$$('#displayCamera').params);
                     this.$$('#displayCamera').generateRequest();
                 }
-                
-            }}        
-    });
-  </script>
+            }
+        });
+    </script>
 </dom-module>

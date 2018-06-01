@@ -4,8 +4,8 @@
   "main": "index.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
-    "app-route": "PolymerElements/app-route#^2.1.1",
-    "iron-pages": "PolymerElements/iron-pages#^2.1.1",
+    "app-route": "PolymerElements/app-route#^2.0.0",
+    "iron-pages": "PolymerElements/iron-pages#^2.0.0",
     "ros-websocket": "jstnhuang/ros-websocket#^3.0.0",
     "paper-dialog": "PolymerElements/paper-dialog#^2.0.0",
     "paper-button": "PolymerElements/paper-button#^2.0.0",
@@ -24,10 +24,8 @@
     "ros-rviz": "jstnhuang/ros-rviz#^3.0.0",
     "underscore": "^1.8.3",
     "ros-param": "jstnhuang/ros-param#^0.1.0",
-    "paper-tabs": "PolymerElements/paper-tabs#^2.1.1",
-    "paper-header-panel": "PolymerElements/paper-header-panel#^2.1.0",
-    "paper-toolbar": "PolymerElements/paper-toolbar#^2.1.0",
-    "vaadin-combo-box": "vaadin/vaadin-combo-box#^4.0.1"
+    "web-animations-js": "^2.3.1",
+    "paper-tabs": "PolymerElements/paper-tabs#^2.1.1"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^2.0.0",

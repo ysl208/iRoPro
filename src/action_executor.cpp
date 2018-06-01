@@ -6,6 +6,7 @@
 #include "actionlib/server/simple_action_server.h"
 #include "control_msgs/FollowJointTrajectoryAction.h"
 #include "control_msgs/GripperCommandAction.h"
+#include "rapid_pbd_msgs/ConditionCheckInfo.h"
 #include "rapid_pbd_msgs/SegmentSurfacesAction.h"
 #include "ros/ros.h"
 #include "visualization_msgs/MarkerArray.h"
@@ -30,12 +31,15 @@ namespace rapid {
 namespace pbd {
 ActionExecutor::ActionExecutor(const Action& action,
                                ActionClients* action_clients,
-                               MotionPlanning* motion_planning, World* world,
-                               const RobotConfig& robot_config,
+                               MotionPlanning* motion_planning,
+                               ConditionChecker* condition_checker,
+
+                               World* world, const RobotConfig& robot_config,
                                const RuntimeVisualizer& runtime_viz)
     : action_(action),
       clients_(action_clients),
       motion_planning_(motion_planning),
+      condition_checker_(condition_checker),
       world_(world),
       robot_config_(robot_config),
       runtime_viz_(runtime_viz) {}
@@ -72,6 +76,8 @@ bool ActionExecutor::IsValid(const Action& action) {
     }
   } else if (action.type == Action::DETECT_TABLETOP_OBJECTS) {
   } else if (action.type == Action::FIND_CUSTOM_LANDMARK) {
+  } else if (action.type == Action::CHECK_CONDITIONS) {
+  } else if (action.type == Action::INFER_SPECIFICATION) {
   } else {
     ROS_ERROR("Invalid action type: \"%s\"", action.type.c_str());
     return false;
@@ -111,6 +117,10 @@ std::string ActionExecutor::Start() {
                                          joint_positions);
   } else if (action_.type == Action::DETECT_TABLETOP_OBJECTS) {
     DetectTabletopObjects();
+  } else if (action_.type == Action::CHECK_CONDITIONS) {
+    std::string result = condition_checker_->CheckConditions(action_.condition);
+    ROS_INFO("CheckConditions result: %s", result.c_str());
+    return result;
   }
   return "";
 }
@@ -128,7 +138,7 @@ bool ActionExecutor::IsDone(std::string* error) const {
     if (action_.actuator_group == Action::HEAD) {
       return clients_->head_client.getState().isDone();
     } else {
-      // Arm motions are controlled by motion planning in the step executor.
+      // Arm motions are controlled by motion_planning in the step executor.
       return true;
     }
   } else if (action_.type == Action::DETECT_TABLETOP_OBJECTS) {
@@ -170,6 +180,12 @@ bool ActionExecutor::IsDone(std::string* error) const {
       }
     }
     return done;
+  } else if (action_.type == Action::CHECK_CONDITIONS) {
+    // handled by check_condition: return array of failed conditions?
+    // return only earliest failed condition?
+    condition_checker_->PublishConditionCheck();
+    bool done = condition_checker_->GetConditionCheckMsg().passed;
+    return done;
   }
   return true;
 }
@@ -191,6 +207,7 @@ void ActionExecutor::Cancel() {
     }
   } else if (action_.type == Action::DETECT_TABLETOP_OBJECTS) {
     clients_->surface_segmentation_client.cancelAllGoals();
+  } else if (action_.type == Action::CHECK_CONDITIONS) {
   }
 }
 
@@ -212,7 +229,7 @@ void ActionExecutor::ActuateGripper() {
 }
 
 void ActionExecutor::DetectTabletopObjects() {
-  rapid_pbd_msgs::SegmentSurfacesGoal goal;
+  msgs::SegmentSurfacesGoal goal;
   goal.save_cloud = false;
   clients_->surface_segmentation_client.sendGoal(goal);
 }

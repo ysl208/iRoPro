@@ -1,10 +1,12 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-styles/color.html">
 <link rel="import" href="../bower_components/ros-topic/ros-topic.html">
 <link rel="import" href="pbd-action.html">
 <link rel="import" href="pbd-action-picker.html">
+<link rel="import" href="pbd-spec-picker.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="pbd-step">
@@ -12,7 +14,7 @@
     <style include="shared-styles"></style>
     <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
     <style>
-       :host {
+      :host {
         display: block;
       }
 
@@ -26,18 +28,39 @@
         height: 30px;
       }
 
+      .title paper-icon-button {
+        color: var(--paper-grey-500);
+      }
+
       h3 {
         margin: auto 0px;
         display: inline-block;
       }
+
+      p {
+        margin: auto 0px;
+        display: block;
+        font-size: 80%;
+      }
     </style>
     <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
     <div class="center horizontal layout title">
-      <h3>Step [[_stepNum(index)]]</h3>
-      <span class="flex"></span>
-      <paper-button class="add important" on-tap="_togglePicker">+ Add parallel action</paper-button>
-      <paper-button class="delete" on-tap="_maybeDeleteStep">Delete</paper-button>
+      <h3>[[_title(index)]]</h3>
+      <span class="flex"> </span>
+      <!-- <paper-button class="add important" on-tap="_toggleSpecPicker">+ Specs</paper-button> -->
+
+      <paper-button class="add important" on-tap="_togglePicker">+ parallel action</paper-button>
+      <!-- <paper-button class="delete" hidden$="[[isSenseStep(index)]]" on-tap="_maybeDeleteStep">DEL</paper-button> -->
+      <paper-icon-button icon="delete" hidden$="[[isSenseStep(index)]]" on-tap="_maybeDeleteStep"></paper-icon-button>
     </div>
+    <div>
+      <p>[[_description(index)]]</p>
+    </div>
+    <iron-collapse id="specPicker">
+      <pbd-spec-picker class="dropdown-content" index="[[index]]" landmarks="[[landmarks]]" params="[[params]]" program="[[program]]"
+        ros="[[ros]]" on-iron-select="_selectSpec" on-iron-deselect="closeSpecPicker"></pbd-spec-picker>
+    </iron-collapse>
+
     <iron-collapse id="picker">
       <pbd-action-picker class="dropdown-content" params="[[params]]" ros="[[ros]]" on-iron-select="_addAction" on-iron-deselect="closeActionPicker"></pbd-action-picker>
     </iron-collapse>
@@ -46,7 +69,7 @@
     </div>
     <template is="dom-repeat" items="{{step.actions}}" as="action" index-as="stepIndex">
       <pbd-action action="{{action}}" params="[[params]]" program-id="[[programId]]" step-num="[[index]]" index="[[stepIndex]]"
-        landmarks="[[landmarks]]" on-delete="_handleDeleteAction" ros="[[ros]]"></pbd-action>
+        program="[[program]]" landmarks="[[landmarks]]" on-delete="_handleDeleteAction" ros="[[ros]]"></pbd-action>
     </template>
     <paper-dialog id="deleteDialog" modal>
       <h2>Delete step [[_stepNum(index)]]?</h2>
@@ -110,7 +133,7 @@
         } else {
           console.error('Unknown robot type', this.params.robot);
         }
-        
+
 
         var landmarks = [
           {
@@ -118,7 +141,8 @@
             name: base_link
           }, {
             type: 'tf frame',
-            name: torso_link          }
+            name: torso_link
+          }
         ];
         landmarks = landmarks.concat(surfaceLandmarks);
         this.set('landmarks', landmarks);
@@ -169,6 +193,17 @@
         return parseInt(index) + 1;
       },
 
+      _toggleSpecPicker: function () {
+        this.$.specPicker.toggle();
+      },
+      openSpecPicker: function () {
+        this.$.specPicker.opened = true;
+      },
+
+      closeSpecPicker: function () {
+        this.$.specPicker.opened = false;
+      },
+
       _togglePicker: function () {
         this.$.picker.toggle();
       },
@@ -179,6 +214,26 @@
 
       closeActionPicker: function () {
         this.$.picker.opened = false;
+      },
+
+      _title: function (index) {
+        if (this.isSenseStep(index)) {
+          return "Step: " + this._stepNum(index) + " (Sense)";
+        } else {
+          return "Step " + this._stepNum(index);
+        }
+      },
+      _description: function (index) {
+        if (this.isSenseStep(index)) {
+          return "Sense steps are required to check the world conditions";
+        } else {
+          return "Customized robot actions";
+        }
+      },
+
+      isSenseStep: function (index) {
+
+        return index < 0;
       }
     });
   </script>

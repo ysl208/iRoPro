@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "geometry_msgs/Pose.h"
 #include "moveit_msgs/GetPositionIK.h"
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Landmark.h"
@@ -29,6 +30,9 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
   JointState js(program.start_joint_state);
   world->joint_state = js;
   world->surface_box_landmarks.clear();
+  world->world_conditions.clear();
+  world->grid.clear();
+  // world->points.clear();
 
   // TODO: If this gets noticeably slow, change it so that it searches backward
   // instead of simulating forward. The channels to search are:
@@ -145,6 +149,10 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
         for (size_t i = 0; i < joint_names.size(); ++i) {
           world->joint_state.SetPosition(joint_names[i], joint_positions[i]);
         }
+      } else if (action.type == msgs::Action::CHECK_CONDITIONS) {
+        std::vector<msgs::Condition> world_conditions;
+        world_conditions.push_back(action.condition);
+        world->world_conditions = world_conditions;
       }
     }
 
@@ -158,8 +166,19 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
       // Deal with other landmark types here
     }
     // Replace all surface objects if there are any.
+    // If there are none, then landmarks stay the same as in previous step
     if (surface_boxes.size() > 0) {
       world->surface_box_landmarks = surface_boxes;
+    }
+
+    msgs::Surface surface = step.surface;
+    if (surface.dimensions.x > 0) {
+      world->surface = surface;
+    }
+
+    std::vector<geometry_msgs::PoseArray> grid = program.grid;
+    if (grid.size() > 0) {
+      world->grid = grid;
     }
   }
 }
@@ -184,11 +203,13 @@ double BoxDissimilarity(const std::vector<double>& a,
   double dz = (a[2] - b[2]);
   return dx * dx + dy * dy + dz * dz;
 }
-}
+}  // namespace
 
-bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
-                   rapid_pbd_msgs::Landmark* match) {
-  const double kMaxDistance = 0.075 * 0.075;
+bool MatchLandmark(const World& world, const msgs::Landmark& landmark,
+                   msgs::Landmark* match, const double& variance) {
+  // Picks the closest object which is still <= kMaxDistance
+  ROS_INFO("Landmark %s", landmark.name.c_str());
+  const double kMaxDistance = variance * variance;
   std::vector<double> landmark_dims;
   GetDims(landmark, &landmark_dims);
   if (landmark.type == msgs::Landmark::SURFACE_BOX) {
@@ -198,9 +219,14 @@ bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
       std::vector<double> world_landmark_dims;
       GetDims(world_landmark, &world_landmark_dims);
       double distance = BoxDissimilarity(landmark_dims, world_landmark_dims);
-      if (distance < best) {
-        best = distance;
-        *match = world_landmark;
+      if (distance <= kMaxDistance) {
+        // if x-distance of world_landmark is closer than current best match,
+        // then choose this object
+        if (match->name == "" || world_landmark.pose_stamped.pose.position.x <
+                                     match->pose_stamped.pose.position.x) {
+          best = distance;
+          *match = world_landmark;
+        }
       }
     }
     return best <= kMaxDistance;
@@ -208,5 +234,43 @@ bool MatchLandmark(const World& world, const rapid_pbd_msgs::Landmark& landmark,
     return false;
   }
 }
+
+void GetRPY(const geometry_msgs::Quaternion& q, geometry_msgs::Vector3* rpy) {
+  // Returns roll, pitch, yaw
+  tf::Quaternion tfQuat;
+  tf::quaternionMsgToTF(q, tfQuat);
+  rpy->x = 0;
+  rpy->y = 0;
+  rpy->z = tf::getYaw(tfQuat);
+}
+
+void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v) {
+  v->x = p.x;
+  v->y = p.y;
+  v->z = p.z;
+}
+
+void CheckLandmarkProperties(const msgs::Landmark& landmark) {
+  // Given a landmark on the grid, check if
+}
+
+void UpdateGrid(const msgs::Landmark& landmark,
+                std::vector<std::vector<std::string> >* grid) {
+  float lm_length, lm_width;  // no. of cells for landmark
+
+  geometry_msgs::Point lm_pos = landmark.pose_stamped.pose.position;
+  geometry_msgs::Vector3 lm_dims = landmark.surface_box_dims;
+
+  // geometry_msgs::Point table_pos = table_pose.position;
+
+  // lm_length = std::ceil(table_dims.x/lm_dims.x);
+  // lm_width = std::ceil(table_dims.y/lm_dims.y);
+
+  // displacement from table_center to lm_center
+  geometry_msgs::Point displacement;
+  // displacement.x = table_pos.x = lm_pos.x;
+  // displacement.y = table_pos.y = lm_pos.y;
+}
+
 }  // namespace pbd
 }  // namespace rapid

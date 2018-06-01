@@ -9,6 +9,7 @@
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/runtime_robot_state.h"
 #include "rapid_pbd/visualizer.h"
+#include "rapid_pbd_msgs/ConditionCheckInfo.h"
 #include "ros/ros.h"
 #include "shape_msgs/SolidPrimitive.h"
 #include "std_msgs/Bool.h"
@@ -27,6 +28,10 @@ int main(int argc, char** argv) {
 
   ros::Publisher planning_scene_pub =
       nh.advertise<moveit_msgs::PlanningScene>("/planning_scene", 5);
+
+  ros::Publisher condition_check_pub =
+      nh.advertise<rapid_pbd_msgs::ConditionCheckInfo>("condition_check", 5,
+                                                       true);
 
   std::string robot("");
   bool is_robot_specified = ros::param::get("robot", robot);
@@ -118,9 +123,9 @@ int main(int argc, char** argv) {
 
   pbd::RuntimeRobotState robot_state(*robot_config, tf_listener, js_reader);
 
-  pbd::ProgramExecutionServer server(pbd::kProgramActionName, is_running_pub,
-                                     &action_clients, robot_state, runtime_viz,
-                                     program_db, planning_scene_pub);
+  pbd::ProgramExecutionServer server(
+      pbd::kProgramActionName, is_running_pub, &action_clients, robot_state,
+      runtime_viz, program_db, planning_scene_pub, condition_check_pub);
   server.Start();
   ROS_INFO("RapidPbD program executor ready.");
   ros::spin();

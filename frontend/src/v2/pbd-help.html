@@ -2,7 +2,6 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <link rel="import" href="../../bower_components/app-route/app-location.html">
-<link rel="import" href="pbd-test.html">
 
 <dom-module id="pbd-help">
     <template>
@@ -20,32 +19,33 @@
                 padding: 0% 5% 0% 5%;
             }
         </style>
-    
-        <div>
-            <h1>Help</h1>
-            <article>
-                <p>Programming by Demonstration (PbD) is a technique that allows you to teach the robot a new action by moving its arms and showing how the action should be performed. </p>
 
-                    <h2>How to teach an action</h2>
-                    <p>The robot observes the changes in the world state before.
-                    You can edit the detected condition to better the robot's world view as it can be to specific or not detailed enough.
-                    You manipulate the robot to do a certain action. After the demonstration,
-                    it will associate a final state of the world around the robot that can also be edited to help it understand the consequences of this new action.</p>
-                        
-                    <h2>Create a problem to solve automatically</h2>
-                    <p>Once the robot has learned some action, you can give the robot a problem.<br/>
-                    It will detect the state of the world at the beginning.
-                    You will give it a gaol to achieve and it will prepare a solution plan to solve the problem using the taught action.
-                    You can then execute directly the plan or just save it for later.</p>
+        <div>
+            <!-- <h1>Help</h1> -->
+            <article>
+                <p>Programming by Demonstration (PbD) is a technique that allows you to teach the robot a new action by moving
+                    its arms and showing how the action should be performed. </p>
+
+                <h2>How to teach an action</h2>
+                <p>The robot observes the changes in the world state before. You can edit the detected condition to better the
+                    robot's world view as it can be to specific or not detailed enough. You manipulate the robot to do a
+                    certain action. After the demonstration, it will associate a final state of the world around the robot
+                    that can also be edited to help it understand the consequences of this new action.</p>
+
+                <h2>Create a problem to solve automatically</h2>
+                <p>Once the robot has learned some action, you can give the robot a problem.
+                    <br/> It will detect the state of the world at the beginning. You will give it a gaol to achieve and it will
+                    prepare a solution plan to solve the problem using the taught action. You can then execute directly the
+                    plan or just save it for later.</p>
                 </p>
             </article>
-        </div>    
+        </div>
     </template>
     <script>
-        Polymer ({
+        Polymer({
             is: "pbd-help",
 
-            oui: function() {
+            oui: function () {
                 console.log("test");
             }
         });

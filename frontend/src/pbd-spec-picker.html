@@ -1,0 +1,254 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/ros-param/ros-param.html">
+<link rel="import" href="../bower_components/ros-service/ros-service.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="pbd-spec-picker">
+    <template>
+        <style include="shared-styles"></style>
+        <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+        <style>
+             :host {
+                display: block;
+                width: 100%;
+                position: relative;
+            }
+
+            .paper-material {
+                padding: 5px;
+            }
+
+            h3 {
+                margin: 0px;
+            }
+
+            paper-button {
+                margin-top: 5px;
+            }
+
+            .group+.group {
+                margin-top: 10px;
+            }
+
+            .half {
+                width: 50%;
+            }
+
+            #cancel {
+                height: 22px;
+            }
+
+            #wrap {
+                width: 100%;
+            }
+
+            #left_col {
+                float: left;
+                width: 35%;
+                padding: 0;
+            }
+
+            #right_col {
+                float: right;
+                width: 65%;
+            }
+        </style>
+        <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+
+        <div class="paper-material">
+            <div class="layout horizontal center">
+                <h3>Program specifications</h3>
+                <div class="flex"></div>
+                <!-- <paper-button class="normal" on-tap="_infer">Infer</paper-button> -->
+                <!-- <paper-button id="cancel" on-tap="cancel" class="clear">Cancel</paper-button> -->
+            </div>
+            <!-- 
+            <div id="wrap">
+                <div id="left_col"> -->
+            <div class="group">
+                <div>
+                    <template is="dom-repeat" items="[[_specScores(program.posteriors)]]">
+                        <div>
+                            [[_specName1(index)]]: [[_formatDec(item)]]
+                            <!-- <paper-button class="normal" on-tap="_view" data-args="[[index]]">View</paper-button> -->
+                            <!-- <paper-button class="normal" on-tap="_view" data-args="[[_specName1(index)]]">View</paper-button> -->
+                            <!-- <paper-button class="normal" on-tap="[[_select(index)]]">Select</paper-button> -->
+                        </div>
+                    </template>
+                </div>
+            </div>
+            <!-- </div> -->
+
+            <!-- <div id="right_col"> -->
+            <!-- <div>
+                <paper-dropdown-menu label="Main landmark">
+                    <paper-listbox slot="dropdown-content" selected="[[_landmarkName(landmarks)]]" attr-for-selected="name">
+                        <template is="dom-repeat" items="[[_objectLandmarks(landmarks,'')]]">
+                            <paper-item name="[[_landmarkName(item)]]" on-tap="_updateLandmark">[[_landmarkName(item)]]</paper-item>
+                        </template>
+                    </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-button class="normal" on-tap="_infer">Infer</paper-button>
+            </div>
+            <div>
+                <paper-dropdown-menu label="Choose specification">
+                    <paper-listbox slot="dropdown-content" attr-for-selected="name">
+                        <template is="dom-repeat" items="[[_objectSpecs(program.specs)]]">
+                            <paper-item name="[[_specName(item)]]" on-tap="_updateSpec">[[_specName(item)]]</paper-item>
+                        </template>
+                    </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-button class="normal" on-tap="_view">View</paper-button>
+            </div> -->
+            <!-- </div> -->
+            <!-- </div> -->
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'pbd-spec-picker',
+            properties: {
+                ros: Object,
+                program: Object,
+                programId: String,
+                index: Number,
+                landmark: {
+                    type: Object
+                },
+                landmarks: {
+                    type: Array,
+                    value: function () { return []; }
+                },
+                params: Object,
+                step: Object,
+                spec: Object
+            },
+            _infer: function () {
+                var msg = {
+                    type: 'infer specification',
+                    program_info: {
+                        db_id: this.programId
+                    },
+                    step_num: this.index,
+                    action_num: this.index,
+                    landmark: this.landmark
+                };
+                this.$.eventPub.publish(msg);
+                console.debug('_infer: step index = ', this.index);
+                console.debug('_infer: msg = ', msg);
+
+                console.debug('step = ', this.program.steps[this.index]);
+            },
+
+            _view: function (e) {
+                var args = e.target.getAttribute('data-args');
+                console.debug('_view: ', args);
+                var msg = {
+                    type: 'view specification',
+                    program_info: {
+                        db_id: this.programId
+                    },
+                    step_num: this.index,
+                    action_num: this.index,
+                    spec: this.spec
+                };
+                this.$.eventPub.publish(msg);
+                console.debug('_view ', msg);
+
+                console.debug('specName1: step.landmarks = ', this.program.steps[this.index]);
+            },
+
+            cancel: function () {
+                this.fire('iron-deselect');
+            },
+
+            _formatDec: function (number) {
+                if (number) {
+                    return number.toFixed(2);
+                }
+                console.debug("_formatDec: ", number);
+
+                return 0;
+            },
+            _landmarkName: function (landmark) {
+                if (!landmark || !landmark.type) {
+                    return 'None';
+                }
+                if (landmark.type === 'tf frame') {
+                    // if (landmark.name === 'base_link' || landmark.name === 'base_footprint') {
+                    //   return 'Robot base';
+                    // } else if (landmark.name === 'torso_lift_link') {
+                    //   return 'Robot torso';
+                    // } else {
+                    //   return landmark.name;
+                    // }
+                    return 'None';
+                } else if (landmark.type === 'surface box') {
+                    return landmark.name;
+                }
+
+                return 'Unknown landmark';
+            },
+            _objectLandmarks: function (landmarks) {
+                var objects = ['None'];
+                console.debug('_objectLandmarks', this.landmark);
+                for (var i = 0; i < landmarks.length; ++i) {
+                    if (landmarks[i].type === 'surface box') {
+                        objects.push(landmarks[i]);
+                    }
+                }
+                return objects;
+            },
+            _objectSpecs: function (specs) {
+                var objects = [];
+                console.debug('_objectSpecs', this.program.specs);
+                for (var i = 0; i < specs.length; ++i) {
+                    objects.push(specs[i]);
+                }
+                return objects;
+            },
+            _specScores: function (posteriors) {
+                var objects = [];
+                console.debug('_specScores', this.program.posteriors);
+                for (var i = 0; i < posteriors.data.length; ++i) {
+                    if (posteriors.data[i] >= 0) {
+                        objects.push(posteriors.data[i]);
+                    }
+                }
+                return objects;
+            },
+            _specName: function (spec) {
+
+                return spec.name;
+            },
+
+            _specName1: function (index) {
+                if (index >= 0) {
+                    index += 1;
+                    return "Spec " + index;
+                }
+                return "None";
+            },
+
+            _updateLandmark: function (evt) {
+                // If selected Main landmark is None, no condition is assigned
+                console.debug('_updateLandmark: this.landmark = ', this.landmark);
+
+                // if landmark selected and not Robot base/torso
+                this.set('landmark', evt.model.item);
+                console.debug('this.landmark = ', this.landmark);
+            },
+
+            _updateSpec: function (evt) {
+                // If selected Main landmark is None, no condition is assigned
+                this.set('spec', this.program.specs[evt.model.index]);
+                console.debug('_updateSpec: spec ', this.spec);
+                console.debug('evt.model ', evt.model);
+            },
+        });
+    </script>
+</dom-module>

@@ -9,6 +9,7 @@
 #include "ros/ros.h"
 
 #include "rapid_pbd/action_executor.h"
+#include "rapid_pbd/condition_checker.h"
 #include "rapid_pbd/errors.h"
 #include "rapid_pbd/motion_planning.h"
 #include "rapid_pbd/runtime_robot_state.h"
@@ -19,22 +20,25 @@ using boost::shared_ptr;
 using rapid_pbd_msgs::Action;
 using rapid_pbd_msgs::Step;
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
-StepExecutor::StepExecutor(const rapid_pbd_msgs::Step& step,
+StepExecutor::StepExecutor(const msgs::Step& step,
                            ActionClients* action_clients,
                            const RuntimeRobotState& robot_state, World* world,
                            const RuntimeVisualizer& runtime_viz,
-                           const ros::Publisher& planning_scene_pub)
+                           const ros::Publisher& planning_scene_pub,
+                           const ros::Publisher& condition_check_pub)
     : step_(step),
       action_clients_(action_clients),
       robot_state_(robot_state),
       world_(world),
       runtime_viz_(runtime_viz),
       motion_planning_(robot_state_, world, planning_scene_pub),
+      condition_checker_(world, condition_check_pub),
       executors_() {}
 
-bool StepExecutor::IsValid(const rapid_pbd_msgs::Step& step) {
+bool StepExecutor::IsValid(const msgs::Step& step) {
   for (size_t i = 0; i < step.actions.size(); ++i) {
     const Action& action = step.actions[i];
     if (!ActionExecutor::IsValid(action)) {
@@ -48,9 +52,9 @@ bool StepExecutor::IsValid(const rapid_pbd_msgs::Step& step) {
 void StepExecutor::Init() {
   for (size_t i = 0; i < step_.actions.size(); ++i) {
     Action action = step_.actions[i];
-    shared_ptr<ActionExecutor> ae(
-        new ActionExecutor(action, action_clients_, &motion_planning_, world_,
-                           robot_state_.config, runtime_viz_));
+    shared_ptr<ActionExecutor> ae(new ActionExecutor(
+        action, action_clients_, &motion_planning_, &condition_checker_, world_,
+        robot_state_.config, runtime_viz_));
     executors_.push_back(ae);
   }
 }

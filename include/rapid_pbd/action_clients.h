@@ -5,8 +5,10 @@
 #include "control_msgs/FollowJointTrajectoryAction.h"
 #include "control_msgs/GripperCommandAction.h"
 #include "moveit_msgs/MoveGroupAction.h"
+#include "rapid_pbd_msgs/ExecuteProgramAction.h"
 #include "rapid_pbd_msgs/SegmentSurfacesAction.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 struct ActionClients {
@@ -20,9 +22,10 @@ struct ActionClients {
       r_gripper_client;
   actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>
       head_client;
-  actionlib::SimpleActionClient<rapid_pbd_msgs::SegmentSurfacesAction>
+  actionlib::SimpleActionClient<msgs::SegmentSurfacesAction>
       surface_segmentation_client;
   actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> moveit_client;
+  actionlib::SimpleActionClient<msgs::ExecuteProgramAction> program_client;
 };
 }  // namespace pbd
 }  // namespace rapid

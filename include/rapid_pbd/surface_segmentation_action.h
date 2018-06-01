@@ -13,6 +13,7 @@
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 class SurfaceSegmentationAction {
@@ -20,13 +21,13 @@ class SurfaceSegmentationAction {
   SurfaceSegmentationAction(const std::string& topic, const SceneDb& scene_db,
                             const RobotConfig& robot_config);
   void Start();
-  void Execute(const rapid_pbd_msgs::SegmentSurfacesGoalConstPtr& goal);
+  void Execute(const msgs::SegmentSurfacesGoalConstPtr& goal);
 
  private:
   std::string topic_;
   SceneDb scene_db_;
   const RobotConfig& robot_config_;
-  actionlib::SimpleActionServer<rapid_pbd_msgs::SegmentSurfacesAction> as_;
+  actionlib::SimpleActionServer<msgs::SegmentSurfacesAction> as_;
   surface_perception::Segmentation seg_;
   ros::NodeHandle nh_;
   ros::Publisher marker_pub_;

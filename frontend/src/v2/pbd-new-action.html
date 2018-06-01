@@ -1,0 +1,814 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/ros-action-client/ros-action-client.html">
+
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/ros-service/ros-service.html">
+<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../../bower_components/ros-rviz/ros-rviz.html">
+<link rel="import" href="pbd-object-select.html">
+<link rel="import" href="pbd-world-state-select.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../underscore.html">
+
+<dom-module id="pbd-new-action">
+    <template>
+        <style include="shared-styles"></style>
+        <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+        <style>
+            :host {
+                display: block;
+                height: 100%;
+            }
+
+            .paper-material {
+                margin-top: 7px;
+            }
+
+            a {
+                color: #000;
+                text-decoration: none;
+            }
+
+            .add {
+                height: 25px;
+                padding: 5px 5px;
+                line-height: 14px;
+                margin-bottom: 5px;
+            }
+
+
+            paper-button {
+                /* float: right; */
+                margin: 5px;
+            }
+
+            paper-input {
+                width: 40%;
+                display: inline-block;
+            }
+
+            paper-dropdown-menu {
+                max-width: 100px;
+                margin-left: 10px;
+                margin-top: 0px;
+            }
+
+            .stepDiv {
+                min-width: 350px;
+                margin-bottom: 10px;
+                overflow-y: auto;
+                padding-left: 2px;
+                padding-right: 2px;
+                padding-bottom: 2px;
+                display: inline-block;
+            }
+
+            #rviz {
+                display: block;
+                height: 500px;
+            }
+
+            fieldset>p {
+                display: inline-block;
+            }
+
+            fieldset iron-icon {
+                display: inline-block;
+                vertical-align: top;
+                margin-top: 5px;
+            }
+
+            .petit {
+                font-size: 80%;
+                /* margin-left: 20%; */
+                color: steelblue;
+            }
+
+            @media (min-width: 768px) {
+                #layout {
+                    height: 100%;
+                }
+                .content {
+                    @apply(--layout-horizontal);
+                    @apply(--layout-flex);
+                }
+                .stepDiv {
+                    width: 350px;
+                    max-height: 100%;
+                    margin-bottom: 0px;
+                    margin-right: 10px;
+                    padding: 2%;
+                }
+                #rviz {
+                    height: 100%;
+                    width: 350px;
+                    @apply(--layout-flex);
+                }
+            }
+        </style>
+        <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
+        <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{routeData.id}}"
+            ros="[[ros]]"></ros-topic>
+        <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+        <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
+            on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>
+        <ros-topic auto last-message="{{isRunning}}" msg-type="std_msgs/Bool" topic="rapid_pbd/is_running" ros="[[ros]]"></ros-topic>
+        <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
+            ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service>
+        <!-- PDDL -->
+        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+        <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
+            ros="[[ros]]"></ros-topic>
+
+        <div id="layout" class="layout vertical">
+            <div class="content">
+                <div id="stepContent">
+
+                    <div>
+                        <paper-input id="actionName" label="Action name" value="{{actionName}}" on-blur="save"></paper-input>
+                        <a href="#/program/{{program.db_id}}">
+                            <paper-button id="next" raised class="important" on-click="_startDemo">
+                                Start demo
+                            </paper-button>
+                        </a>
+                    </div>
+                    <fieldset>
+
+                        <paper-button class="petit" raised on-tap="_generateConditions">
+                            Generate Conditions
+                        </paper-button>
+                    </fieldset>
+                    <fieldset>
+                        <legend>
+                            World Instances
+                        </legend>
+                        <p>
+                            <b>Name</b>(type)
+                        </p>
+                        <br>
+                        <template is="dom-repeat" items="{{pddlAction.params}}" as="item" index-as="paramIndex">
+                            <div id="listeObjet">
+                                <pbd-object-select id="selectObj1" on-delete="deleteObj" num="1" pddlDomain="[[pddlDomain]]" pddlAction="[[pddlAction]]"
+                                    name="[[item.name]]" type="[[item.type.name]]" params="[[pddlAction.params]]"></pbd-object-select>
+                            </div>
+                        </template>
+                        <br>
+
+                        <paper-dropdown-menu label="New Instance">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInstance}}">
+                                <template is="dom-repeat" items="[[pddlAction.params]]">
+                                    <paper-item name="[[item]]">[[item.name]]([[item.type.name]])</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <br>
+                        <paper-button noink class="petit" on-click="addPredicate" data-args="Instance">+ add new instance</paper-button>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>
+                            <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
+                                Detect Preconditions
+                            </paper-button>
+                        </legend>
+
+                        <template is="dom-repeat" items="{{pddlAction.preconditions}}" as="item" index-as="paramIndex">
+                            <div id="listeWorldState">
+                                <!-- [[item.arg1.name]] is [[item.name]] [[item.arg2.name]] -->
+                                <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1" pddlDomain="[[pddlDomain]]" pddlAction="[[pddlAction]]"
+                                    name="[[item.name]]" newElem="0" predicate="[[item]]" params="[[pddlAction.params]]"></pbd-world-state-select>
+                            </div>
+                        </template>
+
+                        <paper-dropdown-menu label="Instance 1">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg1}}">
+                                <template is="dom-repeat" items="[[pddlAction.params]]">
+                                    <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg1">
+                                        [[item.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-dropdown-menu label="Predicate">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.name}}">
+                                <template is="dom-repeat" items="[[pddlDomain.predicates]]">
+                                    <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newPrecondition.predicate.name">is [[item.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-dropdown-menu label="Instance 2">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
+                                <template is="dom-repeat" items="[[pddlAction.params]]">
+                                    <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
+                                        [[item.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <br>
+                        <paper-button noink class="petit" on-click="addPredicate" data-args="Precondition">+ add new predicate</paper-button>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>
+                            <paper-button id="detect2" raised class="clear" on-tap="_detect" data-args="Effect">
+                                Detect Effects
+                            </paper-button>
+                        </legend>
+
+                        <template is="dom-repeat" items="{{pddlAction.effects}}" as="item" index-as="paramIndex">
+                            <div id="listeWorldState2">
+                                <!-- [[item.arg1.name]] is [[item.name]] [[item.arg2.name]] -->
+                                <pbd-world-state-select id="selectPred-1" on-delete="deletePred" num="1" pddlDomain="[[pddlDomain]]" pddlAction="[[pddlAction]]"
+                                    name="[[item.name]]" predicate="[[item]]" params="[[pddlAction.params]]"></pbd-world-state-select>
+                            </div>
+                        </template>
+
+                        <paper-dropdown-menu label="Instance 1">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg1}}">
+                                <template is="dom-repeat" items="[[pddlAction.params]]">
+                                    <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg1">
+                                        [[item.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-dropdown-menu label="Predicate">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.name}}">
+                                <template is="dom-repeat" items="[[pddlDomain.predicates]]">
+                                    <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newEffect.predicate.name">is [[item.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-dropdown-menu label="Instance 2">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
+                                <template is="dom-repeat" items="[[pddlAction.params]]">
+                                    <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
+                                        [[item.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <br>
+                        <paper-button noink class="petit" on-click="addPredicate" data-args="Effect">+ add new predicate</paper-button>
+                    </fieldset>
+                </div>
+                <!-- <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz> -->
+            </div>
+        </div>
+        <paper-dialog id="errorDialog" modal>
+            <h2>Error running the program</h2>
+            <p>[[error]]</p>
+            <div class="buttons">
+                <paper-button dialog-confirm class="clear">OK</paper-button>
+            </div>
+        </paper-dialog>
+        </div>
+        </paper-dialog>
+    </template>
+
+    <script>
+        Polymer({
+            is: 'pbd-new-action',
+
+            properties: {
+                pddlAction: Object,
+                params: Object,
+                program: {
+                    type: Object,
+                    observer: '_programChanged',
+                },
+                ros: Object,
+                route: Object,
+                isRunning: {
+                    type: Object,
+                    value: function () {
+                        return { data: false };
+                    }
+                },
+                domainList: {
+                    type: Object,
+                    value: function () {
+                        return { domains: [] };
+                    }
+                },
+                pddlDomain: {
+                    type: Object,
+                    value: function () {
+                        return { actions: [] };
+                    }
+                },
+                newPrecondition: {
+                    type: Object,
+                    value: function () {
+                        return {
+                            arg1: Object,
+                            name: '',
+                            arg2: Object
+                        };
+                    }
+                },
+                newEffect: {
+                    type: Object,
+                    value: function () {
+                        return {
+                            arg1: Object,
+                            name: '',
+                            arg2: Object
+                        };
+                    }
+                },
+                newInstance: {
+                    type: Object,
+                    value: function () {
+                        return {
+                            type: Object,
+                            name: '',
+                        };
+                    }
+                },
+
+                actionName: Object,
+                nbObj: {
+                    type: Number,
+                    value: 1
+                },
+                nbPrecond: {
+                    type: Number,
+                    value: 1
+                },
+                // a remplacer si possible mais comment ?
+                // tableau d'entier [1,2,3] allant jusqu'a nbPrecond, utilisé pour dom-repeat qui veut un array et non un number
+                listObj: {
+                    type: Array,
+                    value: [1]
+                },
+                listPrecond: {
+                    type: Array,
+                    value: [1]
+                },
+            },
+
+            observers: [
+                'load(routeData.id, params.*)',
+                '_programUpdated(program.*)',
+                '_domainUpdated(pddlDomain.*,domainList.*)',
+                '_actionUpdated(actionName.*,action.*)',
+                '_isRunningChanged(isRunning.data)',
+            ],
+            _actionUpdated: function (actionName, action) {
+                if (actionName.value) {
+                    console.debug('_actionUpdated: actionName =  ', actionName.value);
+                    this.getAction(actionName.value);
+                }
+                if (action.value) {
+                    console.debug('_actionUpdated: action =  ', action.value);
+                }
+            },
+            getAction: function (actionName) {
+                if (this.pddlDomain) {
+                    for (var i = 0; i < this.pddlDomain.actions.length; ++i) {
+                        var action = this.pddlDomain.actions[i];
+                        if (action.name === actionName) {
+                            this.pddlAction = action;
+                            //console.debug('Action found ', this.pddlAction);
+                            return;
+                        }
+                    }
+                }
+                console.info('No action found with name ', actionName);
+                return;
+            },
+            load: function (db_id, paramsChangeRecord) {
+                /* if (!db_id) {
+                    return;
+                } */
+
+                if (!this.params.robot) {
+                    return;
+                }
+                this.$.programSub.subscribe();
+                var depthCloudFrameId = '';
+                if (this.params.robot === "pr2") {
+                    depthCloudFrameId = '/head_mount_kinect_rgb_optical_frame';
+                } else if (this.params.robot === "fetch") {
+                    depthCloudFrameId = '/head_camera_rgb_optical_frame';
+                } else if (this.params.robot === "baxter") {
+                    depthCloudFrameId = '/kinect2_rgb_optical_frame';
+                } else {
+                    console.error('Unknown robot type', this.params.robot);
+                }
+
+                var fixedFrame = '';
+                if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+                    fixedFrame = '/base_link';
+                } else if (this.params.robot === "baxter") {
+                    fixedFrame = '/base';
+                } else {
+                    console.error('Unknown robot type', this.params.robot);
+                }
+
+                var config = {
+                    globalOptions: {
+                        background: '#113344',
+                        colladaLoader: 'collada2',
+                        colladaServer: window.location.protocol + '//' + window.location.hostname + ':8001/',
+                        fixedFrame: fixedFrame,
+                        videoServer: window.location.protocol + '//' + window.location.hostname + ':9998',
+                        url: 'ws://' + window.location.hostname + ':9090'
+                    },
+                    displays: [
+                        {
+                            isShown: true,
+                            name: 'Grid',
+                            type: 'grid',
+                            options: {
+                                cellSize: 1,
+                                color: '#cccccc',
+                                numCells: 20,
+                            },
+                        }, {
+                            isShown: true,
+                            name: 'Program robot model',
+                            type: 'markerArray',
+                            options: {
+                                topic: '/rapid_pbd/robot/' + db_id,
+                            },
+                        }, {
+                            isShown: true,
+                            name: 'Scene',
+                            type: 'pointCloud2',
+                            options: {
+                                size: 0.01,
+                                topic: '/rapid_pbd/scene/' + db_id,
+                            },
+                        }, {
+                            isShown: true,
+                            name: 'Surface segmentation',
+                            type: 'markerArray',
+                            options: {
+                                topic: '/rapid_pbd/surface_segmentation/' + db_id,
+                            },
+                        }, {
+                            isShown: false,
+                            name: 'Current robot model',
+                            type: 'urdf',
+                            options: {
+                                param: 'robot_description',
+                                tfPrefix: ''
+                            },
+                        }, {
+                            isShown: false,
+                            name: 'Current surface segmentation',
+                            type: 'markerArray',
+                            options: {
+                                topic: '/rapid_pbd/runtime_segmentation',
+                            },
+                        }, {
+                            isShown: false,
+                            name: 'Current depth cloud',
+                            type: 'depthCloud',
+                            options: {
+                                topic: 'depthcloud_encoded',
+                                frameId: depthCloudFrameId
+                            },
+                        },
+                    ],
+                    sidebarOpened: false,
+                };
+                if (this.$.rviz) {
+                    this.$.rviz.config = config;
+                } else {
+                    console.info('rviz not ready');
+                }
+
+                if (this.params.actionName) {
+                    this.actionName = this.params.actionName;
+                    if (!this.pddlAction) {
+                        //this._detect();
+                    }
+                }
+            },
+
+            saveOnExit: function () {
+                this.pddlAction.name = this.actionName;
+                var msg = {
+                    type: 'save on exit action',
+                    domain_id: this.domain_id,
+                    action_name: this.actionName,
+                    action: this.pddlAction
+                };
+                console.debug('Saving on exit ', this.pddlAction);
+                this.$.eventPub.publish(msg);
+            },
+            getPredicate: function (name) {
+                for (var i; i < this.pddlDomain.predicates.length; ++i) {
+                    if (this.pddlDomain.predicates[i].name === name) {
+                        return this.pddlDomain.predicates[i];
+                    }
+                }
+                return null;
+            },
+            getObject: function (name) {
+                for (var i; i < this.pddlAction.params.length; ++i) {
+                    if (this.pddlAction.params[i].name === name) {
+                        return this.pddlAction.params[i];
+                    }
+                }
+                return null;
+            },
+            _updatePredicate: function (evt) {
+                var args = evt.target.getAttribute('data-args');
+                this.set(args, evt.target.name);
+                console.debug(args, ' is ', this.newPrecondition);
+            },
+
+            addPredicate: function (evt) {
+                var condition = evt.target.getAttribute('data-args');
+                if (condition == "Precondition") {
+                    this.pddlAction.preconditions.push(this.newPrecondition);
+                    console.debug("added Predicate ", this.pddlAction.preconditions);
+                } else if (condition == "Effect") {
+                    this.pddlAction.effects.push(this.newEffect);
+                    console.debug("added Predicate ", this.pddlAction.effects);
+                } else if (condition == "Instance") {
+                    this.pddlAction.params.push(this.newInstance);
+                    console.debug("added Instance ", this.pddlAction.params);
+                }
+
+                this.save();
+            },
+            save: function () {
+                this.pddlAction.name = this.actionName;
+                var msg = {
+                    type: 'update pddl action',
+                    domain_id: this.domain_id,
+                    pddl_action: this.pddlAction,
+                };
+                console.debug('Saving ', this.pddlAction);
+                this.$.eventPub.publish(msg);
+            },
+
+            _programUpdated: function (changeRecord) {
+                if (changeRecord.base) {
+                    if (changeRecord.path !== 'program') {
+                        if (changeRecord.path.endsWith('.length')) {
+                            return;
+                        }
+                        var that = this;
+                        this.debounce('save', function () {
+                            that.save();
+                        }, 100);
+                    }
+                }
+            },
+
+            _domainUpdated: function (changedDomain, changedList) {
+                if (changedDomain.value) {
+                    this.pddlDomain = changedDomain.value;
+                    this.getAction(this.actionName);
+                }
+
+                if (this.domainList && this.domainList.domains.length == 1) {
+                    this.domain_id = this.domainList.domains[0].domain_id;
+                }
+                /* console.debug('_domainUpdated ', this.pddlDomain);
+                console.debug('pddlAction is ', this.pddlAction); */
+
+            },
+
+
+            // If a new program is loaded, select step 0.
+            _programChanged: function (program, oldProgram) {
+
+                console.log("Program changed:" + program);
+                if (!program) {
+                    return;
+                }
+                if (program.steps.length > 0) {
+                    this.$.selector.select(program.steps[0]);
+                }
+            },
+
+            _stepNum: function (index) {
+                return parseInt(index) + 1;
+            },
+
+            _handleFeedback: function (evt) {
+                /* this.currentStepNum = evt.detail.step_number; */
+            },
+
+            _handleResult: function (evt) {
+                var error = evt.detail.error;
+                if (error) {
+                    this.error = evt.detail.error;
+                    this.$.errorDialog.open();
+                } else {
+
+                }
+            },
+
+            _handleProgram: function (evt) {
+                var program = evt.detail;
+                if (!this.program) {
+                    this.set('program', program);
+                    return;
+                }
+                if (!_.isEqual(this.program, program)) {
+                    this.set('program', program);
+                }
+            },
+            _handleServiceResponse(evt) {
+                var id = evt.detail.db_id;
+                window.history.pushState({}, null, "#/program/" + id);
+                window.dispatchEvent(new CustomEvent("location-changed"));
+            },
+
+            _handleServiceError: function (evt) {
+                console.error(evt.detail);
+            },
+
+            _isRunningChanged: function (isRunning) {
+                /* if (isRunning && this.$.rviz != null) {
+                    this.$.rviz.set('config.displays.1.isShown', false);
+                    this.$.rviz.set('config.displays.2.isShown', false);
+                    this.$.rviz.set('config.displays.3.isShown', false);
+                    this.$.rviz.set('config.displays.4.isShown', true);
+                    this.$.rviz.set('config.displays.5.isShown', true);
+                    this.$.rviz.set('config.displays.6.isShown', true);
+                } else {
+                    this.$.rviz.set('config.displays.1.isShown', true);
+                    this.$.rviz.set('config.displays.2.isShown', true);
+                    this.$.rviz.set('config.displays.3.isShown', true);
+                    this.$.rviz.set('config.displays.4.isShown', false);
+                    this.$.rviz.set('config.displays.5.isShown', false);
+                    this.$.rviz.set('config.displays.6.isShown', false);
+                } */
+            },
+            _startDemo: function (evt) {
+                var now = new Date();
+                var name = 'Program for: ' + this.actionName;
+                var request = {
+                    name: name,
+                };
+                this.$.createSrv.call(request);
+            },
+
+            _detect: function (evt) {
+                if (!this.ros) {
+                    console.error('Unable to call detection right now.');
+                    return;
+                }
+                var state = evt.target.getAttribute('data-args');
+                var msg = {
+                    type: 'detect world state',
+                    domain_id: this.domain_id,
+                    action_name: this.actionName,
+                    state_name: state
+                };
+                this.$.eventPub.publish(msg);
+            },
+
+            newPrecond: function () {
+                this.nbPrecond++;
+                this.push('listPrecond', this.nbPrecond);
+                // On rajoute dynamiquement l'objet
+                var dynamicSelect = document.createElement("pbd-world-state-select");
+                dynamicSelect.num = this.nbPrecond;
+                var newId = "selectPrecond" + this.nbPrecond;
+                dynamicSelect.id = newId;
+                dynamicSelect.addEventListener('delete', this.deletePred);
+                Polymer.dom(this.root).querySelector("#listeWorldState").appendChild(dynamicSelect);
+            },
+            newObj: function () {
+                this.nbObj++;
+                this.push('listObj', this.nbObj);
+                // On rajoute dynamiquement l'objet
+                var dynamicSelect = document.createElement("pbd-object-select");
+                dynamicSelect.num = this.nbObj;
+                var newId = "selectObj" + this.nbObj;
+                dynamicSelect.id = newId;
+                this._newObj = true;
+                dynamicSelect.addEventListener('delete', this.deleteObj);
+                Polymer.dom(this.root).querySelector("#listeObjet").appendChild(dynamicSelect);
+            },
+            deleteObj: function (e) {
+                var name = "selectObj" + e.detail.id;
+            },
+            deletePred: function (e) {
+                // TODO
+            },
+
+            removeDuplicates: function (a) {
+                uniqueArray = a.filter(function (item, pos) {
+                    return a.indexOf(item) == pos;
+                });
+            },
+            _getName: function (all_types) {
+
+                var names = ['-'];
+                if (all_types) {
+                    for (var i = 0; i < all_types.length; ++i) {
+                        names.push(all_types[i].name);
+                    }
+                }
+                return this.removeDuplicates(names);
+            },
+
+            _getType: function (all_types) {
+                var names = ['-'];
+                console.debug('_getType: ', all_types);
+
+                if (all_types) {
+                    for (var i = 0; i < all_types.length; ++i) {
+                        names.push(all_types[i].type.name);
+                    }
+                }
+                return this.removeDuplicates(names);
+            },
+            _generateConditions: function () {
+                // check preconditions and effects are there
+                if (this.pddlAction.preconditions.length == 0) {
+                    console.info('No preconditions');
+                }
+                if (this.pddlAction.effects.length == 0) {
+                    console.info('No effects');
+                }
+                console.debug('#pre:', this.pddlAction.preconditions.length);
+                console.debug('#eff:', this.pddlAction.effects.length);
+
+                this._getPredicateDiff(this.pddlAction.preconditions, this.pddlAction.effects);
+                console.debug('pre:', this.pddlAction.preconditions);
+                console.debug('eff:', this.pddlAction.effects);
+                console.debug('#pre:', this.pddlAction.preconditions.length);
+                console.debug('#eff:', this.pddlAction.effects.length);
+                var predList = this.pddlAction.preconditions.concat(this.pddlAction.effects)
+                var parms = this._getParams(predList);
+                console.debug('parms:', parms);
+                this.pddlAction.params = parms;
+                this.save();
+            },
+            _getPredicateDiff: function (list1, list2) {
+                // removes predicates which are in both lists
+
+                for (var i = 0; i < list1.length; ++i) {
+                    for (var j = 0; j < list2.length; ++j) {
+                        if (this._samePredicate(list1[i], list2[j])) {
+                            list1.splice(i, 1);
+                            list2.splice(j, 1);
+                            i--;
+                            break;
+                        }
+                    }
+                }
+                return [list1, list2];
+            },
+            _samePredicate: function (pred1, pred2) {
+                if (pred1.name != pred2.name) {
+                    console.debug("_samePredicate: name ", pred1, pred2);
+                    return false;
+                }
+                if (pred1.arg1.name != pred2.arg1.name) {
+                    console.debug("_samePredicate: arg1 ", pred1, pred2);
+                    return false;
+                }
+                if (pred1.negate != pred2.negate) {
+                    console.debug("_samePredicate: negate ", pred1, pred2);
+                    return false;
+                }
+                if (pred1.arg2 && pred2.arg2 && pred1.arg2.name != pred2.arg2.name) {
+                    console.debug("_samePredicate: arg2 ", pred1, pred2);
+                    return false;
+                }
+                return true;
+            },
+            _getParams: function (predList) {
+                var params = [];
+
+                const nameList = new Set([]);
+                for (var i = 0; i < predList.length; ++i) {
+                    if (predList[i].arg1.name != '' && !nameList.has(predList[i].arg1.name)) {
+                        params.push(predList[i].arg1);
+                        nameList.add(predList[i].arg1.name);
+
+                    }
+                    if (predList[i].arg2 && predList[i].arg2.name != '' && !nameList.has(predList[i].arg2.name)) {
+                        params.push(predList[i].arg2);
+                        nameList.add(predList[i].arg2.name);
+                    }
+                }
+                return params;
+            }
+        });
+    </script>
+</dom-module>

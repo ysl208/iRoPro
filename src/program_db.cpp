@@ -6,11 +6,17 @@
 #include "ros/ros.h"
 #include "sensor_msgs/PointCloud2.h"
 
+#include "rapid_pbd_msgs/PDDLDomain.h"
+#include "rapid_pbd_msgs/PDDLDomainInfo.h"
+#include "rapid_pbd_msgs/PDDLDomainInfoList.h"
 #include "rapid_pbd_msgs/Program.h"
 #include "rapid_pbd_msgs/ProgramInfo.h"
 #include "rapid_pbd_msgs/ProgramInfoList.h"
 
 using boost::shared_ptr;
+using rapid_pbd_msgs::PDDLDomain;
+using rapid_pbd_msgs::PDDLDomainInfo;
+using rapid_pbd_msgs::PDDLDomainInfoList;
 using rapid_pbd_msgs::Program;
 using rapid_pbd_msgs::ProgramInfo;
 using rapid_pbd_msgs::ProgramInfoList;
@@ -18,6 +24,7 @@ using sensor_msgs::PointCloud2;
 using std::pair;
 using std::vector;
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 
@@ -54,14 +61,13 @@ ProgramDb::ProgramDb(const ros::NodeHandle& nh,
 
 void ProgramDb::Start() { PublishList(); }
 
-std::string ProgramDb::Insert(const rapid_pbd_msgs::Program& program) {
+std::string ProgramDb::Insert(const msgs::Program& program) {
   std::string id = db_->insert(program);
   PublishList();
   return id;
 }
 
-void ProgramDb::Update(const std::string& db_id,
-                       const rapid_pbd_msgs::Program& program) {
+void ProgramDb::Update(const std::string& db_id, const msgs::Program& program) {
   bool success = db_->updateID(db_id, program);
   if (!success) {
     ROS_ERROR("Failed to update program with ID: \"%s\"", db_id.c_str());
@@ -86,8 +92,7 @@ void ProgramDb::StartPublishingProgramById(const std::string& db_id) {
   program_pubs_[db_id].publish(results[0]);
 }
 
-bool ProgramDb::Get(const std::string& db_id,
-                    rapid_pbd_msgs::Program* program) const {
+bool ProgramDb::Get(const std::string& db_id, msgs::Program* program) const {
   vector<shared_ptr<Program> > results;
   bool success = db_->queryID(db_id, results);
   if (!success || results.size() < 1) {
@@ -99,7 +104,7 @@ bool ProgramDb::Get(const std::string& db_id,
 }
 
 bool ProgramDb::GetByName(const std::string& name,
-                          rapid_pbd_msgs::Program* program) const {
+                          msgs::Program* program) const {
   vector<shared_ptr<Program> > results;
   mongo::BSONObj query = BSON("name" << name);
   mongo::BSONObj meta_query;
@@ -112,7 +117,7 @@ bool ProgramDb::GetByName(const std::string& name,
   bool success = db_->query(msg_and_metas, query, meta_query, sort_query,
                             find_one, decode_metas, limit);
   if (!success || msg_and_metas.size() < 1) {
-    ROS_ERROR("Can't get program with name: \"%s\"", name.c_str());
+    ROS_INFO("Can't get program with name: \"%s\"", name.c_str());
     return false;
   }
   shared_ptr<Program> program_p = msg_and_metas[0].first;
@@ -154,6 +159,16 @@ void ProgramDb::PublishList() {
   list_pub_->publish(msg);
 }
 
+bool ProgramDb::GetList(std::vector<std::string>* names) {
+  vector<pair<shared_ptr<Program>, mongo::BSONObj> > results;
+  db_->query<Program>(results);
+  for (size_t i = 0; i < results.size(); ++i) {
+    std::string name;
+    name = results[i].first->name;
+    names->push_back(name);
+  }
+}
+
 void ProgramDb::PublishProgram(const std::string& db_id) {
   if (program_pubs_.find(db_id) == program_pubs_.end()) {
     ROS_ERROR("No publisher for program ID: \"%s\"", db_id.c_str());
@@ -167,5 +182,143 @@ void ProgramDb::PublishProgram(const std::string& db_id) {
   }
   program_pubs_[db_id].publish(results[0]);
 }
+
+// ******
+// Planning domain database
+PDDLDomainDb::PDDLDomainDb(const ros::NodeHandle& nh,
+                           mongodb_store::MessageStoreProxy* db,
+                           ros::Publisher* list_pub)
+    : nh_(nh), domain_(db), list_pub_(list_pub), domain_pubs_() {}
+
+void PDDLDomainDb::Start() { PublishList(); }
+
+std::string PDDLDomainDb::Insert(const msgs::PDDLDomain& domain) {
+  std::string id = domain_->insert(domain);
+  PublishList();
+  return id;
+}
+
+void PDDLDomainDb::Update(const std::string& domain_id,
+                          const msgs::PDDLDomain& domain) {
+  ROS_INFO("Updating %s with domain (%s)", domain_id.c_str(),
+           domain.name.c_str());
+  bool success = domain_->updateID(domain_id, domain);
+  if (!success) {
+    ROS_ERROR("Failed to update domain with ID: \"%s\"", domain_id.c_str());
+    return;
+  }
+  PublishList();
+  PublishPDDLDomain(domain_id);
+}
+
+void PDDLDomainDb::StartPublishingPDDLDomainById(const std::string& domain_id) {
+  if (domain_pubs_.find(domain_id) != domain_pubs_.end()) {
+    return;
+  }
+  vector<shared_ptr<PDDLDomain> > results;
+  bool success = domain_->queryID(domain_id, results);
+  if (!success || results.size() < 1) {
+    ROS_ERROR("Can't start publishing domain with ID: \"%s\"",
+              domain_id.c_str());
+    return;
+  }
+  ros::Publisher pub =
+      nh_.advertise<PDDLDomain>("domain/" + domain_id, 1, true);
+  domain_pubs_[domain_id] = pub;
+  domain_pubs_[domain_id].publish(results[0]);
+}
+
+bool PDDLDomainDb::Get(const std::string& domain_id,
+                       msgs::PDDLDomain* domain) const {
+  vector<shared_ptr<PDDLDomain> > results;
+  bool success = domain_->queryID(domain_id, results);
+  if (!success || results.size() < 1) {
+    ROS_ERROR("Can't get domain with ID: \"%s\"", domain_id.c_str());
+    return false;
+  }
+  *domain = *results[0];
+  return true;
+}
+
+bool PDDLDomainDb::GetByName(const std::string& name,
+                             msgs::PDDLDomain* domain) const {
+  vector<shared_ptr<PDDLDomain> > results;
+  mongo::BSONObj query = BSON("name" << name);
+  mongo::BSONObj meta_query;
+  mongo::BSONObj sort_query;
+  bool find_one = true;
+  bool decode_metas = false;
+  int limit = 1;
+
+  vector<std::pair<shared_ptr<PDDLDomain>, mongo::BSONObj> > msg_and_metas;
+  bool success = domain_->query(msg_and_metas, query, meta_query, sort_query,
+                                find_one, decode_metas, limit);
+  if (!success || msg_and_metas.size() < 1) {
+    ROS_ERROR("Can't get domain with name: \"%s\"", name.c_str());
+    return false;
+  }
+  shared_ptr<PDDLDomain> domain_p = msg_and_metas[0].first;
+  if (!domain_p) {
+    ROS_ERROR("Database returned null message for name: \"%s\"", name.c_str());
+    return false;
+  }
+  *domain = *domain_p;
+  return true;
+}
+
+void PDDLDomainDb::Delete(const std::string& domain_id) {
+  bool success = domain_->deleteID(domain_id);
+
+  if (success) {
+    PublishList();
+    if (domain_pubs_.find(domain_id) != domain_pubs_.end()) {
+      domain_pubs_[domain_id].shutdown();
+      domain_pubs_.erase(domain_id);
+    }
+  } else {
+    ROS_ERROR("Could not delete domain with ID \"%s\"", domain_id.c_str());
+  }
+}
+
+void PDDLDomainDb::PublishList() {
+  if (list_pub_ == NULL) {
+    return;
+  }
+  vector<pair<shared_ptr<PDDLDomain>, mongo::BSONObj> > results;
+  domain_->query<PDDLDomain>(results);
+  PDDLDomainInfoList msg;
+  for (size_t i = 0; i < results.size(); ++i) {
+    PDDLDomainInfo info;
+    info.name = results[i].first->name;
+    info.domain_id = results[i].second.getField("_id").OID().toString();
+    msg.domains.push_back(info);
+  }
+  list_pub_->publish(msg);
+}
+
+bool PDDLDomainDb::GetList(std::vector<std::string>* names) {
+  vector<pair<shared_ptr<PDDLDomain>, mongo::BSONObj> > results;
+  domain_->query<PDDLDomain>(results);
+  for (size_t i = 0; i < results.size(); ++i) {
+    std::string name;
+    name = results[i].first->name;
+    names->push_back(name);
+  }
+}
+
+void PDDLDomainDb::PublishPDDLDomain(const std::string& domain_id) {
+  if (domain_pubs_.find(domain_id) == domain_pubs_.end()) {
+    ROS_ERROR("No publisher for domain ID: \"%s\"", domain_id.c_str());
+    return;
+  }
+  vector<shared_ptr<PDDLDomain> > results;
+  bool success = domain_->queryID(domain_id, results);
+  if (!success || results.size() < 1) {
+    ROS_ERROR("Could not republish domain with ID: \"%s\"", domain_id.c_str());
+    return;
+  }
+  domain_pubs_[domain_id].publish(results[0]);
+}
+
 }  // namespace pbd
 }  // namespace rapid

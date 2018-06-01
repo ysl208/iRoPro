@@ -18,9 +18,11 @@
                 border: none;
                 font-size: 14px;
                 height: 29px;
-                padding: 5px; /* If you add too much padding here, the options won't show in IE */
+                padding: 5px;
+                /* If you add too much padding here, the options won't show in IE */
                 width: 178px;
             }
+
             .styled-select.slate {
                 background: url(http://i62.tinypic.com/2e3ybe1.jpg) no-repeat right center;
                 height: 34px;
@@ -39,29 +41,30 @@
             }
         </style>
         <!-- div uniquement pour le style du select -->
-        <div class="styled-select slate">
-        <select id="precond-[[num]]-1">
-            <option value="obj1">obj1</option>
-            <option value="obj2">obj2</option>
-            <option value="obj3">obj3</option>
-        </select>
+        [[predicate.arg1.name]] is [[_negate(predicate.negate)]] [[name]] [[predicate.arg2.name]]
+        <!-- <div>
+            <select id="precond-[[num]]-1">
+                <option value="obj1">obj1</option>
+                <option value="obj2">obj2</option>
+                <option value="obj3">obj3</option>
+            </select>
         </div>
 
         <div class="styled-select slate">
-        <select id="precond-[[num]]-2" on-change="update">
-            <option value="is on">is on</option>
-            <option value="is stackable on">is stackable on</option>
-            <option value="is free">is free</option>
-        </select>
+            <select id="precond-[[num]]-2" on-change="update">
+                <option value="is on">is on</option>
+                <option value="is stackable on">is stackable on</option>
+                <option value="is free">is free</option>
+            </select>
         </div>
 
         <div class="styled-select slate">
-        <select id="precond-[[num]]-3">
-            <option value="obj1">obj1</option>
-            <option value="obj2" selected>obj2</option>
-            <option value="obj3">obj3</option>
-        </select>
-        </div>
+            <select id="precond-[[num]]-3">
+                <option value="obj1">obj1</option>
+                <option value="obj2" selected>obj2</option>
+                <option value="obj3">obj3</option>
+            </select>
+        </div>-->
         <!-- data-index$ permet de passer un parametre, récupéré par event.target.dataset.index -->
         <iron-icon on-click="delete" icon="delete-forever"></iron-icon>
     </template>
@@ -70,29 +73,48 @@
             is: 'pbd-world-state-select',
 
             properties: {
+                params: Object,
+                predicate: {
+                    type: Object,
+                    value: function () {
+                        return {
+                            arg1: Object,
+                            arg2: Object
+                        };
+                    }
+                },
+                name: {
+                    type: String,
+                },
                 num: {
                     type: Number,
                 }
             },
 
-            delete: function(e, detail) {
-                this.dispatchEvent(new CustomEvent('delete', {detail : {id: this.num}, bubble: true, composed : true}));
+            delete: function (e, detail) {
+                this.dispatchEvent(new CustomEvent('delete', { detail: { id: this.num }, bubble: true, composed: true }));
                 this.remove();
             },
 
-            update: function() {
+            update: function () {
                 var idd = "#precond-" + this.num + "-2";
                 var value = Polymer.dom(this.root).querySelector(idd).value;
                 idd = "#precond-" + this.num + "-3";
                 if (value == "is free")
                     Polymer.dom(this.root).querySelector(idd).disabled = true;
-                else 
-                    Polymer.dom(this.root).querySelector(idd).disabled = false;                    
+                else
+                    Polymer.dom(this.root).querySelector(idd).disabled = false;
             },
 
-            hello: function() {
+            hello: function () {
                 console.log("hello");
             },
+            _negate: function (negate) {
+                if (negate) {
+                    return 'not ';
+                }
+                return '';
+            }
         });
     </script>
 

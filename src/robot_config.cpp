@@ -61,9 +61,29 @@ void Pr2RobotConfig::gripper_close_positions(
   positions->push_back(0.0069);
   positions->push_back(0.0069);
 }
+void Pr2RobotConfig::default_gripper_poses(std::vector<double>* poses) const {
+  poses->clear();
+  // left
+  poses->push_back(0.3251);
+  poses->push_back(0.4936);
+  poses->push_back(0.0489);
+  poses->push_back(0.9313);
+  poses->push_back(-0.0018);
+  poses->push_back(-0.3641);
+  poses->push_back(0.0007);
+  // right
+  poses->push_back(0.3516);
+  poses->push_back(-0.4498);
+  poses->push_back(0.0506);
+  poses->push_back(0.5231);
+  poses->push_back(0.4598);
+  poses->push_back(-0.5032);
+  poses->push_back(0.5116);
+}
 void Pr2RobotConfig::joints_for_group(
     const std::string& actuator_group,
     std::vector<std::string>* joint_names) const {
+  joint_names->clear();
   if (actuator_group == Action::LEFT_ARM) {
     joint_names->push_back("l_shoulder_pan_joint");
     joint_names->push_back("l_shoulder_lift_joint");
@@ -121,6 +141,16 @@ void FetchRobotConfig::gripper_close_positions(
   positions->clear();
   positions->push_back(0.0);
   positions->push_back(0.0);
+}
+void FetchRobotConfig::default_gripper_poses(std::vector<double>* poses) const {
+  poses->clear();
+  poses->push_back(0.1422);
+  poses->push_back(-0.1396);
+  poses->push_back(0.1939);
+  poses->push_back(0.9314);
+  poses->push_back(0.0008);
+  poses->push_back(-0.3639);
+  poses->push_back(-0.0003);
 }
 void FetchRobotConfig::joints_for_group(
     const std::string& actuator_group,
@@ -181,6 +211,24 @@ void BaxterRobotConfig::gripper_close_positions(
   positions->clear();
   positions->push_back(0.0);
   positions->push_back(0.0);
+}
+void BaxterRobotConfig::default_gripper_poses(
+    std::vector<double>* poses) const {
+  poses->clear();
+  poses->push_back(-0.001559);
+  poses->push_back(0.497111);
+  poses->push_back(0.443514);
+  poses->push_back(1.047000);
+  poses->push_back(0.042488);
+  poses->push_back(0.060054);
+  poses->push_back(-1.557647);
+  poses->push_back(0.002409);
+  poses->push_back(0.497103);
+  poses->push_back(-0.423241);
+  poses->push_back(1.047000);
+  poses->push_back(-0.065177);
+  poses->push_back(0.060082);
+  poses->push_back(1.549610);
 }
 void BaxterRobotConfig::joints_for_group(
     const std::string& actuator_group,

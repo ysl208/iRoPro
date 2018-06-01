@@ -1,0 +1,568 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="pbd-check-conditions-action">
+  <template>
+    <style include="shared-styles"></style>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style>
+       :host {
+        display: block;
+      }
+
+      paper-button {
+        margin-left: 10px;
+      }
+
+      .title {
+        border-top: 1px solid var(--paper-grey-300);
+        padding-top: 10px;
+        margin-bottom: 10px;
+      }
+
+      .title paper-button {
+        height: 30px;
+      }
+
+      paper-input {
+        display: inline-block;
+        max-width: 200px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .number {
+        max-width: 60px;
+      }
+
+      paper-dropdown-menu {
+        max-width: 200px;
+        margin-left: 10px;
+        margin-top: 0px;
+      }
+
+      h3 {
+        margin: auto 0px;
+        display: inline-block;
+      }
+
+      #wrap {
+        width: 100%;
+      }
+
+      #left_col {
+        float: left;
+        width: 50%;
+        padding: 0;
+      }
+
+      #right_col {
+        float: right;
+        width: 50%;
+      }
+    </style>
+    <!-- <ros-topic auto
+      last-message="{{conditionCheck}}"
+      msg-type="std_msgs/ConditionCheckInfo"
+      topic="rapid_pbd/condition_check"
+      ros="[[ros]]"
+    ></ros-topic> -->
+    <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+    <div class="layout horizontal center">
+      <p>Specify landmark properties required for this step.</p>
+    </div>
+    <div>
+      <paper-dropdown-menu label="Main landmark">
+        <paper-listbox slot="dropdown-content" selected="[[_landmarkName(action.condition.landmark)]]" attr-for-selected="name">
+          <template is="dom-repeat" items="[[_objectLandmarks(landmarks,'')]]">
+            <paper-item name="[[_landmarkName(item)]]" on-tap="_updateLandmark">[[_landmarkName(item)]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <paper-button class="normal" on-tap="_generate">Generate</paper-button>
+      <paper-button class="normal" on-tap="_save">View</paper-button>
+      <!-- <paper-button class="normal" on-tap="_clear">Remove</paper-button> -->
+    </div>
+    <div id="conditionProperties" hidden="[[!action.condition.relevant]]">
+      <!-- <div>
+        <h3>[[action.condition.landmark.name]] properties </h3>
+      </div> -->
+      <div>
+        <paper-checkbox on-change="_sizeRelevantChanged" checked="{{action.condition.sizeRelevant}}"> Match size
+        </paper-checkbox>
+        <paper-input class="number" disabled={{!action.condition.sizeRelevant}} type="number" step="1" min="0" max="100" label="Variance"
+          value="[[action.condition.sizeVariance.x]]" on-change="_valueChanged" data-args="action.condition.sizeVariance.x">
+        </paper-input>
+      </div>
+      <!-- 
+      <paper-input class="number" type="number" step="1" min="1" max="100" label="Objects" value="[[action.condition.obj_num]]"
+        on-change="_valueChanged" data-args="action.condition.obj_num">
+      </paper-input>
+      <paper-input class="number" type="number" step="1" min="1" max="100" label="Rows" value="[[action.condition.row_num]]" on-change="_valueChanged"
+        data-args="action.condition.row_num">
+      </paper-input>
+      <paper-input class="number" type="number" step="1" min="1" max="100" label="Columns" value="[[action.condition.col_num]]"
+        on-change="_valueChanged" data-args="action.condition.col_num">
+      </paper-input> -->
+      <div>
+        <b>Absolute properties </b>
+      </div>
+      <div id="wrap">
+        <div id="left_col">
+          <div>
+            <paper-checkbox on-change="_positionRelevantChanged" checked="{{action.condition.positionRelevant}}">
+              Position
+            </paper-checkbox>
+          </div>
+          <paper-input class="number" disabled={{!action.condition.positionRelevant}} label="x" value="[[action.condition.position.x]]"
+            on-change="_valueChanged" data-args="action.condition.position.x"></paper-input>
+          <paper-input class="number" disabled={{!action.condition.positionRelevant}} type="number" step="1" min="0" max="100" label="Variance"
+            value="[[action.condition.positionVariance.x]]" on-change="_valueChanged" data-args="action.condition.positionVariance.x"></paper-input>
+          <paper-input class="number" disabled={{!action.condition.positionRelevant}} label="y" value="[[action.condition.position.y]]"
+            on-change="_valueChanged" data-args="action.condition.position.y"></paper-input>
+          <paper-input class="number" disabled={{!action.condition.positionRelevant}} type="number" step="1" min="0" max="100" label="Variance"
+            value="[[action.condition.positionVariance.y]]" on-change="_valueChanged" data-args="action.condition.positionVariance.y"></paper-input>
+          <paper-input class="number" disabled={{!action.condition.positionRelevant}} label="z" value="[[action.condition.position.z]]"
+            on-change="_valueChanged" data-args="action.condition.position.z"></paper-input>
+          <paper-input class="number" disabled={{!action.condition.positionRelevant}} type="number" step="1" min="0" max="100" label="Variance"
+            value="[[action.condition.positionVariance.z]]" on-change="_valueChanged" data-args="action.condition.positionVariance.z"></paper-input>
+        </div>
+
+        <div id="right_col">
+          <div>
+            <paper-checkbox on-change="_orientationRelevantChanged" checked="{{action.condition.orientationRelevant}}">
+              Orientation
+            </paper-checkbox>
+          </div>
+          <paper-input class="number" disabled={{!action.condition.orientationRelevant}} label="x" value="[[action.condition.eulerAngles.x]]"
+            on-change="_valueChanged" data-args="action.condition.eulerAngles.x"></paper-input>
+          <paper-input class="number" disabled={{!action.condition.orientationRelevant}} type="number" step="1" min="0" max="100" label="Variance"
+            value="[[action.condition.orientationVariance.x]]" on-change="_valueChanged" data-args="action.condition.orientationVariance.x"></paper-input>
+          <paper-input class="number" disabled={{!action.condition.orientationRelevant}} label="y" value="[[action.condition.eulerAngles.y]]"
+            on-change="_valueChanged" data-args="action.condition.eulerAngles.y"></paper-input>
+          <paper-input class="number" disabled={{!action.condition.orientationRelevant}} type="number" step="1" min="0" max="100" label="Variance"
+            value="[[action.condition.orientationVariance.y]]" on-change="_valueChanged" data-args="action.condition.orientationVariance.y"></paper-input>
+          <paper-input class="number" disabled={{!action.condition.orientationRelevant}} label="z" value="[[action.condition.eulerAngles.z]]"
+            on-change="_valueChanged" data-args="action.condition.eulerAngles.z"></paper-input>
+          <paper-input class="number" disabled={{!action.condition.orientationRelevant}} type="number" step="1" min="0" max="100" label="Variance"
+            value="[[action.condition.orientationVariance.z]]" on-change="_valueChanged" data-args="action.condition.orientationVariance.z"></paper-input>
+        </div>
+      </div>
+
+      <div>
+        <b>Relative position</b>
+      </div>
+      <div>
+        <paper-dropdown-menu label="Reference landmark">
+          <paper-listbox slot="dropdown-content" selected="[[_landmarkName(action.condition.reference)]]" attr-for-selected="name">
+            <template is="dom-repeat" items="[[_referenceLandmarks(landmarks,action.condition.landmark)]]">
+              <paper-item name="[[_landmarkName(item)]]" on-tap="_updateReference">[[_landmarkName(item)]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
+
+      <div id="relativeProperties" hidden=[[!action.condition.referenceRelevant]]>
+        <div id="relativePosition">
+          <div id="wrap">
+            <div id="left_col">
+              <div>
+                <paper-checkbox on-change="_contDisplacementRelevantChanged" checked="{{action.condition.contDisplacementRelevant}}">
+                  Continuous
+                </paper-checkbox>
+              </div>
+              <paper-input class="number" disabled={{!action.condition.contDisplacementRelevant}} label="x" value="[[action.condition.contDisplacement.x]]"
+                on-change="_valueChanged" data-args="action.condition.contDisplacement.x"></paper-input>
+              <paper-input class="number" disabled={{!action.condition.contDisplacementRelevant}} type="number" step="1" min="0" max="100"
+                label="Variance" value="[[action.condition.contDisplacementVariance.x]]" on-change="_valueChanged" data-args="action.condition.contDisplacementVariance.x"></paper-input>
+              <paper-input class="number" disabled={{!action.condition.contDisplacementRelevant}} label="y" value="[[action.condition.contDisplacement.y]]"
+                on-change="_valueChanged" data-args="action.condition.contDisplacement.y"></paper-input>
+              <paper-input class="number" disabled={{!action.condition.contDisplacementRelevant}} type="number" step="1" min="0" max="100"
+                label="Variance" value="[[action.condition.contDisplacementVariance.y]]" on-change="_valueChanged" data-args="action.condition.contDisplacementVariance.y"></paper-input>
+              <paper-input class="number" disabled={{!action.condition.contDisplacementRelevant}} label="z" value="[[action.condition.contDisplacement.z]]"
+                on-change="_valueChanged" data-args="action.condition.contDisplacement.z"></paper-input>
+              <paper-input class="number" disabled={{!action.condition.contDisplacementRelevant}} type="number" step="1" min="0" max="100"
+                label="Variance" value="[[action.condition.contDisplacementVariance.z]]" on-change="_valueChanged" data-args="action.condition.contDisplacementVariance.z"></paper-input>
+            </div>
+            <div id="right_col">
+              <!-- <div>
+            <paper-checkbox
+            checked="{{action.condition.discDisplacementRelevant}}">
+            Discrete 
+          </paper-checkbox> 
+          </div> -->
+              <!-- <div 
+          hidden={{!action.condition.discDisplacementRelevant}}>  -->
+              <div>
+                [[action.condition.landmark.name]]
+              </div>
+              <paper-dropdown-menu label="preposition">
+                <paper-listbox slot="dropdown-content" selected="[[_relationName(action.condition.spatial_relation)]]" attr-for-selected="name"
+                  width="10">
+                  <template is="dom-repeat" items="[[spatial_relations]]">
+                    <paper-item name="[[_relationName(item)]]" on-tap="_updateSpatialRelation">
+                      [[_relationName(item)]]
+                    </paper-item>
+                  </template>
+                </paper-listbox>
+              </paper-dropdown-menu>
+              [[action.condition.reference.name]]
+              <!-- <div>
+            <paper-input type="number" step="1" min="0" max="100"
+              label="Distance to [[action.condition.reference.name]]"
+              value="{{_getDistance(action.condition.contDisplacement)}}"
+          ></paper-input>
+            <paper-input type="number" step="1" min="0" max="100"
+              label="Variance"
+              value="{{_getDistance(action.condition.contDisplacementVariance)}}"
+              on-change="_discDisplacementVarianceChanged"
+          ></paper-input>
+          </div>  -->
+              <!-- </div>  -->
+            </div>
+          </div>
+        </div>
+        <div>
+          <b>Relative orientation</b>
+        </div>
+        <div id="relativeOrientation" hidden=[[!action.condition.contOrientationRelevant]]>
+          <div id="wrap">
+            <div id="left_col">
+              <div>
+                <paper-checkbox on-change="_contEulerAnglesRelevantChanged" checked="{{action.condition.contOrientationRelevant}}">
+                  Continuous
+                </paper-checkbox>
+              </div>
+              <paper-input class="number" disabled={{!action.condition.contEulerAnglesRelevant}} label="x" value="[[action.condition.contEulerAngles.x]]"
+                on-change="_valueChanged" data-args="action.condition.contEulerAngles.x"></paper-input>
+              <paper-input class="number" disabled={{!action.condition.contEulerAnglesRelevant}} type="number" step="1" min="0" max="100"
+                label="Variance" value="[[action.condition.contOrientationVariance.x]]" on-change="_valueChanged" data-args="action.condition.contOrientationVariance.x"></paper-input>
+              <paper-input class="number" disabled={{!action.condition.contEulerAnglesRelevant}} label="y" value="[[action.condition.contEulerAngles.y]]"
+                on-change="_valueChanged" data-args="action.condition.contEulerAngles.y"></paper-input>
+              <paper-input class="number" disabled={{!action.condition.contEulerAnglesRelevant}} type="number" step="1" min="0" max="100"
+                label="Variance" value="[[action.condition.contOrientationVariance.y]]" on-change="_valueChanged" data-args="action.condition.contOrientationVariance.y"></paper-input>
+              <paper-input class="number" disabled={{!action.condition.contEulerAnglesRelevant}} label="z" value="[[action.condition.contEulerAngles.z]]"
+                on-change="_valueChanged" data-args="action.condition.contEulerAngles.z"></paper-input>
+              <paper-input class="number" disabled={{!action.condition.contEulerAnglesRelevant}} type="number" step="1" min="0" max="100"
+                label="Variance" value="[[action.condition.contOrientationVariance.z]]" on-change="_valueChanged" data-args="action.condition.contOrientationVariance.z"></paper-input>
+            </div>
+            <div id="right_col">
+              <!-- <div>
+            <paper-checkbox
+            checked="{{action.condition.discOrientationRelevant}}">
+            Discrete 
+          </paper-checkbox> 
+          </div> -->
+              <!-- <div 
+          hidden={{!action.condition.discOrientationRelevant}}>  -->
+              <div>
+                [[action.condition.landmark.name]]
+              </div>
+              <paper-dropdown-menu label="alignment">
+                <paper-listbox slot="dropdown-content" selected="[[_relationName(action.condition.alignment)]]" attr-for-selected="name"
+                  width="10">
+                  <template is="dom-repeat" items="[[alignments]]">
+                    <paper-item name="[[_relationName(item)]]" on-tap="_updateSpatialRelation">
+                      [[_relationName(item)]]
+                    </paper-item>
+                  </template>
+                </paper-listbox>
+              </paper-dropdown-menu>
+              [[action.condition.reference.name]]
+              <!-- <div>
+            <paper-input type="number" step="1" min="0" max="100"
+              label="Distance to [[action.condition.reference.name]]"
+              value="{{_getDistance(action.condition.contEulerAngles)}}"
+          ></paper-input>
+            <paper-input type="number" step="1" min="0" max="100"
+              label="Variance"
+              value="{{_getDistance(action.condition.contOrientationVariance)}}"
+              on-change="_discOrientationVarianceChanged"
+          ></paper-input>
+          </div>  -->
+              <!-- </div> -->
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'pbd-check-conditions-action',
+
+      properties: {
+        action: {
+          notify: true,
+          type: Object,
+        },
+        index: Number,
+        stepIndex: Number,
+        params: Object,
+        programId: String,
+        ros: Object,
+        step: Object,
+        landmarks: Array,
+        spatial_relations: Array,
+        currentCondition: Object,
+        conditionIndex: {
+          type: Number,
+          value: 1,
+        },
+        conditions: Array,
+      },
+
+      observers: [
+        '_computeSpatialRelations(program, index)',
+        //'_updateCondition(action.*, index)',
+        '_computeCondition(index, conditionIndex)',
+        //'_save(action.condition.*)'
+      ],
+
+      _save: function () {
+        var msg = {
+          type: 'view conditions',
+          program_info: {
+            db_id: this.programId
+          },
+          step_num: this.stepIndex,
+          action_num: this.index,
+          action: this.action
+        };
+        this.$.eventPub.publish(msg);
+      },
+      _generate: function () {
+        var msg = {
+          type: 'generate conditions',
+          program_info: {
+            db_id: this.programId
+          },
+          step_num: this.stepIndex,
+          action_num: this.index,
+          landmark: this.action.condition.landmark,
+          action: this.action
+        };
+        this.$.eventPub.publish(msg);
+        this._computeSpatialRelations(this.action);
+        console.debug('_generate: action index', this.index);
+        console.debug('_generate: msg ', msg);
+
+      },
+      _computeCondition(index, conditionIndex) {
+
+        if (!conditionIndex || conditionIndex < 0) {
+          conditionIndex = 0;
+        }
+        console.debug('_computeCondition: ', conditionIndex);
+        if (this.conditionIndex > 0) {
+          this.currentCondition = this.action.condition;
+          console.debug('_computeCondition ', this.currentCondition);
+        } else {
+          console.debug('_computeCondition: None ');
+        }
+      },
+
+      _updateCondition: function () {
+        var msg = {
+          type: 'update conditions',
+          program_info: {
+            db_id: this.programId
+          },
+          step_num: this.stepIndex,
+          action_num: this.index,
+          action: this.action
+
+        };
+        this.$.eventPub.publish(msg);
+        console.debug('_updateCondition ', this.action.condition);
+      },
+
+      _updateLandmark: function (evt) {
+        // If selected Main landmark is None, no condition is assigned
+        console.debug('_updateLandmark: this.action = ', this.action);
+        this.set('conditionIndex', evt.model.index);
+        console.debug('_updateLandmark: conditionIndex = ', this.conditionIndex);
+
+        // if landmark selected and not Robot base/torso
+        if (this.conditionIndex > 0) {
+          // this.conditions[this.conditionIndex-1].relevant = true;
+          // this.currentCondition = this.conditions[this.conditionIndex-1];
+          this.$.conditionProperties.style.display = "inline";
+          this.set('action.condition.landmark', evt.model.item);
+          console.debug(this.action.condition.landmark);
+          this.set('action.condition.relevant', true);
+        } else {
+          this._clear();
+        }
+      },
+
+      _updateReference: function (evt) {
+        this.set('action.condition.reference', evt.model.item);
+        console.debug('_updateReference: action ', this.action);
+        this.set('referenceIndex', evt.model.index);
+        console.debug('_updateLandmark: referenceIndex', this.referenceIndex);
+        // if landmark selected and not Robot base/torso
+        if (this.referenceIndex > 0) {
+          this.$.relativeProperties.style.display = "inline";
+          this.action.condition.referenceRelevant = true;
+        } else {
+          this.$.relativeProperties.style.display = "none";
+          this.action.condition.referenceRelevant = false;
+          this.set('action.condition.reference', {});
+
+        }
+        this._updateCondition();
+      },
+
+      _computeSpatialRelations: function (action) {
+        var spatial_relations = [
+          'is_left_of', 'is_right_of', 'is_in_front_of', 'is_behind_of',
+          'none'];
+        //landmarks = landmarks.concat(surfaceLandmarks);
+        this.set('spatial_relations', spatial_relations);
+        console.debug('_computeSpatialRelations: ', spatial_relations.length);
+      },
+
+      _positionRelevantChanged: function (evt) {
+        //this.currentCondition.positionRelevant = evt.target.checked;
+        //console.debug("_positionRelevantChanged: ", evt.target.checked);
+      },
+      _orientationRelevantChanged: function (evt) {
+        //this.currentCondition.orientationRelevant = evt.target.checked;
+        //console.debug("_orientationRelevantChanged: ", evt.target.checked);
+      },
+      _sizeRelevantChanged: function (evt) {
+        //this.currentCondition.sizeRelevant = evt.target.checked;
+        //console.debug("_sizeRelevantChanged: ", evt.target.checked);
+      },
+      _contDisplacementRelevantChanged: function (evt) {
+        //this.currentCondition.sizeRelevant = evt.target.checked;
+        //console.debug("_contDisplacementRelevantChanged: ", evt.target.checked);
+      },
+
+      _valueChanged: function (evt) {
+        var args = evt.target.getAttribute('data-args');
+        console.debug("_valueChanged: ", args, " set to ", evt.target.value);
+        // console.debug("_valueChanged: args ", args);
+        this._parseString(evt.target.value, args);
+      },
+      _updateSpatialRelation: function (evt) {
+        // Automatically set the displacement vector values
+        //this._updateCondition();
+        this.set('spatial_relation', evt.model.item);
+        this.action.condition.spatial_relation = evt.model.item;
+        // update continuous displacement values
+        if (evt.model.item === 'is_in_front_of' || evt.model.item === 'is_behind_of') {
+          this.set('action.condition.contDisplacement.y', 0);
+          this.set('action.condition.contDisplacementVariance.y', 0.5);
+        } else if (evt.model.item === 'is_left_of' || evt.model.item === 'is_right_of') {
+          this.set('action.condition.contDisplacement.x', 0);
+          this.set('action.condition.contDisplacementVariance.x', 0.5);
+        }
+      },
+      _getDistance: function (dispmnt) {
+        var x = parseFloat(dispmnt.x);
+        var y = parseFloat(dispmnt.y);
+        var squared_dist = x * x + y * y;
+
+        console.debug('_getDistance: ', Math.sqrt(squared_dist));
+        return Math.sqrt(squared_dist);
+      },
+
+      _relationName: function (spatial_relation) {
+        // console.debug('_relationName: ', spatial_relation);
+        if (spatial_relation === 'is_right_of') {
+          return 'is right of';
+        } if (spatial_relation === 'is_left_of') {
+          return 'is left of';
+        } if (spatial_relation === 'is_behind_of') {
+          return 'is behind of';
+        } if (spatial_relation === 'is_in_front_of') {
+          return 'is in front of';
+        }
+        return ' not relevant to ';
+      },
+      _referenceLandmarks: function (landmarks) {
+        var objects = ['None'];
+        // console.debug('_referenceLandmarks', this.action.condition.landmark);
+        for (var i = 0; i < landmarks.length; ++i) {
+          if (landmarks[i].type === 'surface box') {
+            if (this.action.condition.landmark && landmarks[i].name != this.action.condition.landmark.name) {
+              objects.push(landmarks[i]);
+            }
+          }
+        }
+        return objects;
+      },
+      _objectLandmarks: function (landmarks) {
+        var objects = ['None'];
+        console.debug('_objectLandmarks', this.action.condition.landmark);
+        for (var i = 0; i < landmarks.length; ++i) {
+          if (landmarks[i].type === 'surface box') {
+            objects.push(landmarks[i]);
+          }
+        }
+        return objects;
+      },
+      _landmarkName: function (landmark) {
+        if (!landmark || !landmark.type) {
+          return 'None';
+        }
+        if (landmark.type === 'tf frame') {
+          // if (landmark.name === 'base_link' || landmark.name === 'base_footprint') {
+          //   return 'Robot base';
+          // } else if (landmark.name === 'torso_lift_link') {
+          //   return 'Robot torso';
+          // } else {
+          //   return landmark.name;
+          // }
+          return 'None';
+        } else if (landmark.type === 'surface box') {
+          return landmark.name;
+        }
+
+        return 'Unknown landmark';
+      },
+      _formatDec: function (number) {
+        if (number) {
+          return number.toFixed(2);
+        }
+        console.debug("_formatDec: ", number);
+
+        return 0;
+      },
+      _parseString: function (s, key) {
+        if (typeof s === 'string') {
+          var f = parseFloat(s);
+          if (!isNaN(f) && s !== '0.') {
+            this.set(key, f);
+          }
+        } else {
+          this.set(key, s);
+        }
+      },
+
+      _clear: function () {
+        //this.currentCondition = {};
+        this.$.conditionProperties.style.display = "none";
+        //this.action.condition.relevant = false;
+
+        this.set('action.condition.relevant', false);
+        console.debug("_clear: condition relevant set to false ");
+        // set all booleans to false
+        // for( var key in this.action.condition ) {
+        //   if (typeof(key) === "boolean"){
+        //     this.action.condition[key] = false;
+        //   }
+        // }
+      },
+    });
+  </script>
+</dom-module>

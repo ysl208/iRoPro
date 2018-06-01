@@ -25,22 +25,39 @@
         display: block;
         height: 100%;
       }
+
       a {
         color: #000;
         text-decoration: none;
       }
+
       .add {
         height: 25px;
         padding: 5px 5px;
         line-height: 14px;
         margin-bottom: 5px;
       }
+
       paper-button.back {
         height: 40px;
       }
+
       paper-button.back:hover {
         background-color: transparent;
       }
+
+      .condition {
+        background-color: var(--paper-purple-300);
+        padding: 5px 5px;
+        line-height: 14px;
+        margin-bottom: 5px;
+        min-width: 25px;
+      }
+
+      .condition:hover {
+        background-color: var(--paper-purple-400);
+      }
+
       .step {
         background-color: var(--paper-grey-300);
         padding: 5px 5px;
@@ -48,26 +65,38 @@
         margin-bottom: 5px;
         min-width: 25px;
       }
-      .steps > span {
+
+      .steps>span {
         margin-right: 5px;
       }
+
       .step.iron-selected {
         background-color: var(--paper-grey-400);
       }
+
       .step:hover {
         background-color: var(--paper-grey-400);
       }
+
+      .submit {
+        color: #fff;
+        background-color: var(--paper-blue-300);
+      }
+
       .runstop {
         color: #fff;
         margin-left: 10px;
         height: 40px;
       }
+
       .run {
         background-color: var(--paper-green-500);
       }
+
       .stop {
         background-color: var(--paper-red-500);
       }
+
       .stepDiv {
         min-width: 350px;
         margin-bottom: 10px;
@@ -76,10 +105,22 @@
         padding-right: 2px;
         padding-bottom: 2px;
       }
+
+      .conditionDiv {
+        min-width: 350px;
+        margin-bottom: 10px;
+        overflow-y: auto;
+        padding-left: 2px;
+        padding-right: 2px;
+        padding-bottom: 2px;
+        display: none;
+      }
+
       #rviz {
         display: block;
         height: 500px;
       }
+
       @media (min-width: 768px) {
         #layout {
           height: 100%;
@@ -94,6 +135,12 @@
           margin-bottom: 0px;
           margin-right: 10px;
         }
+        .conditionDiv {
+          width: 350px;
+          max-height: 100%;
+          margin-bottom: 0px;
+          margin-right: 10px;
+        }
         #rviz {
           height: 100%;
           width: 350px;
@@ -101,41 +148,23 @@
         }
       }
     </style>
-    <app-route
-      route="{{route}}"
-      pattern="/:id"
-      data="{{routeData}}"
-    ></app-route>
-    <ros-topic
-      id="programSub"
-      on-message="_handleProgram"
-      msg-type="rapid_pbd_msgs/Program"
-      topic="rapid_pbd/program/{{routeData.id}}"
-      ros="[[ros]]"
-    ></ros-topic>
-    <ros-topic auto
-      id="eventPub"
-      msg-type="rapid_pbd_msgs/EditorEvent"
-      topic="rapid_pbd/editor_events"
-      ros="[[ros]]"
-    ></ros-topic>
-    <ros-action-client
-      id="programAction"
-      ros="[[ros]]"
-      server="/rapid_pbd/execute_program_action"
-      action-type="rapid_pbd_msgs/ExecuteProgramAction"
-      on-feedback="_handleFeedback"
-      on-result="_handleResult"
-    ></ros-action-client>
-    <ros-topic auto
-      last-message="{{isRunning}}"
-      msg-type="std_msgs/Bool"
-      topic="rapid_pbd/is_running"
-      ros="[[ros]]"
-    ></ros-topic>
+    <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
+    <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{routeData.id}}"
+      ros="[[ros]]"></ros-topic>
+    <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+    <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
+      on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>
+    <ros-topic auto last-message="{{isRunning}}" msg-type="std_msgs/Bool" topic="rapid_pbd/is_running" ros="[[ros]]"></ros-topic>
     <div id="layout" class="layout vertical">
       <div class="layout horizontal center">
-        <a href="#/" class="self-end"><paper-button class="back clear"><iron-icon icon="arrow-back"></iron-icon> Back</paper-button></a>
+        <a href="#/" class="self-end">
+          <paper-button class="back clear" on-tap="">
+            <iron-icon icon="arrow-back"></iron-icon> Back</paper-button>
+        </a>
+        <!-- <paper-button raised class="submit" on-tap="submit">
+          Add Sense Steps
+        </paper-button> -->
+
         <paper-input class="flex" id="programName" label="Program name" value="[[program.name]]" on-blur="save"></paper-input>
         <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
           <iron-icon icon="av:play-arrow"></iron-icon>
@@ -149,27 +178,28 @@
       <div class="layout horizontal center">
         <span>Steps:&nbsp;</span>
         <span hidden$="[[_hasSteps(program.steps)]]">None</span>
+        <!-- <paper-button class="condition" id="Pre" hidden="[[!submitted]]" on-tap="selectCondition">Pre</paper-button> -->
         <iron-selector attr-for-selected="name" selected="{{currentStepNum}}">
-          <template is="dom-repeat" id="stepList" items="[[program.steps]]" >
-            <paper-button class="step" name="[[index]]" on-tap="selectStep">{{_stepNum(index)}}</paper-button>
+          <template is="dom-repeat" id="stepList" items="[[program.steps]]" as="step">
+            <template is="dom-if" if="[[_isSenseStep(index)]]">
+              <paper-button class="step" name="[[index]]" on-tap="selectStep">{{_stepNum(index)}}</paper-button>
+            </template>
+            <template is="dom-if" if="[[!_isSenseStep(index)]]">
+              <paper-button class="step" name="[[index]]" on-tap="selectStep">{{_stepNum(index)}}</paper-button>
+            </template>
           </template>
         </iron-selector>
+        <!-- <paper-button class="condition" id="Post" hidden$="[[!submitted]]" on-tap="selectCondition">Post</paper-button> -->
         <paper-button class="add important" on-tap="addStep">+ Add Step</paper-button>
       </div>
       <div class="content">
         <array-selector id="selector" items="{{program.steps}}" selected="{{currentStep}}"></array-selector>
-        <div class="stepDiv" hidden$="[[!_hasSteps(program.steps)]]"><div class="stepDivInner">
-          <pbd-step
-            id="step"
-            index="[[currentStepNum]]"
-            params="[[params]]"
-            program-id="[[routeData.id]]"
-            program="[[program]]"
-            step="{{currentStep}}"
-            ros="[[ros]]"
-            on-delete="_deleteStep"
-          ></pbd-step>
-          </div></div>
+        <div id="stepContent" class="stepDiv" hidden$="[[!_hasSteps(program.steps)]]">
+          <div class="stepDivInner">
+            <pbd-step id="step" index="[[currentStepNum]]" params="[[params]]" program-id="[[routeData.id]]" program="[[program]]" step="{{currentStep}}"
+              ros="[[ros]]" on-delete="_deleteStep"></pbd-step>
+          </div>
+        </div>
         <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
       </div>
     </div>
@@ -179,6 +209,20 @@
       <div class="buttons">
         <paper-button dialog-confirm class="clear">OK</paper-button>
       </div>
+    </paper-dialog>
+    <!-- <paper-dialog id="preCheckDialog" modal>
+      <h2>Preconditions passed. Run main program?</h2>
+      <div class="deleteButtons">
+        <paper-button dialog-dismiss class="clear">Cancel</paper-button>
+        <paper-button dialog-confirm on-tap="run" class="delete">Run</paper-button>
+      </div>
+    </paper-dialog> -->
+    <!-- <paper-dialog id="preCheckFailDialog" modal>
+      <h2>Preconditions failed. Program cannot be run.</h2>
+      <p>[[error]]</p>
+      <div class="buttons">
+    <paper-button dialog-confirm class="clear">OK</paper-button> -->
+    </div>
     </paper-dialog>
   </template>
 
@@ -191,6 +235,7 @@
           type: Number,
           value: 0,
         },
+        currentCondition: String,
         params: Object,
         program: {
           type: Object,
@@ -200,9 +245,20 @@
         route: Object,
         isRunning: {
           type: Object,
-          value: function() {
+          value: function () {
             return { data: false };
           }
+        },
+        // preCheck: {
+        //   type: Object,
+        //   value: function() {
+        //     return { data: false };
+        //   }
+        // },
+
+        submitted: {
+          type: Boolean,
+          value: false,
         },
       },
 
@@ -212,9 +268,14 @@
         '_stepChanged(ros, routeData.id, currentStepNum)',
         '_currentStepNumChanged(program, currentStepNum)',
         '_isRunningChanged(isRunning.data)',
+        '_submittedChanged(submitted)',
+        '_currentConditionChanged(currentCondition)',
+        '_conditionChanged(ros, currentCondition)',
+        //'selectCondition(submitted)',
+        // '_preCheckChanged(preCheck.data)',
       ],
 
-      load: function(db_id, paramsChangeRecord) {
+      load: function (db_id, paramsChangeRecord) {
         if (!db_id) {
           return;
         }
@@ -223,6 +284,7 @@
         }
         this.$.programSub.subscribe();
         this.currentStepNum = 0;
+        this.currentCondition = "";
 
         var depthCloudFrameId = '';
         if (this.params.robot === "pr2") {
@@ -235,14 +297,14 @@
           console.error('Unknown robot type', this.params.robot);
         }
 
-         var fixedFrame = '';
-          if (this.params.robot === "pr2" || this.params.robot === "fetch") {
-            fixedFrame = '/base_link';
-          } else if (this.params.robot === "baxter") {
-            fixedFrame = '/base';
-          } else {
-            console.error('Unknown robot type', this.params.robot);
-          }
+        var fixedFrame = '';
+        if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+          fixedFrame = '/base_link';
+        } else if (this.params.robot === "baxter") {
+          fixedFrame = '/base';
+        } else {
+          console.error('Unknown robot type', this.params.robot);
+        }
 
         var config = {
           globalOptions: {
@@ -319,7 +381,34 @@
         }
       },
 
-      save: function() {
+      _detect: function () {
+        if (!this.ros) {
+          console.error('Unable to call detection right now.');
+          return;
+        }
+        var msg = {
+          type: 'detect world state',
+          domain_id: this.domain_id,
+          action_name: this.actionName,
+          state_name: "Effect"
+        };
+        this.$.eventPub.publish(msg);
+      },
+      saveOnExit: function () {
+        this.program.name = this.$.programName.value;
+        var msg = {
+          type: 'save on exit program',
+          program_info: {
+            db_id: this.routeData.id,
+            name: this.program.name,
+          },
+          program: this.program
+        };
+        console.debug('Saving on exit ', this.program);
+        this.$.eventPub.publish(msg);
+      },
+
+      save: function () {
         this.program.name = this.$.programName.value;
         var msg = {
           type: 'update program',
@@ -329,36 +418,87 @@
           },
           program: this.program
         };
-        console.debug('Saving', this.program);
+        console.debug('Saving ', this.program);
         this.$.eventPub.publish(msg);
+        console.debug('Saving', this.program);
       },
 
-      run: function() {
+      _preCheck: function () {
+        this._conditionCheck(1);
+      },
+
+      _wait: function () {
+
+      },
+
+      run: function () {
+        // Run main program (without Sense action)
+        // console.debug('run: main steps...', mainProgram);
+        // var mainProgram = Object.assign({},this.program);
+        // mainProgram.steps = mainProgram.steps.slice(2,mainProgram.steps.length);
+        console.debug('run: ', this.program);
+
         var goal = {
           program: this.program
         }
         this.$.programAction.send(goal);
+
+        // Check postconditions
+        // do {
+        //   console.debug('Waiting for main steps to finish...');
+        //   setTimeout(this._wait, 2000);
+        // }
+        // while (this.isRunning.data)
+        // this._conditionCheck(mainProgram.steps.length-1);
+        // if(!this.isRunning.data && this.program.postconditions.length > 0){
+        //   var msg = {
+        //     type: 'check conditions',
+        //     program_info: {
+        //       db_id: this.routeData.id,
+        //       name: this.program.name,
+        //     },
+        //     step_num: this.program.steps.length-1
+        //   };
+        //   console.debug('Check postconditions...', this.program);
+        //   this.$.eventPub.publish(msg);
+        // }
       },
 
-      stop: function() {
+      stop: function () {
         this.$.programAction.cancel();
       },
 
-      _programUpdated: function(changeRecord) {
+      _programUpdated: function (changeRecord) {
         if (changeRecord.base) {
           if (changeRecord.path !== 'program') {
             if (changeRecord.path.endsWith('.length')) {
               return;
             }
             var that = this;
-            this.debounce('save', function() {
+            this.debounce('save', function () {
               that.save();
             }, 100);
           }
         }
       },
 
-      addStep: function() {
+      submit: function () {
+        var msg = {
+          type: 'add sense steps',
+          program_info: {
+            db_id: this.routeData.id,
+          },
+          //program: this.program,
+          step_num: this.program.steps.length
+
+        };
+        this.submitted = true;
+
+        console.debug('Adding sense steps', this.program);
+        this.$.eventPub.publish(msg);
+      },
+
+      addStep: function () {
         var msg = {
           type: 'add step',
           program_info: {
@@ -370,12 +510,40 @@
         this.$.step.openActionPicker();
       },
 
-      selectStep: function(e) {
-        var step = this.$.stepList.itemForElement(e.target);
-        this.currentStepNum = parseInt(e.target.name);
+      selectStep: function (e) {
+        console.debug('selectStep: ', e.target.name);
+        this.$.stepContent.style.display = "inline";
+        // this.$.preconditionContent.style.display = "none";
+        // this.$.postconditionContent.style.display = "none";
+        if (this.currentStepNum >= 0) {
+          var step = this.$.stepList.itemForElement(e.target);
+          this.currentStepNum = parseInt(e.target.name);
+        }
       },
 
-      _deleteStep: function(evt) {
+      selectCondition: function (e) {
+        console.debug('selectCondition: ', this.currentStepNum);
+        this.$.stepContent.style.display = "none";
+
+        var button = Polymer.dom(e).localTarget;
+        this.currentCondition = (button.id);
+
+        if (button.id == 'Pre') {
+          this.conditionArray = this.program.steps[0].conditions;
+          // this.$.preconditionContent.style.display = "inline";
+          // this.$.postconditionContent.style.display = "none";
+          this.currentStepNum = 1;
+        }
+        else if (button.id == 'Post') {
+          this.conditionArray = this.program.steps[this.program.steps.length - 1].conditions;
+          // this.$.postconditionContent.style.display = "inline";
+          // this.$.preconditionContent.style.display = "none";
+        }
+        console.debug('selectCondition: conditionArray.length ', this.conditionArray.length);
+
+      },
+
+      _deleteStep: function (evt) {
         var msg = {
           type: 'delete step',
           program_info: {
@@ -384,12 +552,50 @@
           step_num: this.currentStepNum
         };
         this.$.eventPub.publish(msg);
-        this.currentStepNum = Math.max(this.currentStepNum-1, 0);
-        evt.stopPropagation(); 
+        this.currentStepNum = Math.max(this.currentStepNum - 1, 0);
+        evt.stopPropagation();
+      },
+
+      _currentConditionChanged: function (program, currentCondition) {
+        console.log("_currentConditionChanged " + this.currentCondition);
+
+        if (program && program.conditions) {
+          // this.$.selector.select(program.conditions[currentCondition]);
+        }
+      },
+
+      _conditionChanged(ros, db_id, currentCondition) {
+        if (!ros || !db_id || (!currentCondition && currentCondition !== "")) {
+          return;
+        }
+        var msg = {
+          type: 'view condition',
+          program_info: {
+            db_id: db_id
+          },
+          condition: currentCondition
+        };
+        this.$.eventPub.publish(msg);
+      },
+
+      _hasPreconditions: function (preconditions) {
+        return (preconditions && program.steps[0].conditions.length > 0);
+      },
+
+      _hasPostconditions: function (postconditions) {
+
+        return postconditions && program.steps[program.steps.length - 1].conditions.length > 0;
+      },
+
+      _hasConditions: function (program) {
+        return this._hasPreconditions(program.preconditions)
+          && this._hasPostconditions(program.postconditions);
       },
 
       // If a new program is loaded, select step 0.
-      _programChanged: function(program, oldProgram) {
+      _programChanged: function (program, oldProgram) {
+
+        console.log("Program changed: " + program);
         if (!program) {
           return;
         }
@@ -398,18 +604,22 @@
         }
       },
 
-      _hasSteps: function(steps) {
+      _hasSteps: function (steps) {
         return steps && steps.length > 0;
       },
 
-      _currentStepNumChanged: function(program, currentStepNum) {
-        if (program && program.steps) {
+      _currentStepNumChanged: function (program, currentStepNum) {
+        // Load step form content
+        console.log("_currentStepNumChanged to" + this.currentStepNum);
+        if (program && program.steps && currentStepNum >= 0) {
           this.$.selector.select(program.steps[currentStepNum]);
         }
       },
-
       _stepChanged(ros, db_id, currentStepNum) {
-        if (!ros || !db_id || (!currentStepNum && currentStepNum !== 0)) {
+        // Load robot visualization
+        console.log("_stepChanged to" + currentStepNum);
+        if (!ros || !db_id || (!currentStepNum && currentStepNum !== 0)
+          || (currentStepNum && currentStepNum < 0)) {
           return;
         }
         var msg = {
@@ -422,23 +632,25 @@
         this.$.eventPub.publish(msg);
       },
 
-      _stepNum: function(index) {
+      _stepNum: function (index) {
         return parseInt(index) + 1;
       },
 
-      _handleFeedback: function(evt) {
+      _handleFeedback: function (evt) {
         this.currentStepNum = evt.detail.step_number;
       },
 
-      _handleResult: function(evt) {
+      _handleResult: function (evt) {
         var error = evt.detail.error;
         if (error) {
           this.error = evt.detail.error;
           this.$.errorDialog.open();
+        } else {
+
         }
       },
 
-      _handleProgram: function(evt) {
+      _handleProgram: function (evt) {
         var program = evt.detail;
         if (!this.program) {
           this.set('program', program);
@@ -449,7 +661,24 @@
         }
       },
 
-      _isRunningChanged: function(isRunning) {
+      _preCheckChanged: function (preCheck) {
+        if (preCheck) {
+          this._preCheckSuccessful();
+        }
+        // else{
+        //   this._preCheckFailed();
+        // }
+      },
+
+      _preCheckSuccessful: function () {
+        this.$.preCheckDialog.open();
+      },
+
+      _preCheckFailed: function () {
+        this.$.preCheckFailDialog.open();
+      },
+
+      _isRunningChanged: function (isRunning) {
         if (isRunning) {
           this.$.rviz.set('config.displays.1.isShown', false);
           this.$.rviz.set('config.displays.2.isShown', false);
@@ -466,6 +695,18 @@
           this.$.rviz.set('config.displays.6.isShown', false);
         }
       },
+
+      _submittedChanged: function (submitted) {
+
+        console.log("_submittedChanged " + this.submitted);
+
+        console.log("currentCondition " + this.currentCondition);
+      },
+
+      _isSenseStep: function (index) {
+
+        return index < 3;
+      }
     });
   </script>
 </dom-module>

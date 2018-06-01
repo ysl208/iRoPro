@@ -1,0 +1,314 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="pbd-spec-inference-action">
+  <template>
+    <style include="shared-styles"></style>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style>
+       :host {
+        display: block;
+      }
+
+      paper-button {
+        margin-left: 10px;
+      }
+
+      .title {
+        border-top: 1px solid var(--paper-grey-300);
+        padding-top: 10px;
+        margin-bottom: 10px;
+      }
+
+      .title paper-button {
+        height: 30px;
+      }
+
+      paper-input {
+        display: inline-block;
+        max-width: 200px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .number {
+        max-width: 60px;
+      }
+
+      paper-dropdown-menu {
+        max-width: 200px;
+        margin-left: 10px;
+        margin-top: 0px;
+      }
+
+      h3 {
+        margin: auto 0px;
+        display: inline-block;
+      }
+
+      #wrap {
+        width: 100%;
+      }
+
+      #left_col {
+        float: left;
+        width: 40%;
+        padding: 0;
+      }
+
+      #right_col {
+        float: right;
+        width: 60%;
+      }
+    </style>
+    <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+    <div class="layout horizontal center">
+      <p>Select latest added landmark.</p>
+    </div>
+    <div>
+      <paper-dropdown-menu label="Main landmark">
+        <paper-listbox slot="dropdown-content" selected="[[_landmarkName(action.landmark)]]" attr-for-selected="name">
+          <template is="dom-repeat" items="[[_objectLandmarks(landmarks,'')]]">
+            <paper-item name="[[_landmarkName(item)]]" on-tap="_updateLandmark">[[_landmarkName(item)]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <paper-button class="normal" on-tap="_infer">Infer</paper-button>
+    </div>
+    <div>
+      <paper-dropdown-menu label="Choose spec">
+        <paper-listbox slot="dropdown-content" attr-for-selected="name">
+          <template is="dom-repeat" items="[[_objectSpecs(specs)]]">
+            <paper-item name="[[_specName(item)]]" on-tap="_updateSpec">[[_specName(item)]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <paper-button class="normal" on-tap="_view">View</paper-button>
+      <paper-button class="normal" on-tap="_select">Select</paper-button>
+
+      <!-- <paper-input class="flex" label="Run pick up program" value="Pick from top" data-args="spec.programs" on-change="_clear"></paper-input> -->
+
+      <paper-input class="flex" label="Pick up program" value="[[_pickUpName(spec.pick_program)]]" on-change="_clear" data-args="spec.pick_program"></paper-input>
+      <paper-input class="number" type="number" step="1" min="1" max="100" label="Objects" value="[[spec.obj_num]]" on-change="_valueChanged"
+        data-args="spec.obj_num"></paper-input>
+      <paper-input class="number" type="number" step="1" min="1" max="100" label="Rows" value="[[spec.row_num]]" on-change="_valueChanged"
+        data-args="spec.row_num"></paper-input>
+      <paper-input class="number" type="number" step="1" min="1" max="100" label="Columns" value="[[spec.col_num]]" on-change="_valueChanged"
+        data-args="spec.col_num"></paper-input>
+      <paper-input class="number" type="number" step="1" min="1" max="100" label="Height" value="[[spec.height_num]]" on-change="_valueChanged"
+        data-args="spec.height_num"></paper-input>
+
+      <paper-input class="flex" label="avg_dx" value="[[spec.avg_dx]]" on-change="_valueChanged" data-args="spec.avg_dx"></paper-input>
+      <paper-input class="flex" label="avg_dy" value="[[spec.avg_dy]]" on-change="_valueChanged" data-args="spec.avg_dy"></paper-input>
+
+      <paper-input class="flex" label="Landmark" value="[[spec.landmark.name]]"></paper-input>
+
+      <paper-input class="flex" label="dim.x" value="[[spec.landmark.surface_box_dims.x]]" data-args="spec.landmark.surface_box_dims.x"></paper-input>
+      <paper-input class="flex" label="dim.y" value="[[spec.landmark.surface_box_dims.y]]" data-args="spec.landmark.surface_box_dims.y"></paper-input>
+      <paper-input class="flex" label="dim.z" value="[[spec.landmark.surface_box_dims.z]]" data-args="spec.landmark.surface_box_dims.z"></paper-input>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'pbd-spec-inference-action',
+      properties: {
+        action: {
+          notify: true,
+          type: Object,
+        },
+        index: Number,
+        stepIndex: Number,
+        params: Object,
+        programId: String,
+        ros: Object,
+        step: Object,
+        specs: Array,
+        landmark: Object,
+        landmarks: Array,
+        conditionIndex: {
+          type: Number,
+          value: 1,
+        },
+        spec: Object
+      },
+
+      observers: [
+
+      ],
+
+
+      _select: function (index) {
+        console.debug("_select: ", index);
+        var msg = {
+          type: 'select specification',
+          program_info: {
+            db_id: this.programId
+          },
+          step_num: this.stepIndex,
+          action_num: this.index,
+          spec: this.spec
+        };
+        this.$.eventPub.publish(msg);
+        console.debug('_select ', msg);
+      },
+
+      _view: function () {
+        var msg = {
+          type: 'view specification',
+          program_info: {
+            db_id: this.programId
+          },
+          step_num: this.stepIndex,
+          action_num: this.index,
+          spec: this.spec
+        };
+        this.$.eventPub.publish(msg);
+        console.debug('_view ', this.spec);
+      },
+
+      _infer: function () {
+        var msg = {
+          type: 'infer specification',
+          program_info: {
+            db_id: this.programId
+          },
+          step_num: this.stepIndex,
+          action_num: this.index,
+          landmark: this.action.landmark,
+          action: this.action
+        };
+        this.$.eventPub.publish(msg);
+        console.debug('_infer: action index', this.index);
+        console.debug('_infer: msg ', msg);
+      },
+
+      _updateLandmark: function (evt) {
+        // If selected Main landmark is None, no condition is assigned
+        console.debug('_updateLandmark: this.action = ', this.action);
+
+        // if landmark selected and not Robot base/torso
+        if (this.conditionIndex > 0) {
+          this.set('action.landmark', evt.model.item);
+          console.debug('this.action.landmark = ', this.action.landmark);
+        } else {
+          this._clear();
+        }
+      },
+      _updateSpec: function (evt) {
+        this.set('spec', this.specs[evt.model.index]);
+        console.debug('_updateSpec: spec ', this.spec);
+        console.debug('evt.model ', evt.model);
+      },
+
+      _objectLandmarks: function (landmarks) {
+        var objects = ['None'];
+        console.debug('_objectLandmarks', this.action.landmark);
+        for (var i = 0; i < landmarks.length; ++i) {
+          if (landmarks[i].type === 'surface box') {
+            objects.push(landmarks[i]);
+          }
+        }
+        return objects;
+      },
+
+      _objectSpecs: function (specs) {
+        var objects = [];
+        console.debug('_objectSpecs', this.specs);
+        for (var i = 0; i < specs.length; ++i) {
+          objects.push(specs[i]);
+        }
+        return objects;
+      },
+      _specScores: function (posteriors) {
+        var objects = [];
+        console.debug('_specScores', this.action.posteriors);
+        for (var i = 0; i < posteriors.data.length; ++i) {
+          if (posteriors.data[i] >= 0) {
+            objects.push(posteriors.data[i]);
+          }
+        }
+        return objects;
+      },
+
+      _landmarkName: function (landmark) {
+        if (!landmark || !landmark.type) {
+          return 'None';
+        }
+        if (landmark.type === 'tf frame') {
+          // if (landmark.name === 'base_link' || landmark.name === 'base_footprint') {
+          //   return 'Robot base';
+          // } else if (landmark.name === 'torso_lift_link') {
+          //   return 'Robot torso';
+          // } else {
+          //   return landmark.name;
+          // }
+          return 'None';
+        } else if (landmark.type === 'surface box') {
+          return landmark.name;
+        }
+
+        return 'Unknown landmark';
+      },
+
+      _parseString: function (s, key) {
+        if (typeof s === 'string') {
+          var f = parseFloat(s);
+          if (!isNaN(f) && s !== '0.') {
+            this.set(key, f);
+          }
+        } else {
+          this.set(key, s);
+        }
+      },
+      _pickUpName: function (name) {
+        if (name == '') {
+          return 'Pick';
+        } else {
+          return name;
+        }
+      },
+      _specName: function (spec) {
+        return spec.name;
+      },
+
+      _specName1: function (index) {
+        if (index >= 0) {
+          index += 1;
+          return "Spec " + index;
+        }
+        return "None";
+      },
+
+      _valueChanged: function (evt) {
+        var args = evt.target.getAttribute('data-args');
+        console.debug("_valueChanged: ", args, " set to ", evt.target.value);
+        this._parseString(evt.target.value, args);
+      },
+
+      _formatDec: function (number) {
+        if (number) {
+          return number.toFixed(2);
+        }
+        console.debug("_formatDec: ", number);
+
+        return 0;
+      },
+
+      _clear: function (evt) {
+        var args = evt.target.getAttribute('data-args');
+        // var programs = [];
+        // programs.push(evt.target.value);
+        this.set(args, evt.target.value);
+
+        console.debug("_addProgram: ", args, " set to ", evt.target.value);
+        console.debug("_addProgram: ", this.spec.pick_program);
+
+      },
+
+    });
+  </script>
+</dom-module>

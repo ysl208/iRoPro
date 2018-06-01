@@ -25,13 +25,15 @@ using rapid_pbd_msgs::FreezeArm;
 using rapid_pbd_msgs::Program;
 using rapid_pbd_msgs::Step;
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 ProgramExecutionServer::ProgramExecutionServer(
     const std::string& action_name, const ros::Publisher& is_running_pub,
     ActionClients* action_clients, const RuntimeRobotState& robot_state,
     const RuntimeVisualizer& runtime_viz, const ProgramDb& program_db,
-    const ros::Publisher& planning_scene_pub)
+    const ros::Publisher& planning_scene_pub,
+    const ros::Publisher& condition_check_pub)
     : nh_(),
       server_(action_name,
               boost::bind(&ProgramExecutionServer::Execute, this, _1), false),
@@ -41,7 +43,8 @@ ProgramExecutionServer::ProgramExecutionServer(
       robot_state_(robot_state),
       runtime_viz_(runtime_viz),
       program_db_(program_db),
-      planning_scene_pub_(planning_scene_pub) {}
+      planning_scene_pub_(planning_scene_pub),
+      condition_check_pub_(condition_check_pub) {}
 
 void ProgramExecutionServer::Start() {
   server_.start();
@@ -49,7 +52,7 @@ void ProgramExecutionServer::Start() {
 }
 
 void ProgramExecutionServer::Execute(
-    const rapid_pbd_msgs::ExecuteProgramGoalConstPtr& goal) {
+    const msgs::ExecuteProgramGoalConstPtr& goal) {
   Program program;
   if (goal->db_id != "") {
     bool success = program_db_.Get(goal->db_id, &program);
@@ -111,12 +114,13 @@ void ProgramExecutionServer::Execute(
 
   World world;
   runtime_viz_.PublishSurfaceBoxes(world.surface_box_landmarks);
+  ROS_INFO_STREAM("World: " << world.surface_box_landmarks.size());
   std::vector<boost::shared_ptr<StepExecutor> > executors;
   for (size_t i = 0; i < program.steps.size(); ++i) {
     const Step& step = program.steps[i];
-    boost::shared_ptr<StepExecutor> executor(
-        new StepExecutor(step, action_clients_, robot_state_, &world,
-                         runtime_viz_, planning_scene_pub_));
+    boost::shared_ptr<StepExecutor> executor(new StepExecutor(
+        step, action_clients_, robot_state_, &world, runtime_viz_,
+        planning_scene_pub_, condition_check_pub_));
     executors.push_back(executor);
     executors.back()->Init();
   }
@@ -165,7 +169,7 @@ void ProgramExecutionServer::Execute(
   server_.setSucceeded();
 }
 
-bool ProgramExecutionServer::IsValid(const rapid_pbd_msgs::Program& program) {
+bool ProgramExecutionServer::IsValid(const msgs::Program& program) {
   for (size_t i = 0; i < program.steps.size(); ++i) {
     const Step& step = program.steps[i];
     if (!StepExecutor::IsValid(step)) {

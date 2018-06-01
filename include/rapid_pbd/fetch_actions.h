@@ -8,6 +8,7 @@
 #include "robot_controllers_msgs/QueryControllerStatesAction.h"
 #include "ros/ros.h"
 
+namespace msgs = rapid_pbd_msgs;
 namespace rapid {
 namespace pbd {
 namespace fetch {
@@ -22,10 +23,10 @@ class ArmControllerManager {
   // Publishes an initial state message.
   void Start();
 
-  bool HandleFreeze(rapid_pbd_msgs::FreezeArmRequest& request,
-                    rapid_pbd_msgs::FreezeArmResponse& response);
-  bool HandleRelax(rapid_pbd_msgs::RelaxArmRequest& request,
-                   rapid_pbd_msgs::RelaxArmResponse& response);
+  bool HandleFreeze(msgs::FreezeArmRequest& request,
+                    msgs::FreezeArmResponse& response);
+  bool HandleRelax(msgs::RelaxArmRequest& request,
+                   msgs::RelaxArmResponse& response);
 
  private:
   void Update();

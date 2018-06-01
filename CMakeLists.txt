@@ -134,6 +134,7 @@ catkin_package(
     rapid_pbd_joint_state_reader
     rapid_pbd_landmarks
     rapid_pbd_motion_planning
+    rapid_pbd_pddl_domain
     rapid_pbd_pr2_actions
     rapid_pbd_program_db
     rapid_pbd_program_executor
@@ -195,6 +196,7 @@ add_library(rapid_pbd_action_executor src/action_executor.cpp)
 add_dependencies(rapid_pbd_action_executor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_action_executor
   rapid_pbd_action_clients
+  rapid_pbd_condition_checker
   rapid_pbd_landmarks
   rapid_pbd_motion_planning
   rapid_pbd_visualizer
@@ -205,12 +207,21 @@ add_library(rapid_pbd_action_utils src/action_utils.cpp)
 add_dependencies(rapid_pbd_action_utils ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_action_utils ${catkin_LIBRARIES})
 
+add_library(rapid_pbd_condition_checker src/condition_checker.cpp)
+add_dependencies(rapid_pbd_condition_checker ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_condition_checker ${catkin_LIBRARIES})
+
+add_library(rapid_pbd_condition_generator src/condition_generator.cpp)
+add_dependencies(rapid_pbd_condition_generator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_condition_generator ${catkin_LIBRARIES})
+
 add_library(rapid_pbd_editor src/editor.cpp)
 add_dependencies(rapid_pbd_editor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_editor
   rapid_pbd_action_clients
   rapid_pbd_action_utils
   rapid_pbd_landmarks
+  rapid_pbd_pddl_domain
   rapid_pbd_program_db
   rapid_pbd_joint_state_reader
   rapid_pbd_robot_config
@@ -246,6 +257,12 @@ target_link_libraries(rapid_pbd_motion_planning
   rapid_pbd_world
   ${catkin_LIBRARIES})
 
+add_library(rapid_pbd_pddl_domain src/pddl_domain.cpp)
+add_dependencies(rapid_pbd_pddl_domain ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_pddl_domain
+  rapid_pbd_landmarks
+  ${catkin_LIBRARIES})
+
 add_library(rapid_pbd_pr2_actions src/pr2_actions.cpp)
 add_dependencies(rapid_pbd_pr2_actions ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_pr2_actions ${catkin_LIBRARIES})
@@ -276,11 +293,16 @@ target_link_libraries(rapid_pbd_runtime_robot_state
   rapid_pbd_robot_config
   ${catkin_LIBRARIES})
 
+add_library(rapid_pbd_spec_inference src/spec_inference.cpp)
+add_dependencies(rapid_pbd_spec_inference ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_spec_inference ${catkin_LIBRARIES})
+
 add_library(rapid_pbd_step_executor src/step_executor.cpp)
 add_dependencies(rapid_pbd_step_executor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_step_executor
   rapid_pbd_action_clients
   rapid_pbd_action_executor
+  rapid_pbd_condition_checker
   rapid_pbd_motion_planning
   rapid_pbd_runtime_robot_state
   rapid_pbd_visualizer
@@ -317,9 +339,11 @@ add_executable(rapid_pbd_editor_node src/editor_node.cpp)
 set_target_properties(rapid_pbd_editor_node PROPERTIES OUTPUT_NAME editor_node PREFIX "")
 add_dependencies(rapid_pbd_editor_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_editor_node
+  rapid_pbd_condition_generator
   rapid_pbd_editor
   rapid_pbd_program_db
   rapid_pbd_robot_config
+  rapid_pbd_spec_inference
   ${catkin_LIBRARIES})
 
 add_executable(rapid_pbd_baxter_action_node src/baxter_action_node.cpp)
@@ -418,6 +442,7 @@ install(TARGETS
   rapid_pbd_joint_state_reader
   rapid_pbd_landmarks
   rapid_pbd_motion_planning
+  rapid_pbd_pddl_domain
   rapid_pbd_pr2_actions
   rapid_pbd_program_db
   rapid_pbd_program_executor

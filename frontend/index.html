@@ -1,48 +1,38 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
 
-    <title>Rapid PbD</title>
-    <meta name="description" content="rapid-pbd description">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
 
-    <!-- See https://goo.gl/OOhYW5 -->
-    <link rel="manifest" href="/manifest.json">
+  <title>Rapid PbD</title>
+  <meta name="description" content="rapid-pbd description">
 
-    <script src="/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <!-- See https://goo.gl/OOhYW5 -->
+  <link rel="manifest" href="/manifest.json">
 
-    <link rel="import" href="/src/pbd-app.html">
-    <link rel="import" href="src/v2/pbd-menu2.html">
-    <link rel="import" href="src/v2/pbd-new-action-1.html">
-    <style>
-      html {
-        background-color: #fafafa;
-        height: 100%;
-      }
-      body {
-        height: 100%;
-        box-sizing: border-box;
-        margin: 0;
-        padding: 8px;
-      }
-    </style>
-  </head>
-  <body>
-      <pbd-menu2></pbd-menu2>
-  </body>
+  <script src="/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="shortcut icon" href="">
+  <!--   <link rel="import" href="/src/pbd-app.html"> -->
+  <link rel="import" href="/src/pbd-app2.html">
+  <style>
+    html {
+      background-color: #fafafa;
+      height: 100%;
+    }
+
+    body {
+      height: 100%;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <pbd-app2></pbd-app2>
+
+</body>
+
 </html>
-
-<!--
-      <pbd-new-action-1></pbd-new-action-1>
-
-Could not find style data in module named shared-styles
-style-gather.html.js:88:9
-paper-header-panel is deprecated. Please use app-layout instead!
-paper-header-panel.html.js:118:7
-paper-toolbar is deprecated. Please use app-layout instead!
-paper-header-panel is deprecated. Please use app-layout instead!
-paper-header-panel.html.js:118:7
-paper-toolbar is deprecated. Please use app-layout instead!
-paper-toolbar.html.js:37:5
--->
