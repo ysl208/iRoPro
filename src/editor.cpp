@@ -1063,7 +1063,6 @@ void Editor::DeleteAction(const std::string& db_id, size_t step_id,
     msgs::Specification spec;
     program.spec = spec;
   }
-
   step->actions.erase(step->actions.begin() + action_id);
   Update(db_id, program);
 }
@@ -1137,8 +1136,6 @@ void Editor::SaveOnExit(const std::string& db_id,
     if (index >= 0) {
       action = pddl_domain_.domain_.actions[index];
       ROS_INFO("Action found...");
-      // Add world state to Effects of action
-      // AddActionCondition(action, "Effect");
     } else {
       ROS_ERROR("Could not save PDDL action named %s because it does not exist",
                 action_name.c_str());
@@ -1163,7 +1160,7 @@ void Editor::AddActionCondition(const std::string& domain_id,
   goal.save_cloud = true;
   action_clients_->surface_segmentation_client.sendGoal(goal);
   success = action_clients_->surface_segmentation_client.waitForResult(
-      ros::Duration(50));
+      ros::Duration(20));
   if (!success) {
     ROS_ERROR("Failed to segment surface.");
     return;
@@ -1203,8 +1200,8 @@ void Editor::AddActionCondition(const std::string& domain_id,
 
 void Editor::AddPDDLAction(const std::string& domain_id,
                            const std::string& action_name) {
-  domain_db_.StartPublishingPDDLDomainById(domain_id);
   ROS_INFO("Start add pddl action: %s", action_name.c_str());
+  domain_db_.StartPublishingPDDLDomainById(domain_id);
 
   ROS_INFO("Trying to get %s from db", domain_id.c_str());
   msgs::PDDLDomain domain;

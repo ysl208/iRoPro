@@ -145,8 +145,12 @@
                     <div>
                         <paper-button class="back clear" on-tap="_goBeforeDemo" hidden$=[[!_finishedDemo]]>
                             <iron-icon icon="arrow-back"></iron-icon> Back</paper-button>
-                        <paper-input id="actionName" label="Action name" value="{{actionName}}" on-blur="save"></paper-input>
-                        <a href="#/program/{{program.db_id}}">
+                        <paper-button class="back clear" on-tap="_goBeforeDemo" hidden$=[[_finishedDemo]]>
+                            Next
+                            <iron-icon icon="arrow-forward"></iron-icon>
+                        </paper-button>
+                        <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
+                        <a href="#/program/{{action.program_id}}">
                             <paper-button id="next" raised class="important" on-click="_startDemo">
                                 Demo Mode >
                             </paper-button>
@@ -165,7 +169,7 @@
                                 <br>
                                 <b>Name</b> (type)</p>
                             <br>
-                            <template is="dom-repeat" items="{{sortByName(pddlAction.params)}}" as="item" index-as="paramIndex">
+                            <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
                                 <div id="listeObjet">
                                     <paper-icon-button icon="check"></paper-icon-button>
                                     [[item.name]] ([[item.type.name]])
@@ -192,10 +196,10 @@
                             <legend>
                                 Preconditions
                             </legend>
-                            <template is="dom-repeat" items="{{pddlAction.preconditions}}" as="item" index-as="paramIndex">
+                            <template is="dom-repeat" items="{{action.preconditions}}" as="item" index-as="paramIndex">
                                 <div id="listeWorldState">
-                                    [[item.arg1.name]] is [[item.name]] [[item.arg2.name]]
-                                    <paper-button class="delete" data-db-id="{{item}}" on-tap="deletePred">
+                                    [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                                    <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
                                         <paper-icon-button icon="delete"></paper-icon-button>
                                     </paper-button>
                                 </div>
@@ -203,7 +207,7 @@
 
                             <paper-dropdown-menu label="Instance 1">
                                 <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg1}}">
-                                    <template is="dom-repeat" items="[[pddlAction.params]]">
+                                    <template is="dom-repeat" items="[[action.params]]">
                                         <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg1">
                                             [[item.name]]
                                         </paper-item>
@@ -212,14 +216,14 @@
                             </paper-dropdown-menu>
                             <paper-dropdown-menu label="Predicate">
                                 <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.name}}">
-                                    <template is="dom-repeat" items="[[pddlDomain.predicates]]">
+                                    <template is="dom-repeat" items="[[domain.predicates]]">
                                         <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newPrecondition.predicate.name">is [[item.name]]</paper-item>
                                     </template>
                                 </paper-listbox>
                             </paper-dropdown-menu>
                             <paper-dropdown-menu label="Instance 2">
                                 <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
-                                    <template is="dom-repeat" items="[[pddlAction.params]]">
+                                    <template is="dom-repeat" items="[[action.params]]">
                                         <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
                                             [[item.name]]</paper-item>
                                     </template>
@@ -234,10 +238,10 @@
                                 Effects
                             </legend>
 
-                            <template is="dom-repeat" items="{{pddlAction.effects}}" as="item" index-as="paramIndex">
+                            <template is="dom-repeat" items="{{action.effects}}" as="item" index-as="paramIndex">
                                 <div id="listeWorldState2">
                                     [[item.arg1.name]] is [[item.name]] [[item.arg2.name]]
-                                    <paper-button class="delete" data-db-id="{{item}}" on-tap="deletePred">
+                                    <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
                                         <paper-icon-button icon="delete"></paper-icon-button>
                                     </paper-button>
                                 </div>
@@ -245,7 +249,7 @@
 
                             <paper-dropdown-menu label="Instance 1">
                                 <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg1}}">
-                                    <template is="dom-repeat" items="[[pddlAction.params]]">
+                                    <template is="dom-repeat" items="[[action.params]]">
                                         <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg1">
                                             [[item.name]]</paper-item>
                                     </template>
@@ -253,14 +257,14 @@
                             </paper-dropdown-menu>
                             <paper-dropdown-menu label="Predicate">
                                 <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.name}}">
-                                    <template is="dom-repeat" items="[[pddlDomain.predicates]]">
+                                    <template is="dom-repeat" items="[[domain.predicates]]">
                                         <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newEffect.predicate.name">is [[item.name]]</paper-item>
                                     </template>
                                 </paper-listbox>
                             </paper-dropdown-menu>
                             <paper-dropdown-menu label="Instance 2">
                                 <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
-                                    <template is="dom-repeat" items="[[pddlAction.params]]">
+                                    <template is="dom-repeat" items="[[action.params]]">
                                         <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
                                             [[item.name]]</paper-item>
                                     </template>
@@ -271,7 +275,7 @@
                         </fieldset>
                     </div>
                 </div>
-                <!-- <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz> -->
+                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -288,9 +292,14 @@
     <script>
         Polymer({
             is: 'pbd-new-action',
-            _finishedDemo: false,
             properties: {
-                pddlAction: Object,
+                _finishedDemo: {
+                    type: Object,
+                    value: false
+                },
+                action: Object,
+                domain: Object,
+                domainID: String,
                 params: Object,
                 program: {
                     type: Object,
@@ -322,7 +331,8 @@
                         return {
                             arg1: Object,
                             name: '',
-                            arg2: Object
+                            arg2: Object,
+                            negate: false,
                         };
                     }
                 },
@@ -332,55 +342,26 @@
                         return {
                             arg1: Object,
                             name: '',
-                            arg2: Object
+                            arg2: Object,
+                            negate: false,
                         };
                     }
                 },
-                newInstance: {
-                    type: Object,
-                    value: function () {
-                        return {
-                            type: Object,
-                            name: '',
-                        };
-                    }
-                },
-
                 actionName: String,
-                nbObj: {
-                    type: Number,
-                    value: 1
-                },
-                nbPrecond: {
-                    type: Number,
-                    value: 1
-                },
-                // a remplacer si possible mais comment ?
-                // tableau d'entier [1,2,3] allant jusqu'a nbPrecond, utilisé pour dom-repeat qui veut un array et non un number
-                listObj: {
-                    type: Array,
-                    value: [1]
-                },
-                listPrecond: {
-                    type: Array,
-                    value: [1]
-                },
             },
 
             observers: [
                 'load(routeData.id, params.*)',
                 '_programUpdated(program.*)',
                 '_domainUpdated(pddlDomain.*,domainList.*)',
-                '_actionUpdated(actionName.*,action.*)',
+                '_actionUpdated(action.*)',
                 '_isRunningChanged(isRunning.data)',
             ],
-            _actionUpdated: function (actionName, action) {
-                if (actionName.value) {
-                    console.debug('_actionUpdated: actionName =  ', actionName.value);
-                    this.getAction(actionName.value);
-                }
-                if (action.value) {
-                    console.debug('_actionUpdated: action =  ', action.value);
+
+            _actionUpdated: function (action) {
+                if (action.value && action.value.name != '') {
+                    //console.debug('_actionUpdated: action =  ', action.value);
+                    this.actionName = action.value.name;
                 }
             },
             getAction: function (actionName) {
@@ -388,8 +369,8 @@
                     for (var i = 0; i < this.pddlDomain.actions.length; ++i) {
                         var action = this.pddlDomain.actions[i];
                         if (action.name === actionName) {
-                            this.pddlAction = action;
-                            //console.debug('Action found ', this.pddlAction);
+                            this.action = action;
+                            //console.debug('Action found ', this.action);
                             return;
                         }
                     }
@@ -425,7 +406,9 @@
                 } else {
                     console.error('Unknown robot type', this.params.robot);
                 }
-
+                if (this.action) {
+                    db_id = this.action.program_id;
+                }
                 var config = {
                     globalOptions: {
                         background: '#113344',
@@ -446,7 +429,7 @@
                                 numCells: 20,
                             },
                         }, {
-                            isShown: true,
+                            isShown: false,
                             name: 'Program robot model',
                             type: 'markerArray',
                             options: {
@@ -463,12 +446,12 @@
                         }, {
                             isShown: true,
                             name: 'Surface segmentation',
-                            type: 'markerArray',
+                            type: 'markers',
                             options: {
-                                topic: '/rapid_pbd/surface_segmentation/' + db_id,
+                                topic: '/rapid_pbd/surface_seg/visualization/'// + db_id,
                             },
                         }, {
-                            isShown: false,
+                            isShown: true,
                             name: 'Current robot model',
                             type: 'urdf',
                             options: {
@@ -500,41 +483,8 @@
                     console.info('rviz not ready');
                 }
 
-                if (this.params.actionName) {
-                    this.actionName = this.params.actionName;
-                    if (!this.pddlAction) {
-                        //this._detect();
-                    }
-                }
             },
 
-            saveOnExit: function () {
-                //this.pddlAction.name = this.actionName;
-                var msg = {
-                    type: 'save on exit action',
-                    domain_id: this.domain_id,
-                    action_name: this.actionName,
-                    action: this.pddlAction
-                };
-                console.debug('Saving on exit ', this.pddlAction);
-                this.$.eventPub.publish(msg);
-            },
-            getPredicate: function (name) {
-                for (var i; i < this.pddlDomain.predicates.length; ++i) {
-                    if (this.pddlDomain.predicates[i].name === name) {
-                        return this.pddlDomain.predicates[i];
-                    }
-                }
-                return null;
-            },
-            getObject: function (name) {
-                for (var i; i < this.pddlAction.params.length; ++i) {
-                    if (this.pddlAction.params[i].name === name) {
-                        return this.pddlAction.params[i];
-                    }
-                }
-                return null;
-            },
             _updatePredicate: function (evt) {
                 var args = evt.target.getAttribute('data-args');
                 this.set(args, evt.target.name);
@@ -544,28 +494,61 @@
             addPredicate: function (evt) {
                 var condition = evt.target.getAttribute('data-args');
                 if (condition == "Precondition") {
-                    this.pddlAction.preconditions.push(this.newPrecondition);
-                    console.debug("added Predicate ", this.pddlAction.preconditions);
+                    this.action.preconditions.push(this.newPrecondition);
+                    this.reevaluateArray('action.preconditions', this.action.preconditions);
                 } else if (condition == "Effect") {
-                    this.pddlAction.effects.push(this.newEffect);
-                    console.debug("added Predicate ", this.pddlAction.effects);
-                } else if (condition == "Instance") {
-                    this.pddlAction.params.push(this.newInstance);
-                    console.debug("added Instance ", this.pddlAction.params);
+                    this.action.effects.push(this.newEffect);
+                    this.reevaluateArray('action.effects', this.action.effects);
                 }
+            },
 
-                //this.save();
+            deletePred: function (evt) {
+                var item = evt.model.item;
+                console.debug('deletePred', item);
+                var index = -1;
+                index = this.action.preconditions.indexOf(item);
+                if (index != -1) {
+                    this.splice('action.preconditions', index, 1, );
+                    this.reevaluateArray('action.preconditions', this.action.preconditions);
+                    console.debug('deletePred from pre');
+                } else {
+                    index = this.action.effects.indexOf(item);
+                    if (index != -1) {
+                        this.splice('action.effects', index, 1, );
+                        this.reevaluateArray('action.effects', this.action.effects);
+                        console.debug('deletePred from eff');
+                    }
+                }
+            },
+
+            reevaluateArray: function (name, property) {
+                var conds = property;
+                this.set(name, []);
+                this.set(name, conds);
+            },
+            _nameValid: function (name) {
+                for (var i = 0; i < this.domain.actions.length; ++i) {
+                    if (this.domain.actions[i].name == name) return false;
+                }
+                return true;
             },
             save: function () {
-                //this.pddlAction.name = this.actionName;
-                var msg = {
-                    type: 'update pddl action',
-                    domain_id: this.domain_id,
-                    action_name: this.actionName,
-                    action: this.pddlAction
-                };
-                console.debug('Saving ', this.pddlAction, " with name ", this.actionName);
-                this.$.eventPub.publish(msg);
+                if (this.actionName != this.action.name && !this._nameValid(this.actionName)) {
+                    alert(this.actionName + ' already exists. Please choose a different name.');
+                } else {
+                    var msg = {
+                        type: 'update pddl action',
+                        domain_id: this.domain_id,
+                        action_name: this.actionName,
+                        pddl_action: this.action
+                    };
+
+                    console.debug('Saving ', this.domain, " with name ", this.domain_id);
+                    console.debug('Saving ', this.action, " with name ", this.actionName);
+                    this.$.eventPub.publish(msg);
+
+                }
+
             },
 
             _programUpdated: function (changeRecord) {
@@ -584,15 +567,15 @@
 
             _domainUpdated: function (changedDomain, changedList) {
                 if (changedDomain.value) {
-                    this.pddlDomain = changedDomain.value;
-                    this.getAction(this.actionName);
+                    this.domain = changedDomain.value;
+                    //this.getAction(this.actionName);
                 }
 
                 if (this.domainList && this.domainList.domains.length == 1) {
                     this.domain_id = this.domainList.domains[0].domain_id;
                 }
                 /* console.debug('_domainUpdated ', this.pddlDomain);
-                console.debug('pddlAction is ', this.pddlAction); */
+                console.debug('action is ', this.action); */
 
             },
 
@@ -639,7 +622,7 @@
             },
             _handleServiceResponse(evt) {
                 var id = evt.detail.db_id;
-                this.pddlAction.program_id = id;
+                this.action.program_id = id;
                 window.history.pushState({}, null, "#/program/" + id);
                 window.dispatchEvent(new CustomEvent("location-changed"));
             },
@@ -666,17 +649,17 @@
                 } */
             },
             _startDemo: function (evt) {
-                if (!this.pddlAction.program_id) {
+                if (this.action.program_id && this.action.program_id.length > 0) {
+                    console.debug('Program already exists ... ', this.action.program_id);
+                    window.history.pushState({}, null, "#/program/" + this.action.program_id);
+                    window.dispatchEvent(new CustomEvent("location-changed"));
+                } else {
                     console.debug('New Program being created ... ');
                     var name = 'Program for: ' + this.actionName;
                     var request = {
                         name: name,
                     };
                     this.$.createSrv.call(request);
-                } else {
-                    console.debug('Program already exists ... ', this.pddlAction.program_id);
-                    window.history.pushState({}, null, "#/program/" + this.pddlAction.program_id);
-                    window.dispatchEvent(new CustomEvent("location-changed"));
                 }
                 this._finishedDemo = true;
             },
@@ -690,42 +673,11 @@
                 var msg = {
                     type: 'detect world state',
                     domain_id: this.domain_id,
-                    action_name: this.actionName,
+                    action_name: this.action.name,
                     state_name: state
                 };
                 this.$.eventPub.publish(msg);
             },
-
-            newPrecond: function () {
-                this.nbPrecond++;
-                this.push('listPrecond', this.nbPrecond);
-                // On rajoute dynamiquement l'objet
-                var dynamicSelect = document.createElement("pbd-world-state-select");
-                dynamicSelect.num = this.nbPrecond;
-                var newId = "selectPrecond" + this.nbPrecond;
-                dynamicSelect.id = newId;
-                dynamicSelect.addEventListener('delete', this.deletePred);
-                Polymer.dom(this.root).querySelector("#listeWorldState").appendChild(dynamicSelect);
-            },
-            newObj: function () {
-                this.nbObj++;
-                this.push('listObj', this.nbObj);
-                // On rajoute dynamiquement l'objet
-                var dynamicSelect = document.createElement("pbd-object-select");
-                dynamicSelect.num = this.nbObj;
-                var newId = "selectObj" + this.nbObj;
-                dynamicSelect.id = newId;
-                this._newObj = true;
-                dynamicSelect.addEventListener('delete', this.deleteObj);
-                Polymer.dom(this.root).querySelector("#listeObjet").appendChild(dynamicSelect);
-            },
-            deleteObj: function (e) {
-                var name = "selectObj" + e.detail.id;
-            },
-            deletePred: function (e) {
-                // TODO
-            },
-
             removeDuplicates: function (a) {
                 uniqueArray = a.filter(function (item, pos) {
                     return a.indexOf(item) == pos;
@@ -755,25 +707,23 @@
             },
             _generateConditions: function () {
                 // check preconditions and effects are there
-                if (this.pddlAction.preconditions.length == 0) {
+                if (this.action.preconditions.length == 0) {
                     console.info('No preconditions');
                 }
-                if (this.pddlAction.effects.length == 0) {
+                if (this.action.effects.length == 0) {
                     console.info('No effects');
                 }
-                console.debug('#pre:', this.pddlAction.preconditions.length);
-                console.debug('#eff:', this.pddlAction.effects.length);
 
-                this._getPredicateDiff(this.pddlAction.preconditions, this.pddlAction.effects);
-                console.debug('pre:', this.pddlAction.preconditions);
-                console.debug('eff:', this.pddlAction.effects);
-                console.debug('#pre:', this.pddlAction.preconditions.length);
-                console.debug('#eff:', this.pddlAction.effects.length);
-                var predList = this.pddlAction.preconditions.concat(this.pddlAction.effects)
+                this._getPredicateDiff(this.action.preconditions, this.action.effects);
+
+                this.reevaluateArray('action.preconditions', this.action.preconditions);
+                this.reevaluateArray('action.effects', this.action.effects);
+                var predList = this.action.preconditions.concat(this.action.effects)
                 var parms = this._getParams(predList);
+                console.debug(typeof parms, typeof this.action.params);
                 console.debug('parms:', parms);
-                this.pddlAction.params = parms;
-                //this.save();
+                this.action.params = parms;
+                //this.reevaluateArray('action.params', this.action.params);
             },
             _getPredicateDiff: function (list1, list2) {
                 // removes predicates which are in both lists
@@ -792,32 +742,31 @@
             },
             _samePredicate: function (pred1, pred2) {
                 if (pred1.name != pred2.name) {
-                    console.debug("_samePredicate: name ", pred1, pred2);
+                    //console.debug("_samePredicate: name ", pred1, pred2);
                     return false;
                 }
                 if (pred1.arg1.name != pred2.arg1.name) {
-                    console.debug("_samePredicate: arg1 ", pred1, pred2);
+                    //console.debug("_samePredicate: arg1 ", pred1, pred2);
                     return false;
                 }
                 if (pred1.negate != pred2.negate) {
-                    console.debug("_samePredicate: negate ", pred1, pred2);
+                    //console.debug("_samePredicate: negate ", pred1, pred2);
                     return false;
                 }
                 if (pred1.arg2 && pred2.arg2 && pred1.arg2.name != pred2.arg2.name) {
-                    console.debug("_samePredicate: arg2 ", pred1, pred2);
+                    //console.debug("_samePredicate: arg2 ", pred1, pred2);
                     return false;
                 }
                 return true;
             },
             _getParams: function (predList) {
-                var params = [];
-
+                var params = this.action.params;
+                params.length = 0;
                 const nameList = new Set([]);
                 for (var i = 0; i < predList.length; ++i) {
                     if (predList[i].arg1.name != '' && !nameList.has(predList[i].arg1.name)) {
                         params.push(predList[i].arg1);
                         nameList.add(predList[i].arg1.name);
-
                     }
                     if (predList[i].arg2 && predList[i].arg2.name != '' && !nameList.has(predList[i].arg2.name)) {
                         params.push(predList[i].arg2);
@@ -835,7 +784,11 @@
                 return arr;
             },
             _goBeforeDemo: function () {
-                this._finishedDemo = false;
+                this._finishedDemo = !this._finishedDemo;
+            },
+            _negate: function (neg) {
+                if (neg) return 'not ';
+                else return '';
             }
         });
     </script>
