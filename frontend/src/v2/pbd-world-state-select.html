@@ -39,8 +39,6 @@
 
             iron-icon {
                 display: inline-block;
-                vertical-align: top;
-                margin-top: 5px;
             }
         </style>
         <!-- div uniquement pour le style du select -->
@@ -69,7 +67,7 @@
             </select>
         </div>-->
         <!-- data-index$ permet de passer un parametre, récupéré par event.target.dataset.index -->
-        <iron-icon on-click="delete" icon="delete-forever"></iron-icon>
+        <iron-icon class="align-middle" on-click="delete" icon="delete-forever"></iron-icon>
     </template>
     <script>
         Polymer({
