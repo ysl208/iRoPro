@@ -7,9 +7,13 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-icons/av-icons.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
 <link rel="import" href="../shared-styles.html">
 
 <dom-module id="pbd-robot-control">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
     <template>
         <style include="../shared-styles"></style>
         <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
@@ -23,61 +27,42 @@
                 float: right;
             }
 
-            paper-button {
-                margin: 1%;
+            .container {
+                display:flex;
             }
 
-            fieldset {
-                margin-bottom: 2%;
+            .item {
+                flex: 1;
             }
 
-            .styled-select {
-                display: inline-block;
-                vertical-align: top;
-                margin: 2%;
+            paper-dropdown-menu {
+                padding-left: 10px;
             }
 
-            .styled-select {
-                background: url(http://i62.tinypic.com/15xvbd5.png) no-repeat 96% 0;
-                height: 29px;
-                overflow: hidden;
-                width: 174px;
-            }
-
-            .styled-select select {
-                background: transparent;
-                border: none;
-                font-size: 14px;
-                height: 29px;
-                padding: 5px;
-                /* If you add too much padding here, the options won't show in IE */
-                width: 202px;
-            }
-
-            .styled-select.slate {
-                background: url(http://i62.tinypic.com/2e3ybe1.jpg) no-repeat right center;
-                height: 34px;
-                width: 174px;
-            }
-
-            .styled-select.slate select {
-                border: 1px solid #ccc;
-                font-size: 16px;
-                height: 34px;
-                width: 202px;
-            }
         </style>
         <!-- <h1 align="center">Robot Control</h1> -->
-
-        <fieldset>
-            <legend>Arms control</legend>
-            <paper-button class="style-scope canvas-view" raised on-tap="tuckArmRequest">Tuck arms</paper-button>
-            <iron-ajax id="tuckArm" method="GET" url="src/v2/control.php" params='{"untuckArm":"false"}'></iron-ajax>
-
-            <paper-button class="style-scope canvas-view" raised on-tap="untuckArmRequest">Untuck arms</paper-button>
-            <iron-ajax id="untuckArm" method="GET" url="src/v2/control.php" params='{"untuckArm":"true"}'></iron-ajax>
-        </fieldset>
-
+        <div class="container">
+            <fieldset class="item">
+                <legend>Robot's state control</legend>
+                <paper-button class="style-scope canvas-view" raised on-tap="enable">Enable</paper-button>
+                <iron-ajax id="enable" method="GET" url="src/v2/control.php" params='{"changeState":"enable"}' handle-as="text" on-response="handleResponse"></iron-ajax>
+    
+                <paper-button class="style-scope canvas-view" raised on-tap="disable">Disable</paper-button>
+                <iron-ajax id="disable" method="GET" url="src/v2/control.php" params='{"changeState":"disable"}' handle-as="text" on-response="handleResponse"></iron-ajax>
+    
+                <paper-button class="style-scope canvas-view" raised on-tap="reset">Reset</paper-button>
+                <iron-ajax id="reset" method="GET" url="src/v2/control.php" params='{"changeState":"reset"}' handle-as="text" on-response="handleResponse"></iron-ajax>
+            </fieldset>
+            <fieldset class="item">
+                <legend>Arms control</legend>
+                <paper-button class="style-scope canvas-view" raised on-tap="tuckArmRequest">Tuck arms</paper-button>
+                <iron-ajax id="tuckArm" method="GET" url="src/v2/control.php" params='{"untuckArm":"false"}' handle-as="text" on-response="handleResponse"></iron-ajax>
+    
+                <paper-button class="style-scope canvas-view" raised on-tap="untuckArmRequest">Untuck arms</paper-button>
+                <iron-ajax id="untuckArm" method="GET" url="src/v2/control.php" params='{"untuckArm":"true"}' handle-as="text" on-response="handleResponse"></iron-ajax>
+            </fieldset>
+        </div>
+        
         <fieldset>
             <legend>Display on robot screen</legend>
 
@@ -88,66 +73,111 @@
 
             <paper-dialog modal id="dialog">
                 <h2>Can't open camera</h2>
-                <p>Baxter is unable to open more than two camera at the same time. Please change the camera you want to see.</p>
+                <p>Baxter is unable to open more than two of its camera at the same time. Please change the camera you want to see.</p>
                 <div id="buttons">
                     <paper-button dialog-confirm on-tap="close">Close</paper-button>
                 </div>
             </paper-dialog>
+
             <fieldset>
                 <legend>Camera's image to display</legend>
-                <template is="dom-repeat" items="{{selectCam}}">
-                    <div class="styled-select slate">
-                        <select id="{{item}}">
-                            <option value="/cameras/left_hand_camera/image">left hand camera</option>
-                            <option value="/cameras/right_hand_camera/image">right hand camera</option>
-                            <option value="/cameras/head_camera/image">head camera</option>
-                            <option value="/kinect2/hd/image_color">kinect camera</option>
-                            <option value="none" selected>none</option>
-                        </select>
-                    </div>
-                </template>
+                <div class="container">
+                    <template is="dom-repeat" items="{{partOfScreen}}">
+                        <paper-dropdown-menu label="{{item.part}}" class="item">
+                            <paper-listbox id="{{item.part}}" slot="dropdown-content" attr-for-selected="name" selected="{{item.camSelected}}">
+                                <template is="dom-repeat" items="[[camerasTopic]]">
+                                    <paper-item name="[[item.topic]]" on-tap="updateSelectedItem">
+                                        [[item.name]]
+                                    </paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </template>
+                </div>
             </fieldset>
         </fieldset>
+
+        <paper-dialog modal id="loading">
+            <p><paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
+        </paper-dialog>
     </template>
     <script>
         Polymer({
             is: 'pbd-robot-control',
             ready: function () {
-                this.selectCam = ["top_left", "bottom_left", "top_right", "bottom_right"];
+                this.partOfScreen = [{part : "top_left",
+                                        camSelected : "none"},
+                                    {part : "bottom_left",
+                                        camSelected : "none"},
+                                    {part : "top_right",
+                                        camSelected : "none"},
+                                    {part : "bottom_right",
+                                        camSelected : "none"}];
+                this.camerasTopic = [{topic : "/cameras/left_hand_camera/image",
+                                        name : "left hand camera"},
+                                    {topic : "/cameras/right_hand_camera/image",
+                                        name : "right hand camera"},
+                                    {topic : "/cameras/head_camera/image",
+                                        name : "head camera"},
+                                    {topic : "/kinect2/hd/image_color",
+                                        name : "kinect rgb camera"},
+                                    {topic : "none",
+                                        name : "none"}];
             },
             tuckArmRequest: function (event) {
+                this.$.loading.open();
                 this.$$('#tuckArm').generateRequest();
             },
             untuckArmRequest: function (event) {
+                this.$.loading.open();
                 this.$$('#untuckArm').generateRequest();
             },
             displayEyesRequest: function (event) {
                 this.$$('#displayEyes').generateRequest();
             },
+            enable: function (event) {
+                this.$.loading.open();
+                this.$$('#enable').generateRequest();
+            },
+            disable: function (event) {
+                this.$.loading.open();
+                this.$$('#disable').generateRequest();
+            },
+            reset: function (event) {
+                this.$.loading.open();
+                this.$$('#reset').generateRequest();
+            },
             displayCameraRequest: function (event) {
-                top_left = this.$$("#top_left");
-                bottom_left = this.$$("#bottom_left");
-                top_right = this.$$("#top_right");
-                bottom_right = this.$$("#bottom_right");
                 camerasList = [];
-                for (var i = 0; i < this.selectCam.length; i++) {
-                    currentSelect = this.$$("#" + this.selectCam[i]);
-                    camerasList.push(currentSelect.options[currentSelect.selectedIndex].value);
+                for (var i = 0; i < this.partOfScreen.length; i++) {
+                    camerasList.push(this.partOfScreen[i].camSelected);
                 }
-                console.log(camerasList);
+                //cannot open 3 baxter's camera at the same time
                 if (camerasList.indexOf("/cameras/left_hand_camera/image") != -1 && camerasList.indexOf("/cameras/right_hand_camera/image") != -1 && camerasList.indexOf("/cameras/head_camera/image") != -1) {
                     this.$.dialog.open();
                 } else {
                     this.$$('#displayCamera').set('params', {
                         "display": "camera",
-                        "top_left": top_left.options[top_left.selectedIndex].value,
-                        "bottom_left": bottom_left.options[bottom_left.selectedIndex].value,
-                        "top_right": top_right.options[top_right.selectedIndex].value,
-                        "bottom_right": bottom_right.options[bottom_right.selectedIndex].value,
+                        "camsList": JSON.stringify(camerasList)
                     });
                     console.log(this.$$('#displayCamera').params);
                     this.$$('#displayCamera').generateRequest();
                 }
+            },
+            updateSelectedItem: function (evt) {
+                //update partOfScreen with the selected topic name
+                var index = this.getIndex(evt.target.parentElement.id);
+                this.partOfScreen[index].camSelected = evt.target.name;
+            },
+            getIndex: function(part) {
+                var i = 0;
+                while (i<this.partOfScreen.length && this.partOfScreen[i].part != part) {
+                    i++;
+                }
+                return (i==this.partOfScreen.length? -1: i);
+            },
+            handleResponse: function(event) {
+                this.$.loading.close();
             }
         });
     </script>
