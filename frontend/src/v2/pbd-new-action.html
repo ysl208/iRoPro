@@ -126,12 +126,7 @@
             }
         </style>
         <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
-        <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{routeData.id}}"
-            ros="[[ros]]"></ros-topic>
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
-        <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
-            on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>
-        <ros-topic auto last-message="{{isRunning}}" msg-type="std_msgs/Bool" topic="rapid_pbd/is_running" ros="[[ros]]"></ros-topic>
         <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
             ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service>
         <!-- PDDL -->
@@ -144,7 +139,11 @@
                 <div id="stepContent">
                     <div>
                         <paper-button class="back clear" on-tap="_goBeforeDemo" hidden$=[[!_finishedDemo]]>
-                            <iron-icon icon="arrow-back"></iron-icon> Back</paper-button>
+                            <iron-icon icon="arrow-back"></iron-icon> Back
+                        </paper-button>
+                        <paper-button hidden class="clear" on-tap="_assignSurfaceObjects">
+                            Assign Surface Objects
+                        </paper-button>
                         <paper-button class="back clear" on-tap="_goBeforeDemo" hidden$=[[_finishedDemo]]>
                             Next
                             <iron-icon icon="arrow-forward"></iron-icon>
@@ -352,31 +351,14 @@
 
             observers: [
                 'load(routeData.id, params.*)',
-                '_programUpdated(program.*)',
                 '_domainUpdated(pddlDomain.*,domainList.*)',
                 '_actionUpdated(action.*)',
-                '_isRunningChanged(isRunning.data)',
             ],
 
             _actionUpdated: function (action) {
-                if (action.value && action.value.name != '') {
-                    //console.debug('_actionUpdated: action =  ', action.value);
-                    this.actionName = action.value.name;
+                if (action && action.base && action.base.name != '') {
+                    this.actionName = action.base.name;
                 }
-            },
-            getAction: function (actionName) {
-                if (this.pddlDomain) {
-                    for (var i = 0; i < this.pddlDomain.actions.length; ++i) {
-                        var action = this.pddlDomain.actions[i];
-                        if (action.name === actionName) {
-                            this.action = action;
-                            //console.debug('Action found ', this.action);
-                            return;
-                        }
-                    }
-                }
-                console.info('No action found with name ', actionName);
-                return;
             },
             load: function (db_id, paramsChangeRecord) {
                 /* if (!db_id) {
@@ -386,7 +368,6 @@
                 if (!this.params.robot) {
                     return;
                 }
-                this.$.programSub.subscribe();
                 var depthCloudFrameId = '';
                 if (this.params.robot === "pr2") {
                     depthCloudFrameId = '/head_mount_kinect_rgb_optical_frame';
@@ -450,7 +431,14 @@
                             options: {
                                 topic: '/rapid_pbd/surface_seg/visualization/'// + db_id,
                             },
-                        }, {
+                        }, {/* 
+                            isShown: true,
+                            name: 'Surface segmentation',
+                            type: 'markerArray',
+                            options: {
+                                topic: '/rapid_pbd/surface_segmentation/' + db_id,
+                            },
+                        }, { */
                             isShown: true,
                             name: 'Current robot model',
                             type: 'urdf',
@@ -551,100 +539,27 @@
 
             },
 
-            _programUpdated: function (changeRecord) {
-                if (changeRecord.base) {
-                    if (changeRecord.path !== 'program') {
-                        if (changeRecord.path.endsWith('.length')) {
-                            return;
-                        }
-                        var that = this;
-                        this.debounce('save', function () {
-                            that.save();
-                        }, 100);
-                    }
-                }
-            },
-
             _domainUpdated: function (changedDomain, changedList) {
                 if (changedDomain.value) {
                     this.domain = changedDomain.value;
-                    //this.getAction(this.actionName);
                 }
-
                 if (this.domainList && this.domainList.domains.length == 1) {
                     this.domain_id = this.domainList.domains[0].domain_id;
                 }
-                /* console.debug('_domainUpdated ', this.pddlDomain);
-                console.debug('action is ', this.action); */
 
             },
 
-
-            // If a new program is loaded, select step 0.
-            _programChanged: function (program, oldProgram) {
-
-                console.log("Program changed:" + program);
-                if (!program) {
-                    return;
-                }
-                if (program.steps.length > 0) {
-                    this.$.selector.select(program.steps[0]);
-                }
-            },
-
-            _handleFeedback: function (evt) {
-                /* this.currentStepNum = evt.detail.step_number; */
-            },
-
-            _handleResult: function (evt) {
-                var error = evt.detail.error;
-                if (error) {
-                    this.error = evt.detail.error;
-                    this.$.errorDialog.open();
-                } else {
-
-                }
-            },
-
-            _handleProgram: function (evt) {
-                var program = evt.detail;
-                if (!this.program) {
-                    this.set('program', program);
-                    return;
-                }
-                if (!_.isEqual(this.program, program)) {
-                    this.set('program', program);
-                }
-            },
             _handleServiceResponse(evt) {
                 var id = evt.detail.db_id;
                 this.action.program_id = id;
-                window.history.pushState({}, null, "#/program/" + id);
+                console.debug('handleServResponse', this.action.program_id);
+                window.history.pushState({}, null, "#/program/" + this.action.program_id);
                 window.dispatchEvent(new CustomEvent("location-changed"));
-
-                this._assignSurfaceObjects();
+                this.save();
             },
 
             _handleServiceError: function (evt) {
                 console.error(evt.detail);
-            },
-
-            _isRunningChanged: function (isRunning) {
-                /* if (isRunning && this.$.rviz != null) {
-                    this.$.rviz.set('config.displays.1.isShown', false);
-                    this.$.rviz.set('config.displays.2.isShown', false);
-                    this.$.rviz.set('config.displays.3.isShown', false);
-                    this.$.rviz.set('config.displays.4.isShown', true);
-                    this.$.rviz.set('config.displays.5.isShown', true);
-                    this.$.rviz.set('config.displays.6.isShown', true);
-                } else {
-                    this.$.rviz.set('config.displays.1.isShown', true);
-                    this.$.rviz.set('config.displays.2.isShown', true);
-                    this.$.rviz.set('config.displays.3.isShown', true);
-                    this.$.rviz.set('config.displays.4.isShown', false);
-                    this.$.rviz.set('config.displays.5.isShown', false);
-                    this.$.rviz.set('config.displays.6.isShown', false);
-                } */
             },
             _startDemo: function (evt) {
                 if (this.action.program_id && this.action.program_id.length > 0) {
@@ -664,10 +579,13 @@
             _assignSurfaceObjects: function (evt) {
                 var msg = {
                     type: 'assign surface objects',
+                    program_info: {
+                        db_id: this.action.program_id
+                    },
+                    step_num: 0,
                     pddl_action: this.action,
-                    step_id: 0,
-                    db_id: this.action.program_id
                 };
+
                 console.debug('_assignSurfaceObjects: ', this.action);
                 this.$.eventPub.publish(msg);
             },
