@@ -269,7 +269,6 @@
         '_currentStepNumChanged(program, currentStepNum)',
         '_isRunningChanged(isRunning.data)',
         '_submittedChanged(submitted)',
-        '_currentConditionChanged(currentCondition)',
         '_conditionChanged(ros, currentCondition)',
         //'selectCondition(submitted)',
         // '_preCheckChanged(preCheck.data)',
@@ -285,7 +284,7 @@
         this.$.programSub.subscribe();
         this.currentStepNum = 0;
         this.currentCondition = "";
-        this.addStep();
+
         var depthCloudFrameId = '';
         if (this.params.robot === "pr2") {
           depthCloudFrameId = '/head_mount_kinect_rgb_optical_frame';
@@ -556,14 +555,6 @@
         evt.stopPropagation();
       },
 
-      _currentConditionChanged: function (program, currentCondition) {
-        console.log("_currentConditionChanged " + this.currentCondition);
-
-        if (program && program.conditions) {
-          // this.$.selector.select(program.conditions[currentCondition]);
-        }
-      },
-
       _conditionChanged(ros, db_id, currentCondition) {
         if (!ros || !db_id || (!currentCondition && currentCondition !== "")) {
           return;
@@ -595,7 +586,7 @@
       // If a new program is loaded, select step 0.
       _programChanged: function (program, oldProgram) {
 
-        console.log("Program changed: " + program);
+        console.log("Program changed: " + program.value);
         if (!program) {
           return;
         }
@@ -610,14 +601,14 @@
 
       _currentStepNumChanged: function (program, currentStepNum) {
         // Load step form content
-        console.log("_currentStepNumChanged to" + this.currentStepNum);
+        console.log("_currentStepNumChanged to " + this.currentStepNum);
         if (program && program.steps && currentStepNum >= 0) {
           this.$.selector.select(program.steps[currentStepNum]);
         }
       },
       _stepChanged(ros, db_id, currentStepNum) {
         // Load robot visualization
-        console.log("_stepChanged to" + currentStepNum);
+        console.log("_stepChanged to " + currentStepNum);
         if (!ros || !db_id || (!currentStepNum && currentStepNum !== 0)
           || (currentStepNum && currentStepNum < 0)) {
           return;
@@ -654,10 +645,12 @@
         var program = evt.detail;
         if (!this.program) {
           this.set('program', program);
+          if (this.program.steps.length == 0) this.addStep();
           return;
         }
         if (!_.isEqual(this.program, program)) {
           this.set('program', program);
+          if (this.program.steps.length == 0) this.addStep();
         }
       },
 
