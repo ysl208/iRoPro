@@ -143,9 +143,10 @@ class Editor {
   void DeletePDDLAction(const std::string& domain_id,
                         const std::string& action_name);
   void UpdatePDDLAction(const std::string& domain_id,
-                        const msgs::PDDLAction& action);
+                        const msgs::PDDLAction& action,
+                        const std::string& action_name);
   int FindPDDLAction(const std::string name,
-                      const std::vector<msgs::PDDLAction>& actions);
+                     const std::vector<msgs::PDDLAction>& actions);
   ProgramDb db_;
   SceneDb scene_db_;
   PDDLDomainDb domain_db_;

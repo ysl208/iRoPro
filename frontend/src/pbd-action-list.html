@@ -97,7 +97,7 @@
             </template>
 
             <template is="dom-if" restamp if="[[_showActionProperties]]">
-                <table>
+                <table style="height:auto;">
                     <tr>
                         <th>Action Properties</th>
                         <th>
@@ -108,13 +108,16 @@
                             </div>
                         </th>
                         <tr>
-                            <td>
-                                <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
-                                    <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
-                                        <pbd-new-action name="new-action" params="[[params]]" ros="[[ros]]"></pbd-new-action>
-                                    </template>
-                                </template>
-                            </td>
+                            <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
+
+                                <td>
+                                    <div style="overflow:auto; height: 600px;">
+                                        <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
+                                            <pbd-new-action name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain="[[pddlDomain]]"></pbd-new-action>
+                                        </template>
+                                    </div>
+                                </td>
+                            </template>
                         </tr>
 
                 </table>
@@ -153,8 +156,6 @@
                         return { actions: [] };
                     }
                 },
-                types: Array,
-                predicates: Array,
                 actions: Array,
             },
 
@@ -169,17 +170,10 @@
                 console.debug('domain_id is ', this.domain_id);
             },
             _domainUpdated(changedDomain, changedList) {
-
                 if (changedDomain.value) {
-                    this.types = changedDomain.value.types;
-                    this.predicates = changedDomain.value.predicates;
                     this.actions = changedDomain.value.actions;
                     this.pddlDomain = changedDomain.value;
-                    /* console.debug('Loading types...', this.types);
-                    console.debug('Loading predicates...', this.predicates);
-                    console.debug('Loading actions...', this.actions); */
                 }
-
             },
             _maybeDelete: function (evt) {
                 var action_name = evt.model.get('action.name');
@@ -210,7 +204,7 @@
                 this.$.eventPub.publish(msg);
                 console.debug('handleCreate', name, this.domain_id);
                 this._showActionProperties = true;
-                this.params['actionName'] = name;
+                //this.params['actionName'] = name;
                 console.debug('handleCreate: params is ', this.params);
             },
 
@@ -227,7 +221,6 @@
             },
 
             _hideAction: function (evt) {
-                console.debug("hide action");
                 this._showActionProperties = false;
             },
             _handleServiceResponse(evt) {
@@ -240,7 +233,6 @@
                 return (!this._showActionProperties);
             },
             _showAction: function (page) {
-                console.debug("_showAction ");
                 return (this._showActionProperties && page !== 'program');
             },
             _shouldShowProgram: function (page) {
@@ -253,8 +245,6 @@
                 var name = evt.model.get('action.name');
                 this.selectedActionName = name;
                 this._showActionProperties = true;
-                this.params['actionName'] = name;
-                console.debug("_openAction ", name);
             },
             _displayAction: function (selected, actionname) {
                 return (selected && selected.length > 0 && selected == actionname);
