@@ -53,8 +53,6 @@
         </style>
         <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{routeTail}}"></app-route>
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
-        <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
-            ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service>
         <!-- PDDL -->
         <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
         <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
@@ -108,16 +106,17 @@
                             </div>
                         </th>
                         <tr>
-                            <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
+                            <td colspan="2">
+                                <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
 
-                                <td>
-                                    <div style="overflow:auto; height: 600px;">
+                                    <div style="overflow:auto; max-height: 100vh;">
                                         <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
                                             <pbd-new-action name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain="[[pddlDomain]]"></pbd-new-action>
                                         </template>
                                     </div>
-                                </td>
-                            </template>
+                                </template>
+
+                            </td>
                         </tr>
 
                 </table>
@@ -167,7 +166,7 @@
                 if (this.domainList && this.domainList.domains.length == 1) {
                     this.domain_id = this.domainList.domains[0].domain_id;
                 }
-                console.debug('domain_id is ', this.domain_id);
+                //console.debug('domain_id is ', this.domain_id);
             },
             _domainUpdated(changedDomain, changedList) {
                 if (changedDomain.value) {
@@ -192,7 +191,6 @@
                 this.$.eventPub.publish(msg);
             },
 
-
             _handleCreate: function (evt) {
                 var name = this.getActionName(this.actions);
                 console.debug('handleCreate', name, this.pddlDomain);
@@ -203,8 +201,8 @@
                 };
                 this.$.eventPub.publish(msg);
                 console.debug('handleCreate', name, this.domain_id);
+                this.selectedActionName = name;
                 this._showActionProperties = true;
-                //this.params['actionName'] = name;
                 console.debug('handleCreate: params is ', this.params);
             },
 
@@ -223,23 +221,11 @@
             _hideAction: function (evt) {
                 this._showActionProperties = false;
             },
-            _handleServiceResponse(evt) {
-                var id = evt.detail.db_id;
-                window.history.pushState({}, null, "#/program/" + id);
-                window.dispatchEvent(new CustomEvent("location-changed"));
-            },
-
             _showActionList: function (page) {
                 return (!this._showActionProperties);
             },
             _showAction: function (page) {
                 return (this._showActionProperties && page !== 'program');
-            },
-            _shouldShowProgram: function (page) {
-                return page === 'program';
-            },
-            _handleServiceError: function (evt) {
-                console.error(evt.detail);
             },
             _openAction: function (evt) {
                 var name = evt.model.get('action.name');
