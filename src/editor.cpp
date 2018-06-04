@@ -1209,7 +1209,7 @@ void Editor::AssignSurfaceObjects(const std::string& db_id,
                                   const msgs::PDDLAction& action,
                                   size_t step_id) {
   msgs::Program program;
-  success = db_.Get(db_id, &program);
+  bool success = db_.Get(db_id, &program);
   if (!success) {
     ROS_ERROR("Unable to update scene for program ID \"%s\"", db_id.c_str());
     return;
