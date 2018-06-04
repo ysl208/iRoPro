@@ -84,8 +84,9 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       UpdatePDDLAction(event.domain_id, event.pddl_action, event.action_name);
     } else if (event.type == msgs::EditorEvent::DETECT_WORLD_STATE) {
       AddActionCondition(event.domain_id, event.action_name, event.state_name);
-    } else if (event.type == msgs::EditorEvent::_____) {
-      //____(event.program_info.db_id, event.pddl_action, event.step_num);
+    } else if (event.type == msgs::EditorEvent::ASSIGN_SURFACE_OBJECTS) {
+      AssignSurfaceObjects(event.program_info.db_id, event.pddl_action,
+                           event.step_num);
     }
     // Condition events
     else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
@@ -1203,6 +1204,34 @@ void Editor::AddActionCondition(const std::string& domain_id,
     PrintAllPredicates(world_state.predicates_, "");
     UpdatePDDLAction(domain_id, new_action, "");
   }
+}
+void Editor::AssignSurfaceObjects(const std::string& db_id,
+                                  const msgs::PDDLAction& action,
+                                  size_t step_id) {
+  msgs::Program program;
+  success = db_.Get(db_id, &program);
+  if (!success) {
+    ROS_ERROR("Unable to update scene for program ID \"%s\"", db_id.c_str());
+    return;
+  }
+  if (step_id >= program.steps.size()) {
+    ROS_ERROR(
+        "Unable to update scene for step %ld, program \"%s\", which has %ld "
+        "steps",
+        step_id, db_id.c_str(), program.steps.size());
+    return;
+  }
+  DeleteScene(program.steps[step_id].scene_id);
+  program.steps[step_id].scene_id = action.scene_id;
+  program.steps[step_id].surface = action.surface;
+  DeleteLandmarks(msgs::Landmark::SURFACE_BOX, &program.steps[step_id]);
+
+  for (size_t i = 0; i < action.landmarks.size(); ++i) {
+    msgs::Landmark landmark;
+    ProcessSurfaceBox(action.landmarks[i], &landmark);
+    program.steps[step_id].landmarks.push_back(landmark);
+  }
+  Update(db_id, program);
 }
 
 void Editor::AddPDDLAction(const std::string& domain_id,

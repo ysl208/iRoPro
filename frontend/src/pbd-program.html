@@ -285,7 +285,7 @@
         this.$.programSub.subscribe();
         this.currentStepNum = 0;
         this.currentCondition = "";
-
+        this.addStep();
         var depthCloudFrameId = '';
         if (this.params.robot === "pr2") {
           depthCloudFrameId = '/head_mount_kinect_rgb_optical_frame';

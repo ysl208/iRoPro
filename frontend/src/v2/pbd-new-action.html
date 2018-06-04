@@ -592,10 +592,6 @@
                 }
             },
 
-            _stepNum: function (index) {
-                return parseInt(index) + 1;
-            },
-
             _handleFeedback: function (evt) {
                 /* this.currentStepNum = evt.detail.step_number; */
             },
@@ -625,6 +621,8 @@
                 this.action.program_id = id;
                 window.history.pushState({}, null, "#/program/" + id);
                 window.dispatchEvent(new CustomEvent("location-changed"));
+
+                this._assignSurfaceObjects();
             },
 
             _handleServiceError: function (evt) {
@@ -663,7 +661,16 @@
                 }
                 this._finishedDemo = true;
             },
-
+            _assignSurfaceObjects: function (evt) {
+                var msg = {
+                    type: 'assign surface objects',
+                    pddl_action: this.action,
+                    step_id: 0,
+                    db_id: this.action.program_id
+                };
+                console.debug('_assignSurfaceObjects: ', this.action);
+                this.$.eventPub.publish(msg);
+            },
             _detect: function (evt) {
                 if (!this.ros) {
                     console.error('Unable to call detection right now.');
