@@ -221,7 +221,7 @@
                                     </template>
                                 </paper-listbox>
                             </paper-dropdown-menu>
-                            <paper-dropdown-menu label="Instance 2">
+                            <paper-dropdown-menu id="menu_instance2_precond" label="Instance 2">
                                 <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
                                     <template is="dom-repeat" items="[[action.params]]">
                                         <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
@@ -262,7 +262,7 @@
                                     </template>
                                 </paper-listbox>
                             </paper-dropdown-menu>
-                            <paper-dropdown-menu label="Instance 2">
+                            <paper-dropdown-menu id="menu_instance2_effect" label="Instance 2">
                                 <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
                                     <template is="dom-repeat" items="[[action.params]]">
                                         <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
@@ -275,7 +275,7 @@
                         </fieldset>
                     </div>
                 </div>
-                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
+                <!--<ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>-->
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -285,7 +285,12 @@
                 <paper-button dialog-confirm class="clear">OK</paper-button>
             </div>
         </paper-dialog>
-        </div>
+        <paper-dialog id="errorNewPrecond">
+            <h2>Error creating new precondition</h2>
+            <p id="msgErrorNewPrecond">An error has been encountered ...</p>
+            <div class="buttons">
+                <paper-button dialog-confirm class="clear">OK</paper-button>
+            </div>
         </paper-dialog>
     </template>
 
@@ -356,8 +361,25 @@
                 '_domainUpdated(pddlDomain.*,domainList.*)',
                 '_actionUpdated(action.*)',
                 '_isRunningChanged(isRunning.data)',
+                '_checkClearPrecond(newPrecondition.name)',
+                '_checkClearEffect(newEffect.name)',
             ],
-
+            _checkClearPrecond: function(nom_precond) {
+                if (nom_precond == "clear") {
+                    this.$.menu_instance2_precond.disabled = true;
+                    this.newPrecondition.arg2 = undefined;
+                } else {
+                    this.$.menu_instance2_precond.disabled = false;
+                }
+            },
+            _checkClearEffect: function(nom_effect) {
+                if (nom_effect == "clear") {
+                    this.$.menu_instance2_effect.disabled = true;
+                    this.newEffect.arg2 = undefined;
+                } else {
+                    this.$.menu_instance2_effect.disabled = false;
+                }
+            },
             _actionUpdated: function (action) {
                 if (action.value && action.value.name != '') {
                     //console.debug('_actionUpdated: action =  ', action.value);
@@ -490,18 +512,65 @@
                 this.set(args, evt.target.name);
                 console.debug(args, ' is ', this.newPrecondition);
             },
-
+            checkPrecond: function(evt) {
+                var precond = this.newPrecondition;
+                var liste = this.action.preconditions;
+                var valide = true;
+                var index = 0;
+                // msgErreur explains why the precond isn't valid
+                var msgErreur = "";
+                alert(precond.arg1.name + " - " + precond.name + " - " + precond.arg2.name + "- nbPrecond = " + liste.length);
+                while (valide && index < liste.length) {
+                    alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name + "- index = " + index);                    
+                    if (precond.name == liste[index].name && precond.arg1.name == liste[index].arg1.name && precond.arg2.name == liste[index].arg2.name) {
+                        //alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name);
+                        valide = false;
+                        msgErreur = "This precondition exists already-1";
+                    }
+                    else if (precond.name == "is clear" && liste[index].name == "is clear" && precond.arg1.name == liste[index].arg1.name) {
+                        //alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name);
+                        valide = false;
+                        msgErreur = "This precondition exists already-2";
+                    }
+                    else if (precond.name == "on" && liste[index].name == "on") {
+                        if (precond.arg2.name == liste[index].arg2.name) {
+                        //alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name);
+                            valide = false;
+                            msgErreur = "You can't place two objects on one position, see :\n" + liste[index].arg1 + liste[index].name + liste[index].arg1;
+                        } else if (precond.arg1.name == liste[index].arg1.name) {
+                        //alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name);
+                            valide = false;
+                            msgErreur = "One object can't be on two positions, see :\n" + liste[index].arg1 + liste[index].name + liste[index].arg1;
+                        }
+                    }
+                    if ((precond.name == "is clear" && (liste[index].name == "on" && list[index].arg2.name == precond.arg1.name)) || (liste[index].name == "is clear" && (precond.name == "on" && precond.arg2.name == liste[index].arg1.name)) ) {
+                        //alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name);
+                        valide = false;
+                        msgErreur = "It is not possible to be clear and to have something on it at the same time, see :\n" + liste[index].arg1 + liste[index].name + liste[index].arg1;
+                    }
+                    index++;
+                }
+                //index++;
+                //alert("valid : " + valide + " - index : " + index + "- msg : \n" + msgErreur);
+                console.log(msgErreur);
+                return {valid: valide, msg: msgErreur};
+            },
             addPredicate: function (evt) {
                 var condition = evt.target.getAttribute('data-args');
                 if (condition == "Precondition") {
-                    this.action.preconditions.push(this.newPrecondition);
-                    this.reevaluateArray('action.preconditions', this.action.preconditions);
+                    var check = this.checkPrecond(evt);
+                    if (check.valid) {
+                        this.action.preconditions.push(this.newPrecondition);
+                        this.reevaluateArray('action.preconditions', this.action.preconditions);
+                    } else {
+                        this.$.msgErrorNewPrecond.innerHTML = check.msg;
+                        this.$.errorNewPrecond.open();
+                    }
                 } else if (condition == "Effect") {
                     this.action.effects.push(this.newEffect);
                     this.reevaluateArray('action.effects', this.action.effects);
                 }
             },
-
             deletePred: function (evt) {
                 var item = evt.model.item;
                 console.debug('deletePred', item);
