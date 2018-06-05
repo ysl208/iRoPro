@@ -39,6 +39,14 @@
                 padding-left: 10px;
             }
 
+            fieldset {
+                margin-top: 5px;
+            }
+
+            #cameraButton {
+                float: right;
+            }
+
         </style>
         <!-- <h1 align="center">Robot Control</h1> -->
         <div class="container">
@@ -66,18 +74,8 @@
         <fieldset>
             <legend>Display on robot screen</legend>
 
-            <paper-button class="style-scope canvas-view" raised on-tap="displayEyesRequest">Eyes</paper-button>
+            <paper-button class="style-scope canvas-view" raised on-tap="displayEyesRequest">Display eyes</paper-button>
             <iron-ajax id="displayEyes" method="GET" url="src/v2/control.php" params='{"display":"eyes"}'></iron-ajax>
-            <paper-button class="style-scope canvas-view" raised on-tap="displayCameraRequest">Camera</paper-button>
-            <iron-ajax id="displayCamera" method="GET" url="src/v2/control.php"></iron-ajax>
-
-            <paper-dialog modal id="dialog">
-                <h2>Can't open camera</h2>
-                <p>Baxter is unable to open more than two of its camera at the same time. Please change the camera you want to see.</p>
-                <div id="buttons">
-                    <paper-button dialog-confirm on-tap="close">Close</paper-button>
-                </div>
-            </paper-dialog>
 
             <fieldset>
                 <legend>Camera's image to display</legend>
@@ -94,6 +92,16 @@
                         </paper-dropdown-menu>
                     </template>
                 </div>
+                <paper-button id="cameraButton" class="style-scope canvas-view" raised on-tap="displayCameraRequest">Display camera</paper-button>
+                <iron-ajax id="displayCamera" method="GET" url="src/v2/control.php"></iron-ajax>
+
+                <paper-dialog modal id="dialog">
+                    <h2>Can't open camera</h2>
+                    <p>Baxter is unable to open more than two of its camera at the same time. Please change the camera you want to see.</p>
+                    <div id="buttons">
+                        <paper-button dialog-confirm on-tap="close">Close</paper-button>
+                    </div>
+                </paper-dialog>
             </fieldset>
         </fieldset>
 
