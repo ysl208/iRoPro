@@ -84,6 +84,9 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       UpdatePDDLAction(event.domain_id, event.pddl_action, event.action_name);
     } else if (event.type == msgs::EditorEvent::DETECT_WORLD_STATE) {
       AddActionCondition(event.domain_id, event.action_name, event.state_name);
+    } else if (event.type == msgs::EditorEvent::ASSIGN_SURFACE_OBJECTS) {
+      AssignSurfaceObjects(event.program_info.db_id, event.pddl_action,
+                           event.step_num);
     }
     // Condition events
     else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
@@ -1155,25 +1158,6 @@ void Editor::AddActionCondition(const std::string& domain_id,
     return;
   }
 
-  // detect surface landmarks
-  msgs::SegmentSurfacesGoal goal;
-  goal.save_cloud = true;
-  action_clients_->surface_segmentation_client.sendGoal(goal);
-  success = action_clients_->surface_segmentation_client.waitForResult(
-      ros::Duration(20));
-  if (!success) {
-    ROS_ERROR("Failed to segment surface.");
-    return;
-  }
-  msgs::SegmentSurfacesResult::ConstPtr result =
-      action_clients_->surface_segmentation_client.getResult();
-  std::vector<msgs::Landmark> world_landmarks;
-  for (size_t i = 0; i < result->landmarks.size(); ++i) {
-    msgs::Landmark landmark;
-    ProcessSurfaceBox(result->landmarks[i], &landmark);
-    world_landmarks.push_back(landmark);
-  }
-
   // look for pddl action
   int index = FindPDDLAction(action_name, domain.actions);
   if (index < 0) {
@@ -1181,8 +1165,31 @@ void Editor::AddActionCondition(const std::string& domain_id,
     return;
   } else {
     msgs::PDDLAction new_action = domain.actions[index];
+    // detect surface landmarks
+    msgs::SegmentSurfacesGoal goal;
+    goal.save_cloud = true;
+    action_clients_->surface_segmentation_client.sendGoal(goal);
+    success = action_clients_->surface_segmentation_client.waitForResult(
+        ros::Duration(20));
+    if (!success) {
+      ROS_ERROR("Failed to segment surface.");
+      return;
+    }
+    msgs::SegmentSurfacesResult::ConstPtr result =
+        action_clients_->surface_segmentation_client.getResult();
+
+    // save scene_id and surface for later
+    new_action.scene_id = result->cloud_db_id;
+    new_action.surface = result->surface;
+    // std::vector<msgs::Landmark> world_landmarks;
+    for (size_t i = 0; i < result->landmarks.size(); ++i) {
+      msgs::Landmark landmark;
+      ProcessSurfaceBox(result->landmarks[i], &landmark);
+      new_action.landmarks.push_back(landmark);
+    }
+
     WorldState world_state;
-    GetWorldState(world_landmarks, &world_state);
+    GetWorldState(new_action.landmarks, &world_state);
     new_action.params = world_state.objects_;
     if (state_name == "Precondition") {
       new_action.preconditions = world_state.predicates_;
@@ -1193,9 +1200,38 @@ void Editor::AddActionCondition(const std::string& domain_id,
     } else {
       ROS_ERROR("Unknown condition type: %s", state_name.c_str());
     }
+
     PrintAllPredicates(world_state.predicates_, "");
     UpdatePDDLAction(domain_id, new_action, "");
   }
+}
+void Editor::AssignSurfaceObjects(const std::string& db_id,
+                                  const msgs::PDDLAction& action,
+                                  size_t step_id) {
+  msgs::Program program;
+  bool success = db_.Get(db_id, &program);
+  if (!success) {
+    ROS_ERROR("Unable to update scene for program ID \"%s\"", db_id.c_str());
+    return;
+  }
+  if (step_id >= program.steps.size()) {
+    ROS_ERROR(
+        "Unable to update scene for step %ld, program \"%s\", which has %ld "
+        "steps",
+        step_id, db_id.c_str(), program.steps.size());
+    return;
+  }
+  DeleteScene(program.steps[step_id].scene_id);
+  program.steps[step_id].scene_id = action.scene_id;
+  program.steps[step_id].surface = action.surface;
+  DeleteLandmarks(msgs::Landmark::SURFACE_BOX, &program.steps[step_id]);
+
+  for (size_t i = 0; i < action.landmarks.size(); ++i) {
+    msgs::Landmark landmark;
+    ProcessSurfaceBox(action.landmarks[i], &landmark);
+    program.steps[step_id].landmarks.push_back(landmark);
+  }
+  Update(db_id, program);
 }
 
 void Editor::AddPDDLAction(const std::string& domain_id,
