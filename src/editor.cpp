@@ -176,8 +176,8 @@ std::string Editor::Create(const std::string& name) {
 
 void Editor::AddSenseSteps(const std::string& db_id, size_t step_id) {
   AddStep(db_id);
-  AddMoveHeadAction(db_id, step_id, 45, 0);
-  AddOpenGripperAction(db_id, step_id, 100, 0);
+  // AddMoveHeadAction(db_id, step_id, 45, 0);
+  // AddOpenGripperAction(db_id, step_id, 100, 0);
   std::vector<double> poses;
   robot_config_.default_gripper_poses(&poses);
   AddGripperPoseAction(db_id, step_id, poses);
@@ -185,9 +185,9 @@ void Editor::AddSenseSteps(const std::string& db_id, size_t step_id) {
   AddStep(db_id);
   ++step_id;
   AddDetectTTObjectsAction(db_id, step_id);
-  AddStep(db_id);
-  ++step_id;
-  AddCheckConditionsAction(db_id, step_id);
+  // AddStep(db_id);
+  //++step_id;
+  // AddCheckConditionsAction(db_id, step_id);
 }
 
 void Editor::AddDetectTTObjectsAction(const std::string& db_id,
