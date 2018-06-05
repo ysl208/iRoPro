@@ -138,6 +138,8 @@ class Editor {
   void AddActionCondition(const std::string& domain_id,
                           const std::string& action_name,
                           const std::string& state_name);
+  void AssignSurfaceObjects(const std::string& db_id,
+                            const msgs::PDDLAction& action, size_t step_id);
   void AddPDDLAction(const std::string& domain_id,
                      const std::string& action_name);
   void DeletePDDLAction(const std::string& domain_id,
