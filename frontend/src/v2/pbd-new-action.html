@@ -9,7 +9,7 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
-
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html"
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 
 <link rel="import" href="../../bower_components/paper-styles/color.html">
@@ -123,6 +123,11 @@
                     width: 350px;
                     @apply(--layout-flex);
                 }
+                .button_not {
+                    vertical-align: bottom;
+                    padding-bottom: 9px;
+                    padding-left: 6px;
+                }
             }
         </style>
         <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
@@ -177,7 +182,7 @@
                             </template>
                             <br>
                         </fieldset>
-                    </div>
+                    </div>                    
                     <!-- ***** AFTER DEMO **** 2/2 -->
                     <div id="afterDemo" hidden$=[[!_finishedDemo]]>
                         <fieldset>
@@ -205,30 +210,33 @@
                                 </div>
                             </template>
 
-                            <paper-dropdown-menu label="Instance 1">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg1}}">
-                                    <template is="dom-repeat" items="[[action.params]]">
-                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg1">
-                                            [[item.name]]
-                                        </paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
-                            <paper-dropdown-menu label="Predicate">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.name}}">
-                                    <template is="dom-repeat" items="[[domain.predicates]]">
-                                        <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newPrecondition.predicate.name">is [[item.name]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
-                            <paper-dropdown-menu id="menu_instance2_precond" label="Instance 2">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
-                                    <template is="dom-repeat" items="[[action.params]]">
-                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
-                                            [[item.name]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
+                            <div>
+                                <paper-dropdown-menu id="menu_instance1_precond" label="Instance 1">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg1}}">
+                                        <template is="dom-repeat" items="[[action.params]]">
+                                            <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg1">
+                                                [[item.name]]
+                                            </paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                                <paper-radio-button class="button_not" id="button_not_precond">not</paper-radio-button>
+                                <paper-dropdown-menu id="menu_name_precond" label="Predicate">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.name}}">
+                                        <template is="dom-repeat" items="[[domain.predicates]]">
+                                            <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newPrecondition.predicate.name">is [[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                                <paper-dropdown-menu id="menu_instance2_precond" label="Instance 2">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
+                                        <template is="dom-repeat" items="[[action.params]]">
+                                            <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
+                                                [[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                            </div>
                             <br>
                             <paper-button noink class="petit" on-click="addPredicate" data-args="Precondition">+ add new predicate</paper-button>
                         </fieldset>
@@ -240,36 +248,39 @@
 
                             <template is="dom-repeat" items="{{action.effects}}" as="item" index-as="paramIndex">
                                 <div id="listeWorldState2">
-                                    [[item.arg1.name]] is [[item.name]] [[item.arg2.name]]
+                                    [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
                                     <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
                                         <paper-icon-button icon="delete"></paper-icon-button>
                                     </paper-button>
                                 </div>
                             </template>
 
-                            <paper-dropdown-menu label="Instance 1">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg1}}">
-                                    <template is="dom-repeat" items="[[action.params]]">
-                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg1">
-                                            [[item.name]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
-                            <paper-dropdown-menu label="Predicate">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.name}}">
-                                    <template is="dom-repeat" items="[[domain.predicates]]">
-                                        <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newEffect.predicate.name">is [[item.name]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
-                            <paper-dropdown-menu id="menu_instance2_effect" label="Instance 2">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
-                                    <template is="dom-repeat" items="[[action.params]]">
-                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
-                                            [[item.name]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
+                            <div>
+                                <paper-dropdown-menu id="menu_instance1_effect" label="Instance 1">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg1}}">
+                                        <template is="dom-repeat" items="[[action.params]]">
+                                            <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg1">
+                                                [[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                                <paper-radio-button class="button_not" id="button_not_effect">not</paper-radio-button>                            
+                                <paper-dropdown-menu id="menu_name_effect" label="Predicate">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.name}}">
+                                        <template is="dom-repeat" items="[[domain.predicates]]">
+                                            <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newEffect.predicate.name">is [[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                                <paper-dropdown-menu id="menu_instance2_effect" label="Instance 2">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
+                                        <template is="dom-repeat" items="[[action.params]]">
+                                            <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
+                                                [[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                            </div>
                             <br>
                             <paper-button noink class="petit" on-click="addPredicate" data-args="Effect">+ add new predicate</paper-button>
                         </fieldset>
@@ -288,6 +299,13 @@
         <paper-dialog id="errorNewPrecond">
             <h2>Error creating new precondition</h2>
             <p id="msgErrorNewPrecond">An error has been encountered ...</p>
+            <div class="buttons">
+                <paper-button dialog-confirm class="clear">OK</paper-button>
+            </div>
+        </paper-dialog>
+        <paper-dialog id="errorNewEffect">
+            <h2>Error creating new effect</h2>
+            <p id="msgErrorNewEffect">An error has been encountered ...</p>
             <div class="buttons">
                 <paper-button dialog-confirm class="clear">OK</paper-button>
             </div>
@@ -367,6 +385,7 @@
             _checkClearPrecond: function(nom_precond) {
                 if (nom_precond == "clear") {
                     this.$.menu_instance2_precond.disabled = true;
+                    this.$.menu_instance2_precond.value = undefined;
                     this.newPrecondition.arg2 = undefined;
                 } else {
                     this.$.menu_instance2_precond.disabled = false;
@@ -375,6 +394,7 @@
             _checkClearEffect: function(nom_effect) {
                 if (nom_effect == "clear") {
                     this.$.menu_instance2_effect.disabled = true;
+                    this.$.menu_instance2_effect.value = undefined;
                     this.newEffect.arg2 = undefined;
                 } else {
                     this.$.menu_instance2_effect.disabled = false;
@@ -512,63 +532,102 @@
                 this.set(args, evt.target.name);
                 console.debug(args, ' is ', this.newPrecondition);
             },
-            checkPrecond: function(evt) {
-                var precond = this.newPrecondition;
-                var liste = this.action.preconditions;
+            checkPredicate: function(mode, _new) {       
+                var newItem = _new;
                 var valide = true;
                 var index = 0;
                 // msgErreur explains why the precond isn't valid
-                var msgErreur = "";
-                alert(precond.arg1.name + " - " + precond.name + " - " + precond.arg2.name + "- nbPrecond = " + liste.length);
-                while (valide && index < liste.length) {
-                    alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name + "- index = " + index);                    
-                    if (precond.name == liste[index].name && precond.arg1.name == liste[index].arg1.name && precond.arg2.name == liste[index].arg2.name) {
-                        //alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name);
+                var msgErreur = "";  
+
+                if (mode == "precondition") {
+                    var liste = this.action.preconditions;
+                    // Check if items are well selected
+                    if (this.$.menu_instance1_precond.value == undefined || this.$.menu_name_precond.value == undefined || (this.$.menu_name_precond.value != "is clear" && this.$.menu_instance2_precond.value == undefined)) {
                         valide = false;
-                        msgErreur = "This precondition exists already-1";
+                        msgErreur = "Complete your new predicate before adding it";
                     }
-                    else if (precond.name == "is clear" && liste[index].name == "is clear" && precond.arg1.name == liste[index].arg1.name) {
-                        //alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name);
+                } else {
+                    var liste = this.action.effects;
+                    // Check if items are well selected
+                    if (this.$.menu_instance1_effect.value == undefined || this.$.menu_name_effect.value == undefined || (this.$.menu_name_effect.value != "is clear" && this.$.menu_instance2_effect.value == undefined)) {
                         valide = false;
-                        msgErreur = "This precondition exists already-2";
+                        msgErreur = "Complete your new predicate before adding it";
                     }
-                    else if (precond.name == "on" && liste[index].name == "on") {
-                        if (precond.arg2.name == liste[index].arg2.name) {
-                        //alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name);
-                            valide = false;
-                            msgErreur = "You can't place two objects on one position, see :\n" + liste[index].arg1 + liste[index].name + liste[index].arg1;
-                        } else if (precond.arg1.name == liste[index].arg1.name) {
-                        //alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name);
-                            valide = false;
-                            msgErreur = "One object can't be on two positions, see :\n" + liste[index].arg1 + liste[index].name + liste[index].arg1;
+                }  
+                
+                if (valide) {
+                    // Without negation
+                    if (!newItem.negate) {
+                        // To comment when you want to test else it's impossible to test on simulation              
+                        //else if (newItem.arg1.type.name == "position" && newItem.name == "on") {
+                        //    valide = false;
+                        //    msgErreur = "A position can't be on something else"
+                        //}
+                                
+                        while (valide && index < liste.length) {
+                            if (newItem.name == "clear" && liste[index].name == "clear" && newItem.arg1.name == liste[index].arg1.name) {
+                                valide = false;
+                                msgErreur = "This " + mode + " exists already";
+                            }               
+                            else if (newItem.name == liste[index].name && newItem.arg1.name == liste[index].arg1.name && newItem.arg2.name == liste[index].arg2.name) {
+                                valide = false;
+                                msgErreur = "This " + mode + " exists already";
+                            }
+                            else if (newItem.name == "on" && liste[index].name == "on") {
+                                if (newItem.arg2.name == liste[index].arg2.name) {
+                                    valide = false;
+                                    msgErreur = "You can't place two objects on one position, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
+                                } else if (newItem.arg1.name == liste[index].arg1.name) {
+                                    valide = false;
+                                    msgErreur = "One object can't be on two positions, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
+                                }
+                            }
+                            else if (newItem.name == "clear" && (liste[index].name == "on" && liste[index].arg2.name == newItem.arg1.name)) {
+                                valide = false;
+                                msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + "is " + liste[index].name + " " + liste[index].arg2.name + "</strong>";
+                            }
+                            else if (liste[index].name == "clear" && (newItem.name == "on" && newItem.arg2.name == liste[index].arg1.name)) {
+                                valide = false;
+                                msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + " is " + liste[index].name + "</strong>";
+                            }
+                            index++;
                         }
+                    // With negation
+                    } else {
+
                     }
-                    if ((precond.name == "is clear" && (liste[index].name == "on" && list[index].arg2.name == precond.arg1.name)) || (liste[index].name == "is clear" && (precond.name == "on" && precond.arg2.name == liste[index].arg1.name)) ) {
-                        //alert(liste[index].arg1.name + " - " + liste[index].name + " - " + liste[index].arg2.name);
-                        valide = false;
-                        msgErreur = "It is not possible to be clear and to have something on it at the same time, see :\n" + liste[index].arg1 + liste[index].name + liste[index].arg1;
-                    }
-                    index++;
                 }
-                //index++;
-                //alert("valid : " + valide + " - index : " + index + "- msg : \n" + msgErreur);
-                console.log(msgErreur);
                 return {valid: valide, msg: msgErreur};
             },
             addPredicate: function (evt) {
                 var condition = evt.target.getAttribute('data-args');
                 if (condition == "Precondition") {
-                    var check = this.checkPrecond(evt);
+                    // Check if the NOT-button is checked or no and update it
+                    this.newPrecondition.negate = this.$.button_not_precond.checked;
+                    this.$.button_not_precond.checked = false;
+
+                    var check = this.checkPredicate("precondition",this.newPrecondition);
                     if (check.valid) {
-                        this.action.preconditions.push(this.newPrecondition);
+                        // We recreate the this.newPrecondition object, else it's passed by reference and it causes problems
+                        this.action.preconditions.push({arg1: this.newPrecondition.arg1, name: this.newPrecondition.name, arg2: this.newPrecondition.arg2, negate: this.newPrecondition.negate});
                         this.reevaluateArray('action.preconditions', this.action.preconditions);
                     } else {
                         this.$.msgErrorNewPrecond.innerHTML = check.msg;
                         this.$.errorNewPrecond.open();
                     }
                 } else if (condition == "Effect") {
-                    this.action.effects.push(this.newEffect);
-                    this.reevaluateArray('action.effects', this.action.effects);
+                    // Check if the NOT-button is checked or no and update it
+                    this.newEffect.negate = this.$.button_not_effect.checked;
+                    this.$.button_not_effect.checked = false;
+
+                    var check = this.checkPredicate("effect", this.newEffect);
+                    if (check.valid) {                        
+                        this.action.effects.push({arg1: this.newEffect.arg1, name: this.newEffect.name, arg2: this.newEffect.arg2, negate: this.newEffect.negate});                        
+                        this.reevaluateArray('action.effects', this.action.effects);
+                    } else {
+                        this.$.msgErrorNewEffect.innerHTML = check.msg;
+                        this.$.errorNewEffect.open();
+                    }
                 }
             },
             deletePred: function (evt) {
