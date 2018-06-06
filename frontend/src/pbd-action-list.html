@@ -201,7 +201,7 @@
 
             _handleCreate: function (evt) {
                 var name = this.getActionName(this.actions);
-                console.debug('handleCreate', name, this.pddlDomain);
+
                 var msg = {
                     type: 'add pddl action',
                     domain_id: this.domain_id,
@@ -211,7 +211,6 @@
                 console.debug('handleCreate', name, this.domain_id);
                 this.selectedActionName = name;
                 this._showActionProperties = true;
-                console.debug('handleCreate: params is ', this.params);
             },
 
             getActionName: function (actions) {

@@ -1,0 +1,843 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/ros-problem-client/ros-problem-client.html">
+
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/ros-service/ros-service.html">
+<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../../bower_components/ros-rviz/ros-rviz.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../underscore.html">
+
+<dom-module id="pbd-new-problem">
+  <template>
+    <style include="shared-styles"></style>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style>
+      :host {
+        display: block;
+        height: 100%;
+      }
+
+      .paper-material {
+        margin-top: 5px;
+      }
+
+      a {
+        color: #000;
+        text-decoration: none;
+      }
+
+      .add {
+        height: 25px;
+        padding: 5px 5px;
+        line-height: 14px;
+        margin-bottom: 5px;
+      }
+
+      paper-button {
+        /* float: right; */
+      }
+
+      paper-input {
+        width: 40%;
+        display: inline-block;
+      }
+
+      paper-dropdown-menu {
+        max-width: 100px;
+        margin-left: 10px;
+        margin-top: 0px;
+      }
+
+      .stepDiv {
+        min-width: 350px;
+        margin-bottom: 10px;
+        overflow-y: auto;
+        padding-left: 2px;
+        padding-right: 2px;
+        padding-bottom: 2px;
+        display: inline-block;
+      }
+
+      #rviz {
+        display: block;
+        height: 500px;
+      }
+
+      fieldset>p {
+        display: inline-block;
+      }
+
+      fieldset iron-icon {
+        display: inline-block;
+        vertical-align: top;
+        margin-top: 5px;
+      }
+
+      .delete {
+        font-size: 80%;
+        padding: 0;
+        width: 5px;
+        color: black;
+      }
+
+      .petit {
+        font-size: 80%;
+        margin: 0;
+        padding: 0;
+        margin-left: 5px;
+        color: steelblue;
+      }
+
+      @media (min-width: 768px) {
+        #layout {
+          height: 100%;
+        }
+        .content {
+          @apply(--layout-horizontal);
+          @apply(--layout-flex);
+        }
+        .stepDiv {
+          width: 350px;
+          max-height: 100%;
+          margin-bottom: 0px;
+          margin-right: 10px;
+          /*padding: 2%;*/
+        }
+        #rviz {
+          height: 100%;
+          width: 350px;
+          @apply(--layout-flex);
+        }
+        .button_not {
+          vertical-align: bottom;
+          padding-bottom: 9px;
+          padding-left: 6px;
+        }
+      }
+    </style>
+    <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
+    <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+    <!-- <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
+      ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service> -->
+    <!-- PDDL -->
+    <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+    <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
+      ros="[[ros]]"></ros-topic>
+
+    <div>
+      <!-- Problem navigation buttons -->
+      <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
+        1 Initial State
+      </paper-button>
+      <paper-button class="petit" name="problemModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'problemModel')]]">
+        2 Goal State
+      </paper-button>
+      <paper-button name="generatedPlan" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'generatedPlan')]]">
+        3 Generated Plan
+      </paper-button>
+    </div>
+    <paper-input id="problemName" label="Problem name" value="{{problemName}}"></paper-input>
+    <paper-button id="save" raised class="important" on-click="_updateDomain">
+      Save
+    </paper-button>
+
+    <div id="layout" class="layout vertical">
+      <!-- ***** Generated Plan **** 3/3 -->
+      <div id="plan" hidden$="[[!_displayNavStep(navStep,'generatedPlan')]]">
+        Action1 etc.
+      </div>
+
+      <div class="content">
+        <div id="stepContent" class="stepDiv">
+          <!-- ***** Initial State **** 1/3 -->
+          <div id="perception" hidden$="[[!_displayNavStep(navStep,'perception')]]">
+            <fieldset>
+              <legend>
+                <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="InitialState">
+                  Detect World Instances
+                </paper-button>
+              </legend>
+              <p>Verify all objects have been detected before proceeding.
+                <br>
+                <b>Name</b> (type)</p>
+              <br>
+              <template is="dom-repeat" items="{{sortByName(problem.objects)}}" as="item" index-as="objectIndex">
+                <div id="listeObjet">
+                  <paper-icon-button icon="check"></paper-icon-button>
+                  [[item.name]] ([[item.type.name]])
+                </div>
+              </template>
+              <br>
+            </fieldset>
+
+            <fieldset>
+              <legend>
+                Initial States
+              </legend>
+              <template is="dom-repeat" items="{{problem.initial_states}}" as="item" index-as="objectIndex">
+                <div id="listeWorldState">
+                  [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                  <paper-button class="delete" on-tap="deletePred" data-args="InitialState">
+                    <paper-icon-button icon="delete"></paper-icon-button>
+                  </paper-button>
+                </div>
+              </template>
+
+              <div>
+                <paper-dropdown-menu id="menu_instance1_precond" label="Instance 1">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInitialState.arg1}}">
+                    <template is="dom-repeat" items="[[problem.objects]]">
+                      <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newInitialState.arg1">
+                        [[item.name]]
+                      </paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-radio-button class="button_not" id="button_not_precond">not</paper-radio-button>
+                <paper-dropdown-menu id="menu_name_precond" label="Predicate">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInitialState.name}}">
+                    <template is="dom-repeat" items="[[domain.predicates]]">
+                      <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newInitialState.predicate.name">is [[item.name]]</paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-dropdown-menu id="menu_instance2_precond" label="Instance 2">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInitialState.arg2}}">
+                    <template is="dom-repeat" items="[[problem.objects]]">
+                      <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newInitialState.arg2">
+                        [[item.name]]</paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+              </div>
+              <br>
+              <paper-button noink class="petit" on-click="addPredicate" data-args="InitialState">+ add new predicate</paper-button>
+            </fieldset>
+          </div>
+
+          <!-- ***** Goal States **** 2/3 -->
+          <div id="problemModel" hidden$="[[!_displayNavStep(navStep,'problemModel')]]">
+            <fieldset>
+              <legend>
+                Goal States
+              </legend>
+
+              <template is="dom-repeat" items="{{problem.goal_states}}" as="item" index-as="objectIndex">
+                <div id="listeWorldState2">
+                  [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                  <paper-button class="delete" on-tap="deletePred" data-args="InitialState">
+                    <paper-icon-button icon="delete"></paper-icon-button>
+                  </paper-button>
+                </div>
+              </template>
+
+              <div>
+                <paper-dropdown-menu id="menu_instance1_goal_state" label="Instance 1">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newGoalState.arg1}}">
+                    <template is="dom-repeat" items="[[problem.objects]]">
+                      <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newGoalState.arg1">
+                        [[item.name]]</paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-radio-button class="button_not" id="button_not_goal_state">not</paper-radio-button>
+                <paper-dropdown-menu id="menu_name_goal_state" label="Predicate">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newGoalState.name}}">
+                    <template is="dom-repeat" items="[[domain.predicates]]">
+                      <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newGoalState.predicate.name">is [[item.name]]</paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-dropdown-menu id="menu_instance2_goal_state" label="Instance 2">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newGoalState.arg2}}">
+                    <template is="dom-repeat" items="[[problem.objects]]">
+                      <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newGoalState.arg2">
+                        [[item.name]]</paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+              </div>
+              <br>
+              <paper-button noink class="petit" on-click="addPredicate" data-args="GoalState">+ add new predicate</paper-button>
+              <br>
+              <paper-button id="detect2" raised class="clear" on-tap="_detect" data-args="GoalState">
+                Detect Goal States
+              </paper-button>
+            </fieldset>
+          </div>
+        </div>
+        <!-- <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'generatedPlan')]]"></ros-rviz> -->
+      </div>
+    </div>
+    <paper-dialog id="errorDialog" modal>
+      <h2>Error running the program</h2>
+      <p>[[error]]</p>
+      <div class="buttons">
+        <paper-button dialog-confirm class="clear">OK</paper-button>
+      </div>
+    </paper-dialog>
+    <paper-dialog id="errorNewPrecond">
+      <h2>Error creating new initial_state</h2>
+      <p id="msgErrorNewPrecond">An error has been encountered ...</p>
+      <div class="buttons">
+        <paper-button dialog-confirm class="clear">OK</paper-button>
+      </div>
+    </paper-dialog>
+    <paper-dialog id="errorNewGoalState">
+      <h2>Error creating new goal_state</h2>
+      <p id="msgErrorNewGoalState">An error has been encountered ...</p>
+      <div class="buttons">
+        <paper-button dialog-confirm class="clear">OK</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'pbd-new-problem',
+      properties: {
+        navStep: {
+          type: String,
+          value: "perception"
+        },
+        problem: Object,
+        domain: Object,
+        domainID: String,
+        params: Object,
+        program: {
+          type: Object,
+          observer: '_programChanged',
+        },
+        ros: Object,
+        route: Object,
+        isRunning: {
+          type: Object,
+          value: function () {
+            return { data: false };
+          }
+        },
+        domainList: {
+          type: Object,
+          value: function () {
+            return { domains: [] };
+          }
+        },
+        pddlDomain: {
+          type: Object,
+          value: function () {
+            return { problems: [] };
+          }
+        },
+        newInitialState: {
+          type: Object,
+          value: function () {
+            return {
+              arg1: Object,
+              name: '',
+              arg2: Object,
+              negate: false,
+            };
+          }
+        },
+        newGoalState: {
+          type: Object,
+          value: function () {
+            return {
+              arg1: Object,
+              name: '',
+              arg2: Object,
+              negate: false,
+            };
+          }
+        },
+        problemName: String,
+      },
+
+      observers: [
+        'load(routeData.id, params.*)',
+        '_domainUpdated(pddlDomain.*,domainList.*)',
+        '_problemUpdated(problem.*)',
+        '_checkClearPrecond(newInitialState.name)',
+        '_checkClearGoalState(newGoalState.name)',
+      ],
+
+      _checkClearPrecond: function (nom_precond) {
+        if (nom_precond == "clear") {
+          this.$.menu_instance2_precond.disabled = true;
+          this.$.menu_instance2_precond.value = undefined;
+          this.newInitialState.arg2 = undefined;
+        } else {
+          this.$.menu_instance2_precond.disabled = false;
+        }
+      },
+      _checkClearGoalState: function (nom_goal_state) {
+        if (nom_goal_state == "clear") {
+          this.$.menu_instance2_goal_state.disabled = true;
+          this.$.menu_instance2_goal_state.value = undefined;
+          this.newGoalState.arg2 = undefined;
+        } else {
+          this.$.menu_instance2_goal_state.disabled = false;
+        }
+      },
+      _problemUpdated: function (problem) {
+        if (problem && problem.base && problem.base.name != '') {
+          this.problemName = problem.base.name;
+        }
+      },
+
+      load: function (db_id, paramsChangeRecord) {
+        /* if (!db_id) {
+            return;
+        } */
+        if (!this.params.robot) {
+          return;
+        }
+        var depthCloudFrameId = '';
+        if (this.params.robot === "pr2") {
+          depthCloudFrameId = '/head_mount_kinect_rgb_optical_frame';
+        } else if (this.params.robot === "fetch") {
+          depthCloudFrameId = '/head_camera_rgb_optical_frame';
+        } else if (this.params.robot === "baxter") {
+          depthCloudFrameId = '/kinect2_rgb_optical_frame';
+        } else {
+          console.error('Unknown robot type', this.params.robot);
+        }
+
+        var fixedFrame = '';
+        if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+          fixedFrame = '/base_link';
+        } else if (this.params.robot === "baxter") {
+          fixedFrame = '/base';
+        } else {
+          console.error('Unknown robot type', this.params.robot);
+        }
+        if (this.problem) {
+          db_id = this.problem.generated_plan;
+        }
+        var config = {
+          globalOptions: {
+            background: '#113344',
+            colladaLoader: 'collada2',
+            colladaServer: window.location.protocol + '//' + window.location.hostname + ':8001/',
+            fixedFrame: fixedFrame,
+            videoServer: window.location.protocol + '//' + window.location.hostname + ':9998',
+            url: 'ws://' + window.location.hostname + ':9090'
+          },
+          displays: [
+            {
+              isShown: true,
+              name: 'Grid',
+              type: 'grid',
+              options: {
+                cellSize: 1,
+                color: '#cccccc',
+                numCells: 20,
+              },
+            }, {
+              isShown: false,
+              name: 'Program robot model',
+              type: 'markerArray',
+              options: {
+                topic: '/rapid_pbd/robot/' + db_id,
+              },
+            }, {
+              isShown: true,
+              name: 'Scene',
+              type: 'pointCloud2',
+              options: {
+                size: 0.01,
+                topic: '/rapid_pbd/scene/' + db_id,
+              },
+            }, {
+              isShown: true,
+              name: 'Surface segmentation',
+              type: 'markers',
+              options: {
+                topic: '/rapid_pbd/surface_seg/visualization/'// + db_id,
+              },
+            }, {/* 
+                            isShown: true,
+                            name: 'Surface segmentation',
+                            type: 'markerArray',
+                            options: {
+                                topic: '/rapid_pbd/surface_segmentation/' + db_id,
+                            },
+                        }, { */
+              isShown: true,
+              name: 'Current robot model',
+              type: 'urdf',
+              options: {
+                param: 'robot_description',
+                tfPrefix: ''
+              },
+            }, {
+              isShown: false,
+              name: 'Current surface segmentation',
+              type: 'markerArray',
+              options: {
+                topic: '/rapid_pbd/runtime_segmentation',
+              },
+            }, {
+              isShown: false,
+              name: 'Current depth cloud',
+              type: 'depthCloud',
+              options: {
+                topic: 'depthcloud_encoded',
+                frameId: depthCloudFrameId
+              },
+            },
+          ],
+          sidebarOpened: false,
+        };
+        if (this.$.rviz) {
+          this.$.rviz.config = config;
+        } else {
+          console.info('rviz not ready');
+        }
+
+      },
+
+      _updatePredicate: function (evt) {
+        var args = evt.target.getAttribute('data-args');
+        this.set(args, evt.target.name);
+        console.debug(args, ' is ', this.newInitialState);
+      },
+      checkPredicate: function (mode, _new) {
+        var newPredicate = _new;
+        var valide = true;
+        var index = 0;
+        // msgErreur explains why the precond isn't valid
+        var msgErreur = "";
+
+        if (mode == "initial_state") {
+          var liste = this.problem.initial_states;
+          // Check if items are well selected
+          if (this.$.menu_instance1_precond.value == undefined || this.$.menu_name_precond.value == undefined || (this.$.menu_name_precond.value != "is clear" && this.$.menu_instance2_precond.value == undefined)) {
+            valide = false;
+            msgErreur = "Complete your new predicate before adding it";
+          }
+        } else {
+          var liste = this.problem.goal_states;
+          // Check if items are well selected
+          if (this.$.menu_instance1_goal_state.value == undefined || this.$.menu_name_goal_state.value == undefined || (this.$.menu_name_goal_state.value != "is clear" && this.$.menu_instance2_goal_state.value == undefined)) {
+            valide = false;
+            msgErreur = "Complete your new predicate before adding it";
+          }
+        }
+
+        if (valide) {
+          // Without negation
+          if (!newPredicate.negate) {
+                        // To comment when you want to test else it's impossible to test on simulation              
+                        //if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
+                        //    valide = false;
+                        //    msgErreur = "A position can't be on something else"
+                        //}
+                        /*else*/ if (newPredicate.name == "on" && newPredicate.arg1.name == newPredicate.arg2.name) {
+              valide = false;
+              msgErreur = "An element can't be set on himself";
+            }
+
+            while (valide && index < liste.length) {
+              if (newPredicate.name == "clear" && liste[index].name == "clear" && newPredicate.arg1.name == liste[index].arg1.name) {
+                valide = false;
+                msgErreur = "This " + mode + " exists already";
+              }
+              else if (newPredicate.name == liste[index].name && newPredicate.arg1.name == liste[index].arg1.name && newPredicate.arg2.name == liste[index].arg2.name) {
+                valide = false;
+                msgErreur = "This " + mode + " exists already";
+              }
+              else if (newPredicate.name == "on" && liste[index].name == "on") {
+                if (newPredicate.arg2.name == liste[index].arg2.name) {
+                  valide = false;
+                  msgErreur = "You can't place two objects on one position, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
+                } else if (newPredicate.arg1.name == liste[index].arg1.name) {
+                  valide = false;
+                  msgErreur = "One object can't be on two positions, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
+                }
+              }
+              else if (newPredicate.name == "clear" && (liste[index].name == "on" && liste[index].arg2.name == newPredicate.arg1.name)) {
+                valide = false;
+                msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + "is " + liste[index].name + " " + liste[index].arg2.name + "</strong>";
+              }
+              else if (liste[index].name == "clear" && (newPredicate.name == "on" && newPredicate.arg2.name == liste[index].arg1.name)) {
+                valide = false;
+                msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + " is " + liste[index].name + "</strong>";
+              }
+              index++;
+            }
+            // With negation
+          } else {
+
+          }
+        }
+        return { valid: valide, msg: msgErreur };
+      },
+      addPredicate: function (evt) {
+        var condition = evt.target.getAttribute('data-args');
+        if (condition == "InitialState") {
+          // Check if the NOT-button is checked or no and update it
+          this.newInitialState.negate = this.$.button_not_precond.checked;
+          this.$.button_not_precond.checked = false;
+
+          var check = this.checkPredicate("initial_state", this.newInitialState);
+          if (check.valid) {
+            // We recreate the this.newInitialState object, else it's passed by reference and it causes problems
+            this.problem.initial_states.push({ arg1: this.newInitialState.arg1, name: this.newInitialState.name, arg2: this.newInitialState.arg2, negate: this.newInitialState.negate });
+            this.reevaluateArray('problem.initial_states', this.problem.initial_states);
+          } else {
+            this.$.msgErrorNewPrecond.innerHTML = check.msg;
+            this.$.errorNewPrecond.open();
+          }
+        } else if (condition == "GoalState") {
+          // Check if the NOT-button is checked or no and update it
+          this.newGoalState.negate = this.$.button_not_goal_state.checked;
+          this.$.button_not_goal_state.checked = false;
+
+          var check = this.checkPredicate("goal_state", this.newGoalState);
+          if (check.valid) {
+            this.problem.goal_states.push({ arg1: this.newGoalState.arg1, name: this.newGoalState.name, arg2: this.newGoalState.arg2, negate: this.newGoalState.negate });
+            this.reevaluateArray('problem.goal_states', this.problem.goal_states);
+          } else {
+            this.$.msgErrorNewGoalState.innerHTML = check.msg;
+            this.$.errorNewGoalState.open();
+          }
+        }
+      },
+      deletePred: function (evt) {
+        var item = evt.model.item;
+        console.debug('deletePred', item);
+        var index = -1;
+        index = this.problem.initial_states.indexOf(item);
+        if (index != -1) {
+          this.splice('problem.initial_states', index, 1, );
+          this.reevaluateArray('problem.initial_states', this.problem.initial_states);
+          console.debug('deletePred from pre');
+        } else {
+          index = this.problem.goal_states.indexOf(item);
+          if (index != -1) {
+            this.splice('problem.goal_states', index, 1, );
+            this.reevaluateArray('problem.goal_states', this.problem.goal_states);
+            console.debug('deletePred from eff');
+          }
+        }
+      },
+
+      reevaluateArray: function (name, property) {
+        var conds = property;
+        this.set(name, []);
+        this.set(name, conds);
+      },
+      _nameValid: function (name) {
+        for (var i = 0; i < this.domain.problems.length; ++i) {
+          if (this.domain.problems[i].name == name) return false;
+        }
+        return true;
+      },
+      save: function () {
+        if (this.problemName != this.problem.name && !this._nameValid(this.problemName)) {
+          alert(this.problemName + ' already exists. Please choose a different name.');
+        } else {
+          var msg = {
+            type: 'update pddl problem',
+            domain_id: this.domain_id,
+            problem_name: this.problemName,
+            pddl_problem: this.problem
+          };
+
+          console.debug('Saving ', this.domain, " with name ", this.domain_id);
+          console.debug('Saving ', this.problem, " with name ", this.problemName);
+          this.$.eventPub.publish(msg);
+        }
+
+      },
+
+      _updateDomain: function (evt) {
+        var msg = {
+          type: 'update pddl domain',
+          domain_id: this.domain_id,
+          pddl_domain: this.domain
+        };
+        this.$.eventPub.publish(msg);
+      },
+
+      _domainUpdated: function (changedDomain, changedList) {
+        if (changedDomain.value) {
+          this.domain = changedDomain.value;
+        }
+        if (this.domainList && this.domainList.domains.length == 1) {
+          this.domain_id = this.domainList.domains[0].domain_id;
+        }
+      },
+
+      _handleServiceResponse(evt) {
+        var id = evt.detail.db_id;
+        this.problem.generated_plan = id;
+        console.debug('handleServResponse', this.problem.generated_plan);
+        this.save();
+      },
+
+      _handleServiceError: function (evt) {
+        console.error(evt.detail);
+      },
+      _callPlanner: function (evt) {
+        if (this.problem.generated_plan && this.problem.generated_plan.length > 0) {
+          console.debug('Solution already exists ... ', this.problem.generated_plan);
+        } else {
+          console.debug('New Plan being generated ... ');
+          var name = 'Plan for: ' + this.problemName;
+          var request = {
+            name: name,
+          };
+          //this.$.createSrv.call(request);
+        }
+      },
+      _detect: function (evt) {
+        if (!this.ros) {
+          console.error('Unable to call detection right now.');
+          return;
+        }
+        var state = evt.target.getAttribute('data-args');
+        var msg = {
+          type: 'detect world state',
+          domain_id: this.domain_id,
+          problem_name: this.problem.name,
+          state_name: state
+        };
+        this.$.eventPub.publish(msg);
+      },
+      removeDuplicates: function (a) {
+        uniqueArray = a.filter(function (item, pos) {
+          return a.indexOf(item) == pos;
+        });
+      },
+      _getName: function (all_types) {
+
+        var names = ['-'];
+        if (all_types) {
+          for (var i = 0; i < all_types.length; ++i) {
+            names.push(all_types[i].name);
+          }
+        }
+        return this.removeDuplicates(names);
+      },
+
+      _getType: function (all_types) {
+        var names = ['-'];
+        console.debug('_getType: ', all_types);
+
+        if (all_types) {
+          for (var i = 0; i < all_types.length; ++i) {
+            names.push(all_types[i].type.name);
+          }
+        }
+        return this.removeDuplicates(names);
+      },
+      _generateConditions: function () {
+        // check initial_states and goal_states are there
+        if (this.problem.initial_states.length == 0) {
+          console.info('No initial_states');
+        }
+        if (this.problem.goal_states.length == 0) {
+          console.info('No goal_states');
+        }
+
+        this._getPredicateDiff(this.problem.initial_states, this.problem.goal_states);
+
+        this.reevaluateArray('problem.initial_states', this.problem.initial_states);
+        this.reevaluateArray('problem.goal_states', this.problem.goal_states);
+        var predList = this.problem.initial_states.concat(this.problem.goal_states)
+        var parms = this._getParams(predList);
+        console.debug(typeof parms, typeof this.problem.objects);
+        console.debug('parms:', parms);
+        this.problem.objects = parms;
+        //this.reevaluateArray('problem.objects', this.problem.objects);
+      },
+      _getPredicateDiff: function (list1, list2) {
+        // removes predicates which are in both lists
+
+        for (var i = 0; i < list1.length; ++i) {
+          for (var j = 0; j < list2.length; ++j) {
+            if (this._samePredicate(list1[i], list2[j])) {
+              list1.splice(i, 1);
+              list2.splice(j, 1);
+              i--;
+              break;
+            }
+          }
+        }
+        return [list1, list2];
+      },
+      _samePredicate: function (pred1, pred2) {
+        if (pred1.name != pred2.name) {
+          //console.debug("_samePredicate: name ", pred1, pred2);
+          return false;
+        }
+        if (pred1.arg1.name != pred2.arg1.name) {
+          //console.debug("_samePredicate: arg1 ", pred1, pred2);
+          return false;
+        }
+        if (pred1.negate != pred2.negate) {
+          //console.debug("_samePredicate: negate ", pred1, pred2);
+          return false;
+        }
+        if (pred1.arg2 && pred2.arg2 && pred1.arg2.name != pred2.arg2.name) {
+          //console.debug("_samePredicate: arg2 ", pred1, pred2);
+          return false;
+        }
+        return true;
+      },
+      _getParams: function (predList) {
+        var objects = this.problem.objects;
+        objects.length = 0;
+        const nameList = new Set([]);
+        for (var i = 0; i < predList.length; ++i) {
+          if (predList[i].arg1.name != '' && !nameList.has(predList[i].arg1.name)) {
+            objects.push(predList[i].arg1);
+            nameList.add(predList[i].arg1.name);
+          }
+          if (predList[i].arg2 && predList[i].arg2.name != '' && !nameList.has(predList[i].arg2.name)) {
+            objects.push(predList[i].arg2);
+            nameList.add(predList[i].arg2.name);
+          }
+        }
+        return objects;
+      },
+      sortByName: function (arr) {
+        arr.sort(function (a, b) {
+          if (a.name < b.name) return -1;
+          if (a.name > b.name) return 1;
+          return 0;
+        });
+        return arr;
+      },
+      _displayNavStep: function (navStep, name) {
+        return (navStep == name);
+      },
+      _selectNavStep: function (evt) {
+
+        this.navStep = evt.target.getAttribute('name');
+        if (this.navStep == 'generatedPlan')
+          this._callPlanner();
+      },
+      _negate: function (neg) {
+        if (neg) return 'not ';
+        else return '';
+      }
+    });
+  </script>

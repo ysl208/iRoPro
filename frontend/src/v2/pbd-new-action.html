@@ -9,7 +9,8 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
-<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html" <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
 
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 <link rel="import" href="../../bower_components/ros-action-client/ros-action-client.html">
@@ -153,9 +154,11 @@
             </paper-button>
         </div>
         <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
-
+        <paper-button id="save" raised class="important" on-click="_updateDomain">
+            Save
+        </paper-button>
         <div id="layout" class="layout vertical">
-
+            <!-- ***** DEMONSTRATION **** 2/3 -->
             <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
                 <template is="dom-if" if="[[_displayNavStep(navStep,'demonstration')]]">
                     <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" program-id="[[action.program_id]]"></pbd-program>
@@ -163,13 +166,11 @@
             </div>
             <div class="content">
                 <div id="stepContent" class="stepDiv">
-                    <!-- ***** BEFORE DEMO **** 1/2 -->
+                    <!-- ***** BEFORE DEMO **** 1/3 -->
                     <div id="perception" hidden$="[[!_displayNavStep(navStep,'perception')]]">
                         <fieldset>
                             <legend>
-                                <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
-                                    Detect World Instances
-                                </paper-button>
+                                Detected World Instances
                             </legend>
                             <p>Verify all objects have been detected before proceeding.
                                 <br>
@@ -181,15 +182,18 @@
                                     [[item.name]] ([[item.type.name]])
                                 </div>
                             </template>
-                            <br>
-                        </fieldset>
 
+                            <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
+                                Detect World Instances
+                            </paper-button>
+                        </fieldset>
+                        <br>
                         <paper-button hidden class="clear" on-tap="_assignSurfaceObjects">
                             Assign Surface Objects
                         </paper-button>
                     </div>
 
-                    <!-- ***** AFTER DEMO **** 2/2 -->
+                    <!-- ***** AFTER DEMO **** 3/3 -->
                     <div id="actionModel" hidden$="[[!_displayNavStep(navStep,'actionModel')]]">
                         <fieldset>
                             <paper-button id="detect2" raised class="petit" on-tap="_detect" data-args="Effect">
@@ -197,10 +201,6 @@
                             </paper-button>
                             <paper-button class="petit" raised on-tap="_generateConditions">
                                 Generate Conditions
-                            </paper-button>
-
-                            <paper-button id="next" raised class="important" on-click="save">
-                                Save
                             </paper-button>
                         </fieldset>
                         <fieldset>
@@ -674,7 +674,6 @@
                     this.$.eventPub.publish(msg);
 
                 }
-
             },
 
             _updateDomain: function (evt) {
@@ -683,6 +682,7 @@
                     domain_id: this.domain_id,
                     pddl_domain: this.domain
                 };
+                console.debug('updateDomain: ', this.domain);
                 this.$.eventPub.publish(msg);
             },
 
@@ -702,7 +702,7 @@
                 console.debug('handleServResponse', this.action.program_id);
                 /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
                 window.dispatchEvent(new CustomEvent("location-changed")); */
-                this.save();
+                this._updateDomain();
             },
 
             _handleServiceError: function (evt) {
