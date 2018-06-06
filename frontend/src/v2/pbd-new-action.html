@@ -33,7 +33,7 @@
             }
 
             .paper-material {
-                margin-top: 7px;
+                margin-top: 5px;
             }
 
             a {
@@ -51,7 +51,6 @@
 
             paper-button {
                 /* float: right; */
-                margin: 5px;
             }
 
             paper-input {
@@ -99,6 +98,8 @@
 
             .petit {
                 font-size: 80%;
+margin: 0;
+padding: 0;
                 margin-left: 5px;
                 color: steelblue;
             }
@@ -139,9 +140,6 @@
         <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
             ros="[[ros]]"></ros-topic>
 
-        <div id="layout" class="layout vertical">
-            <div class="content">
-                <div id="stepContent" class="stepDiv">
                     <div>
                         <!-- Action navigation buttons -->
                         <paper-button class="petit" name="perception" on-tap="_goBeforeDemo" disabled$="[[_displayNavStep(navStep,'perception')]]"> 
@@ -158,6 +156,15 @@
                     </div>
                     <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
 
+        <div id="layout" class="layout vertical">
+
+                    <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
+                        <template is="dom-if" if="[[_displayNavStep(navStep,'demonstration')]]">
+                            <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}" db_id="{{action.program_id}}"></pbd-program>
+                        </template>
+                    </div>
+            <div class="content">
+                <div id="stepContent" class="stepDiv">
                     <!-- ***** BEFORE DEMO **** 1/2 -->
                     <div id="beforeDemo" hidden$="[[!_displayNavStep(navStep,'perception')]]">
                         <fieldset>
@@ -182,11 +189,6 @@
                        <paper-button hidden class="clear" on-tap="_assignSurfaceObjects">
                             Assign Surface Objects
                         </paper-button>
-                    </div>
-                    <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
-                        <template is="dom-if" if="[[_finishedDemo]]">
-                            <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}" db_id="{{action.program_id}}"></pbd-program>
-                        </template>
                     </div>
 
                     <!-- ***** AFTER DEMO **** 2/2 -->
@@ -292,7 +294,7 @@
                         </fieldset>
                     </div>
                 </div>
-                <!--<ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>-->
+                <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz>
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -853,7 +855,6 @@
             },
             _goBeforeDemo: function (evt) {
                 this.navStep = evt.target.getAttribute('name');
-                console.debug('goBeforeDemo: navStep is ',this.navStep);
             },
             _negate: function (neg) {
                 if (neg) return 'not ';

@@ -139,9 +139,9 @@
       <pbd-action-list data-page="" ros="[[ros]]" route="{{route}}"></pbd-action-list>
     </template> -->
 
-    <template is="dom-if" if="[[_shouldShowProgram(routeData.page)]]">
+    <!--     <template is="dom-if" if="[[_shouldShowProgram(routeData.page)]]">
       <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-program>
-    </template>
+    </template> -->
     <template is="dom-if" restamp if="[[isSelected(selected,'Home')]]">
       <pbd-home data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-home>
     </template>

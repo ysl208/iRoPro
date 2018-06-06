@@ -111,6 +111,16 @@
         height: 500px;
       }
 
+            fieldset>p {
+                display: inline-block;
+            }
+
+            fieldset iron-icon {
+                display: inline-block;
+                vertical-align: top;
+                margin-top: 5px;
+            }
+
       @media (min-width: 768px) {
         #layout {
           height: 100%;
@@ -123,7 +133,7 @@
           width: 350px;
           max-height: 100%;
           margin-bottom: 0px;
-          margin-right: 10px;
+          margin-right: 20px;
         }
         #rviz {
           height: 100%;
@@ -146,20 +156,6 @@
         </paper-button> -->
 
         <paper-input hidden class="flex" id="programName" label="Program name" value="[[program.name]]" on-blur="save"></paper-input>
-        <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
-          <iron-icon icon="av:play-arrow"></iron-icon>
-          Run
-        </paper-button>
-        <paper-button class="runstop stop" hidden$="[[!isRunning.data]]" raised on-tap="stop">
-          <iron-icon icon="av:stop"></iron-icon>
-          Stop
-        </paper-button>
-        <a href="#/" class="self-end">
-          <paper-button class="back clear" on-tap="">
-            <iron-icon icon="arrow-forward"></iron-icon> Next</paper-button>
-        </a>
-      </div>
-      <div class="layout horizontal center">
         <span>Steps:&nbsp;</span>
         <span hidden$="[[_hasSteps(program.steps)]]">None</span>
         <!-- <paper-button class="condition" id="Pre" hidden="[[!submitted]]" on-tap="selectCondition">Pre</paper-button> -->
@@ -175,16 +171,26 @@
         </iron-selector>
         <!-- <paper-button class="condition" id="Post" hidden$="[[!submitted]]" on-tap="selectCondition">Post</paper-button> -->
         <paper-button class="add important" on-tap="addStep">+ Add Step</paper-button>
+        <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
+          <iron-icon icon="av:play-arrow"></iron-icon>
+          Run
+        </paper-button>
+        <paper-button class="runstop stop" hidden$="[[!isRunning.data]]" raised on-tap="stop">
+          <iron-icon icon="av:stop"></iron-icon>
+          Stop
+        </paper-button>
       </div>
       <div class="content">
         <array-selector id="selector" items="{{program.steps}}" selected="{{currentStep}}"></array-selector>
         <div id="stepContent" class="stepDiv" hidden$="[[!_hasSteps(program.steps)]]">
           <div class="stepDivInner">
+<fieldset>
             <pbd-step id="step" index="[[currentStepNum]]" params="[[params]]" program-id="[[routeData.id]]" program="[[program]]" step="{{currentStep}}"
               ros="[[ros]]" on-delete="_deleteStep"></pbd-step>
-          </div>
+          </fieldset>
+</div>
         </div>
-        <!--<ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>-->
+        <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
       </div>
     </div>
     <paper-dialog id="errorDialog" modal>
