@@ -521,7 +521,7 @@
                 console.debug(args, ' is ', this.newPrecondition);
             },
             checkPredicate: function(mode, _new) {       
-                var newItem = _new;
+                var newPredicate = _new;
                 var valide = true;
                 var index = 0;
                 // msgErreur explains why the precond isn't valid
@@ -545,36 +545,40 @@
                 
                 if (valide) {
                     // Without negation
-                    if (!newItem.negate) {
+                    if (!newPredicate.negate) {
                         // To comment when you want to test else it's impossible to test on simulation              
-                        //else if (newItem.arg1.type.name == "position" && newItem.name == "on") {
+                        //if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
                         //    valide = false;
                         //    msgErreur = "A position can't be on something else"
                         //}
+                        /*else*/ if (newPredicate.name == "on" && newPredicate.arg1.name == newPredicate.arg2.name) {
+                            valide = false;
+                            msgErreur = "An element can't be set on himself";
+                        }
                                 
                         while (valide && index < liste.length) {
-                            if (newItem.name == "clear" && liste[index].name == "clear" && newItem.arg1.name == liste[index].arg1.name) {
+                            if (newPredicate.name == "clear" && liste[index].name == "clear" && newPredicate.arg1.name == liste[index].arg1.name) {
                                 valide = false;
                                 msgErreur = "This " + mode + " exists already";
                             }               
-                            else if (newItem.name == liste[index].name && newItem.arg1.name == liste[index].arg1.name && newItem.arg2.name == liste[index].arg2.name) {
+                            else if (newPredicate.name == liste[index].name && newPredicate.arg1.name == liste[index].arg1.name && newPredicate.arg2.name == liste[index].arg2.name) {
                                 valide = false;
                                 msgErreur = "This " + mode + " exists already";
                             }
-                            else if (newItem.name == "on" && liste[index].name == "on") {
-                                if (newItem.arg2.name == liste[index].arg2.name) {
+                            else if (newPredicate.name == "on" && liste[index].name == "on") {
+                                if (newPredicate.arg2.name == liste[index].arg2.name) {
                                     valide = false;
                                     msgErreur = "You can't place two objects on one position, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
-                                } else if (newItem.arg1.name == liste[index].arg1.name) {
+                                } else if (newPredicate.arg1.name == liste[index].arg1.name) {
                                     valide = false;
                                     msgErreur = "One object can't be on two positions, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
                                 }
                             }
-                            else if (newItem.name == "clear" && (liste[index].name == "on" && liste[index].arg2.name == newItem.arg1.name)) {
+                            else if (newPredicate.name == "clear" && (liste[index].name == "on" && liste[index].arg2.name == newPredicate.arg1.name)) {
                                 valide = false;
                                 msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + "is " + liste[index].name + " " + liste[index].arg2.name + "</strong>";
                             }
-                            else if (liste[index].name == "clear" && (newItem.name == "on" && newItem.arg2.name == liste[index].arg1.name)) {
+                            else if (liste[index].name == "clear" && (newPredicate.name == "on" && newPredicate.arg2.name == liste[index].arg1.name)) {
                                 valide = false;
                                 msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + " is " + liste[index].name + "</strong>";
                             }
