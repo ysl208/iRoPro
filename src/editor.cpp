@@ -1183,6 +1183,7 @@ void Editor::AddActionCondition(const std::string& domain_id,
     // save scene_id and surface for later
     new_action.scene_id = result->cloud_db_id;
     new_action.surface = result->surface;
+    new_action.landmarks.clear();
     // std::vector<msgs::Landmark> world_landmarks;
     for (size_t i = 0; i < result->landmarks.size(); ++i) {
       msgs::Landmark landmark;
