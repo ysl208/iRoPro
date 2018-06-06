@@ -99,7 +99,7 @@
 
             .petit {
                 font-size: 80%;
-                /* margin-left: 20%; */
+                margin-left: 5px;
                 color: steelblue;
             }
 
@@ -116,7 +116,7 @@
                     max-height: 100%;
                     margin-bottom: 0px;
                     margin-right: 10px;
-                    padding: 2%;
+                    /*padding: 2%;*/
                 }
                 #rviz {
                     height: 100%;
@@ -141,28 +141,25 @@
 
         <div id="layout" class="layout vertical">
             <div class="content">
-                <div id="stepContent">
+                <div id="stepContent" class="stepDiv">
                     <div>
-                        <paper-button class="back clear" on-tap="_goBeforeDemo" hidden$=[[!_finishedDemo]]>
-                            <iron-icon icon="arrow-back"></iron-icon> Back
+                        <!-- Action navigation buttons -->
+                        <paper-button class="petit" name="perception" on-tap="_goBeforeDemo" disabled$="[[_displayNavStep(navStep,'perception')]]"> 
+                            1 Perception
                         </paper-button>
-                        <paper-button hidden class="clear" on-tap="_assignSurfaceObjects">
-                            Assign Surface Objects
+                        <!-- <a href="#/program/{{action.program_id}}"> -->
+                        <paper-button name="demonstration" class="petit" on-tap="_goBeforeDemo" disabled$="[[_displayNavStep(navStep,'demonstration')]]">
+                            2 Demonstration
                         </paper-button>
-                        <paper-button class="back clear" on-tap="_goBeforeDemo" hidden$=[[_finishedDemo]]>
-                            Next
-                            <iron-icon icon="arrow-forward"></iron-icon>
+                        <!-- </a> -->
+                        <paper-button class="petit" name="actionModel" on-tap="_goBeforeDemo" disabled$="[[_displayNavStep(navStep,'actionModel')]]" >
+                            3 Action Model
                         </paper-button>
-                        <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
-                        <a href="#/program/{{action.program_id}}">
-                            <paper-button id="next" raised class="important" on-click="_startDemo">
-                                Demo Mode >
-                            </paper-button>
-                        </a>
                     </div>
+                    <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
 
                     <!-- ***** BEFORE DEMO **** 1/2 -->
-                    <div id="beforeDemo" hidden$=[[_finishedDemo]]>
+                    <div id="beforeDemo" hidden$="[[!_displayNavStep(navStep,'perception')]]">
                         <fieldset>
                             <legend>
                                 <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
@@ -181,9 +178,19 @@
                             </template>
                             <br>
                         </fieldset>
-                    </div>                    
+
+                       <paper-button hidden class="clear" on-tap="_assignSurfaceObjects">
+                            Assign Surface Objects
+                        </paper-button>
+                    </div>
+                    <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
+                        <template is="dom-if" if="[[_finishedDemo]]">
+                            <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}" db_id="{{action.program_id}}"></pbd-program>
+                        </template>
+                    </div>
+
                     <!-- ***** AFTER DEMO **** 2/2 -->
-                    <div id="afterDemo" hidden$=[[!_finishedDemo]]>
+                    <div id="afterDemo" hidden$="[[!_displayNavStep(navStep,'actionModel')]]">
                         <fieldset>
                             <paper-button id="detect2" raised class="petit" on-tap="_detect" data-args="Effect">
                                 Detect Effects
@@ -319,6 +326,8 @@
                     type: Object,
                     value: false
                 },
+                navStep:{ type: String, 
+                    value: "perception"},
                 action: Object,
                 domain: Object,
                 domainID: String,
@@ -406,7 +415,6 @@
                 /* if (!db_id) {
                     return;
                 } */
-
                 if (!this.params.robot) {
                     return;
                 }
@@ -685,8 +693,8 @@
                 var id = evt.detail.db_id;
                 this.action.program_id = id;
                 console.debug('handleServResponse', this.action.program_id);
-                window.history.pushState({}, null, "#/program/" + this.action.program_id);
-                window.dispatchEvent(new CustomEvent("location-changed"));
+                /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
+                window.dispatchEvent(new CustomEvent("location-changed")); */
                 this.save();
             },
 
@@ -696,8 +704,8 @@
             _startDemo: function (evt) {
                 if (this.action.program_id && this.action.program_id.length > 0) {
                     console.debug('Program already exists ... ', this.action.program_id);
-                    window.history.pushState({}, null, "#/program/" + this.action.program_id);
-                    window.dispatchEvent(new CustomEvent("location-changed"));
+                    /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
+                    window.dispatchEvent(new CustomEvent("location-changed")); */
                 } else {
                     console.debug('New Program being created ... ');
                     var name = 'Program for: ' + this.actionName;
@@ -837,11 +845,15 @@
                     if (a.name < b.name) return -1;
                     if (a.name > b.name) return 1;
                     return 0;
-                })
+                });
                 return arr;
             },
-            _goBeforeDemo: function () {
-                this._finishedDemo = !this._finishedDemo;
+            _displayNavStep: function (navStep,name) {
+                return (navStep == name);
+            },
+            _goBeforeDemo: function (evt) {
+                this.navStep = evt.target.getAttribute('name');
+                console.debug('goBeforeDemo: navStep is ',this.navStep);
             },
             _negate: function (neg) {
                 if (neg) return 'not ';
@@ -849,4 +861,3 @@
             }
         });
     </script>
-</dom-module>
