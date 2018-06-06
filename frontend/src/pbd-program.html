@@ -111,15 +111,15 @@
         height: 500px;
       }
 
-            fieldset>p {
-                display: inline-block;
-            }
+      fieldset>p {
+        display: inline-block;
+      }
 
-            fieldset iron-icon {
-                display: inline-block;
-                vertical-align: top;
-                margin-top: 5px;
-            }
+      fieldset iron-icon {
+        display: inline-block;
+        vertical-align: top;
+        margin-top: 5px;
+      }
 
       @media (min-width: 768px) {
         #layout {
@@ -142,8 +142,8 @@
         }
       }
     </style>
-    <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
-    <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{routeData.id}}"
+    <!-- <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route> -->
+    <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{programId}}"
       ros="[[ros]]"></ros-topic>
     <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
     <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
@@ -154,8 +154,8 @@
         <!-- <paper-button raised class="submit" on-tap="addSenseSteps">
           Add Sense Steps
         </paper-button> -->
+        <!-- <paper-input class="flex" id="programName" label="Program name" value="[[program.name]]" on-blur="save"></paper-input> -->
 
-        <paper-input hidden class="flex" id="programName" label="Program name" value="[[program.name]]" on-blur="save"></paper-input>
         <span>Steps:&nbsp;</span>
         <span hidden$="[[_hasSteps(program.steps)]]">None</span>
         <!-- <paper-button class="condition" id="Pre" hidden="[[!submitted]]" on-tap="selectCondition">Pre</paper-button> -->
@@ -184,15 +184,14 @@
         <array-selector id="selector" items="{{program.steps}}" selected="{{currentStep}}"></array-selector>
         <div id="stepContent" class="stepDiv" hidden$="[[!_hasSteps(program.steps)]]">
           <div class="stepDivInner">
-<fieldset>
-            <pbd-step id="step" index="[[currentStepNum]]" params="[[params]]" program-id="[[routeData.id]]" program="[[program]]" step="{{currentStep}}"
+            <pbd-step id="step" index="[[currentStepNum]]" params="[[params]]" program-id="[[programId]]" program="[[program]]" step="{{currentStep}}"
               ros="[[ros]]" on-delete="_deleteStep"></pbd-step>
-          </fieldset>
-</div>
+          </div>
         </div>
-        <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
+        <!-- <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz> -->
       </div>
     </div>
+
     <paper-dialog id="errorDialog" modal>
       <h2>Error running the program</h2>
       <p>[[error]]</p>
@@ -211,9 +210,9 @@
       <h2>Preconditions failed. Program cannot be run.</h2>
       <p>[[error]]</p>
       <div class="buttons">
-    <paper-button dialog-confirm class="clear">OK</paper-button> -->
+    <paper-button dialog-confirm class="clear">OK</paper-button>
     </div>
-    </paper-dialog>
+    </paper-dialog> -->
   </template>
 
   <script>
@@ -231,8 +230,10 @@
           type: Object,
           observer: '_programChanged',
         },
+
         ros: Object,
         route: Object,
+        programId: String,
         isRunning: {
           type: Object,
           value: function () {
@@ -253,9 +254,9 @@
       },
 
       observers: [
-        'load(routeData.id, params.*)',
+        'load(programId, params.*)',
         '_programUpdated(program.*)',
-        '_stepChanged(ros, routeData.id, currentStepNum)',
+        '_stepChanged(ros, programId, currentStepNum)',
         '_currentStepNumChanged(program, currentStepNum)',
         '_isRunningChanged(isRunning.data)',
         '_submittedChanged(submitted)',
@@ -388,7 +389,7 @@
         var msg = {
           type: 'save on exit program',
           program_info: {
-            db_id: this.routeData.id,
+            db_id: this.programId,
             name: this.program.name,
           },
           program: this.program
@@ -402,7 +403,7 @@
         var msg = {
           type: 'update program',
           program_info: {
-            db_id: this.routeData.id,
+            db_id: this.programId,
             name: this.program.name,
           },
           program: this.program
@@ -443,7 +444,7 @@
         //   var msg = {
         //     type: 'check conditions',
         //     program_info: {
-        //       db_id: this.routeData.id,
+        //       db_id: this.programId,
         //       name: this.program.name,
         //     },
         //     step_num: this.program.steps.length-1
@@ -475,7 +476,7 @@
         var msg = {
           type: 'add sense steps',
           program_info: {
-            db_id: this.routeData.id,
+            db_id: this.programId,
           },
           step_num: this.program.steps.length
         };
@@ -489,7 +490,7 @@
         var msg = {
           type: 'add step',
           program_info: {
-            db_id: this.routeData.id
+            db_id: this.programId
           },
         };
         this.$.eventPub.publish(msg);
@@ -534,7 +535,7 @@
         var msg = {
           type: 'delete step',
           program_info: {
-            db_id: this.routeData.id
+            db_id: this.programId
           },
           step_num: this.currentStepNum
         };
@@ -660,7 +661,7 @@
       },
 
       _isRunningChanged: function (isRunning) {
-        if (isRunning) {
+        /* if (isRunning) {
           this.$.rviz.set('config.displays.1.isShown', false);
           this.$.rviz.set('config.displays.2.isShown', false);
           this.$.rviz.set('config.displays.3.isShown', false);
@@ -674,7 +675,7 @@
           this.$.rviz.set('config.displays.4.isShown', false);
           this.$.rviz.set('config.displays.5.isShown', false);
           this.$.rviz.set('config.displays.6.isShown', false);
-        }
+        } */
       },
 
       _submittedChanged: function (submitted) {

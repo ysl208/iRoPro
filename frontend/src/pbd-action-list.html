@@ -6,7 +6,6 @@
 <link rel="import" href="../bower_components/ros-service/ros-service.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="v2/pbd-new-action.html">
-<link rel="import" href="v2/pbd-new-action-1.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="pbd-action-list">
@@ -187,6 +186,15 @@
                     type: 'delete pddl action',
                     domain_id: this.domain_id,
                     action_name: this._actionToDelete
+                };
+                this.$.eventPub.publish(msg);
+            },
+
+            _updateDomain: function (evt) {
+                var msg = {
+                    type: 'update pddl domain',
+                    domain_id: this.domain_id,
+                    pddl_domain: this.pddlDomain
                 };
                 this.$.eventPub.publish(msg);
             },

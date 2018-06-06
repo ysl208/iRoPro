@@ -76,6 +76,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     // PDDL events
     else if (event.type == msgs::EditorEvent::SAVE_ON_EXIT) {
       SaveOnExit(event.domain_id, event.action_name);
+    } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_DOMAIN) {
+      UpdatePDDLDomain(event.domain_id, event.pddl_domain);
     } else if (event.type == msgs::EditorEvent::ADD_PDDL_ACTION) {
       AddPDDLAction(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::DELETE_PDDL_ACTION) {
@@ -1254,10 +1256,14 @@ void Editor::AddPDDLAction(const std::string& domain_id,
   msgs::PDDLAction action;
   action.name = action_name;
   domain.actions.push_back(action);
+  UpdatePDDLDomain(domain_id, domain);
+}
+
+void Editor::UpdatePDDLDomain(const std::string& domain_id,
+                              const msgs::PDDLDomain& domain) {
   domain_db_.Update(domain_id, domain);
   pddl_domain_.PublishPDDLDomain(domain);
 }
-
 void Editor::UpdatePDDLAction(const std::string& domain_id,
                               const msgs::PDDLAction& action,
                               const std::string& action_name) {
@@ -1280,8 +1286,8 @@ void Editor::UpdatePDDLAction(const std::string& domain_id,
   if (action_name != "") {
     domain.actions[index].name = action_name;
   }
-  domain_db_.Update(domain_id, domain);
-  pddl_domain_.PublishPDDLDomain(domain);
+
+  UpdatePDDLDomain(domain_id, domain);
 }
 
 void Editor::DeletePDDLAction(const std::string& domain_id,
@@ -1301,8 +1307,8 @@ void Editor::DeletePDDLAction(const std::string& domain_id,
   } else {
   }
   domain.actions.erase(domain.actions.begin() + index);
-  domain_db_.Update(domain_id, domain);
-  pddl_domain_.PublishPDDLDomain(domain);
+
+  UpdatePDDLDomain(domain_id, domain);
 }
 
 int Editor::FindPDDLAction(const std::string name,
