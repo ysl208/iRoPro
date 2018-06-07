@@ -78,8 +78,9 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       SaveOnExit(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_DOMAIN) {
       UpdatePDDLDomain(event.domain_id, event.pddl_domain);
-    } else if (event.type == msgs::EditorEvent::DETECT_WORLD_STATE) {
-      DetectWorldState(event.domain_id, event.action_name, event.state_name);
+    } else if (event.type == msgs::EditorEvent::DETECT_ACTION_CONDITIONS) {
+      DetectActionConditions(event.domain_id, event.action_name,
+                             event.state_name);
     } else if (event.type == msgs::EditorEvent::ASSIGN_SURFACE_OBJECTS) {
       AssignSurfaceObjects(event.program_info.db_id, event.pddl_action,
                            event.step_num);
@@ -91,6 +92,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_ACTION) {
       UpdatePDDLAction(event.domain_id, event.pddl_action, event.action_name);
       // PDDL problems
+    } else if (event.type == msgs::EditorEvent::DETECT_WORLD_STATE) {
+      DetectWorldState(event.domain_id, event.action_name, event.state_name);
     } else if (event.type == msgs::EditorEvent::ADD_PDDL_PROBLEM) {
       AddPDDLProblem(event.domain_id, event.problem_name);
     } else if (event.type == msgs::EditorEvent::DELETE_PDDL_PROBLEM) {
@@ -1164,9 +1167,9 @@ void Editor::UpdatePDDLDomain(const std::string& domain_id,
   pddl_domain_.PublishPDDLDomain(domain);
 }
 
-void Editor::DetectWorldState(const std::string& domain_id,
-                              const std::string& action_name,
-                              const std::string& state_name) {
+void Editor::DetectActionConditions(const std::string& domain_id,
+                                    const std::string& action_name,
+                                    const std::string& state_name) {
   // look for pddl domain
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
@@ -1334,6 +1337,65 @@ int Editor::FindPDDLAction(const std::string name,
 }
 
 // PDDL Problems functions
+
+void Editor::DetectWorldState(const std::string& domain_id,
+                              const std::string& problem_name,
+                              const std::string& state_name) {
+  // look for pddl domain
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  }
+
+  // look for pddl problem
+  int index = FindPDDLProblem(problem_name, domain.problems);
+  if (index < 0) {
+    ROS_ERROR("Pddl problem called %s not found", problem_name.c_str());
+    return;
+  } else {
+    msgs::PDDLProblem new_problem = domain.problems[index];
+    // detect surface landmarks
+    msgs::SegmentSurfacesGoal goal;
+    goal.save_cloud = true;
+    problem_clients_->surface_segmentation_client.sendGoal(goal);
+    success = problem_clients_->surface_segmentation_client.waitForResult(
+        ros::Duration(20));
+    if (!success) {
+      ROS_ERROR("Failed to segment surface.");
+      return;
+    }
+    msgs::SegmentSurfacesResult::ConstPtr result =
+        problem_clients_->surface_segmentation_client.getResult();
+
+    // save scene_id and surface for later
+    new_problem.scene_id = result->cloud_db_id;
+    new_problem.surface = result->surface;
+    new_problem.landmarks.clear();
+    for (size_t i = 0; i < result->landmarks.size(); ++i) {
+      msgs::Landmark landmark;
+      ProcessSurfaceBox(result->landmarks[i], &landmark);
+      new_problem.landmarks.push_back(landmark);
+    }
+
+    WorldState world_state;
+    GetWorldState(new_problem.landmarks, &world_state);
+    new_problem.objects = world_state.objects_;
+    if (state_name == “initial”) {
+      new_problem.initial_states = world_state.predicates_;
+      ROS_INFO("Updated problem %s", state_name.c_str());
+    } else if (state_name == “goal”) {
+      new_problem.goal_states = world_state.predicates_;
+      ROS_INFO("Updated problem %s", state_name.c_str());
+    } else {
+      ROS_ERROR("Unknown condition type: %s", state_name.c_str());
+    }
+
+    PrintAllPredicates(world_state.predicates_, "");
+    UpdatePDDLProblem(domain_id, new_problem, "");
+  }
+}
 
 void Editor::AddPDDLProblem(const std::string& domain_id,
                             const std::string& problem_name) {
