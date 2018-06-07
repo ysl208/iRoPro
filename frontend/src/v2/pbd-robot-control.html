@@ -93,15 +93,22 @@
                     </template>
                 </div>
                 <paper-button id="cameraButton" class="style-scope canvas-view" raised on-tap="displayCameraRequest">Display camera</paper-button>
-                <iron-ajax id="displayCamera" method="GET" url="src/v2/control.php"></iron-ajax>
+                <iron-ajax id="displayCamera" method="GET" url="src/v2/control.php" handle-as="text" on-response="handleResponse"></iron-ajax>
 
-                <paper-dialog modal id="dialog">
-                    <h2>Can't open camera</h2>
+                <paper-dialog modal id="errorOpeningCamera">
+                    <h2>Cannot open camera</h2>
                     <p>Baxter is unable to open more than two of its camera at the same time. Please change the camera you want to see.</p>
                     <div id="buttons">
                         <paper-button dialog-confirm on-tap="close">Close</paper-button>
                     </div>
                 </paper-dialog>
+                <paper-dialog modal id="errorProcessCamera">
+                        <h2>Error during camera display</h2>
+                        <p>One of the camera you requested is not available. Please check if it is powered.</p>
+                        <div id="buttons">
+                            <paper-button dialog-confirm on-tap="close">Close</paper-button>
+                        </div>
+                    </paper-dialog>
             </fieldset>
         </fieldset>
 
@@ -162,7 +169,7 @@
                 }
                 //cannot open 3 baxter's camera at the same time
                 if (camerasList.indexOf("/cameras/left_hand_camera/image") != -1 && camerasList.indexOf("/cameras/right_hand_camera/image") != -1 && camerasList.indexOf("/cameras/head_camera/image") != -1) {
-                    this.$.dialog.open();
+                    this.$.errorOpeningCamera.open();
                 } else {
                     this.$$('#displayCamera').set('params', {
                         "display": "camera",
@@ -186,6 +193,9 @@
             },
             handleResponse: function(event) {
                 this.$.loading.close();
+                if (event.detail.response == "problem with camera") {
+                    this.$.errorProcessCamera.open();
+                }
             }
         });
     </script>

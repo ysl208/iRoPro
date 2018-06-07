@@ -9,6 +9,7 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
 
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 
@@ -124,6 +125,7 @@
                     @apply(--layout-flex);
                 }
             }
+
         </style>
         <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
@@ -165,15 +167,18 @@
                                 </paper-button>
                             </legend>
                             <p>Verify all objects have been detected before proceeding.
-                                <br>
-                                <b>Name</b> (type)</p>
+                                <br></p>
                             <br>
-                            <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
-                                <div id="listeObjet">
-                                    <paper-icon-button icon="check"></paper-icon-button>
-                                    [[item.name]] ([[item.type.name]])
-                                </div>
-                            </template>
+                            <div id="listeObjet">
+                                <paper-icon-button></paper-icon-button>
+                                <b>Name</b> (type)
+                                <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
+                                    <div>
+                                        <paper-icon-button icon="check"></paper-icon-button>
+                                        [[item.name]] ([[item.type.name]])
+                                    </div>
+                                </template>
+                            </div>
                             <br>
                         </fieldset>
                     </div>
