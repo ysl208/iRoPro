@@ -309,6 +309,13 @@
                 <paper-button dialog-confirm class="clear">OK</paper-button>
             </div>
         </paper-dialog>
+        <paper-dialog id="errorConditions">
+            <h2>Error generating conditions</h2>
+            <p id="msgErrorConditions">An error has been encountered ...</p>
+            <div class="buttons">
+                <paper-button dialog-confirm class="clear">OK</paper-button>
+            </div>
+        </paper-dialog>
     </template>
 
     <script>
@@ -546,7 +553,7 @@
                 if (valide) {
                     // Without negation
                     if (!newPredicate.negate) {
-                        // To comment when you want to test else it's impossible to test on simulation              
+                        // To comment when you want to test, else it's impossible to test on simulation              
                         //if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
                         //    valide = false;
                         //    msgErreur = "A position can't be on something else"
@@ -765,22 +772,27 @@
             _generateConditions: function () {
                 // check preconditions and effects are there
                 if (this.action.preconditions.length == 0) {
-                    console.info('No preconditions');
-                }
-                if (this.action.effects.length == 0) {
-                    console.info('No effects');
+                    this.$.msgErrorConditions.innerHTML = "No preconditions were specified";
+                    this.$.errorConditions.open();
+                } else if (this.action.effects.length == 0) {
+                    this.$.msgErrorConditions.innerHTML = "No effects were specified";
+                    this.$.errorConditions.open();
+                } 
+                // If they are there then you can generate the conditions
+                else {
+                    this._getPredicateDiff(this.action.preconditions, this.action.effects);
+
+                    this.reevaluateArray('action.preconditions', this.action.preconditions);
+                    this.reevaluateArray('action.effects', this.action.effects);
+                    var predList = this.action.preconditions.concat(this.action.effects)
+                    var parms = this._getParams(predList);
+                    console.debug(typeof parms, typeof this.action.params);
+                    console.debug('parms:', parms);
+                    this.action.params = parms;
+                    //this.reevaluateArray('action.params', this.action.params);
                 }
 
-                this._getPredicateDiff(this.action.preconditions, this.action.effects);
-
-                this.reevaluateArray('action.preconditions', this.action.preconditions);
-                this.reevaluateArray('action.effects', this.action.effects);
-                var predList = this.action.preconditions.concat(this.action.effects)
-                var parms = this._getParams(predList);
-                console.debug(typeof parms, typeof this.action.params);
-                console.debug('parms:', parms);
-                this.action.params = parms;
-                //this.reevaluateArray('action.params', this.action.params);
+                
             },
             _getPredicateDiff: function (list1, list2) {
                 // removes predicates which are in both lists

@@ -14,14 +14,12 @@
 <link rel="import" href="../shared-styles.html">
 <link rel="import" href="pbd-home.html">
 
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
 <dom-module id="pbd-problem-list">
     <template>
+        <style include="shared-styles"></style>
         <style>
-            #paper_button5 {
-                left: 30px;
-                top: 690px;
-                position: absolute;
-            }
             :host {
                 display: block;
                 position: relative;
@@ -30,342 +28,72 @@
                 box-sizing: border-box;
                 height: 100%;
             }
-            div#div {
-                box-sizing: border-box;
-                position: absolute;
-                top: 10px;
-                left: 10px;
-                width: 930px;
-                height: 94px;
-                border: 1px solid;
-                transform: none;
-            }
-            paper-button#paper_button2 {
-                box-sizing: border-box;
-                position: relative;
-                top: 20px;
-                left: 20px;
-                transform: none;
-            }
-            paper-button#paper_button1 {
-                box-sizing: border-box;
-                position: relative;
-                top: 20px;
-                left: 30px;
-                transform: none;
-            }
-            paper-button#paper_button {
-                box-sizing: border-box;
-                position: relative;
-                top: 20px;
-                left: 40px;
-                transform: none;
-            }
-            p#p {
-                box-sizing: border-box;
-                position: absolute;
-                top: 98px;
-                left: 330px;
-                transform: none;
-                width: 500px;
-                height: 14px;
-                font-size: 300%;
-            }
-            div#div1 {
-                box-sizing: border-box;
-                position: absolute;
-                top: 240px;
-                left: 10px;
-                width: 923px;
-                height: 434px;
-                transform: none;
-                border: 1px solid;
-            }
-            div#div2 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                border: 1px solid;
-                width: 923px;
-                height: 54.4px;
-            }
-            p#p2 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                width: 220px;
-                height: 24px;
-            }
-            paper-button#paper_button3 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 510px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(0, 50, 200);
-            }
-            paper-button#paper_button4 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 500px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(200, 50, 0);
-            }
-            div#div3 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                border: 1px solid;
-                width: 923px;
-                height: 54.4px;
-            }
-            p#p2 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                width: 220px;
-                height: 24px;
-            }
-            paper-button#paper_button3 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 510px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(0, 50, 200);
-            }
-            paper-button#paper_button4 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 500px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(200, 50, 0);
-            }
-            div#div4 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                border: 1px solid;
-                width: 923px;
-                height: 54.4px;
-            }
-            p#p2 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                width: 220px;
-                height: 24px;
-            }
-            paper-button#paper_button3 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 510px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(0, 50, 200);
-            }
-            paper-button#paper_button4 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 500px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(200, 50, 0);
-            }
-            div#div5 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                border: 1px solid;
-                width: 923px;
-                height: 54.4px;
-            }
-            p#p2 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                width: 220px;
-                height: 24px;
-            }
-            paper-button#paper_button3 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 510px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(0, 50, 200);
-            }
-            paper-button#paper_button4 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 500px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(200, 50, 0);
-            }
-            div#div6 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                border: 1px solid;
-                width: 923px;
-                height: 54.4px;
-            }
-            p#p2 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                width: 220px;
-                height: 24px;
-            }
-            paper-button#paper_button3 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 510px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(0, 50, 200);
-            }
-            paper-button#paper_button4 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 500px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(200, 50, 0);
-            }
-            div#div7 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                border: 1px solid;
-                width: 923px;
-                height: 54.4px;
-            }
-            p#p2 {
-                box-sizing: border-box;
-                position: relative;
-                top: 0px;
-                left: 0px;
-                transform: none;
-                width: 220px;
-                height: 24px;
-            }
-            paper-button#paper_button3 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 510px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(0, 50, 200);
-            }
-            paper-button#paper_button4 {
-                box-sizing: border-box;
-                position: relative;
-                top: -50px;
-                left: 500px;
-                transform: none;
-                width: 91.2333px;
-                height: 36.4px;
-                background-color: rgb(200, 50, 0);
-            }
-
-
             a paper-button,
             a:active paper-button,
             a:visited paper-button {
-                color: #000;
+                color: black;
+            }
+            table p {
+                font-size: 120%;
+                margin: auto 10px;
+                text-align: center;
+            }
+            table {
+                margin: 20px auto;
+                padding:5px;
+            }
+            .edit {
+                float: right;
+            }
+            .delet {
+                float: left;
+            }
+            #new-action {
+                margin: 0px 0px 2% 2%;
             }
         </style>
-        <p id="p" class="style-scope canvas-view">Problems lists</p>
-        <div id="div1" class="style-scope canvas-view">
-
-            <!-- DOM-REPEAT sur BDD à rajouter ici à la place de toute la merde bien sur -->
-
-            <div id="div2" class="style-scope canvas-view">
-                <p id="p2" class="style-scope canvas-view">Permutation of two cube</p>
-                <paper-button raised id="paper_button3" class="style-scope canvas-view">edit</paper-button>
-                <paper-button id="paper_button4" class="style-scope canvas-view">delete</paper-button>
-            </div>
-            <div id="div3" class="style-scope canvas-view">
-                <p id="p2" class="style-scope canvas-view">Stacking two cube on position A</p>
-                <paper-button id="paper_button3" class="style-scope canvas-view">edit</paper-button>
-                <paper-button id="paper_button4" class="style-scope canvas-view">delete</paper-button>
-            </div>
-            <div id="div4" class="style-scope canvas-view">
-                <p id="p2" class="style-scope canvas-view">move cube from a to b</p>
-                <paper-button id="paper_button3" class="style-scope canvas-view">edit</paper-button>
-                <paper-button id="paper_button4" class="style-scope canvas-view">delete</paper-button>
-            </div>
-            <div id="div5" class="style-scope canvas-view">
-                <p id="p2" class="style-scope canvas-view">move cube from a to b</p>
-                <paper-button id="paper_button3" class="style-scope canvas-view">edit</paper-button>
-                <paper-button id="paper_button4" class="style-scope canvas-view">delete</paper-button>
-            </div>
-            <div id="div6" class="style-scope canvas-view">
-                <p id="p2" class="style-scope canvas-view">move cube from a to b</p>
-                <paper-button id="paper_button3" class="style-scope canvas-view">edit</paper-button>
-                <paper-button id="paper_button4" class="style-scope canvas-view">delete</paper-button>
-            </div>
-            <div id="div7" class="style-scope canvas-view">
-                <p id="p2" class="style-scope canvas-view">move cube from a to b</p>
-                <paper-button id="paper_button3" class="style-scope canvas-view">edit</paper-button>
-                <paper-button id="paper_button4" class="style-scope canvas-view">delete</paper-button>
-            </div>
-        </div>
-
-        <paper-button raised id="paper_button5"><iron-icon icon="icons:add"></iron-icon> add problem</paper-button>
+        <body>
+            <h1 align="center">Problems lists</h1>
+            <a href="#/new-problem-1" id="new-problem"><paper-button raised><iron-icon icon="icons:add"></iron-icon> add action</paper-button></a>
+            <table class="table table-striped">
+                <tbody>
+                <template is="dom-if" if="[[!showProblems()]]">
+                    <tr>
+                        <td colspan="4" class="text-center align-middle"><strong>No problems have been created yet.</strong></td>
+                    </tr>
+                </template>
+                <template is="dom-repeat" items="[[listProblems]]" as="problem">
+                    <tr>
+                        <th class="align-middle text-center" scope="row">#[[index]]</th>
+                        <td class="align-middle" style="width:60%">
+                            <p>[[problem]]</p>
+                        </td>
+                        <td>
+                            <paper-button class="edit btn-primary">edit</paper-button>
+                        </td>
+                        <td>
+                            <paper-button class="delet btn-danger">delete</paper-button>
+                        </td>
+                    </tr>
+                </template>
+                </tbody>
+            </table>            
+        </body>
     </template>
 
     <script>
         Polymer({
             is: "pbd-problem-list",
+            properties: {
+                listProblems: {
+                    type: Array,
+                    value: ['permute a and b', 'clear objet b top', 'move 2 cubes on a','','','','']
+                },
+            },
+            showProblems: function() {
+                // Check the list of problems and return true if it's not empty
+                return true;
+            },
         });
     </script>
 </dom-module>

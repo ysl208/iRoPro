@@ -28,6 +28,7 @@
 <link rel="import" href="v2/pbd-help.html">
 <link rel="import" href="v2/pbd-home.html">
 <link rel="import" href="v2/pbd-robot-control.html">
+<link rel="import" href="v2/pbd-problem-list.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="pbd-app2">
@@ -98,6 +99,16 @@
       </div>
     </paper-dialog>
 
+    <!-- Used to check if there's actions before loading problem list tab -->
+    <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+    <paper-dialog modal id="errorNoActionList">
+      <h2>Can't load the Problem List</h2>
+      <p>There is no existing actions in this domain, you can't use problems untill you create actions.</p>
+      <div id="buttons">
+        <paper-button dialog-confirm>OK</paper-button>
+      </div>
+    </paper-dialog>
+
     <!-- Interface -->
     <app-drawer-layout force-narrow>
       <app-drawer id="drawer" slot="drawer">
@@ -123,11 +134,11 @@
             <!-- Nav on desktop: tabs -->
             <paper-tabs selected="{{selected}}" attr-for-selected="name" bottom-item>
               <template is="dom-repeat" items="{{items}}">
-                <paper-tab name="{{item}}">
+                <paper-tab name="{{item}}" id="tab[[item]]">
                   {{item}}
                 </paper-tab>
-
               </template>
+              <paper-tab name="Problemzzz" id="Problemzzz">Problemzzz</paper-tab>
             </paper-tabs>
           </app-toolbar>
         </app-header>
@@ -191,7 +202,7 @@
           value: function () {
             return {};
           }
-        },
+        },        
         _robot: {
           type: String,
         },
@@ -206,9 +217,21 @@
           value: function () {
             return ['Home', 'Actions', 'Problems', 'Robot Control', 'Help'];
           }
-        }
+        },
+        pddlDomain: {
+            type: Object,
+            value: function () {
+                return { actions: [] };
+            }
+        },
       },
-
+      tabProblems: function() {
+        //alert("length = " + this.pddlDomain.actions.length);
+        //// If there's no action we redirect to the home page instead of problem list
+        //if (this.pddlDomain.actions.length == 0) {
+        //  this.selected == "Home";
+        //}
+      },
       onLayoutChange: function (wide) {
         var drawer = this.$.drawer;
         if (wide && drawer.opened) {
@@ -225,6 +248,9 @@
 
       _handleConnection: function () {
         this.$.dialog.close();
+        // Important, need to be called on loading on the page, but the ready & attached function are called "too early"
+        // they are called before the dom-repeat happen, and this need to be done after
+        this.$$('#tabProblems').addEventListener('tap', this.tabProblems);
       },
 
       _handleClose: function () {
