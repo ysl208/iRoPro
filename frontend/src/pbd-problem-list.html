@@ -5,10 +5,10 @@
 <link rel="import" href="../bower_components/ros-topic/ros-topic.html">
 <link rel="import" href="../bower_components/ros-service/ros-service.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="v2/pbd-new-action.html">
+<link rel="import" href="v2/pbd-new-problem.html">
 <link rel="import" href="shared-styles.html">
 
-<dom-module id="pbd-action-list">
+<dom-module id="pbd-problem-list">
     <template>
         <style include="shared-styles"></style>
         <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
@@ -58,33 +58,33 @@
             ros="[[ros]]"></ros-topic>
 
         <div class="paper-material">
-            <template is="dom-if" restamp if="[[!_showActionProperties]]">
+            <template is="dom-if" restamp if="[[!_showProblemProperties]]">
                 <table>
                     <tr>
-                        <th>Programmed actions</th>
+                        <th>Programmed problems</th>
                         <th>
                             <!-- <a href="#/[[domain_id]]"> -->
                             <paper-button id="createButton" class="important" on-tap="_handleCreate">
-                                + new action
+                                + new problem
                             </paper-button>
                             <!-- </a> -->
                         </th>
                     </tr>
-                    <template is="dom-if" if="[[!pddlDomain.actions.length]]">
+                    <template is="dom-if" if="[[!pddlDomain.problems.length]]">
                         <tr>
-                            <td colspan="2">No actions have been created yet.</td>
+                            <td colspan="2">No problems have been created yet.</td>
                         </tr>
                     </template>
-                    <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
+                    <template is="dom-repeat" items="[[pddlDomain.problems]]" as="problem">
                         <tr>
                             <td>
-                                <i> {{action.name}}</i>
+                                <i> {{problem.name}}</i>
                             </td>
                             <td>
-                                <paper-button class="clear" on-tap="_openAction">
+                                <paper-button class="clear" on-tap="_openProblem">
                                     <paper-icon-button icon="create"></paper-icon-button>
                                 </paper-button>
-                                <paper-button class="delete" data-db-id="{{action.name}}" on-tap="_maybeDelete">
+                                <paper-button class="delete" data-db-id="{{problem.name}}" on-tap="_maybeDelete">
                                     <paper-icon-button icon="delete"></paper-icon-button>
                                 </paper-button>
                             </td>
@@ -93,24 +93,24 @@
                 </table>
             </template>
 
-            <template is="dom-if" restamp if="[[_showActionProperties]]">
+            <template is="dom-if" restamp if="[[_showProblemProperties]]">
                 <table style="height:auto;">
                     <tr>
-                        <th>Action Properties</th>
+                        <th>Problem Properties</th>
                         <th>
                             <div class="cancelButtons">
-                                <paper-button class="cancel" on-tap="_hideAction">
+                                <paper-button class="cancel" on-tap="_hideProblem">
                                     <paper-icon-button icon="cancel"></paper-icon-button>
                                 </paper-button>
                             </div>
                         </th>
                         <tr>
                             <td colspan="2">
-                                <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
+                                <template is="dom-repeat" items="[[pddlDomain.problems]]" as="problem">
 
                                     <div style="overflow:auto; max-height: 100vh;">
-                                        <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
-                                            <pbd-new-action name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain="[[pddlDomain]]"></pbd-new-action>
+                                        <template is="dom-if" restamp if="[[_displayProblem(selectedProblemName,problem.name)]]">
+                                            <pbd-new-problem name="new-problem" params="[[params]]" ros="[[ros]]" problem="[[problem]]" domain="[[pddlDomain]]"></pbd-new-problem>
                                         </template>
                                     </div>
                                 </template>
@@ -123,7 +123,7 @@
         </div>
 
         <paper-dialog id="deleteDialog" modal>
-            <h2>Delete action?</h2>
+            <h2>Delete problem?</h2>
             <div class="deleteButtons">
                 <paper-button class="clear" dialog-dismiss>Cancel</paper-button>
                 <paper-button dialog-confirm on-tap="_handleDelete" class="delete">Delete</paper-button>
@@ -134,13 +134,13 @@
     <script>
         Polymer({
 
-            is: 'pbd-action-list',
-            _showActionProperties: false,
+            is: 'pbd-problem-list',
+            _showProblemProperties: false,
             properties: {
                 ros: Object,
                 route: Object,
                 params: Object,
-                selectedActionName: String,
+                selectedProblemName: String,
                 domainList: {
                     type: Object,
                     value: function () {
@@ -151,10 +151,10 @@
                 pddlDomain: {
                     type: Object,
                     value: function () {
-                        return { actions: [] };
+                        return { problems: [] };
                     }
                 },
-                actions: Array,
+                problems: Array,
             },
 
             observers: [
@@ -165,27 +165,26 @@
                 if (this.domainList && this.domainList.domains.length == 1) {
                     this.domain_id = this.domainList.domains[0].domain_id;
                 }
-                //console.debug('domain_id is ', this.domain_id);
             },
             _domainUpdated(changedDomain, changedList) {
                 if (changedDomain.value) {
-                    this.actions = changedDomain.value.actions;
+                    this.problems = changedDomain.value.problems;
                     this.pddlDomain = changedDomain.value;
                 }
             },
             _maybeDelete: function (evt) {
-                var action_name = evt.model.get('action.name');
-                this._actionToDelete = action_name;
+                var problem_name = evt.model.get('problem.name');
+                this._problemToDelete = problem_name;
                 this.$.deleteDialog.open();
-                console.debug("maybeDel", this._actionToDelete);
+                console.debug("maybeDel", this._problemToDelete);
             },
 
             _handleDelete: function (evt) {
                 this.$.deleteDialog.close();
                 var msg = {
-                    type: 'delete pddl action',
+                    type: 'delete pddl problem',
                     domain_id: this.domain_id,
-                    action_name: this._actionToDelete
+                    problem_name: this._problemToDelete
                 };
                 this.$.eventPub.publish(msg);
             },
@@ -200,47 +199,48 @@
             },
 
             _handleCreate: function (evt) {
-                var name = this.getActionName(this.actions);
-
+                var name = this.getProblemName(this.problems);
+                console.debug('handleCreate', name, this.pddlDomain);
                 var msg = {
-                    type: 'add pddl action',
+                    type: 'add pddl problem',
                     domain_id: this.domain_id,
-                    action_name: name
+                    problem_name: name
                 };
                 this.$.eventPub.publish(msg);
                 console.debug('handleCreate', name, this.domain_id);
-                this.selectedActionName = name;
-                this._showActionProperties = true;
+                this.selectedProblemName = name;
+                this._showProblemProperties = true;
+                console.debug('handleCreate: params is ', this.params);
             },
 
-            getActionName: function (actions) {
-                var actionNo = actions.length + 1;
-                var action_name = 'Action ' + actionNo;
-                for (var i = 0; i < actions.length; ++i) {
-                    if (actions[i].name == action_name) {
-                        actionNo++;
+            getProblemName: function (problems) {
+                var problemNo = problems.length + 1;
+                var problem_name = 'Problem ' + problemNo;
+                for (var i = 0; i < problems.length; ++i) {
+                    if (problems[i].name == problem_name) {
+                        problemNo++;
                     }
-                    action_name = 'Action ' + actionNo;
+                    problem_name = 'Problem ' + problemNo;
                 }
-                return action_name;
+                return problem_name;
             },
 
-            _hideAction: function (evt) {
-                this._showActionProperties = false;
+            _hideProblem: function (evt) {
+                this._showProblemProperties = false;
             },
-            _showActionList: function (page) {
-                return (!this._showActionProperties);
+            _showProblemList: function (page) {
+                return (!this._showProblemProperties);
             },
-            _showAction: function (page) {
-                return (this._showActionProperties && page !== 'program');
+            _showProblem: function (page) {
+                return (this._showProblemProperties && page !== 'program');
             },
-            _openAction: function (evt) {
-                var name = evt.model.get('action.name');
-                this.selectedActionName = name;
-                this._showActionProperties = true;
+            _openProblem: function (evt) {
+                var name = evt.model.get('problem.name');
+                this.selectedProblemName = name;
+                this._showProblemProperties = true;
             },
-            _displayAction: function (selected, actionname) {
-                return (selected && selected.length > 0 && selected == actionname);
+            _displayProblem: function (selected, problemname) {
+                return (selected && selected.length > 0 && selected == problemname);
             },
 
         });

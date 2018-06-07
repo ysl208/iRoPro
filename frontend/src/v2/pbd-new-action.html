@@ -9,8 +9,12 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<<<<<<< HEAD
 <link rel="import" href="../../bower_components/iron-list/iron-list.html">
 
+=======
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+>>>>>>> c1f04c21a93f519064dd4b50f8ea3b4778554d1c
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 
 <link rel="import" href="../../bower_components/paper-styles/color.html">
@@ -34,7 +38,7 @@
             }
 
             .paper-material {
-                margin-top: 7px;
+                margin-top: 5px;
             }
 
             a {
@@ -49,10 +53,8 @@
                 margin-bottom: 5px;
             }
 
-
             paper-button {
                 /* float: right; */
-                margin: 5px;
             }
 
             paper-input {
@@ -100,7 +102,9 @@
 
             .petit {
                 font-size: 80%;
-                /* margin-left: 20%; */
+                margin: 0;
+                padding: 0;
+                margin-left: 5px;
                 color: steelblue;
             }
 
@@ -117,12 +121,17 @@
                     max-height: 100%;
                     margin-bottom: 0px;
                     margin-right: 10px;
-                    padding: 2%;
+                    /*padding: 2%;*/
                 }
                 #rviz {
                     height: 100%;
                     width: 350px;
                     @apply(--layout-flex);
+                }
+                .button_not {
+                    vertical-align: bottom;
+                    padding-bottom: 9px;
+                    padding-left: 6px;
                 }
             }
 
@@ -136,64 +145,67 @@
         <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
             ros="[[ros]]"></ros-topic>
 
+        <div>
+            <!-- Action navigation buttons -->
+            <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
+                1 Perception
+            </paper-button>
+            <!-- <a href="#/program/{{action.program_id}}"> -->
+            <paper-button name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]">
+                2 Demonstration
+            </paper-button>
+            <!-- </a> -->
+            <paper-button class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]">
+                3 Action Model
+            </paper-button>
+        </div>
+        <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
+        <paper-button id="save" raised class="important" on-click="_updateDomain">
+            Save
+        </paper-button>
         <div id="layout" class="layout vertical">
+            <!-- ***** DEMONSTRATION **** 2/3 -->
+            <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
+                <template is="dom-if" if="[[_displayNavStep(navStep,'demonstration')]]">
+                    <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" program-id="[[action.program_id]]"></pbd-program>
+                </template>
+            </div>
             <div class="content">
-                <div id="stepContent">
-                    <div>
-                        <paper-button class="back clear" on-tap="_goBeforeDemo" hidden$=[[!_finishedDemo]]>
-                            <iron-icon icon="arrow-back"></iron-icon> Back
-                        </paper-button>
-                        <paper-button hidden class="clear" on-tap="_assignSurfaceObjects">
-                            Assign Surface Objects
-                        </paper-button>
-                        <paper-button class="back clear" on-tap="_goBeforeDemo" hidden$=[[_finishedDemo]]>
-                            Next
-                            <iron-icon icon="arrow-forward"></iron-icon>
-                        </paper-button>
-                        <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
-                        <a href="#/program/{{action.program_id}}">
-                            <paper-button id="next" raised class="important" on-click="_startDemo">
-                                Demo Mode >
-                            </paper-button>
-                        </a>
-                    </div>
-
-                    <!-- ***** BEFORE DEMO **** 1/2 -->
-                    <div id="beforeDemo" hidden$=[[_finishedDemo]]>
+                <div id="stepContent" class="stepDiv">
+                    <!-- ***** BEFORE DEMO **** 1/3 -->
+                    <div id="perception" hidden$="[[!_displayNavStep(navStep,'perception')]]">
                         <fieldset>
                             <legend>
-                                <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
-                                    Detect World Instances
-                                </paper-button>
+                                Detected World Instances
                             </legend>
                             <p>Verify all objects have been detected before proceeding.
                                 <br></p>
                             <br>
-                            <div id="listeObjet">
-                                <paper-icon-button></paper-icon-button>
-                                <b>Name</b> (type)
-                                <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
-                                    <div>
-                                        <paper-icon-button icon="check"></paper-icon-button>
-                                        [[item.name]] ([[item.type.name]])
-                                    </div>
-                                </template>
-                            </div>
-                            <br>
+                            <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
+                                <div id="listeObjet">
+                                    <paper-icon-button icon="check"></paper-icon-button>
+                                    [[item.name]] ([[item.type.name]])
+                                </div>
+                            </template>
+
+                            <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
+                                Detect World Instances
+                            </paper-button>
                         </fieldset>
+                        <br>
+                        <paper-button hidden class="clear" on-tap="_assignSurfaceObjects">
+                            Assign Surface Objects
+                        </paper-button>
                     </div>
-                    <!-- ***** AFTER DEMO **** 2/2 -->
-                    <div id="afterDemo" hidden$=[[!_finishedDemo]]>
+
+                    <!-- ***** AFTER DEMO **** 3/3 -->
+                    <div id="actionModel" hidden$="[[!_displayNavStep(navStep,'actionModel')]]">
                         <fieldset>
                             <paper-button id="detect2" raised class="petit" on-tap="_detect" data-args="Effect">
                                 Detect Effects
                             </paper-button>
                             <paper-button class="petit" raised on-tap="_generateConditions">
                                 Generate Conditions
-                            </paper-button>
-
-                            <paper-button id="next" raised class="important" on-click="save">
-                                Save
                             </paper-button>
                         </fieldset>
                         <fieldset>
@@ -209,30 +221,33 @@
                                 </div>
                             </template>
 
-                            <paper-dropdown-menu label="Instance 1">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg1}}">
-                                    <template is="dom-repeat" items="[[action.params]]">
-                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg1">
-                                            [[item.name]]
-                                        </paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
-                            <paper-dropdown-menu label="Predicate">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.name}}">
-                                    <template is="dom-repeat" items="[[domain.predicates]]">
-                                        <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newPrecondition.predicate.name">is [[item.name]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
-                            <paper-dropdown-menu label="Instance 2">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
-                                    <template is="dom-repeat" items="[[action.params]]">
-                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
-                                            [[item.name]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
+                            <div>
+                                <paper-dropdown-menu id="menu_instance1_precond" label="Instance 1">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg1}}">
+                                        <template is="dom-repeat" items="[[action.params]]">
+                                            <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg1">
+                                                [[item.name]]
+                                            </paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                                <paper-radio-button class="button_not" id="button_not_precond">not</paper-radio-button>
+                                <paper-dropdown-menu id="menu_name_precond" label="Predicate">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.name}}">
+                                        <template is="dom-repeat" items="[[domain.predicates]]">
+                                            <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newPrecondition.predicate.name">is [[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                                <paper-dropdown-menu id="menu_instance2_precond" label="Instance 2">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
+                                        <template is="dom-repeat" items="[[action.params]]">
+                                            <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
+                                                [[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                            </div>
                             <br>
                             <paper-button noink class="petit" on-click="addPredicate" data-args="Precondition">+ add new predicate</paper-button>
                         </fieldset>
@@ -244,42 +259,45 @@
 
                             <template is="dom-repeat" items="{{action.effects}}" as="item" index-as="paramIndex">
                                 <div id="listeWorldState2">
-                                    [[item.arg1.name]] is [[item.name]] [[item.arg2.name]]
+                                    [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
                                     <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
                                         <paper-icon-button icon="delete"></paper-icon-button>
                                     </paper-button>
                                 </div>
                             </template>
 
-                            <paper-dropdown-menu label="Instance 1">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg1}}">
-                                    <template is="dom-repeat" items="[[action.params]]">
-                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg1">
-                                            [[item.name]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
-                            <paper-dropdown-menu label="Predicate">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.name}}">
-                                    <template is="dom-repeat" items="[[domain.predicates]]">
-                                        <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newEffect.predicate.name">is [[item.name]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
-                            <paper-dropdown-menu label="Instance 2">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
-                                    <template is="dom-repeat" items="[[action.params]]">
-                                        <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
-                                            [[item.name]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
+                            <div>
+                                <paper-dropdown-menu id="menu_instance1_effect" label="Instance 1">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg1}}">
+                                        <template is="dom-repeat" items="[[action.params]]">
+                                            <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg1">
+                                                [[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                                <paper-radio-button class="button_not" id="button_not_effect">not</paper-radio-button>
+                                <paper-dropdown-menu id="menu_name_effect" label="Predicate">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.name}}">
+                                        <template is="dom-repeat" items="[[domain.predicates]]">
+                                            <paper-item name="[[item.name]]" on-tap="_updatePredicate" data-args="newEffect.predicate.name">is [[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                                <paper-dropdown-menu id="menu_instance2_effect" label="Instance 2">
+                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
+                                        <template is="dom-repeat" items="[[action.params]]">
+                                            <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
+                                                [[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                            </div>
                             <br>
                             <paper-button noink class="petit" on-click="addPredicate" data-args="Effect">+ add new predicate</paper-button>
                         </fieldset>
                     </div>
                 </div>
-                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
+                <!-- <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz> -->
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -289,7 +307,19 @@
                 <paper-button dialog-confirm class="clear">OK</paper-button>
             </div>
         </paper-dialog>
-        </div>
+        <paper-dialog id="errorNewPrecond">
+            <h2>Error creating new precondition</h2>
+            <p id="msgErrorNewPrecond">An error has been encountered ...</p>
+            <div class="buttons">
+                <paper-button dialog-confirm class="clear">OK</paper-button>
+            </div>
+        </paper-dialog>
+        <paper-dialog id="errorNewEffect">
+            <h2>Error creating new effect</h2>
+            <p id="msgErrorNewEffect">An error has been encountered ...</p>
+            <div class="buttons">
+                <paper-button dialog-confirm class="clear">OK</paper-button>
+            </div>
         </paper-dialog>
     </template>
 
@@ -297,9 +327,9 @@
         Polymer({
             is: 'pbd-new-action',
             properties: {
-                _finishedDemo: {
-                    type: Object,
-                    value: false
+                navStep: {
+                    type: String,
+                    value: "perception"
                 },
                 action: Object,
                 domain: Object,
@@ -358,8 +388,27 @@
                 'load(routeData.id, params.*)',
                 '_domainUpdated(pddlDomain.*,domainList.*)',
                 '_actionUpdated(action.*)',
+                '_checkClearPrecond(newPrecondition.name)',
+                '_checkClearEffect(newEffect.name)',
             ],
-
+            _checkClearPrecond: function (nom_precond) {
+                if (nom_precond == "clear") {
+                    this.$.menu_instance2_precond.disabled = true;
+                    this.$.menu_instance2_precond.value = undefined;
+                    this.newPrecondition.arg2 = undefined;
+                } else {
+                    this.$.menu_instance2_precond.disabled = false;
+                }
+            },
+            _checkClearEffect: function (nom_effect) {
+                if (nom_effect == "clear") {
+                    this.$.menu_instance2_effect.disabled = true;
+                    this.$.menu_instance2_effect.value = undefined;
+                    this.newEffect.arg2 = undefined;
+                } else {
+                    this.$.menu_instance2_effect.disabled = false;
+                }
+            },
             _actionUpdated: function (action) {
                 if (action && action.base && action.base.name != '') {
                     this.actionName = action.base.name;
@@ -369,7 +418,6 @@
                 /* if (!db_id) {
                     return;
                 } */
-
                 if (!this.params.robot) {
                     return;
                 }
@@ -483,18 +531,108 @@
                 this.set(args, evt.target.name);
                 console.debug(args, ' is ', this.newPrecondition);
             },
+            checkPredicate: function (mode, _new) {
+                var newPredicate = _new;
+                var valide = true;
+                var index = 0;
+                // msgErreur explains why the precond isn't valid
+                var msgErreur = "";
 
+                if (mode == "precondition") {
+                    var liste = this.action.preconditions;
+                    // Check if items are well selected
+                    if (this.$.menu_instance1_precond.value == undefined || this.$.menu_name_precond.value == undefined || (this.$.menu_name_precond.value != "is clear" && this.$.menu_instance2_precond.value == undefined)) {
+                        valide = false;
+                        msgErreur = "Complete your new predicate before adding it";
+                    }
+                } else {
+                    var liste = this.action.effects;
+                    // Check if items are well selected
+                    if (this.$.menu_instance1_effect.value == undefined || this.$.menu_name_effect.value == undefined || (this.$.menu_name_effect.value != "is clear" && this.$.menu_instance2_effect.value == undefined)) {
+                        valide = false;
+                        msgErreur = "Complete your new predicate before adding it";
+                    }
+                }
+
+                if (valide) {
+                    // Without negation
+                    if (!newPredicate.negate) {
+                        // To comment when you want to test else it's impossible to test on simulation              
+                        //if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
+                        //    valide = false;
+                        //    msgErreur = "A position can't be on something else"
+                        //}
+                        /*else*/ if (newPredicate.name == "on" && newPredicate.arg1.name == newPredicate.arg2.name) {
+                            valide = false;
+                            msgErreur = "An element can't be set on himself";
+                        }
+
+                        while (valide && index < liste.length) {
+                            if (newPredicate.name == "clear" && liste[index].name == "clear" && newPredicate.arg1.name == liste[index].arg1.name) {
+                                valide = false;
+                                msgErreur = "This " + mode + " exists already";
+                            }
+                            else if (newPredicate.name == liste[index].name && newPredicate.arg1.name == liste[index].arg1.name && newPredicate.arg2.name == liste[index].arg2.name) {
+                                valide = false;
+                                msgErreur = "This " + mode + " exists already";
+                            }
+                            else if (newPredicate.name == "on" && liste[index].name == "on") {
+                                if (newPredicate.arg2.name == liste[index].arg2.name) {
+                                    valide = false;
+                                    msgErreur = "You can't place two objects on one position, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
+                                } else if (newPredicate.arg1.name == liste[index].arg1.name) {
+                                    valide = false;
+                                    msgErreur = "One object can't be on two positions, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
+                                }
+                            }
+                            else if (newPredicate.name == "clear" && (liste[index].name == "on" && liste[index].arg2.name == newPredicate.arg1.name)) {
+                                valide = false;
+                                msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + "is " + liste[index].name + " " + liste[index].arg2.name + "</strong>";
+                            }
+                            else if (liste[index].name == "clear" && (newPredicate.name == "on" && newPredicate.arg2.name == liste[index].arg1.name)) {
+                                valide = false;
+                                msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + " is " + liste[index].name + "</strong>";
+                            }
+                            index++;
+                        }
+                        // With negation
+                    } else {
+
+                    }
+                }
+                return { valid: valide, msg: msgErreur };
+            },
             addPredicate: function (evt) {
                 var condition = evt.target.getAttribute('data-args');
                 if (condition == "Precondition") {
-                    this.action.preconditions.push(this.newPrecondition);
-                    this.reevaluateArray('action.preconditions', this.action.preconditions);
+                    // Check if the NOT-button is checked or no and update it
+                    this.newPrecondition.negate = this.$.button_not_precond.checked;
+                    this.$.button_not_precond.checked = false;
+
+                    var check = this.checkPredicate("precondition", this.newPrecondition);
+                    if (check.valid) {
+                        // We recreate the this.newPrecondition object, else it's passed by reference and it causes problems
+                        this.action.preconditions.push({ arg1: this.newPrecondition.arg1, name: this.newPrecondition.name, arg2: this.newPrecondition.arg2, negate: this.newPrecondition.negate });
+                        this.reevaluateArray('action.preconditions', this.action.preconditions);
+                    } else {
+                        this.$.msgErrorNewPrecond.innerHTML = check.msg;
+                        this.$.errorNewPrecond.open();
+                    }
                 } else if (condition == "Effect") {
-                    this.action.effects.push(this.newEffect);
-                    this.reevaluateArray('action.effects', this.action.effects);
+                    // Check if the NOT-button is checked or no and update it
+                    this.newEffect.negate = this.$.button_not_effect.checked;
+                    this.$.button_not_effect.checked = false;
+
+                    var check = this.checkPredicate("effect", this.newEffect);
+                    if (check.valid) {
+                        this.action.effects.push({ arg1: this.newEffect.arg1, name: this.newEffect.name, arg2: this.newEffect.arg2, negate: this.newEffect.negate });
+                        this.reevaluateArray('action.effects', this.action.effects);
+                    } else {
+                        this.$.msgErrorNewEffect.innerHTML = check.msg;
+                        this.$.errorNewEffect.open();
+                    }
                 }
             },
-
             deletePred: function (evt) {
                 var item = evt.model.item;
                 console.debug('deletePred', item);
@@ -541,7 +679,16 @@
                     this.$.eventPub.publish(msg);
 
                 }
+            },
 
+            _updateDomain: function (evt) {
+                var msg = {
+                    type: 'update pddl domain',
+                    domain_id: this.domain_id,
+                    pddl_domain: this.domain
+                };
+                console.debug('updateDomain: ', this.domain);
+                this.$.eventPub.publish(msg);
             },
 
             _domainUpdated: function (changedDomain, changedList) {
@@ -558,9 +705,9 @@
                 var id = evt.detail.db_id;
                 this.action.program_id = id;
                 console.debug('handleServResponse', this.action.program_id);
-                window.history.pushState({}, null, "#/program/" + this.action.program_id);
-                window.dispatchEvent(new CustomEvent("location-changed"));
-                this.save();
+                /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
+                window.dispatchEvent(new CustomEvent("location-changed")); */
+                this._updateDomain();
             },
 
             _handleServiceError: function (evt) {
@@ -569,8 +716,8 @@
             _startDemo: function (evt) {
                 if (this.action.program_id && this.action.program_id.length > 0) {
                     console.debug('Program already exists ... ', this.action.program_id);
-                    window.history.pushState({}, null, "#/program/" + this.action.program_id);
-                    window.dispatchEvent(new CustomEvent("location-changed"));
+                    /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
+                    window.dispatchEvent(new CustomEvent("location-changed")); */
                 } else {
                     console.debug('New Program being created ... ');
                     var name = 'Program for: ' + this.actionName;
@@ -579,7 +726,6 @@
                     };
                     this.$.createSrv.call(request);
                 }
-                this._finishedDemo = true;
             },
             _assignSurfaceObjects: function (evt) {
                 var msg = {
@@ -710,11 +856,17 @@
                     if (a.name < b.name) return -1;
                     if (a.name > b.name) return 1;
                     return 0;
-                })
+                });
                 return arr;
             },
-            _goBeforeDemo: function () {
-                this._finishedDemo = !this._finishedDemo;
+            _displayNavStep: function (navStep, name) {
+                return (navStep == name);
+            },
+            _selectNavStep: function (evt) {
+
+                this.navStep = evt.target.getAttribute('name');
+                if (this.navStep == 'demonstration')
+                    this._startDemo();
             },
             _negate: function (neg) {
                 if (neg) return 'not ';
@@ -722,4 +874,3 @@
             }
         });
     </script>
-</dom-module>
