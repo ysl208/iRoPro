@@ -93,7 +93,7 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       UpdatePDDLAction(event.domain_id, event.pddl_action, event.action_name);
       // PDDL problems
     } else if (event.type == msgs::EditorEvent::DETECT_WORLD_STATE) {
-      DetectWorldState(event.domain_id, event.action_name, event.state_name);
+      DetectWorldState(event.domain_id, event.problem_name, event.state_name);
     } else if (event.type == msgs::EditorEvent::ADD_PDDL_PROBLEM) {
       AddPDDLProblem(event.domain_id, event.problem_name);
     } else if (event.type == msgs::EditorEvent::DELETE_PDDL_PROBLEM) {
@@ -1359,15 +1359,15 @@ void Editor::DetectWorldState(const std::string& domain_id,
     // detect surface landmarks
     msgs::SegmentSurfacesGoal goal;
     goal.save_cloud = true;
-    problem_clients_->surface_segmentation_client.sendGoal(goal);
-    success = problem_clients_->surface_segmentation_client.waitForResult(
+    action_clients_->surface_segmentation_client.sendGoal(goal);
+    success = action_clients_->surface_segmentation_client.waitForResult(
         ros::Duration(20));
     if (!success) {
       ROS_ERROR("Failed to segment surface.");
       return;
     }
     msgs::SegmentSurfacesResult::ConstPtr result =
-        problem_clients_->surface_segmentation_client.getResult();
+        action_clients_->surface_segmentation_client.getResult();
 
     // save scene_id and surface for later
     new_problem.scene_id = result->cloud_db_id;
@@ -1382,10 +1382,10 @@ void Editor::DetectWorldState(const std::string& domain_id,
     WorldState world_state;
     GetWorldState(new_problem.landmarks, &world_state);
     new_problem.objects = world_state.objects_;
-    if (state_name == “initial”) {
+    if (state_name == "initial") {
       new_problem.initial_states = world_state.predicates_;
       ROS_INFO("Updated problem %s", state_name.c_str());
-    } else if (state_name == “goal”) {
+    } else if (state_name == "goal") {
       new_problem.goal_states = world_state.predicates_;
       ROS_INFO("Updated problem %s", state_name.c_str());
     } else {

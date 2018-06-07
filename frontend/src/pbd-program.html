@@ -370,20 +370,6 @@
           console.error('rviz not ready');
         }
       },
-
-      _detect: function () {
-        if (!this.ros) {
-          console.error('Unable to call detection right now.');
-          return;
-        }
-        var msg = {
-          type: 'detect world state',
-          domain_id: this.domain_id,
-          action_name: this.actionName,
-          state_name: "Effect"
-        };
-        this.$.eventPub.publish(msg);
-      },
       saveOnExit: function () {
         this.program.name = this.$.programName.value;
         var msg = {
