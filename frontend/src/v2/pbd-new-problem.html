@@ -168,7 +168,7 @@
           <div id="perception" hidden$="[[!_displayNavStep(navStep,'perception')]]">
             <fieldset>
               <legend>
-                <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="InitialState">
+                <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="initial">
                   Detect World Instances
                 </paper-button>
               </legend>
@@ -275,7 +275,7 @@
               <br>
               <paper-button noink class="petit" on-click="addPredicate" data-args="GoalState">+ add new predicate</paper-button>
               <br>
-              <paper-button id="detect2" raised class="clear" on-tap="_detect" data-args="GoalState">
+              <paper-button id="detect2" raised class="clear" on-tap="_detect" data-args="goal">
                 Detect Goal States
               </paper-button>
             </fieldset>
@@ -704,7 +704,7 @@
           var request = {
             name: name,
           };
-          //this.$.createSrv.call(request);
+          //this.$.plannerSrv.call(request);
         }
       },
       _detect: function (evt) {
@@ -719,6 +719,7 @@
           problem_name: this.problem.name,
           state_name: state
         };
+        console.debug(msg);
         this.$.eventPub.publish(msg);
       },
       removeDuplicates: function (a) {

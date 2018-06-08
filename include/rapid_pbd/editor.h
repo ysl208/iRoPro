@@ -137,9 +137,9 @@ class Editor {
   std::string CreatePDDLDomain(const std::string& name);
   void UpdatePDDLDomain(const std::string& domain_id,
                         const msgs::PDDLDomain& domain);
-  void DetectWorldState(const std::string& domain_id,
-                        const std::string& action_name,
-                        const std::string& state_name);
+  void DetectActionConditions(const std::string& domain_id,
+                              const std::string& action_name,
+                              const std::string& state_name);
   void AssignSurfaceObjects(const std::string& db_id,
                             const msgs::PDDLAction& action, size_t step_id);
   void AddPDDLAction(const std::string& domain_id,
@@ -152,6 +152,9 @@ class Editor {
   int FindPDDLAction(const std::string name,
                      const std::vector<msgs::PDDLAction>& actions);
   // PDDL Problems
+  void DetectWorldState(const std::string& domain_id,
+                        const std::string& action_name,
+                        const std::string& state_name);
   void AddPDDLProblem(const std::string& domain_id,
                       const std::string& problem_name);
   void DeletePDDLProblem(const std::string& domain_id,
