@@ -45,7 +45,7 @@
 	function displayEyes() {
 		$errcode = launchScript("./controlRobot.sh -y");
 		if ($errcode != 0) {
-			echo "An error occured during the displaying of eyes.";
+			echo "An error occured during the display of the eyes.";
 		}
 	}
 

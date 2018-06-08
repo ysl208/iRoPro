@@ -9,12 +9,7 @@
 <link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
-<<<<<<< HEAD
-<link rel="import" href="../../bower_components/iron-list/iron-list.html">
-
-=======
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
->>>>>>> c1f04c21a93f519064dd4b50f8ea3b4778554d1c
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 
 <link rel="import" href="../../bower_components/paper-styles/color.html">
@@ -71,7 +66,7 @@
             .stepDiv {
                 min-width: 350px;
                 margin-bottom: 10px;
-                overflow-y: auto;
+                /*overflow-y: auto;*/
                 padding-left: 2px;
                 padding-right: 2px;
                 padding-bottom: 2px;
@@ -103,7 +98,6 @@
             .petit {
                 font-size: 80%;
                 margin: 0;
-                padding: 0;
                 margin-left: 5px;
                 color: steelblue;
             }
@@ -135,6 +129,39 @@
                 }
             }
 
+            nav {
+                font-size: 1.2em;
+                text-align: center;
+            }
+
+            nav paper-button {
+                border: 1px solid rgb(138, 125, 125);
+                border-radius: 10px;
+            }
+            #save {
+               /* float: right;*/
+            }
+
+            paper-dialog {
+                border-radius: 5px;
+            }
+
+            paper-button.cancel {
+                color: rgb(255, 68, 68);
+            }
+
+            #buttonDiv {
+                float: right;
+            }
+
+            header {
+                padding: 10px;
+            }
+
+            .important {
+                @apply(--iron-icon-width: 26px);
+                @apply(--iron-icon-height: 26px);
+            }
         </style>
         <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
@@ -144,25 +171,34 @@
         <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
         <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
             ros="[[ros]]"></ros-topic>
-
-        <div>
+            <header>
+                <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
+                <div id="buttonDiv">
+                    <paper-icon-button id="quit" raised class="important" on-click="quit" icon="icons:close" alt="quit"></paper-icon-button>
+                    <paper-icon-button id="save" raised class="important" on-click="saving" icon="icons:save" alt="save"></paper-icon-button>
+                </div>
+            </header>
+        <nav>
             <!-- Action navigation buttons -->
             <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
-                1 Perception
+                1. Perception
             </paper-button>
             <!-- <a href="#/program/{{action.program_id}}"> -->
             <paper-button name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]">
-                2 Demonstration
+                2. Demonstration
             </paper-button>
             <!-- </a> -->
             <paper-button class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]">
-                3 Action Model
+                3. Action Model
             </paper-button>
-        </div>
-        <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
-        <paper-button id="save" raised class="important" on-click="_updateDomain">
-            Save
-        </paper-button>
+        </nav>
+        <paper-dialog modal id="saving">
+            <h2>Save current action ?</h2>
+            <div>
+                <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+                <paper-button dialog-confirm raised on-tap="_updateDomain">Save</paper-button>
+            </div>
+        </paper-dialog>
         <div id="layout" class="layout vertical">
             <!-- ***** DEMONSTRATION **** 2/3 -->
             <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
@@ -297,7 +333,7 @@
                         </fieldset>
                     </div>
                 </div>
-                <!-- <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz> -->
+                <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz>
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -382,6 +418,7 @@
                     }
                 },
                 actionName: String,
+                showing: Object,
             },
 
             observers: [
@@ -680,7 +717,13 @@
 
                 }
             },
-
+            saving: function (evt) {
+                this.$.saving.open();
+            },
+            quit: function (evt) {
+                this.fire('quit');
+            },
+            
             _updateDomain: function (evt) {
                 var msg = {
                     type: 'update pddl domain',
