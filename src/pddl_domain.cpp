@@ -285,16 +285,24 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
   msgs::PDDLObject obj;
   msgs::PDDLType obj_type;
   obj_type.name = msgs::PDDLType::POSITION;
-  // std::vector<double, double> poses = {(1.0, -0.5), (1.0, 0.5), (1.15, -0.5),
-  //                                     (1.15, 0.5)};
-  for (size_t i = 0; i < 4; ++i) {
+
+  std::vector<double> pos_x_list, pos_y_list;
+  pos_z_list;
+  std::vector<std::string> name_list;
+
+  ros::param::param<double>("world_positions/names", min_x, 0);
+  ros::param::param<double>("world_positions/pos_x", pos_x_list, 0);
+  ros::param::param<double>("world_positions/pos_y", pos_y_list, 0);
+  ros::param::param<double>("world_positions/pos_z", pos_z_list, 0);
+
+  for (size_t i = 0; i < name_list.size(); ++i) {
     std::stringstream ss;
-    ss << "Position " << i + 1;
+    ss << "Position " << name_list[i];
     obj.name = ss.str();
     geometry_msgs::Pose pose;
-    pose.position.x = 0.8 + 0.2 * (i % 2);
-    pose.position.y = -0.25 + 0.5 * (i % 2);
-    pose.position.z = -0.05;
+    pose.position.x = pos_x_list[i];
+    pose.position.y = pos_y_list[i];
+    pose.position.z = pos_z_list[i];
     pose.orientation.w = 1;
     pose.orientation.x = 0;
     pose.orientation.y = 0;
@@ -307,9 +315,6 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
     AddObject(objects, obj);
   }
   double a_center_x = 0, a_center_y = 0, a_center_z = 0;
-  // std::vector<std::pair<std::string, std::string> > world_positions;
-  //   ros::param::param<std::vector<std::pair<std::string, std::string> > >(
-  //       "world_positions", world_positions);
 }
 
 void PrintAllPredicates(std::vector<msgs::PDDLPredicate> predicates,
