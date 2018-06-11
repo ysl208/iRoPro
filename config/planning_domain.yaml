@@ -1,10 +1,15 @@
 robot_grippers:
-  - {vacuum_gripper: 'right arm'}
-  - {claw_gripper: 'left arm'}
+  - vacuum_gripper: 'right arm'
+  - claw_gripper: 'left arm'
 
 world_positions:
   # TO DO: define exact positions
-  {'name': 'A', 'center': '[0.20,0.25,0.25]', 'dims_in_meters': '[0.05,0.05,0.001]'}
+  names: ['A', 'B', 'C', 'D']
+  pos_x: [0.858317, 0.829316, 0.849589, 1.06107]
+  pos_y: [0.406375, -0.426868, -0.003807, -0.010763]
+  pos_z: [-0.05, -0.05, -0.05, -0.05]
+  radius: 0.1
+#  - {'name': 'A', 'center': '[0.20,0.25,0.25]', 'dims_in_meters': '[0.05,0.05,0.001]'}
 #  - {'name': 'A', 'center': '[0.20,0.25,0.25]', 'dims_in_meters': '[0.05,0.05,0.001]'}
 #  - {'name': 'B', 'center': '[0.20,0.25,0.25]', 'dims_in_meters': '[0.05,0.05,0.001]'}
 #  - {'name': 'C', 'center': '[0.20,0.25,0.25]', 'dims_in_meters': '[0.05,0.05,0.001]'}
@@ -12,7 +17,10 @@ world_positions:
 
 world_objects:
   # Table object dimension ratio
-  - {'name': 'cube', 'dims_ratio': '[1.0,1.0,1.0]'}
-  - {'name': 'rectangle', 'dims_ratio': '[1.0,1.0,2.0]'}
-  - {'name': 'plate', 'dims_ratio': '[1.0,1.0,0.25]'}
-  - {'name': 'tower', 'dims_ratio': '[1.0,1.0,3.0]'}
+  cube: {'x': 1.0, 'y': 1.0,'z': 1.0}
+  tower: {'x': 1.0, 'y': 1.0,'z': 2.0}
+  plate: {'x': 1.0, 'y': 1.0,'z': 0.20}
+  #- {'name': 'cube', 'dims_ratio': '[1.0,1.0,1.0]'}
+  #- {'name': 'rectangle', 'dims_ratio': '[1.0,1.0,2.0]'}
+  #- {'name': 'plate', 'dims_ratio': '[1.0,1.0,0.25]'}
+  #- {'name': 'tower', 'dims_ratio': '[1.0,1.0,3.0]'}
