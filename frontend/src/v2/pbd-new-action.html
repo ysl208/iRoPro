@@ -93,6 +93,7 @@
                 padding: 0;
                 width: 5px;
                 color: black;
+                flex: 1;
             }
 
             .petit {
@@ -102,7 +103,7 @@
                 color: steelblue;
             }
 
-            @media (min-width: 768px) {
+             @media (min-width: 768px) {
                 #layout {
                     height: 100%;
                 }
@@ -122,24 +123,31 @@
                     width: 350px;
                     @apply(--layout-flex);
                 }
-                .button_not {
-                    vertical-align: bottom;
-                    padding-bottom: 9px;
-                    padding-left: 6px;
-                }
+            }
+
+            .button_not {
+                vertical-align: bottom;
+                padding-bottom: 9px;
+                padding-left: 6px;
+            }
+
+            header {
+                display: flex;
             }
 
             nav {
                 font-size: 1.2em;
                 text-align: center;
+                flex : 1;
+            }
+
+            #actionName {
+                width: 200px;
             }
 
             nav paper-button {
                 border: 1px solid rgb(138, 125, 125);
                 border-radius: 10px;
-            }
-            #save {
-               /* float: right;*/
             }
 
             paper-dialog {
@@ -159,9 +167,20 @@
             }
 
             .important {
-                @apply(--iron-icon-width: 26px);
-                @apply(--iron-icon-height: 26px);
+                width: 32px;
+                height: 32px;
             }
+
+            .listeWorldState {
+                display: flex;
+                border-bottom: 1px solid rgba(0, 0, 0, var(--light-divider-opacity));
+            }
+
+            .listeWorldState p {
+                flex: 2;
+                margin: 3px;
+            }
+            
         </style>
         <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
@@ -173,32 +192,49 @@
             ros="[[ros]]"></ros-topic>
             <header>
                 <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
+                <nav>
+                    <!-- Action navigation buttons -->
+                    <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
+                        1. Perception
+                    </paper-button>
+                    <!-- <a href="#/program/{{action.program_id}}"> -->
+                    <paper-button name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]">
+                        2. Demonstration
+                    </paper-button>
+                    <!-- </a> -->
+                    <paper-button class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]">
+                        3. Action Model
+                    </paper-button>
+                </nav>
                 <div id="buttonDiv">
-                    <paper-icon-button id="quit" raised class="important" on-click="quit" icon="icons:close" alt="quit"></paper-icon-button>
-                    <paper-icon-button id="save" raised class="important" on-click="saving" icon="icons:save" alt="save"></paper-icon-button>
+                    <paper-button raised on-click="exiting">
+                        <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
+                    </paper-button>
+                    <paper-button raised on-click="saving">
+                        Save
+                        <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
+                    </paper-button>
+                    
                 </div>
+                
+                <paper-dialog modal id="saving">
+                    <h2>Save current action ?</h2>
+                    <div>
+                        <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+                        <paper-button dialog-confirm raised on-tap="_updateDomain">Save</paper-button>
+                    </div>
+                </paper-dialog>
+                <paper-dialog modal id="exiting">
+                    <h2>Quit current action ?</h2>
+                    <p>All change not saved will be lost.</p>
+                    <div>
+                        <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+                        <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
+                    </div>
+                </paper-dialog>
             </header>
-        <nav>
-            <!-- Action navigation buttons -->
-            <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
-                1. Perception
-            </paper-button>
-            <!-- <a href="#/program/{{action.program_id}}"> -->
-            <paper-button name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]">
-                2. Demonstration
-            </paper-button>
-            <!-- </a> -->
-            <paper-button class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]">
-                3. Action Model
-            </paper-button>
-        </nav>
-        <paper-dialog modal id="saving">
-            <h2>Save current action ?</h2>
-            <div>
-                <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
-                <paper-button dialog-confirm raised on-tap="_updateDomain">Save</paper-button>
-            </div>
-        </paper-dialog>
+        
+        
         <div id="layout" class="layout vertical">
             <!-- ***** DEMONSTRATION **** 2/3 -->
             <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
@@ -249,8 +285,8 @@
                                 Preconditions
                             </legend>
                             <template is="dom-repeat" items="{{action.preconditions}}" as="item" index-as="paramIndex">
-                                <div id="listeWorldState">
-                                    [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                                <div class="listeWorldState">
+                                    <p>[[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]</p>
                                     <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
                                         <paper-icon-button icon="delete"></paper-icon-button>
                                     </paper-button>
@@ -294,8 +330,8 @@
                             </legend>
 
                             <template is="dom-repeat" items="{{action.effects}}" as="item" index-as="paramIndex">
-                                <div id="listeWorldState2">
-                                    [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                                <div class="listeWorldState">
+                                    <p>[[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]</p>
                                     <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
                                         <paper-icon-button icon="delete"></paper-icon-button>
                                     </paper-button>
@@ -356,6 +392,9 @@
             <div class="buttons">
                 <paper-button dialog-confirm class="clear">OK</paper-button>
             </div>
+        </paper-dialog>
+        <paper-dialog modal id="loading">
+            <p><paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
         </paper-dialog>
     </template>
 
@@ -560,7 +599,7 @@
                 } else {
                     console.info('rviz not ready');
                 }
-
+                
             },
 
             _updatePredicate: function (evt) {
@@ -720,6 +759,9 @@
             saving: function (evt) {
                 this.$.saving.open();
             },
+            exiting: function(evt) {
+                this.$.exiting.open();
+            },
             quit: function (evt) {
                 this.fire('quit');
             },
@@ -789,6 +831,7 @@
                     return;
                 }
                 var state = evt.target.getAttribute('data-args');
+                this._generateConditions();
                 var msg = {
                     type: 'detect action conditions',
                     domain_id: this.domain_id,

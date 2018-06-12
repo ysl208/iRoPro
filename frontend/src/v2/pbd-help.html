@@ -11,7 +11,7 @@
             }
 
             h2 {
-                margin-bottom: 2%;
+                margin-bottom: 5px;
             }
 
             article {
@@ -27,14 +27,15 @@
                     its arms and showing how the action should be performed. </p>
 
                 <h2>How to teach an action</h2>
-                <p>The robot observes the changes in the world state before. You can edit the detected condition to better the
-                    robot's world view as it can be to specific or not detailed enough. You manipulate the robot to do a
-                    certain action. After the demonstration, it will associate a final state of the world around the robot
-                    that can also be edited to help it understand the consequences of this new action.</p>
+                <p>The robot detect tabletop object. You can click on "detect world instances" if it didn't detect all objetcs.
+                    In the demonstration process, you manipulate the robots arm to create a simple action.
+                    Note that the robot will compute the best trajectory between point and not recreate the specific mouvement you performed.
+                    After the demonstration, it will show the precondition and effects of the action. You can suppress or add predicates if needed.
+                </p>
 
                 <h2>Create a problem to solve automatically</h2>
                 <p>Once the robot has learned some action, you can give the robot a problem.
-                    <br/> It will detect the state of the world at the beginning. You will give it a gaol to achieve and it will
+                    <br/> It will detect the state of the world at the beginning. You will give it a goal to achieve. It will
                     prepare a solution plan to solve the problem using the taught action. You can then execute directly the
                     plan or just save it for later.</p>
                 </p>

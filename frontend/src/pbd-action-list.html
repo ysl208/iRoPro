@@ -107,7 +107,7 @@
                         <tr>
                             <td colspan="2">-->
                                 <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
-                                    <div style="overflow:auto; max-height: 100vh;">
+                                    <div>
                                         <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
                                             <pbd-new-action on-quit="quitNewAction" name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain="[[pddlDomain]]" showing="{{_showActionProperties}}"></pbd-new-action>
                                         </template>

@@ -51,7 +51,7 @@
 
 	function displayCamera($top_left_camera, $bottom_left_camera, $top_right_camera, $bottom_right_camera) {
 		$errcode = launchScript("./controlRobot.sh -c $top_left_camera $bottom_left_camera $top_right_camera $bottom_right_camera");
-		if ($errcode == -2) {
+		if ($errcode == 2) {
 			echo "A problem with a camera occured. Please check that the given camera are powered on and connected to the computer";
 		}
 	}

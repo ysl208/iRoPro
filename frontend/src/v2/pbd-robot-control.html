@@ -102,8 +102,8 @@
                         <paper-button dialog-confirm on-tap="close">Close</paper-button>
                     </div>
                 </paper-dialog>
-                <paper-dialog modal id="errorProcessCamera">
-                        <h2>Error during camera display</h2>
+                <paper-dialog modal id="errorProcess">
+                        <h2>Error during execution</h2>
                         <p>One of the camera you requested is not available. Please check if it is powered.</p>
                         <div id="buttons">
                             <paper-button dialog-confirm on-tap="close">Close</paper-button>
@@ -175,7 +175,6 @@
                         "display": "camera",
                         "camsList": JSON.stringify(camerasList)
                     });
-                    console.log(this.$$('#displayCamera').params);
                     this.$$('#displayCamera').generateRequest();
                 }
             },
@@ -193,8 +192,10 @@
             },
             handleResponse: function(event) {
                 this.$.loading.close();
-                if (event.detail.response == "problem with camera") {
-                    this.$.errorProcessCamera.open();
+                console.log(event.detail.response);
+                if (event.detail.response != "") {
+                    this.$$("#errorProcess p").innerHTML = event.detail.response;
+                    this.$.errorProcess.open();
                 }
             }
         });
