@@ -102,6 +102,13 @@
                         <paper-button dialog-confirm on-tap="close">Close</paper-button>
                     </div>
                 </paper-dialog>
+                <paper-dialog modal id="chooseCamera">
+                    <h2>No camera selected</h2>
+                    <p>Please choose at least one topic to display on screen.</p>
+                    <div id="buttons">
+                        <paper-button dialog-confirm on-tap="close">Close</paper-button>
+                    </div>
+                </paper-dialog>
                 <paper-dialog modal id="errorProcess">
                         <h2>Error during execution</h2>
                         <p>One of the camera you requested is not available. Please check if it is powered.</p>
@@ -170,6 +177,8 @@
                 //cannot open 3 baxter's camera at the same time
                 if (camerasList.indexOf("/cameras/left_hand_camera/image") != -1 && camerasList.indexOf("/cameras/right_hand_camera/image") != -1 && camerasList.indexOf("/cameras/head_camera/image") != -1) {
                     this.$.errorOpeningCamera.open();
+                } else if (camerasList[0] == "none" && camerasList[1] == "none" && camerasList[2] == "none" && camerasList[3] == "none") {
+                    this.$.chooseCamera.open();
                 } else {
                     this.$$('#displayCamera').set('params', {
                         "display": "camera",
@@ -193,7 +202,8 @@
             handleResponse: function(event) {
                 this.$.loading.close();
                 console.log(event.detail.response);
-                if (event.detail.response != "") {
+                if (event.detail.response != " success") {
+                    console.log(event.detail.response);
                     this.$$("#errorProcess p").innerHTML = event.detail.response;
                     this.$.errorProcess.open();
                 }

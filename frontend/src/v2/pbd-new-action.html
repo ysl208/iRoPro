@@ -11,6 +11,7 @@
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
 
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 <link rel="import" href="../../bower_components/ros-action-client/ros-action-client.html">
@@ -221,7 +222,7 @@
                     <h2>Save current action ?</h2>
                     <div>
                         <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
-                        <paper-button dialog-confirm raised on-tap="_updateDomain">Save</paper-button>
+                        <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
                     </div>
                 </paper-dialog>
                 <paper-dialog modal id="exiting">
@@ -743,6 +744,7 @@
                 if (this.actionName != this.action.name && !this._nameValid(this.actionName)) {
                     alert(this.actionName + ' already exists. Please choose a different name.');
                 } else {
+                    this.action.name = this.actionName;
                     var msg = {
                         type: 'update pddl action',
                         domain_id: this.domain_id,
@@ -778,6 +780,7 @@
 
             _domainUpdated: function (changedDomain, changedList) {
                 if (changedDomain.value) {
+                    this.$.loading.close();
                     this.domain = changedDomain.value;
                 }
                 if (this.domainList && this.domainList.domains.length == 1) {
@@ -833,11 +836,12 @@
                 var state = evt.target.getAttribute('data-args');
                 this._generateConditions();
                 var msg = {
-                    type: 'detect action conditions',
+                    type: 'detect world state',
                     domain_id: this.domain_id,
                     action_name: this.action.name,
                     state_name: state
                 };
+                this.$.loading.open();
                 this.$.eventPub.publish(msg);
             },
             removeDuplicates: function (a) {
