@@ -102,9 +102,9 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
   world_state->positions_.clear();
   std::vector<msgs::PDDLObject> args;
   std::string predicate;
-  double position_radius = 0.9;
   msgs::PDDLObject position;
   bool negate = false;
+  double position_radius = 0.5;
   msgs::PDDLObject obj;
   msgs::PDDLType obj_type;
 
@@ -121,6 +121,9 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
              world_landmark.pose_stamped.pose.position.x,
              world_landmark.pose_stamped.pose.position.y,
              world_landmark.pose_stamped.pose.position.z);
+    ROS_INFO("and size (%f,%f,%f)", world_landmark.surface_box_dims.x,
+             world_landmark.surface_box_dims.y,
+             world_landmark.surface_box_dims.z);
     // Generate Predicates for type == OBJECT
     std::stringstream ss;
     ss << "Obj " << i + 1;
@@ -128,9 +131,12 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
     msgs::PDDLType obj_type;
     obj_type.name = msgs::PDDLType::OBJECT;
     GetTypeFromDims(world_landmark.surface_box_dims, &obj_type);
+    obj_type.pose = world_landmark.pose_stamped.pose;
+    obj_type.dimensions = world_landmark.surface_box_dims;
     obj.type = obj_type;
     AddObject(&world_state->objects_, obj);
-
+    ros::param::param<double>("world_positions/radius", position_radius,
+                              position_radius);
     // IS_ON predicates
     // Check which position the object is on
     if (GetObjectTablePosition(obj_type, world_state, position_radius,
@@ -246,7 +252,8 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
   double squ_dist_cutoff = distance * distance;
   bool success = false;
   double closest_distance = std::numeric_limits<double>::max();
-  if (obj.name == msgs::PDDLType::OBJECT) {
+  if (obj.name == msgs::PDDLType::OBJECT ||
+      obj.parent == msgs::PDDLType::OBJECT) {
     for (size_t i = 0; i < world_state->positions_.size(); ++i) {
       const msgs::PDDLObject& pos_object = world_state->positions_[i];
       if (pos_object.type.name == msgs::PDDLType::POSITION) {
@@ -257,7 +264,7 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
         double dx = pose.x - obj.pose.position.x;
         double dy = pose.y - obj.pose.position.y;
         double dz = pose.z - obj.pose.position.z;
-        double squared_distance = dx * dx + dy * dy + dz * dz;
+        double squared_distance = dx * dx + dy * dy;  // + dz * dz;
         ROS_INFO("Dist = %f < cutoff %f", squared_distance, squ_dist_cutoff);
 
         if (squared_distance < closest_distance &&
@@ -278,23 +285,82 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
 void GetTypeFromDims(const geometry_msgs::Vector3& dims,
                      msgs::PDDLType* obj_type) {
   // TO DO: check yaml file to decide object type
-  // obj_type->type = msgs::PDDLType::OBJECT;
+  obj_type->name = msgs::PDDLType::RECTANGLE_OBJECT;
+  obj_type->parent = msgs::PDDLType::OBJECT;
+
+  // vector <map<std::string,std::string> > objects;
+  // ros::param::param< vector <map<std::string,std::string> >
+  // >("world_objects",objects, objects);
+
+  /*double x_y_ratio = dims.x/dims.y;
+  double x_z_ratio = dims.x/dims.z;
+  double y_z_ratio = dims.y/dims.z;
+  */
+  double x = dims.x;
+  double y = dims.y;
+  double z = dims.z;
+  std::vector<std::string> types;
+  // types.push_back = {"cube", "rectangle", "tower", "plate"};
+  double x_y_ratio;
+  double x_z_ratio;
+  double y_z_ratio;
+  // for (size_t i = 0; i < types.size(); ++i) {
+  std::string type = "rectangle";
+  /* std::map<std::string, double> cube;
+  std::string param_name = "world_objects/" + types[i];
+  ros::param::param<std::map<std::string, double> >(param_name, cube, cube); */
+  /* std::cout << cube.find("x") << std::endl;
+
+  x_z_ratio = cube.find("x") / cube.find("z"); */
+  if (x / y > 0.85) {
+    // is one of three shapes
+    std::cout << x / z << std::endl;
+    std::cout << y / z << std::endl;
+    if (x / z > 3.5 || y / z > 3.5) {
+      type = "plate";
+      obj_type->name = msgs::PDDLType::PLATE_OBJECT;
+    } else if ((x / z > 0.85 || y / z > 0.85) &&
+               (x / z < 1.3 || y / z < 1.3)) {
+      type = "cube";
+      obj_type->name = msgs::PDDLType::CUBE_OBJECT;
+    } else if (x / z < 0.5 || y / z < 0.5) {
+      type = "tower";
+      obj_type->name = msgs::PDDLType::TOWER_OBJECT;
+    }
+  }
+  //}
+  /*for (size_t i = 0; i < objects.size(); ++i) {
+  std::cout << objects.at('name').c_str() << std::endl;
+
+  std::cout << objects.at('dims_ratio').c_str() << std::endl;
+}*/
 }
 
 void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
   msgs::PDDLObject obj;
   msgs::PDDLType obj_type;
   obj_type.name = msgs::PDDLType::POSITION;
-  // std::vector<double, double> poses = {(1.0, -0.5), (1.0, 0.5), (1.15, -0.5),
-  //                                     (1.15, 0.5)};
-  for (size_t i = 0; i < 4; ++i) {
+
+  std::vector<double> pos_x_list, pos_y_list, pos_z_list;
+  std::vector<std::string> name_list;
+
+  ros::param::param<std::vector<std::string> >("world_positions/names",
+                                               name_list, name_list);
+  ros::param::param<std::vector<double> >("world_positions/pos_x", pos_x_list,
+                                          pos_x_list);
+  ros::param::param<std::vector<double> >("world_positions/pos_y", pos_y_list,
+                                          pos_x_list);
+  ros::param::param<std::vector<double> >("world_positions/pos_z", pos_z_list,
+                                          pos_x_list);
+
+  for (size_t i = 0; i < name_list.size(); ++i) {
     std::stringstream ss;
-    ss << "Position " << i + 1;
+    ss << "Position " << name_list[i];
     obj.name = ss.str();
     geometry_msgs::Pose pose;
-    pose.position.x = 0.8 + 0.2 * (i % 2);
-    pose.position.y = -0.25 + 0.5 * (i % 2);
-    pose.position.z = -0.05;
+    pose.position.x = pos_x_list[i];
+    pose.position.y = pos_y_list[i];
+    pose.position.z = pos_z_list[i];
     pose.orientation.w = 1;
     pose.orientation.x = 0;
     pose.orientation.y = 0;
@@ -307,9 +373,6 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
     AddObject(objects, obj);
   }
   double a_center_x = 0, a_center_y = 0, a_center_z = 0;
-  // std::vector<std::pair<std::string, std::string> > world_positions;
-  //   ros::param::param<std::vector<std::pair<std::string, std::string> > >(
-  //       "world_positions", world_positions);
 }
 
 void PrintAllPredicates(std::vector<msgs::PDDLPredicate> predicates,
