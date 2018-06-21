@@ -76,17 +76,28 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     // PDDL events
     else if (event.type == msgs::EditorEvent::SAVE_ON_EXIT) {
       SaveOnExit(event.domain_id, event.action_name);
+    } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_DOMAIN) {
+      UpdatePDDLDomain(event.domain_id, event.pddl_domain);
+    } else if (event.type == msgs::EditorEvent::DETECT_WORLD_STATE) {
+      DetectWorldState(event.domain_id, event.action_name, event.state_name);
+    } else if (event.type == msgs::EditorEvent::ASSIGN_SURFACE_OBJECTS) {
+      AssignSurfaceObjects(event.program_info.db_id, event.pddl_action,
+                           event.step_num);
+      // PDDL actions
     } else if (event.type == msgs::EditorEvent::ADD_PDDL_ACTION) {
       AddPDDLAction(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::DELETE_PDDL_ACTION) {
       DeletePDDLAction(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_ACTION) {
       UpdatePDDLAction(event.domain_id, event.pddl_action, event.action_name);
-    } else if (event.type == msgs::EditorEvent::DETECT_WORLD_STATE) {
-      AddActionCondition(event.domain_id, event.action_name, event.state_name);
-    } else if (event.type == msgs::EditorEvent::ASSIGN_SURFACE_OBJECTS) {
-      AssignSurfaceObjects(event.program_info.db_id, event.pddl_action,
-                           event.step_num);
+      // PDDL problems
+    } else if (event.type == msgs::EditorEvent::ADD_PDDL_PROBLEM) {
+      AddPDDLProblem(event.domain_id, event.problem_name);
+    } else if (event.type == msgs::EditorEvent::DELETE_PDDL_PROBLEM) {
+      DeletePDDLProblem(event.domain_id, event.problem_name);
+    } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_PROBLEM) {
+      UpdatePDDLProblem(event.domain_id, event.pddl_problem,
+                        event.problem_name);
     }
     // Condition events
     else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
@@ -134,7 +145,7 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     ROS_ERROR("Unhandled exception for event %s: %s", event.type.c_str(),
               ex.what());
   }
-}
+}  // namespace pbd
 
 bool Editor::HandleCreatePDDLDomain(
     msgs::CreatePDDLDomain::Request& request,
@@ -1147,9 +1158,15 @@ void Editor::SaveOnExit(const std::string& db_id,
   Update(db_id, program);
 }
 
-void Editor::AddActionCondition(const std::string& domain_id,
-                                const std::string& action_name,
-                                const std::string& state_name) {
+void Editor::UpdatePDDLDomain(const std::string& domain_id,
+                              const msgs::PDDLDomain& domain) {
+  domain_db_.Update(domain_id, domain);
+  pddl_domain_.PublishPDDLDomain(domain);
+}
+
+void Editor::DetectWorldState(const std::string& domain_id,
+                              const std::string& action_name,
+                              const std::string& state_name) {
   // look for pddl domain
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
@@ -1181,6 +1198,7 @@ void Editor::AddActionCondition(const std::string& domain_id,
     // save scene_id and surface for later
     new_action.scene_id = result->cloud_db_id;
     new_action.surface = result->surface;
+    new_action.landmarks.clear();
     // std::vector<msgs::Landmark> world_landmarks;
     for (size_t i = 0; i < result->landmarks.size(); ++i) {
       msgs::Landmark landmark;
@@ -1233,7 +1251,7 @@ void Editor::AssignSurfaceObjects(const std::string& db_id,
   }
   Update(db_id, program);
 }
-
+// PDDL Action functions
 void Editor::AddPDDLAction(const std::string& domain_id,
                            const std::string& action_name) {
   ROS_INFO("Start add pddl action: %s", action_name.c_str());
@@ -1254,8 +1272,7 @@ void Editor::AddPDDLAction(const std::string& domain_id,
   msgs::PDDLAction action;
   action.name = action_name;
   domain.actions.push_back(action);
-  domain_db_.Update(domain_id, domain);
-  pddl_domain_.PublishPDDLDomain(domain);
+  UpdatePDDLDomain(domain_id, domain);
 }
 
 void Editor::UpdatePDDLAction(const std::string& domain_id,
@@ -1280,8 +1297,8 @@ void Editor::UpdatePDDLAction(const std::string& domain_id,
   if (action_name != "") {
     domain.actions[index].name = action_name;
   }
-  domain_db_.Update(domain_id, domain);
-  pddl_domain_.PublishPDDLDomain(domain);
+
+  UpdatePDDLDomain(domain_id, domain);
 }
 
 void Editor::DeletePDDLAction(const std::string& domain_id,
@@ -1292,7 +1309,6 @@ void Editor::DeletePDDLAction(const std::string& domain_id,
     ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
-  // TO DO: Test if it works
   msgs::PDDLAction action;
   int index = FindPDDLAction(action_name, domain.actions);
   if (index < 0) {
@@ -1301,8 +1317,8 @@ void Editor::DeletePDDLAction(const std::string& domain_id,
   } else {
   }
   domain.actions.erase(domain.actions.begin() + index);
-  domain_db_.Update(domain_id, domain);
-  pddl_domain_.PublishPDDLDomain(domain);
+
+  UpdatePDDLDomain(domain_id, domain);
 }
 
 int Editor::FindPDDLAction(const std::string name,
@@ -1317,6 +1333,89 @@ int Editor::FindPDDLAction(const std::string name,
   return -1;
 }
 
+// PDDL Problems functions
+
+void Editor::AddPDDLProblem(const std::string& domain_id,
+                            const std::string& problem_name) {
+  ROS_INFO("Start add pddl problem: %s", problem_name.c_str());
+  domain_db_.StartPublishingPDDLDomainById(domain_id);
+
+  ROS_INFO("Trying to get %s from db", domain_id.c_str());
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  }
+  int index = FindPDDLProblem(problem_name, domain.problems);
+  if (index >= 0) {
+    ROS_INFO("Pddl problem called %s already exists", problem_name.c_str());
+  }
+  ROS_INFO("Creating new pddl problem %s", problem_name.c_str());
+  msgs::PDDLProblem problem;
+  problem.name = problem_name;
+  domain.problems.push_back(problem);
+  UpdatePDDLDomain(domain_id, domain);
+}
+
+void Editor::UpdatePDDLProblem(const std::string& domain_id,
+                               const msgs::PDDLProblem& problem,
+                               const std::string& problem_name) {
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  }
+
+  int index = FindPDDLProblem(problem.name, domain.problems);
+  if (index < 0) {
+    ROS_INFO("Pddl problem %s does not exist but will be added",
+             problem.name.c_str());
+    domain.problems.push_back(problem);
+  } else {
+    domain.problems.at(index) = problem;
+  }
+  // Update problem name
+  if (problem_name != "") {
+    domain.problems[index].name = problem_name;
+  }
+
+  UpdatePDDLDomain(domain_id, domain);
+}
+void Editor::DeletePDDLProblem(const std::string& domain_id,
+                               const std::string& problem_name) {
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  }
+  msgs::PDDLProblem problem;
+  int index = FindPDDLProblem(problem_name, domain.problems);
+  if (index < 0) {
+    ROS_ERROR("Unable to find pddl problem %s for domain %s",
+              problem_name.c_str(), domain_id.c_str());
+  } else {
+  }
+  domain.problems.erase(domain.problems.begin() + index);
+
+  UpdatePDDLDomain(domain_id, domain);
+}
+
+int Editor::FindPDDLProblem(const std::string name,
+                            const std::vector<msgs::PDDLProblem>& problems) {
+  ROS_INFO("Start looking for problem %s out of %zu problems", name.c_str(),
+           problems.size());
+  for (int i = 0; i < problems.size(); ++i) {
+    if (problems[i].name == name) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+// rapid_pbd functions
 void Editor::GetJointValues(const std::string& db_id, size_t step_id,
                             size_t action_id,
                             const std::string& actuator_group) {

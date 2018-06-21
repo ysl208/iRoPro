@@ -24,7 +24,7 @@
 <link rel="import" href="../bower_components/ros-websocket/ros-websocket.html">
 <link rel="import" href="pbd-action-list.html">
 <link rel="import" href="pbd-program.html">
-<!-- <link rel="import" href="pbd-program-list.html"> -->
+<link rel="import" href="pbd-problem-list.html">
 <link rel="import" href="v2/pbd-help.html">
 <link rel="import" href="v2/pbd-home.html">
 <link rel="import" href="v2/pbd-robot-control.html">
@@ -83,8 +83,13 @@
       }
     </style>
     <!-- ROS connection -->
+    
     <app-location route="{{route}}" use-hash-as-path></app-location>
-    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{routeTail}}"></app-route>
+    <app-route  route="{{route}}" 
+                pattern="/:page" 
+                data="{{routeData}}" 
+                tail="{{routeTail}}"></app-route>
+
     <ros-websocket auto url="{{url}}" id="websocket" on-connection="_handleConnection" on-error="_handleClose" on-close="_handleClose"
       ros="{{ros}}"></ros-websocket>
     <ros-topic auto on-message="_handleRosout" msg-type="rosgraph_msgs/Log" topic="rosout" ros="[[ros]]"></ros-topic>
@@ -100,6 +105,7 @@
     </paper-dialog>
 
     <!-- Used to check if there's actions before loading problem list tab -->
+    <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
     <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
     <paper-dialog modal id="errorNoActionList">
       <h2>Can't load the Problem List</h2>
@@ -138,7 +144,6 @@
                   {{item}}
                 </paper-tab>
               </template>
-              <paper-tab name="Problemzzz" id="Problemzzz">Problemzzz</paper-tab>
             </paper-tabs>
           </app-toolbar>
         </app-header>
@@ -146,13 +151,6 @@
     </app-drawer-layout>
     <iron-media-query query="min-width: 600px" query-matches="{{wideLayout}}"></iron-media-query>
 
-    <!-- <template is="dom-if" if="[[!_shouldShowProgram(routeData.page)]]">
-      <pbd-action-list data-page="" ros="[[ros]]" route="{{route}}"></pbd-action-list>
-    </template> -->
-
-    <template is="dom-if" if="[[_shouldShowProgram(routeData.page)]]">
-      <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-program>
-    </template>
     <template is="dom-if" restamp if="[[isSelected(selected,'Home')]]">
       <pbd-home data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-home>
     </template>
@@ -160,7 +158,7 @@
       <pbd-action-list name="action-list" data-page="action-list" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-action-list>
     </template>
     <template is="dom-if" restamp if="[[isSelected(selected,'Problems')]]">
-      <pbd-problem-list data-page="problem-list" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-problem-list>
+      <pbd-problem-list name="problem-list" data-page="problem-list" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-problem-list>
     </template>
     <template is="dom-if" restamp if="[[isSelected(selected,'Robot Control')]]">
       <pbd-robot-control data-page="robot-control" name="robot-control"></pbd-robot-control>
@@ -178,6 +176,12 @@
       is: 'pbd-app2',
 
       properties: {
+        pddlDomain: {
+            type: Object,
+            value: function () {
+                return { actions: [] };
+            }
+        },
         routeData: {
           type: Object,
           value: function () {
@@ -218,15 +222,9 @@
             return ['Home', 'Actions', 'Problems', 'Robot Control', 'Help'];
           }
         },
-        pddlDomain: {
-            type: Object,
-            value: function () {
-                return { actions: [] };
-            }
-        },
       },
       tabProblems: function() {
-        //alert("length = " + this.pddlDomain.actions.length);
+        alert("length = " + this.pddlDomain);
         //// If there's no action we redirect to the home page instead of problem list
         //if (this.pddlDomain.actions.length == 0) {
         //  this.selected == "Home";
