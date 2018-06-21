@@ -39,6 +39,14 @@
                 padding-left: 10px;
             }
 
+            fieldset {
+                margin-top: 5px;
+            }
+
+            #cameraButton {
+                float: right;
+            }
+
         </style>
         <!-- <h1 align="center">Robot Control</h1> -->
         <div class="container">
@@ -66,18 +74,8 @@
         <fieldset>
             <legend>Display on robot screen</legend>
 
-            <paper-button class="style-scope canvas-view" raised on-tap="displayEyesRequest">Eyes</paper-button>
+            <paper-button class="style-scope canvas-view" raised on-tap="displayEyesRequest">Display eyes</paper-button>
             <iron-ajax id="displayEyes" method="GET" url="src/v2/control.php" params='{"display":"eyes"}'></iron-ajax>
-            <paper-button class="style-scope canvas-view" raised on-tap="displayCameraRequest">Camera</paper-button>
-            <iron-ajax id="displayCamera" method="GET" url="src/v2/control.php"></iron-ajax>
-
-            <paper-dialog modal id="dialog">
-                <h2>Can't open camera</h2>
-                <p>Baxter is unable to open more than two of its camera at the same time. Please change the camera you want to see.</p>
-                <div id="buttons">
-                    <paper-button dialog-confirm on-tap="close">Close</paper-button>
-                </div>
-            </paper-dialog>
 
             <fieldset>
                 <legend>Camera's image to display</legend>
@@ -94,6 +92,30 @@
                         </paper-dropdown-menu>
                     </template>
                 </div>
+                <paper-button id="cameraButton" class="style-scope canvas-view" raised on-tap="displayCameraRequest">Display camera</paper-button>
+                <iron-ajax id="displayCamera" method="GET" url="src/v2/control.php" handle-as="text" on-response="handleResponse"></iron-ajax>
+
+                <paper-dialog modal id="errorOpeningCamera">
+                    <h2>Cannot open camera</h2>
+                    <p>Baxter is unable to open more than two of its camera at the same time. Please change the camera you want to see.</p>
+                    <div id="buttons">
+                        <paper-button dialog-confirm on-tap="close">Close</paper-button>
+                    </div>
+                </paper-dialog>
+                <paper-dialog modal id="chooseCamera">
+                    <h2>No camera selected</h2>
+                    <p>Please choose at least one topic to display on screen.</p>
+                    <div id="buttons">
+                        <paper-button dialog-confirm on-tap="close">Close</paper-button>
+                    </div>
+                </paper-dialog>
+                <paper-dialog modal id="errorProcess">
+                        <h2>Error during execution</h2>
+                        <p>One of the camera you requested is not available. Please check if it is powered.</p>
+                        <div id="buttons">
+                            <paper-button dialog-confirm on-tap="close">Close</paper-button>
+                        </div>
+                    </paper-dialog>
             </fieldset>
         </fieldset>
 
@@ -154,13 +176,14 @@
                 }
                 //cannot open 3 baxter's camera at the same time
                 if (camerasList.indexOf("/cameras/left_hand_camera/image") != -1 && camerasList.indexOf("/cameras/right_hand_camera/image") != -1 && camerasList.indexOf("/cameras/head_camera/image") != -1) {
-                    this.$.dialog.open();
+                    this.$.errorOpeningCamera.open();
+                } else if (camerasList[0] == "none" && camerasList[1] == "none" && camerasList[2] == "none" && camerasList[3] == "none") {
+                    this.$.chooseCamera.open();
                 } else {
                     this.$$('#displayCamera').set('params', {
                         "display": "camera",
                         "camsList": JSON.stringify(camerasList)
                     });
-                    console.log(this.$$('#displayCamera').params);
                     this.$$('#displayCamera').generateRequest();
                 }
             },
@@ -178,6 +201,12 @@
             },
             handleResponse: function(event) {
                 this.$.loading.close();
+                console.log(event.detail.response);
+                if (event.detail.response != " success") {
+                    console.log(event.detail.response);
+                    this.$$("#errorProcess p").innerHTML = event.detail.response;
+                    this.$.errorProcess.open();
+                }
             }
         });
     </script>

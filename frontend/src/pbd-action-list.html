@@ -93,8 +93,8 @@
                 </table>
             </template>
 
-            <template is="dom-if" restamp if="[[_showActionProperties]]">
-                <table style="height:auto;">
+            <template is="dom-if" restamp if="{{_showActionProperties}}">
+                <!--<table style="height:auto;">
                     <tr>
                         <th>Action Properties</th>
                         <th>
@@ -105,20 +105,18 @@
                             </div>
                         </th>
                         <tr>
-                            <td colspan="2">
+                            <td colspan="2">-->
                                 <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
-
-                                    <div style="overflow:auto; max-height: 100vh;">
+                                    <div>
                                         <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
-                                            <pbd-new-action name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain="[[pddlDomain]]"></pbd-new-action>
+                                            <pbd-new-action on-quit="quitNewAction" name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain="[[pddlDomain]]" showing="{{_showActionProperties}}"></pbd-new-action>
                                         </template>
                                     </div>
                                 </template>
-
-                            </td>
+               <!--             </td>
                         </tr>
 
-                </table>
+                </table>-->
             </template>
         </div>
 
@@ -161,6 +159,9 @@
                 'load(pddlDomain.*,domainList.*)',
                 '_domainUpdated(pddlDomain.*)',
             ],
+            quitNewAction: function(e) {
+               this._showActionProperties = false;
+            },
             load: function (changedDomain, changedList) {
                 if (this.domainList && this.domainList.domains.length == 1) {
                     this.domain_id = this.domainList.domains[0].domain_id;

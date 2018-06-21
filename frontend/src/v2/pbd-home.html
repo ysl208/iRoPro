@@ -16,39 +16,52 @@
         margin-top: 0;
       }
 
-      paper-button {
-        vertical-align: top;
-        width: 30%;
-        height: 50%;
-        margin-left: 2%;
+      p {
+        padding: 15px;
       }
 
-      #help {
-        width: 10%;
-        height: 10%;
-        margin: 10% 45% 0% 45%;
+      div {
+        display: flex;
+        justify-content: space-around;
+        margin: 15px;
+      }
+
+      paper-button {
+        flex : 1;
+        width: 100%;
       }
 
       a paper-button,
       a:active paper-button,
       a:visited paper-button {
         color: #000;
+        text-decoration: none;
+        padding: 15%;
       }
+      
     </style>
 
     <h1 class="style-scope canvas-view">Welcome to the Programming by Demonstration Planning tool</h1>
-    <a href="#/action-list">
-      <paper-button raised id="actionsMenu" class="style-scope canvas-view">Teach actions</paper-button>
-    </a>
-    <a href="#/problem-list">
-      <paper-button raised id="problemsMenu" class="style-scope canvas-view">Solve problems</paper-button>
-    </a>
-    <a href="#/robot-control">
-      <paper-button raised id="robotControl" class="style-scope canvas-view">Robot control</paper-button>
-    </a>
-    <a href="#/help">
-      <paper-button raised id="help" class="style-scope canvas-view">Help</paper-button>
-    </a>
+    <p>Programming by Demonstration (PbD) is a technique that allows you to teach the robot a new action by moving its arms and showing how the action should be performed. <br>
+
+      You can then give a problem to the robot by scpecifying a goal world state to achieve. It will plan a solution using the learned action.
+      Note that in order to create a problem, you need to teach action first.</p>
+    <div>
+      <a href="#/action-list">
+        <paper-button raised id="actionsMenu" class="style-scope canvas-view">Teach actions</paper-button>
+      </a>
+      <a href="#/problem-list">
+        <paper-button raised id="problemsMenu" class="style-scope canvas-view">Solve problems</paper-button>
+      </a>
+      <a href="#/robot-control">
+        <paper-button raised id="robotControl" class="style-scope canvas-view">Control robot</paper-button>
+      </a>
+    </div>
+    <div>
+      <a href="#/help" id="help">
+        <paper-button raised  class="style-scope canvas-view">Help</paper-button>
+      </a>
+    </div>
   </template>
   <script>
     Polymer({
