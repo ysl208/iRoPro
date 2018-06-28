@@ -254,12 +254,16 @@
                             <p>Verify all objects have been detected before proceeding.
                                 <br></p>
                             <br>
-                            <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
-                                <div id="listeObjet">
-                                    <paper-icon-button icon="check"></paper-icon-button>
-                                    [[item.name]] ([[item.type.name]])
-                                </div>
-                            </template>
+                            <table>
+                                <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
+                                    <tr>
+                                    <div id="listeObjet">
+                                        <td><paper-icon-button icon="check"></paper-icon-button></td>
+                                        <td>[[item.name]]</td> <td>([[item.type.name]])</td>
+                                    </div>
+                                    </tr>
+                                </template>
+                            </table>
 
                             <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
                                 Detect World Instances
@@ -370,7 +374,7 @@
                         </fieldset>
                     </div>
                 </div>
-                <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz>
+                <!--<ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz>-->
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -841,7 +845,8 @@
                     return;
                 }
                 var state = evt.target.getAttribute('data-args');
-                this._generateConditions();
+                if (state == "Effect")
+                    this._generateConditions();
                 var msg = {
                     type: 'detect world state',
                     domain_id: this.domain_id,

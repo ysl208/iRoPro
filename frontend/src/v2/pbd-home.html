@@ -48,24 +48,28 @@
       Note that in order to create a problem, you need to teach action first.</p>
     <div>
       <a href="#/action-list">
-        <paper-button raised id="actionsMenu" class="style-scope canvas-view">Teach actions</paper-button>
+        <paper-button raised id="actionsMenu" class="style-scope canvas-view" on-tap="update" data-args="Actions">Teach actions</paper-button>
       </a>
       <a href="#/problem-list">
-        <paper-button raised id="problemsMenu" class="style-scope canvas-view">Solve problems</paper-button>
+        <paper-button raised id="problemsMenu" class="style-scope canvas-view" on-tap="update" data-args="Problems">Solve problems</paper-button>
       </a>
       <a href="#/robot-control">
-        <paper-button raised id="robotControl" class="style-scope canvas-view">Control robot</paper-button>
+        <paper-button raised id="robotControl" class="style-scope canvas-view" on-tap="update" data-args="Robot Control">Control robot</paper-button>
       </a>
     </div>
     <div>
       <a href="#/help" id="help">
-        <paper-button raised  class="style-scope canvas-view">Help</paper-button>
+        <paper-button raised  class="style-scope canvas-view" on-tap="update" data-args="Help">Help</paper-button>
       </a>
     </div>
   </template>
   <script>
     Polymer({
       is: "pbd-home",
+
+      update: function(e) {
+        this.fire('updatebtn', {button: e.target.getAttribute('data-args')});
+      }
     });
   </script>
 </dom-module>
