@@ -28,7 +28,6 @@
 <link rel="import" href="v2/pbd-help.html">
 <link rel="import" href="v2/pbd-home.html">
 <link rel="import" href="v2/pbd-robot-control.html">
-<link rel="import" href="v2/pbd-problem-list.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="pbd-app2">
@@ -224,13 +223,6 @@
       updateBtn: function(e) {
         this.selected = e.detail.button;
       },
-      tabProblems: function() {
-        alert("length = " + this.pddlDomain);
-        //// If there's no action we redirect to the home page instead of problem list
-        //if (this.pddlDomain.actions.length == 0) {
-        //  this.selected == "Home";
-        //}
-      },
       onLayoutChange: function (wide) {
         var drawer = this.$.drawer;
         if (wide && drawer.opened) {
@@ -247,9 +239,6 @@
 
       _handleConnection: function () {
         this.$.dialog.close();
-        // Important, need to be called on loading on the page, but the ready & attached function are called "too early"
-        // they are called before the dom-repeat happen, and this need to be done after
-        this.$$('#tabProblems').addEventListener('tap', this.tabProblems);
       },
 
       _handleClose: function () {

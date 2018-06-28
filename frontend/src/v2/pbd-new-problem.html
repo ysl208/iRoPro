@@ -48,10 +48,6 @@
         margin-bottom: 5px;
       }
 
-      paper-button {
-        /* float: right; */
-      }
-
       paper-input {
         width: 40%;
         display: inline-block;
@@ -66,7 +62,7 @@
       .stepDiv {
         min-width: 350px;
         margin-bottom: 10px;
-        overflow-y: auto;
+        /*overflow-y: auto;*/
         padding-left: 2px;
         padding-right: 2px;
         padding-bottom: 2px;
@@ -118,7 +114,7 @@
           /*padding: 2%;*/
         }
         #rviz {
-          height: 100%;
+          height: 350px;
           width: 350px;
           @apply(--layout-flex);
         }
@@ -247,16 +243,16 @@
               <legend>
                   Detected World Instances
               </legend>
-              <p>Verify all objects have been detected before proceeding.
-                <br>
-              <br>
+              <p>Verify all objects have been detected before proceeding.</p>
               <p id="noObj">No objects detected</p>
-              <template is="dom-repeat" items="{{sortByName(problem.objects)}}" as="item" index-as="objectIndex">
+              <template is="dom-repeat" items="{{sortByName(problem.objects)}}" as="item" index-as="paramIndex">
+                <tr>
                 <div id="listeObjet">
-                  <paper-icon-button icon="check"></paper-icon-button>
-                  [[item.name]] ([[item.type.name]])
+                    <td><paper-icon-button icon="check"></paper-icon-button></td>
+                    <td>[[item.name]]</td> <td>([[item.type.name]])</td>
                 </div>
-              </template>
+                </tr>
+            </template>
               <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="initial">
                 Detect World Instances
               </paper-button>
@@ -267,7 +263,7 @@
                 Initial States
               </legend>
               <template is="dom-repeat" items="{{problem.initial_states}}" as="item" index-as="objectIndex">
-                <div id="listeWorldState">
+                <div class="listeWorldState">
                   [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
                   <paper-button class="delete" on-tap="deletePred" data-args="InitialState">
                     <paper-icon-button icon="delete"></paper-icon-button>
@@ -315,7 +311,7 @@
               </legend>
 
               <template is="dom-repeat" items="{{problem.goal_states}}" as="item" index-as="objectIndex">
-                <div id="listeWorldState2">
+                <div class="listeWorldState">
                   [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
                   <paper-button class="delete" on-tap="deletePred" data-args="InitialState">
                     <paper-icon-button icon="delete"></paper-icon-button>

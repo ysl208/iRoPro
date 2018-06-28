@@ -49,10 +49,6 @@
                 margin-bottom: 5px;
             }
 
-            paper-button {
-                /* float: right; */
-            }
-
             paper-input {
                 width: 40%;
                 display: inline-block;
@@ -114,13 +110,13 @@
                 }
                 .stepDiv {
                     width: 350px;
-                    max-height: 100%;
+                    height: 100%;
                     margin-bottom: 0px;
                     margin-right: 10px;
                     /*padding: 2%;*/
                 }
                 #rviz {
-                    height: 100%;
+                    height: 350px;
                     width: 350px;
                     @apply(--layout-flex);
                 }
@@ -191,49 +187,49 @@
         <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
         <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
             ros="[[ros]]"></ros-topic>
-            <header>
-                <paper-input id="actionName" label="Action name" value="{{actionName}}" allowed-pattern="[\x00-\x7F]"></paper-input>
-                <nav>
-                    <!-- Action navigation buttons -->
-                    <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
-                        1. Perception
-                    </paper-button>
-                    <!-- <a href="#/program/{{action.program_id}}"> -->
-                    <paper-button name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]">
-                        2. Demonstration
-                    </paper-button>
-                    <!-- </a> -->
-                    <paper-button class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]">
-                        3. Action Model
-                    </paper-button>
-                </nav>
-                <div id="buttonDiv">
-                    <paper-button raised on-click="exiting">
-                        <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
-                    </paper-button>
-                    <paper-button raised on-click="saving">
-                        Save
-                        <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
-                    </paper-button>
-                    
-                </div>
+        <header>
+            <paper-input id="actionName" label="Action name" value="{{actionName}}" allowed-pattern="[\x00-\x7F]"></paper-input>
+            <nav>
+                <!-- Action navigation buttons -->
+                <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
+                    1. Perception
+                </paper-button>
+                <!-- <a href="#/program/{{action.program_id}}"> -->
+                <paper-button name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]">
+                    2. Demonstration
+                </paper-button>
+                <!-- </a> -->
+                <paper-button class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]">
+                    3. Action Model
+                </paper-button>
+            </nav>
+            <div id="buttonDiv">
+                <paper-button raised on-click="exiting">
+                    <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
+                </paper-button>
+                <paper-button raised on-click="saving">
+                    Save
+                    <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
+                </paper-button>
                 
-                <paper-dialog modal id="saving">
-                    <h2>Save current action ?</h2>
-                    <div>
-                        <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
-                        <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
-                    </div>
-                </paper-dialog>
-                <paper-dialog modal id="exiting">
-                    <h2>Quit current action ?</h2>
-                    <p>All change not saved will be lost.</p>
-                    <div>
-                        <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
-                        <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
-                    </div>
-                </paper-dialog>
-            </header>
+            </div>
+            
+            <paper-dialog modal id="saving">
+                <h2>Save current action ?</h2>
+                <div>
+                    <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+                    <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
+                </div>
+            </paper-dialog>
+            <paper-dialog modal id="exiting">
+                <h2>Quit current action ?</h2>
+                <p>All change not saved will be lost.</p>
+                <div>
+                    <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+                    <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
+                </div>
+            </paper-dialog>
+        </header>
         
         
         <div id="layout" class="layout vertical">
@@ -251,9 +247,7 @@
                             <legend>
                                 Detected World Instances
                             </legend>
-                            <p>Verify all objects have been detected before proceeding.
-                                <br></p>
-                            <br>
+                            <p>Verify all objects have been detected before proceeding.</p>
                             <p id="noObj">No objects detected</p>                
                             <table>
                                 <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
@@ -375,7 +369,7 @@
                         </fieldset>
                     </div>
                 </div>
-                <!--<ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz>-->
+                <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz>
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
