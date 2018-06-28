@@ -254,13 +254,17 @@
                             <p>Verify all objects have been detected before proceeding.
                                 <br></p>
                             <br>
-                            <p id="noObj">No objects detected</p>
-                            <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
-                                <div id="listeObjet">
-                                    <paper-icon-button icon="check"></paper-icon-button>
-                                    [[item.name]] ([[item.type.name]])
-                                </div>
-                            </template>
+                            <p id="noObj">No objects detected</p>                
+                            <table>
+                                <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
+                                    <tr>
+                                    <div id="listeObjet">
+                                        <td><paper-icon-button icon="check"></paper-icon-button></td>
+                                        <td>[[item.name]]</td> <td>([[item.type.name]])</td>
+                                    </div>
+                                    </tr>
+                                </template>
+                            </table>
 
                             <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
                                 Detect World Instances
@@ -371,7 +375,7 @@
                         </fieldset>
                     </div>
                 </div>
-                <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz>
+                <!--<ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz>-->
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -383,14 +387,21 @@
         </paper-dialog>
         <paper-dialog id="errorNewPrecond">
             <h2>Error creating new precondition</h2>
-            <p id="msgErrorNewPrecond">An error has been encountered ...</p>
+            <p id="msgErrorNewPrecond" style="padding-top: 5px; padding-bottom: 5px;">An error has been encountered ...</p>
             <div class="buttons">
                 <paper-button dialog-confirm class="clear">OK</paper-button>
             </div>
         </paper-dialog>
         <paper-dialog id="errorNewEffect">
             <h2>Error creating new effect</h2>
-            <p id="msgErrorNewEffect">An error has been encountered ...</p>
+            <p id="msgErrorNewEffect" style="padding-top: 5px; padding-bottom: 5px;">An error has been encountered ...</p>
+            <div class="buttons">
+                <paper-button dialog-confirm class="clear">OK</paper-button>
+            </div>
+        </paper-dialog>
+        <paper-dialog id="errorConditions">
+            <h2>Error generating conditions</h2>
+            <p id="msgErrorConditions" style="padding: 5px">An error has been encountered ...</p>
             <div class="buttons">
                 <paper-button dialog-confirm class="clear">OK</paper-button>
             </div>
@@ -635,7 +646,7 @@
                 if (valide) {
                     // Without negation
                     if (!newPredicate.negate) {
-                        // To comment when you want to test else it's impossible to test on simulation              
+                        // To comment when you want to test, else it's impossible to test on simulation              
                         //if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
                         //    valide = false;
                         //    msgErreur = "A position can't be on something else"
@@ -660,7 +671,7 @@
                                     msgErreur = "You can't place two objects on one position, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
                                 } else if (newPredicate.arg1.name == liste[index].arg1.name) {
                                     valide = false;
-                                    msgErreur = "One object can't be on two positions, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
+                                    msgErreur = "One object can't be on two positions, see :<br><strong>" + liste[index].arg1.name + " is " + liste[index].name + " " + liste[index].arg2.name + "</strong>";
                                 }
                             }
                             else if (newPredicate.name == "clear" && (liste[index].name == "on" && liste[index].arg2.name == newPredicate.arg1.name)) {
@@ -850,7 +861,8 @@
                     return;
                 }
                 var state = evt.target.getAttribute('data-args');
-                this._generateConditions();
+                if (state == "Effect")
+                    this._generateConditions();
                 var msg = {
                     type: 'detect action conditions',
                     domain_id: this.domain_id,
@@ -890,22 +902,27 @@
             _generateConditions: function () {
                 // check preconditions and effects are there
                 if (this.action.preconditions.length == 0) {
-                    console.info('No preconditions');
-                }
-                if (this.action.effects.length == 0) {
-                    console.info('No effects');
+                    this.$.msgErrorConditions.innerHTML = "No preconditions were specified";
+                    this.$.errorConditions.open();
+                } else if (this.action.effects.length == 0) {
+                    this.$.msgErrorConditions.innerHTML = "No effects were specified";
+                    this.$.errorConditions.open();
+                } 
+                // If they are there then you can generate the conditions
+                else {
+                    this._getPredicateDiff(this.action.preconditions, this.action.effects);
+
+                    this.reevaluateArray('action.preconditions', this.action.preconditions);
+                    this.reevaluateArray('action.effects', this.action.effects);
+                    var predList = this.action.preconditions.concat(this.action.effects)
+                    var parms = this._getParams(predList);
+                    console.debug(typeof parms, typeof this.action.params);
+                    console.debug('parms:', parms);
+                    this.action.params = parms;
+                    //this.reevaluateArray('action.params', this.action.params);
                 }
 
-                this._getPredicateDiff(this.action.preconditions, this.action.effects);
-
-                this.reevaluateArray('action.preconditions', this.action.preconditions);
-                this.reevaluateArray('action.effects', this.action.effects);
-                var predList = this.action.preconditions.concat(this.action.effects)
-                var parms = this._getParams(predList);
-                console.debug(typeof parms, typeof this.action.params);
-                console.debug('parms:', parms);
-                this.action.params = parms;
-                //this.reevaluateArray('action.params', this.action.params);
+                
             },
             _getPredicateDiff: function (list1, list2) {
                 // removes predicates which are in both lists

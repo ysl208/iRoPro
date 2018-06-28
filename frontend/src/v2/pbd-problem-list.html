@@ -1,0 +1,99 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/ros-param/ros-param.html">
+<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../../bower_components/ros-websocket/ros-websocket.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="pbd-home.html">
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
+<dom-module id="pbd-problem-list">
+    <template>
+        <style include="shared-styles"></style>
+        <style>
+            :host {
+                display: block;
+                position: relative;
+                width: 100%;
+                height: 100%;
+                box-sizing: border-box;
+                height: 100%;
+            }
+            a paper-button,
+            a:active paper-button,
+            a:visited paper-button {
+                color: black;
+            }
+            table p {
+                font-size: 120%;
+                margin: auto 10px;
+                text-align: center;
+            }
+            table {
+                margin: 20px auto;
+                padding:5px;
+            }
+            .edit {
+                float: right;
+            }
+            .delet {
+                float: left;
+            }
+            #new-action {
+                margin: 0px 0px 2% 2%;
+            }
+        </style>
+        <body>
+            <h1 align="center">Problems lists</h1>
+            <a href="#/new-problem-1" id="new-problem"><paper-button raised><iron-icon icon="icons:add"></iron-icon> add action</paper-button></a>
+            <table class="table table-striped">
+                <tbody>
+                <template is="dom-if" if="[[!showProblems()]]">
+                    <tr>
+                        <td colspan="4" class="text-center align-middle"><strong>No problems have been created yet.</strong></td>
+                    </tr>
+                </template>
+                <template is="dom-repeat" items="[[listProblems]]" as="problem">
+                    <tr>
+                        <th class="align-middle text-center" scope="row">#[[index]]</th>
+                        <td class="align-middle" style="width:60%">
+                            <p>[[problem]]</p>
+                        </td>
+                        <td>
+                            <paper-button class="edit btn-primary">edit</paper-button>
+                        </td>
+                        <td>
+                            <paper-button class="delet btn-danger">delete</paper-button>
+                        </td>
+                    </tr>
+                </template>
+                </tbody>
+            </table>            
+        </body>
+    </template>
+
+    <script>
+        Polymer({
+            is: "pbd-problem-list",
+            properties: {
+                listProblems: {
+                    type: Array,
+                    value: ['permute a and b', 'clear objet b top', 'move 2 cubes on a','','','','']
+                },
+            },
+            showProblems: function() {
+                // Check the list of problems and return true if it's not empty
+                return true;
+            },
+        });
+    </script>
+</dom-module>

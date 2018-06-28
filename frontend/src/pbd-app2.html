@@ -28,6 +28,7 @@
 <link rel="import" href="v2/pbd-help.html">
 <link rel="import" href="v2/pbd-home.html">
 <link rel="import" href="v2/pbd-robot-control.html">
+<link rel="import" href="v2/pbd-problem-list.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="pbd-app2">
@@ -82,8 +83,13 @@
       }
     </style>
     <!-- ROS connection -->
+    
     <app-location route="{{route}}" use-hash-as-path></app-location>
-    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{routeTail}}"></app-route>
+    <app-route  route="{{route}}" 
+                pattern="/:page" 
+                data="{{routeData}}" 
+                tail="{{routeTail}}"></app-route>
+
     <ros-websocket auto url="{{url}}" id="websocket" on-connection="_handleConnection" on-error="_handleClose" on-close="_handleClose"
       ros="{{ros}}"></ros-websocket>
     <ros-topic auto on-message="_handleRosout" msg-type="rosgraph_msgs/Log" topic="rosout" ros="[[ros]]"></ros-topic>
@@ -95,6 +101,17 @@
       <paper-input id="websocketUrl" label="Websocket URL" value="{{url}}"></paper-input>
       <div id="buttons">
         <paper-button dialog-confirm on-tap="reconnect">Reconnect</paper-button>
+      </div>
+    </paper-dialog>
+
+    <!-- Used to check if there's actions before loading problem list tab -->
+    <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+    <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+    <paper-dialog modal id="errorNoActionList">
+      <h2>Can't load the Problem List</h2>
+      <p>There is no existing actions in this domain, you can't use problems untill you create actions.</p>
+      <div id="buttons">
+        <paper-button dialog-confirm>OK</paper-button>
       </div>
     </paper-dialog>
 
@@ -123,10 +140,9 @@
             <!-- Nav on desktop: tabs -->
             <paper-tabs selected="{{selected}}" attr-for-selected="name" bottom-item>
               <template is="dom-repeat" items="{{items}}">
-                <paper-tab name="{{item}}">
+                <paper-tab name="{{item}}" id="tab[[item]]">
                   {{item}}
                 </paper-tab>
-
               </template>
             </paper-tabs>
           </app-toolbar>
@@ -136,7 +152,7 @@
     <iron-media-query query="min-width: 600px" query-matches="{{wideLayout}}"></iron-media-query>
 
       <template is="dom-if" restamp if="[[isSelected(selected,'Home')]]">
-        <pbd-home data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-home>
+        <pbd-home on-updatebtn="updateBtn" data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-home>
       </template>
       <template is="dom-if" restamp if="[[isSelected(selected,'Actions')]]">
         <pbd-action-list name="action-list" data-page="action-list" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-action-list>
@@ -157,8 +173,13 @@
     Polymer({
 
       is: 'pbd-app2',
-
       properties: {
+        pddlDomain: {
+            type: Object,
+            value: function () {
+                return { actions: [] };
+            }
+        },
         routeData: {
           type: Object,
           value: function () {
@@ -183,7 +204,7 @@
           value: function () {
             return {};
           }
-        },
+        },        
         _robot: {
           type: String,
         },
@@ -198,9 +219,18 @@
           value: function () {
             return ['Home', 'Actions', 'Problems', 'Robot Control', 'Help'];
           }
-        }
+        },
       },
-
+      updateBtn: function(e) {
+        this.selected = e.detail.button;
+      },
+      tabProblems: function() {
+        alert("length = " + this.pddlDomain);
+        //// If there's no action we redirect to the home page instead of problem list
+        //if (this.pddlDomain.actions.length == 0) {
+        //  this.selected == "Home";
+        //}
+      },
       onLayoutChange: function (wide) {
         var drawer = this.$.drawer;
         if (wide && drawer.opened) {
@@ -217,6 +247,9 @@
 
       _handleConnection: function () {
         this.$.dialog.close();
+        // Important, need to be called on loading on the page, but the ready & attached function are called "too early"
+        // they are called before the dom-repeat happen, and this need to be done after
+        this.$$('#tabProblems').addEventListener('tap', this.tabProblems);
       },
 
       _handleClose: function () {
