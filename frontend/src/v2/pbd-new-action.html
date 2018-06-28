@@ -192,7 +192,7 @@
         <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
             ros="[[ros]]"></ros-topic>
             <header>
-                <paper-input id="actionName" label="Action name" value="{{actionName}}"></paper-input>
+                <paper-input id="actionName" label="Action name" value="{{actionName}}" allowed-pattern="[\x00-\x7F]"></paper-input>
                 <nav>
                     <!-- Action navigation buttons -->
                     <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
@@ -254,6 +254,7 @@
                             <p>Verify all objects have been detected before proceeding.
                                 <br></p>
                             <br>
+                            <p id="noObj">No objects detected</p>
                             <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
                                 <div id="listeObjet">
                                     <paper-icon-button icon="check"></paper-icon-button>
@@ -744,7 +745,6 @@
                 if (this.actionName != this.action.name && !this._nameValid(this.actionName)) {
                     alert(this.actionName + ' already exists. Please choose a different name.');
                 } else {
-                    this.action.name = this.actionName;
                     var msg = {
                         type: 'update pddl action',
                         domain_id: this.domain_id,
@@ -755,7 +755,7 @@
                     console.debug('Saving ', this.domain, " with name ", this.domain_id);
                     console.debug('Saving ', this.action, " with name ", this.actionName);
                     this.$.eventPub.publish(msg);
-
+                    this.quit();
                 }
             },
             saving: function (evt) {
@@ -782,6 +782,22 @@
                 if (changedDomain.value) {
                     this.$.loading.close();
                     this.domain = changedDomain.value;
+                    //updating the current action
+                    var j = 0;
+                    while (j < this.domain.actions.length && this.domain.actions[j].name != this.action.name) {
+                        j++;
+                    }
+                    if (j != this.domain.actions.length) {
+                        this.action = this.domain.actions[j];
+                    }
+                    //show if no objects have been detected
+                    var i = 0;
+                    while (i < this.action.params.length && this.action.params[i].type.name == "position") {
+                        i++;
+                    }
+                    if (i != this.action.params.length) {
+                        this.$.noObj.style.display = "none";
+                    }
                 }
                 if (this.domainList && this.domainList.domains.length == 1) {
                     this.domain_id = this.domainList.domains[0].domain_id;
@@ -836,7 +852,7 @@
                 var state = evt.target.getAttribute('data-args');
                 this._generateConditions();
                 var msg = {
-                    type: 'detect world state',
+                    type: 'detect action conditions',
                     domain_id: this.domain_id,
                     action_name: this.action.name,
                     state_name: state

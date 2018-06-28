@@ -93,24 +93,37 @@
                 </table>
             </template>
 
-            <template is="dom-if" restamp if="[[_showProblemProperties]]">
-                <table style="height:auto;">
+            <template is="dom-if" restamp if="{{_showActionProperties}}">
+                <!--<table style="height:auto;">
                     <tr>
-                        <th>Problem Properties</th>
+                        <th>Action Properties</th>
                         <th>
                             <div class="cancelButtons">
-                                <paper-button class="cancel" on-tap="_hideProblem">
+                                <paper-button class="cancel" on-tap="_hideAction">
                                     <paper-icon-button icon="cancel"></paper-icon-button>
                                 </paper-button>
                             </div>
                         </th>
                         <tr>
-                            <td colspan="2">
-                                <template is="dom-repeat" items="[[pddlDomain.problems]]" as="problem">
+                            <td colspan="2">-->
+                                <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
+                                    <div>
+                                        <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
+                                            <pbd-new-action on-quit="quitNewAction" name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain="[[pddlDomain]]" showing="{{_showActionProperties}}"></pbd-new-action>
+                                        </template>
+                                    </div>
+                                </template>
+               <!--             </td>
+                        </tr>
 
-                                    <div style="overflow:auto; max-height: 100vh;">
+                </table>-->
+            </template>
+
+            <template is="dom-if" restamp if="{{_showProblemProperties}}">
+                                <template is="dom-repeat" items="[[pddlDomain.problems]]" as="problem">
+                                    <div>
                                         <template is="dom-if" restamp if="[[_displayProblem(selectedProblemName,problem.name)]]">
-                                            <pbd-new-problem name="new-problem" params="[[params]]" ros="[[ros]]" problem="[[problem]]" domain="[[pddlDomain]]"></pbd-new-problem>
+                                            <pbd-new-problem on-quit="quitProblem" name="new-problem" params="[[params]]" ros="[[ros]]" problem="[[problem]]" domain="[[pddlDomain]]"  showing="{{_showActionProperties}"}></pbd-new-problem>
                                         </template>
                                     </div>
                                 </template>
@@ -242,6 +255,9 @@
             _displayProblem: function (selected, problemname) {
                 return (selected && selected.length > 0 && selected == problemname);
             },
+            quitProblem: function(e) {
+               this._showProblemProperties = false;
+            }
 
         });
     </script>

@@ -143,8 +143,8 @@
       }
     </style>
     <!-- <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route> -->
-    <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{programId}}"
-      ros="[[ros]]"></ros-topic>
+  <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{programId}}"
+    ros="[[ros]]"></ros-topic>
     <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
     <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
       on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>

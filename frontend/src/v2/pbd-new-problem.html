@@ -98,7 +98,6 @@
       .petit {
         font-size: 80%;
         margin: 0;
-        padding: 0;
         margin-left: 5px;
         color: steelblue;
       }
@@ -129,6 +128,56 @@
           padding-left: 6px;
         }
       }
+
+      header {
+          display: flex;
+      }
+
+      nav {
+          font-size: 1.2em;
+          text-align: center;
+          flex : 1;
+      }
+
+      #problemName {
+          width: 200px;
+      }
+
+      nav paper-button {
+          border: 1px solid rgb(138, 125, 125);
+          border-radius: 10px;
+      }
+
+      paper-dialog {
+          border-radius: 5px;
+      }
+
+      paper-button.cancel {
+          color: rgb(255, 68, 68);
+      }
+
+      #buttonDiv {
+          float: right;
+      }
+
+      header {
+          padding: 10px;
+      }
+
+      .important {
+          width: 32px;
+          height: 32px;
+      }
+
+      .listeWorldState {
+          display: flex;
+          border-bottom: 1px solid rgba(0, 0, 0, var(--light-divider-opacity));
+      }
+
+      .listeWorldState p {
+          flex: 2;
+          margin: 3px;
+      }
     </style>
     <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
     <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
@@ -139,22 +188,50 @@
     <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
       ros="[[ros]]"></ros-topic>
 
-    <div>
-      <!-- Problem navigation buttons -->
-      <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
-        1 Initial State
-      </paper-button>
-      <paper-button class="petit" name="problemModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'problemModel')]]">
-        2 Goal State
-      </paper-button>
-      <paper-button name="generatedPlan" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'generatedPlan')]]">
-        3 Generated Plan
-      </paper-button>
-    </div>
-    <paper-input id="problemName" label="Problem name" value="{{problemName}}"></paper-input>
-    <paper-button id="save" raised class="important" on-click="_updateDomain">
-      Save
-    </paper-button>
+
+      <header>
+        <paper-input id="problemName" label="Problem name" value="{{problemName}}" allowed-pattern="[\x00-\x7F]"></paper-input>
+        <nav>
+            <!-- Action navigation buttons -->
+            <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
+                1. Initial State
+            </paper-button>
+            <!-- <a href="#/program/{{action.program_id}}"> -->
+            <paper-button name="problemModel" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'problemModel')]]">
+                2. Goal State
+            </paper-button>
+            <!-- </a> -->
+            <paper-button class="petit" name="generatedPlan" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'generatedPlan')]]">
+                3. Generated Plan
+            </paper-button>
+        </nav>
+        <div id="buttonDiv">
+            <paper-button raised on-click="exiting">
+                <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
+            </paper-button>
+            <paper-button raised on-click="saving">
+                Save
+                <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
+            </paper-button>
+            
+        </div>
+        
+        <paper-dialog modal id="saving">
+            <h2>Save current action ?</h2>
+            <div>
+                <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+                <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
+            </div>
+        </paper-dialog>
+        <paper-dialog modal id="exiting">
+          <h2>Quit current action ?</h2>
+          <p>All change not saved will be lost.</p>
+          <div>
+              <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+              <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
+          </div>
+      </paper-dialog>
+    </header>
 
     <div id="layout" class="layout vertical">
       <!-- ***** Generated Plan **** 3/3 -->
@@ -168,21 +245,21 @@
           <div id="perception" hidden$="[[!_displayNavStep(navStep,'perception')]]">
             <fieldset>
               <legend>
-                <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="initial">
-                  Detect World Instances
-                </paper-button>
+                  Detected World Instances
               </legend>
               <p>Verify all objects have been detected before proceeding.
                 <br>
-                <b>Name</b> (type)</p>
               <br>
+              <p id="noObj">No objects detected</p>
               <template is="dom-repeat" items="{{sortByName(problem.objects)}}" as="item" index-as="objectIndex">
                 <div id="listeObjet">
                   <paper-icon-button icon="check"></paper-icon-button>
                   [[item.name]] ([[item.type.name]])
                 </div>
               </template>
-              <br>
+              <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="initial">
+                Detect World Instances
+              </paper-button>
             </fieldset>
 
             <fieldset>
@@ -274,14 +351,10 @@
               </div>
               <br>
               <paper-button noink class="petit" on-click="addPredicate" data-args="GoalState">+ add new predicate</paper-button>
-              <br>
-              <paper-button id="detect2" raised class="clear" on-tap="_detect" data-args="goal">
-                Detect Goal States
-              </paper-button>
             </fieldset>
           </div>
         </div>
-        <!-- <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'generatedPlan')]]"></ros-rviz> -->
+        <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'generatedPlan')]]"></ros-rviz>
       </div>
     </div>
     <paper-dialog id="errorDialog" modal>
@@ -304,6 +377,9 @@
       <div class="buttons">
         <paper-button dialog-confirm class="clear">OK</paper-button>
       </div>
+    </paper-dialog>
+    <paper-dialog modal id="loading">
+        <p><paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
     </paper-dialog>
   </template>
 
@@ -649,23 +725,6 @@
         }
         return true;
       },
-      save: function () {
-        if (this.problemName != this.problem.name && !this._nameValid(this.problemName)) {
-          alert(this.problemName + ' already exists. Please choose a different name.');
-        } else {
-          var msg = {
-            type: 'update pddl problem',
-            domain_id: this.domain_id,
-            problem_name: this.problemName,
-            pddl_problem: this.problem
-          };
-
-          console.debug('Saving ', this.domain, " with name ", this.domain_id);
-          console.debug('Saving ', this.problem, " with name ", this.problemName);
-          this.$.eventPub.publish(msg);
-        }
-
-      },
 
       _updateDomain: function (evt) {
         var msg = {
@@ -678,7 +737,24 @@
 
       _domainUpdated: function (changedDomain, changedList) {
         if (changedDomain.value) {
+          this.$.loading.close();
           this.domain = changedDomain.value;
+          //updating the current problem
+          var j = 0;
+          while (j < this.domain.problems.length && this.domain.problems[j].name != this.problem.name) {
+              j++;
+          }
+          if (j != this.domain.problems.length) {
+              this.problem = this.domain.problems[j];
+          }
+          //show if no objects have been detected
+          var i = 0;
+          while (i < this.problem.objects.length && this.problem.objects[i].type.name == "position") {
+              i++;
+          }
+          if (i != this.problem.objects.length) {
+              this.$.noObj.style.display = "none";
+          }
         }
         if (this.domainList && this.domainList.domains.length == 1) {
           this.domain_id = this.domainList.domains[0].domain_id;
@@ -689,7 +765,6 @@
         var id = evt.detail.db_id;
         this.problem.generated_plan = id;
         console.debug('handleServResponse', this.problem.generated_plan);
-        this.save();
       },
 
       _handleServiceError: function (evt) {
@@ -720,6 +795,7 @@
           state_name: state
         };
         console.debug(msg);
+        this.$.loading.open();
         this.$.eventPub.publish(msg);
       },
       removeDuplicates: function (a) {
@@ -839,6 +915,33 @@
       _negate: function (neg) {
         if (neg) return 'not ';
         else return '';
+      },
+      save: function () {
+        if (this.problemName != this.problem.name && !this._nameValid(this.problemName)) {
+          alert(this.problemName + ' already exists. Please choose a different name.');
+        } else {
+          var msg = {
+            type: 'update pddl problem',
+            domain_id: this.domain_id,
+            problem_name: this.problemName,
+            pddl_problem: this.problem
+          };
+
+          console.debug('Saving ', this.domain, " with name ", this.domain_id);
+          console.debug('Saving ', this.problem, " with name ", this.problemName);
+          this.$.eventPub.publish(msg);
+              this.quit();
+        }
+
+      },
+      quit: function (evt) {
+          this.fire('quit');
+      },
+      saving: function (evt) {
+          this.$.saving.open();
+      },
+      exiting: function(evt) {
+          this.$.exiting.open();
       }
     });
   </script>

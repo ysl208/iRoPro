@@ -77,7 +77,7 @@
                     </template>
                     <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
                         <tr>
-                            <td>
+                            <td on-tap="_openAction">
                                 <i> {{action.name}}</i>
                             </td>
                             <td>

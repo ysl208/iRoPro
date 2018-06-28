@@ -1319,6 +1319,9 @@ void Editor::DeletePDDLAction(const std::string& domain_id,
               action_name.c_str(), domain_id.c_str());
   } else {
   }
+  //deleting the program linked to the action
+  Delete(domain.actions[index].program_id);
+
   domain.actions.erase(domain.actions.begin() + index);
 
   UpdatePDDLDomain(domain_id, domain);
