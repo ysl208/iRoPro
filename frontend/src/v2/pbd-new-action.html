@@ -100,7 +100,7 @@
                 color: steelblue;
             }
 
-             @media (min-width: 768px) {
+            @media (min-width: 768px) {
                 #layout {
                     height: 100%;
                 }
@@ -135,7 +135,7 @@
             nav {
                 font-size: 1.2em;
                 text-align: center;
-                flex : 1;
+                flex: 1;
             }
 
             #actionName {
@@ -177,7 +177,6 @@
                 flex: 2;
                 margin: 3px;
             }
-            
         </style>
         <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
@@ -204,6 +203,10 @@
                 </paper-button>
             </nav>
             <div id="buttonDiv">
+
+                <paper-button class="clear" on-tap="_assignSurfaceObjects" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
+                    Refresh
+                </paper-button>
                 <paper-button raised on-click="exiting">
                     <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
                 </paper-button>
@@ -211,9 +214,9 @@
                     Save
                     <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
                 </paper-button>
-                
+
             </div>
-            
+
             <paper-dialog modal id="saving">
                 <h2>Save current action ?</h2>
                 <div>
@@ -230,8 +233,8 @@
                 </div>
             </paper-dialog>
         </header>
-        
-        
+
+
         <div id="layout" class="layout vertical">
             <!-- ***** DEMONSTRATION **** 2/3 -->
             <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
@@ -248,26 +251,25 @@
                                 Detected World Instances
                             </legend>
                             <p>Verify all objects have been detected before proceeding.</p>
-                            <p id="noObj">No objects detected</p>                
+                            <p id="noObj">No objects detected</p>
                             <table>
                                 <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
                                     <tr>
-                                    <div id="listeObjet">
-                                        <td><paper-icon-button icon="check"></paper-icon-button></td>
-                                        <td>[[item.name]]</td> <td>([[item.type.name]])</td>
-                                    </div>
+                                        <div id="listeObjet">
+                                            <td>
+                                                <paper-icon-button icon="check"></paper-icon-button>
+                                            </td>
+                                            <td>[[item.name]]</td>
+                                            <td>([[item.type.name]])</td>
+                                        </div>
                                     </tr>
                                 </template>
                             </table>
 
                             <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
-                                Detect World Instances
+                                Detect World Objects
                             </paper-button>
                         </fieldset>
-                        <br>
-                        <paper-button hidden class="clear" on-tap="_assignSurfaceObjects">
-                            Assign Surface Objects
-                        </paper-button>
                     </div>
 
                     <!-- ***** AFTER DEMO **** 3/3 -->
@@ -401,7 +403,8 @@
             </div>
         </paper-dialog>
         <paper-dialog modal id="loading">
-            <p><paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
+            <p>
+                <paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
         </paper-dialog>
     </template>
 
@@ -606,7 +609,6 @@
                 } else {
                     console.info('rviz not ready');
                 }
-                
             },
 
             _updatePredicate: function (evt) {
@@ -766,13 +768,13 @@
             saving: function (evt) {
                 this.$.saving.open();
             },
-            exiting: function(evt) {
+            exiting: function (evt) {
                 this.$.exiting.open();
             },
             quit: function (evt) {
                 this.fire('quit');
             },
-            
+
             _updateDomain: function (evt) {
                 var msg = {
                     type: 'update pddl domain',
@@ -807,7 +809,6 @@
                 if (this.domainList && this.domainList.domains.length == 1) {
                     this.domain_id = this.domainList.domains[0].domain_id;
                 }
-
             },
 
             _handleServiceResponse(evt) {
@@ -816,6 +817,7 @@
                 console.debug('handleServResponse', this.action.program_id);
                 /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
                 window.dispatchEvent(new CustomEvent("location-changed")); */
+
                 this._updateDomain();
             },
 
@@ -854,9 +856,6 @@
                     console.error('Unable to call detection right now.');
                     return;
                 }
-                var state = evt.target.getAttribute('data-args');
-                if (state == "Effect")
-                    this._generateConditions();
                 var msg = {
                     type: 'detect action conditions',
                     domain_id: this.domain_id,
@@ -865,6 +864,10 @@
                 };
                 this.$.loading.open();
                 this.$.eventPub.publish(msg);
+
+                var state = evt.target.getAttribute('data-args');
+                if (state == "Effect")
+                    this._generateConditions();
             },
             removeDuplicates: function (a) {
                 uniqueArray = a.filter(function (item, pos) {
@@ -901,7 +904,7 @@
                 } else if (this.action.effects.length == 0) {
                     this.$.msgErrorConditions.innerHTML = "No effects were specified";
                     this.$.errorConditions.open();
-                } 
+                }
                 // If they are there then you can generate the conditions
                 else {
                     this._getPredicateDiff(this.action.preconditions, this.action.effects);
@@ -916,7 +919,7 @@
                     //this.reevaluateArray('action.params', this.action.params);
                 }
 
-                
+
             },
             _getPredicateDiff: function (list1, list2) {
                 // removes predicates which are in both lists
