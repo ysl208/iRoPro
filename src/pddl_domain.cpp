@@ -26,7 +26,7 @@ PDDLDomain::PDDLDomain(const ros::Publisher& pub) : pddl_domain_pub_(pub) {}
 
 void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   domain->name = name;
-
+  domain->requirements = ":typing";
   msgs::PDDLType type;
   geometry_msgs::Vector3 obj_dims;
   // TO DO: get obj_dims from yaml file

@@ -64,7 +64,7 @@ void Editor::Start() {
   joint_state_reader_.Start();
   viz_.Init();
   spec_inf_.Init();
-  CreatePDDLDomain("Main Domain");
+  CreatePDDLDomain("MainDomain");
 }
 
 void Editor::HandleEvent(const msgs::EditorEvent& event) {
@@ -386,9 +386,6 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
   cond_gen_.AssignLandmarkCondition(initial_world, landmark_name,
                                     &action_condition);
 
-  // std::vector<geometry_msgs::PoseArray> grid;
-  // cond_gen_.GenerateGrid(&action_condition, &grid, obj_num);
-  // step->grid = grid;
   step->actions[action_id].condition = action_condition;
   // publish condition markers
   db_.Update(db_id, program);
@@ -1507,7 +1504,10 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
   ROS_INFO("Got domain %s", planner_domain.name.c_str());
   // get types
   for (size_t i = 0; i < domain.types.size(); ++i) {
-    planner_domain.types.push_back(domain.types[i].name.c_str());
+    std::string new_type = domain.types[i].name;
+    if (domain.types[i].parent != "")
+      new_type += " - " + domain.types[i].parent;
+    planner_domain.types.push_back(new_type);
     ROS_INFO("Added type: %s", planner_domain.types[i].c_str());
   }
 
@@ -1529,7 +1529,7 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
     for (size_t j = 0; j < action.params.size(); ++j) {
       param_ss << "?obj" << j + 1 << " - " << action.params[j].type.name << " ";
     }
-    planner_action.parameters = param_ss.str();
+    planner_action.parameters = "(" + param_ss.str() + ")";
 
     ROS_INFO("action params: %s", planner_action.parameters.c_str());
     // get preconditions as single string
@@ -1546,7 +1546,9 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
   // create pddl_msgs::PDDLProblem element
   pddl_msgs::PDDLProblem planner_problem;
   planner_problem.name = problem.name;
-  ROS_INFO("Get Problem: %s", planner_problem.name.c_str());
+  planner_problem.domain = domain.name;
+  ROS_INFO("Get Problem: %s for Domain '%s'", planner_problem.name.c_str(),
+           planner_problem.domain.c_str());
   // get objects
   for (size_t i = 0; i < problem.objects.size(); ++i) {
     pddl_msgs::PDDLObject planner_object;

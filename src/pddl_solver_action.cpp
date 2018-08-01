@@ -25,24 +25,15 @@ PDDLSolverAction::PDDLSolverAction(const std::string& pddl_server_name,
 
 void PDDLSolverAction::Start() {
   while (!pddl_client_.waitForServer(ros::Duration(5))) {
-    ROS_WARN("Waiting for pddl planner server to come up." );
+    ROS_WARN("Waiting for pddl planner server to come up.");
   }
   as_.start();
 }
 
 void PDDLSolverAction::Execute(const msgs::PDDLPlannerGoalConstPtr& pddl_goal) {
-  msgs::PDDLPlannerGoal goal = goal;
+  msgs::PDDLPlannerGoal goal = *pddl_goal;
   ros::Time start = ros::Time::now();
   ROS_INFO("PDDLSolverAction::Execute... ");
-  // boost::shared_ptr<const pddl_msgs::PDDLPlannerAction> plan;
-  // plan = ros::topic::waitForMessage<pddl_msgs::PDDLPlannerAction>(
-  //     topic_, ros::Duration(10.0));
-  //   if (!plan) {
-  //     msgs::PDDLPlannerResult result;
-  //     ROS_ERROR("Failed to get plan on topic: %s.", topic_.c_str());
-  //     as_.setAborted(result);
-  //     return;
-  //   }
   pddl_client_.sendGoal(
       goal,
       boost::function<void(const SimpleClientGoalState&,
