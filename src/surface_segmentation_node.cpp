@@ -15,6 +15,7 @@ int main(int argc, char** argv) {
     return 1;
   }
   std::string topic(argv[1]);
+  ROS_INFO("SurfaceSegmentationAction node topic: %s", topic.c_str());
 
   std::string robot("");
   bool is_robot_specified = ros::param::get("robot", robot);

@@ -50,6 +50,7 @@ void SurfaceSegmentationAction::Start() { as_.start(); }
 void SurfaceSegmentationAction::Execute(
     const msgs::SegmentSurfacesGoalConstPtr& goal) {
   ros::Time start = ros::Time::now();
+  ROS_INFO("SurfaceSegmentationAction::Execute... ");
   boost::shared_ptr<const sensor_msgs::PointCloud2> cloud_in;
   for (size_t i = 0; i < 10; ++i) {
     cloud_in = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(
@@ -76,8 +77,13 @@ void SurfaceSegmentationAction::Execute(
   }
 
   // Transform into base frame.
+
+  ROS_INFO("Transform into base frame... ");
   tf::TransformListener tf_listener;
   std::string base_link(robot_config_.base_link());
+
+  ROS_INFO("cloud_in frame_id is %s", cloud_in->header.frame_id.c_str());
+
   tf_listener.waitForTransform(base_link, cloud_in->header.frame_id,
                                ros::Time(0), ros::Duration(5.0));
   tf::StampedTransform transform;
@@ -85,7 +91,7 @@ void SurfaceSegmentationAction::Execute(
     tf_listener.lookupTransform(base_link, cloud_in->header.frame_id,
                                 ros::Time(0), transform);
   } catch (tf::TransformException& e) {
-    ROS_ERROR("%s", e.what());
+    ROS_ERROR("lookupTransform error: %s", e.what());
     msgs::SegmentSurfacesResult result;
     as_.setAborted(result, std::string(e.what()));
     return;
@@ -94,8 +100,9 @@ void SurfaceSegmentationAction::Execute(
   sensor_msgs::PointCloud2 cloud_msg;
   pcl_ros::transformPointCloud(robot_config_.base_link(), transform, *cloud_in,
                                cloud_msg);
-
+  cloud_msg.header.frame_id = "base";
   // Start processing cloud with PCL
+  ROS_INFO("Start processing cloud with PCL... ");
   msgs::SegmentSurfacesResult result;
   PointCloudC::Ptr cloud(new PointCloudC);
   pcl::fromROSMsg(cloud_msg, *cloud);
@@ -124,6 +131,7 @@ void SurfaceSegmentationAction::Execute(
   crop.filter(point_indices->indices);
 
   // Save cloud if requested
+  ROS_INFO("Save cloud if requested... ");
   if (goal->save_cloud) {
     PointCloudC::Ptr downsampled_cloud(new PointCloudC());
     pcl::VoxelGrid<PointC> vox;
