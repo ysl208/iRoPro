@@ -9,12 +9,7 @@ world_positions:
   pos_y: [0.406375, -0.426868, -0.003807, -0.010763]
   pos_z: [-0.05, -0.05, -0.05, -0.05]
   radius: 0.1
-#  - {'name': 'A', 'center': '[0.20,0.25,0.25]', 'dims_in_meters': '[0.05,0.05,0.001]'}
-#  - {'name': 'A', 'center': '[0.20,0.25,0.25]', 'dims_in_meters': '[0.05,0.05,0.001]'}
-#  - {'name': 'B', 'center': '[0.20,0.25,0.25]', 'dims_in_meters': '[0.05,0.05,0.001]'}
-#  - {'name': 'C', 'center': '[0.20,0.25,0.25]', 'dims_in_meters': '[0.05,0.05,0.001]'}
-#  - {'name': 'D', 'center': '[0.20,0.25,0.25]', 'dims_in_meters': '[0.05,0.05,0.001]'}
-
+  
 world_objects:
   # Table object dimension ratio
   cube: {'x': 1.0, 'y': 1.0,'z': 1.0}
