@@ -856,6 +856,9 @@
                     console.error('Unable to call detection right now.');
                     return;
                 }
+
+                var state = evt.target.getAttribute('data-args');
+
                 var msg = {
                     type: 'detect action conditions',
                     domain_id: this.domain_id,
@@ -864,8 +867,6 @@
                 };
                 this.$.loading.open();
                 this.$.eventPub.publish(msg);
-
-                var state = evt.target.getAttribute('data-args');
                 if (state == "Effect")
                     this._generateConditions();
             },
