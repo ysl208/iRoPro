@@ -126,53 +126,53 @@
       }
 
       header {
-          display: flex;
+        display: flex;
       }
 
       nav {
-          font-size: 1.2em;
-          text-align: center;
-          flex : 1;
+        font-size: 1.2em;
+        text-align: center;
+        flex: 1;
       }
 
       #problemName {
-          width: 200px;
+        width: 200px;
       }
 
       nav paper-button {
-          border: 1px solid rgb(138, 125, 125);
-          border-radius: 10px;
+        border: 1px solid rgb(138, 125, 125);
+        border-radius: 10px;
       }
 
       paper-dialog {
-          border-radius: 5px;
+        border-radius: 5px;
       }
 
       paper-button.cancel {
-          color: rgb(255, 68, 68);
+        color: rgb(255, 68, 68);
       }
 
       #buttonDiv {
-          float: right;
+        float: right;
       }
 
       header {
-          padding: 10px;
+        padding: 10px;
       }
 
       .important {
-          width: 32px;
-          height: 32px;
+        width: 32px;
+        height: 32px;
       }
 
       .listeWorldState {
-          display: flex;
-          border-bottom: 1px solid rgba(0, 0, 0, var(--light-divider-opacity));
+        display: flex;
+        border-bottom: 1px solid rgba(0, 0, 0, var(--light-divider-opacity));
       }
 
       .listeWorldState p {
-          flex: 2;
-          margin: 3px;
+        flex: 2;
+        margin: 3px;
       }
     </style>
     <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
@@ -185,54 +185,54 @@
       ros="[[ros]]"></ros-topic>
 
 
-      <header>
-        <paper-input id="problemName" label="Problem name" value="{{problemName}}" allowed-pattern="[\x00-\x7F]"></paper-input>
-        <nav>
-            <!-- Action navigation buttons -->
-            <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
-                1. Initial State
-            </paper-button>
-            <!-- <a href="#/program/{{action.program_id}}"> -->
-            <paper-button name="problemModel" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'problemModel')]]">
-                2. Goal State
-            </paper-button>
-            <!-- </a> -->
-            <paper-button class="petit" name="generatedPlan" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'generatedPlan')]]">
-                3. Generated Plan
-            </paper-button>
-        </nav>
-        <div id="buttonDiv">
-            <paper-button raised on-click="exiting">
-                <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
-            </paper-button>
-            <paper-button raised on-click="saving">
-                Save
-                <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
-            </paper-button>
-            
+    <header>
+      <paper-input id="problemName" label="Problem name" value="{{problemName}}" allowed-pattern="[\x00-\x7F]"></paper-input>
+      <nav>
+        <!-- Action navigation buttons -->
+        <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
+          1. Initial State
+        </paper-button>
+        <!-- <a href="#/program/{{action.program_id}}"> -->
+        <paper-button name="problemModel" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'problemModel')]]">
+          2. Goal State
+        </paper-button>
+        <!-- </a> -->
+        <paper-button class="petit" name="generatedPlan" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'generatedPlan')]]">
+          3. Generated Plan
+        </paper-button>
+      </nav>
+      <div id="buttonDiv">
+        <paper-button raised on-click="exiting">
+          <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
+        </paper-button>
+        <paper-button raised on-click="saving">
+          Save
+          <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
+        </paper-button>
+
+      </div>
+
+      <paper-dialog modal id="saving">
+        <h2>Save current action ?</h2>
+        <div>
+          <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+          <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
         </div>
-        
-        <paper-dialog modal id="saving">
-            <h2>Save current action ?</h2>
-            <div>
-                <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
-                <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
-            </div>
-        </paper-dialog>
-        <paper-dialog modal id="exiting">
-          <h2>Quit current action ?</h2>
-          <p>All change not saved will be lost.</p>
-          <div>
-              <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
-              <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
-          </div>
+      </paper-dialog>
+      <paper-dialog modal id="exiting">
+        <h2>Quit current action ?</h2>
+        <p>All change not saved will be lost.</p>
+        <div>
+          <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+          <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
+        </div>
       </paper-dialog>
     </header>
 
     <div id="layout" class="layout vertical">
       <!-- ***** Generated Plan **** 3/3 -->
       <div id="plan" hidden$="[[!_displayNavStep(navStep,'generatedPlan')]]">
-        Action1 etc.
+        Action list
       </div>
 
       <div class="content">
@@ -241,18 +241,21 @@
           <div id="perception" hidden$="[[!_displayNavStep(navStep,'perception')]]">
             <fieldset>
               <legend>
-                  Detected World Instances
+                Detected World Instances
               </legend>
               <p>Verify all objects have been detected before proceeding.</p>
               <p id="noObj">No objects detected</p>
               <template is="dom-repeat" items="{{sortByName(problem.objects)}}" as="item" index-as="paramIndex">
                 <tr>
-                <div id="listeObjet">
-                    <td><paper-icon-button icon="check"></paper-icon-button></td>
-                    <td>[[item.name]]</td> <td>([[item.type.name]])</td>
-                </div>
+                  <div id="listeObjet">
+                    <td>
+                      <paper-icon-button icon="check"></paper-icon-button>
+                    </td>
+                    <td>[[item.name]]</td>
+                    <td>([[item.type.name]])</td>
+                  </div>
                 </tr>
-            </template>
+              </template>
               <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="initial">
                 Detect World Instances
               </paper-button>
@@ -347,7 +350,12 @@
               </div>
               <br>
               <paper-button noink class="petit" on-click="addPredicate" data-args="GoalState">+ add new predicate</paper-button>
+
+              <paper-button id="solve" raised class="clear" on-tap="_solve" data-args="">
+                Solve Problem
+              </paper-button>
             </fieldset>
+
           </div>
         </div>
         <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'generatedPlan')]]"></ros-rviz>
@@ -375,7 +383,8 @@
       </div>
     </paper-dialog>
     <paper-dialog modal id="loading">
-        <p><paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
+      <p>
+        <paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
     </paper-dialog>
   </template>
 
@@ -391,6 +400,10 @@
         domain: Object,
         domainID: String,
         params: Object,
+        planner: {
+          type: String,
+          value: "ff"
+        },
         program: {
           type: Object,
           observer: '_programChanged',
@@ -731,6 +744,17 @@
         this.$.eventPub.publish(msg);
       },
 
+      _solve: function (evt) {
+        console.debug("Solve problem ", this.problem);
+        var msg = {
+          type: 'solve pddl problem',
+          domain_id: this.domain_id,
+          planner: this.planner,
+          pddl_problem: this.problem
+        };
+        this.$.eventPub.publish(msg);
+      },
+
       _domainUpdated: function (changedDomain, changedList) {
         if (changedDomain.value) {
           this.$.loading.close();
@@ -738,18 +762,18 @@
           //updating the current problem
           var j = 0;
           while (j < this.domain.problems.length && this.domain.problems[j].name != this.problem.name) {
-              j++;
+            j++;
           }
           if (j != this.domain.problems.length) {
-              this.problem = this.domain.problems[j];
+            this.problem = this.domain.problems[j];
           }
           //show if no objects have been detected
           var i = 0;
           while (i < this.problem.objects.length && this.problem.objects[i].type.name == "position") {
-              i++;
+            i++;
           }
           if (i != this.problem.objects.length) {
-              this.$.noObj.style.display = "none";
+            this.$.noObj.style.display = "none";
           }
         }
         if (this.domainList && this.domainList.domains.length == 1) {
@@ -926,18 +950,18 @@
           console.debug('Saving ', this.domain, " with name ", this.domain_id);
           console.debug('Saving ', this.problem, " with name ", this.problemName);
           this.$.eventPub.publish(msg);
-              this.quit();
+          this.quit();
         }
 
       },
       quit: function (evt) {
-          this.fire('quit');
+        this.fire('quit');
       },
       saving: function (evt) {
-          this.$.saving.open();
+        this.$.saving.open();
       },
-      exiting: function(evt) {
-          this.$.exiting.open();
+      exiting: function (evt) {
+        this.$.exiting.open();
       }
     });
   </script>
