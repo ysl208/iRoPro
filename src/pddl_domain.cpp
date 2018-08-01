@@ -148,20 +148,21 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
       args.push_back(position);
       AddPredicate(&world_state->predicates_, predicate, args, negate);
 
-      predicate = msgs::PDDLPredicate::IS_STACKABLE;
-      AddPredicate(&world_state->predicates_, predicate, args, negate);
+      // Due to closed world assumption not needed (implied by having IS_ON)
+      // predicate = msgs::PDDLPredicate::IS_STACKABLE;
+      // AddPredicate(&world_state->predicates_, predicate, args, negate);
 
-      predicate = msgs::PDDLPredicate::IS_CLEAR;
-      args.clear();
-      args.push_back(obj);
-      AddPredicate(&world_state->predicates_, predicate, args, negate);
+      // predicate = msgs::PDDLPredicate::IS_CLEAR;
+      // args.clear();
+      // args.push_back(obj);
+      // AddPredicate(&world_state->predicates_, predicate, args, negate);
 
-      predicate = msgs::PDDLPredicate::IS_CLEAR;
-      args.clear();
-      args.push_back(position);
-      negate = true;
-      AddPredicate(&world_state->predicates_, predicate, args, negate);
-      ROS_INFO("Predicates now: %zd", world_state->predicates_.size());
+      // predicate = msgs::PDDLPredicate::IS_CLEAR;
+      // args.clear();
+      // args.push_back(position);
+      // negate = true;
+      // AddPredicate(&world_state->predicates_, predicate, args, negate);
+      // ROS_INFO("Predicates now: %zd", world_state->predicates_.size());
     } else {
       ROS_ERROR("Object not on any predefined position");
     }
@@ -319,8 +320,7 @@ void GetTypeFromDims(const geometry_msgs::Vector3& dims,
     if (x / z > 3.5 || y / z > 3.5) {
       type = "plate";
       obj_type->name = msgs::PDDLType::PLATE_OBJECT;
-    } else if ((x / z > 0.85 || y / z > 0.85) &&
-               (x / z < 1.3 || y / z < 1.3)) {
+    } else if ((x / z > 0.85 || y / z > 0.85) && (x / z < 1.3 || y / z < 1.3)) {
       type = "cube";
       obj_type->name = msgs::PDDLType::CUBE_OBJECT;
     } else if (x / z < 0.5 || y / z < 0.5) {
@@ -375,33 +375,60 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
   double a_center_x = 0, a_center_y = 0, a_center_z = 0;
 }
 
-void PrintAllPredicates(std::vector<msgs::PDDLPredicate> predicates,
-                        std::string type) {
-  if (type == "PDDL") {
-    std::cout << "and ";
+std::string PrintAllPredicates(std::vector<msgs::PDDLPredicate> predicates,
+                               std::string type) {
+  std::string ss = "";
+  if (type != "") {
     for (size_t i = 0; i < predicates.size(); ++i) {
       msgs::PDDLPredicate predicate = predicates[i];
-      std::cout << "(" + PrintPDDLPredicate(predicate) + ")" << std::endl;
+      ss += PrintPDDLPredicate(predicate, type) + " ";
+    }
+    if (predicates.size() > 1) {
+      ss = "(and " + ss + ")";
     }
   } else {
     for (size_t i = 0; i < predicates.size(); ++i) {
       msgs::PDDLPredicate predicate = predicates[i];
-      std::cout << PrintPredicate(predicate) << std::endl;
+      ss += PrintPredicate(predicate) + "\n";
     }
   }
+  return ss;
 }
 
-std::string PrintPDDLPredicate(msgs::PDDLPredicate predicate) {
+std::string PrintPDDLPredicate(msgs::PDDLPredicate predicate,
+                               std::string pred_type) {
+  // pred_type is used for different PDDL output
+  // can be either predicate, precondition/effect, or init/goal
   std::string print_out = "";
   print_out += predicate.name + " ";
-  print_out += predicate.arg1.name;
+
+  if (pred_type != "init" && pred_type != "goal") {  // include '?' if parameter
+    print_out += "?";
+  }
+  std::string str = predicate.arg1.name;
+  str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
+  print_out += str;
+  if (pred_type == "predicate") {  // need to include object type
+    print_out += " - " + predicate.arg1.type.name;
+  }
+
   if (predicate.arg2.name != "") {
-    print_out += " " + predicate.arg2.name;
+    print_out += " ";
+    if (pred_type != "init" &&
+        pred_type != "goal") {  // include '?' if parameter
+      print_out += "?";
+    }
+    str = predicate.arg2.name;
+    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
+    print_out += str;
+    if (pred_type == "predicate") {  // need to include object type
+      print_out += " - " + predicate.arg2.type.name;
+    }
   }
   if (predicate.negate) {
     print_out = "not(" + print_out + ")";
   }
-  return print_out;
+  return "(" + print_out + ")";
 }
 
 std::string PrintPredicate(msgs::PDDLPredicate predicate) {

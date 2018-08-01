@@ -58,10 +58,11 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects);
 bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
                             const double squared_distance_cutoff,
                             msgs::PDDLObject* found_position);
-void PrintAllPredicates(std::vector<msgs::PDDLPredicate> predicates,
-                        std::string type);
+std::string PrintAllPredicates(std::vector<msgs::PDDLPredicate> predicates,
+                               std::string type);
 std::string PrintPredicate(msgs::PDDLPredicate predicate);
-std::string PrintPDDLPredicate(msgs::PDDLPredicate predicate);
+std::string PrintPDDLPredicate(msgs::PDDLPredicate predicate,
+                               std::string pred_type);
 }  // namespace pbd
 }  // namespace rapid
 

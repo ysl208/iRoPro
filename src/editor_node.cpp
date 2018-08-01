@@ -67,6 +67,11 @@ int main(int argc, char** argv) {
          ros::ok()) {
     ROS_WARN("Waiting for surface segmentation server.");
   }
+  // while (!action_clients.surface_segmentation_client.waitForServer(
+  //            ros::Duration(5)) &&
+  //        ros::ok()) {
+  //   ROS_WARN("Waiting for pddl planner server.");
+  // }
   // PDDL domain publisher
   ros::Publisher pddl_domain_pub =
       nh.advertise<rapid_pbd_msgs::PDDLDomain>("pddl_domain", 5, true);

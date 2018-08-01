@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning_interface
   moveit_goal_builder
   pcl_ros
+  pddl_msgs
   pr2_controllers_msgs
   pr2_mechanism_msgs
   rapid_pbd_msgs
@@ -135,6 +136,7 @@ catkin_package(
     rapid_pbd_landmarks
     rapid_pbd_motion_planning
     rapid_pbd_pddl_domain
+    rapid_pbd_pddl_solver_action
     rapid_pbd_pr2_actions
     rapid_pbd_program_db
     rapid_pbd_program_executor
@@ -155,6 +157,7 @@ catkin_package(
     moveit_ros_planning_interface
     moveit_goal_builder
     pcl_ros
+    pddl_msgs
     pr2_controllers_msgs
     pr2_mechanism_msgs
     rapid_pbd_msgs
@@ -263,6 +266,10 @@ target_link_libraries(rapid_pbd_pddl_domain
   rapid_pbd_landmarks
   ${catkin_LIBRARIES})
 
+add_library(rapid_pbd_pddl_solver_action src/pddl_solver_action.cpp)
+add_dependencies(rapid_pbd_pddl_solver_action ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_pddl_solver_action ${catkin_LIBRARIES})
+
 add_library(rapid_pbd_pr2_actions src/pr2_actions.cpp)
 add_dependencies(rapid_pbd_pr2_actions ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_pr2_actions ${catkin_LIBRARIES})
@@ -353,11 +360,20 @@ target_link_libraries(rapid_pbd_baxter_action_node
   rapid_pbd_baxter_actions
   ${catkin_LIBRARIES}
 )
+
 add_executable(rapid_pbd_fetch_action_node src/fetch_action_node.cpp)
 set_target_properties(rapid_pbd_fetch_action_node PROPERTIES OUTPUT_NAME fetch_action_node PREFIX "")
 add_dependencies(rapid_pbd_fetch_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_fetch_action_node
   rapid_pbd_fetch_actions
+  ${catkin_LIBRARIES}
+)
+
+add_executable(rapid_pbd_pddl_solver_node src/pddl_solver_node.cpp)
+set_target_properties(rapid_pbd_pddl_solver_node PROPERTIES OUTPUT_NAME pddl_solver_node PREFIX "")
+add_dependencies(rapid_pbd_pddl_solver_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_pddl_solver_node
+  rapid_pbd_pddl_solver_action
   ${catkin_LIBRARIES}
 )
 
@@ -443,6 +459,7 @@ install(TARGETS
   rapid_pbd_landmarks
   rapid_pbd_motion_planning
   rapid_pbd_pddl_domain
+  rapid_pbd_pddl_solver_action
   rapid_pbd_pr2_actions
   rapid_pbd_program_db
   rapid_pbd_program_executor
@@ -455,6 +472,7 @@ install(TARGETS
   rapid_pbd_baxter_action_node
   rapid_pbd_editor_node
   rapid_pbd_fetch_action_node
+  rapid_pbd_pddl_solver_node
   rapid_pbd_program_execution_demo
   rapid_pbd_program_execution_node
   rapid_pbd_pr2_action_node

@@ -1,5 +1,6 @@
 <launch>
   <arg name="camera_frame" default="/kinect2_rgb_optical_frame" />
+  <arg name="pddl_solver_topic" default="/pddl_planner" />
 
   <arg name="sim" />
   <arg if="$(arg sim)" name="point_cloud_topic" default="/mock_point_cloud" />
@@ -23,6 +24,7 @@
     </node>
     <rosparam command="load" file="$(find rapid_pbd)/config/surface_segmentation.yaml" />
     <node pkg="rapid_pbd" type="surface_segmentation_node" name="surface_segmentation_node" args="$(arg point_cloud_topic)" />
+    <node pkg="rapid_pbd" type="pddl_solver_node" name="pddl_solver_node" args="$(arg pddl_solver_topic)"/>
 
     <rosparam command="load" file="$(find rapid_pbd)/config/planning_domain.yaml" />
   </group>

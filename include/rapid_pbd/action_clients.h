@@ -7,6 +7,8 @@
 #include "moveit_msgs/MoveGroupAction.h"
 #include "rapid_pbd_msgs/ExecuteProgramAction.h"
 #include "rapid_pbd_msgs/SegmentSurfacesAction.h"
+#include "pddl_msgs/PDDLPlannerAction.h"
+
 
 namespace msgs = rapid_pbd_msgs;
 namespace rapid {
@@ -26,6 +28,9 @@ struct ActionClients {
       surface_segmentation_client;
   actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> moveit_client;
   actionlib::SimpleActionClient<msgs::ExecuteProgramAction> program_client;
+
+  actionlib::SimpleActionClient<pddl_msgs::PDDLPlannerAction>
+      pddl_solver_client;
 };
 }  // namespace pbd
 }  // namespace rapid

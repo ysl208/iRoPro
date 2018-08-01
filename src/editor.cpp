@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "pddl_msgs/PDDLPlannerGoal.h"
 #include "rapid_pbd_msgs/Action.h"
 #include "rapid_pbd_msgs/Condition.h"
 #include "rapid_pbd_msgs/EditorEvent.h"
@@ -101,7 +102,10 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_PROBLEM) {
       UpdatePDDLProblem(event.domain_id, event.pddl_problem,
                         event.problem_name);
+    } else if (event.type == msgs::EditorEvent::SOLVE_PDDL_PROBLEM) {
+      SolvePDDLProblem(event.domain_id, event.pddl_problem, event.planner);
     }
+
     // Condition events
     else if (event.type == msgs::EditorEvent::GENERATE_CONDITIONS) {
       GenerateConditions(event.program_info.db_id, event.step_num,
@@ -1188,6 +1192,7 @@ void Editor::DetectActionConditions(const std::string& domain_id,
     // detect surface landmarks
     msgs::SegmentSurfacesGoal goal;
     goal.save_cloud = true;
+
     action_clients_->surface_segmentation_client.sendGoal(goal);
     success = action_clients_->surface_segmentation_client.waitForResult(
         ros::Duration(20));
@@ -1226,9 +1231,11 @@ void Editor::DetectActionConditions(const std::string& domain_id,
     UpdatePDDLAction(domain_id, new_action, "");
   }
 }
+
 void Editor::AssignSurfaceObjects(const std::string& db_id,
                                   const msgs::PDDLAction& action,
                                   size_t step_id) {
+  // Assigns detected surface objects to step
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
   if (!success) {
@@ -1319,7 +1326,7 @@ void Editor::DeletePDDLAction(const std::string& domain_id,
               action_name.c_str(), domain_id.c_str());
   } else {
   }
-  //deleting the program linked to the action
+  // deleting the program linked to the action
   Delete(domain.actions[index].program_id);
 
   domain.actions.erase(domain.actions.begin() + index);
@@ -1329,7 +1336,7 @@ void Editor::DeletePDDLAction(const std::string& domain_id,
 
 int Editor::FindPDDLAction(const std::string name,
                            const std::vector<msgs::PDDLAction>& actions) {
-  ROS_INFO("Start looking for action %s out of %zu actions", name.c_str(),
+  ROS_INFO("Start looking for action '%s' out of %zu actions", name.c_str(),
            actions.size());
   for (int i = 0; i < actions.size(); ++i) {
     if (actions[i].name == name) {
@@ -1480,6 +1487,106 @@ int Editor::FindPDDLProblem(const std::string name,
   return -1;
 }
 
+void Editor::SolvePDDLProblem(const std::string domain_id,
+                              const msgs::PDDLProblem& problem,
+                              const std::string planner) {
+  ROS_INFO("Solve problem %s with planner %s", problem.name.c_str(),
+           planner.c_str());
+  // look for pddl domain
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  }
+  // create pddl_msgs::PDDLDomain element
+  pddl_msgs::PDDLDomain planner_domain;
+  planner_domain.name = domain.name;
+  planner_domain.requirements = domain.requirements;
+
+  ROS_INFO("Got domain %s", planner_domain.name.c_str());
+  // get types
+  for (size_t i = 0; i < domain.types.size(); ++i) {
+    planner_domain.types.push_back(domain.types[i].name.c_str());
+    ROS_INFO("Added type: %s", planner_domain.types[i].c_str());
+  }
+
+  // get predicates
+  for (size_t i = 0; i < domain.predicates.size(); ++i) {
+    planner_domain.predicates.push_back(
+        PrintPDDLPredicate(domain.predicates[i], "predicate"));
+    ROS_INFO("Added predicate: %s", planner_domain.predicates[i].c_str());
+  }
+  // get actions
+  for (size_t i = 0; i < domain.actions.size(); ++i) {
+    msgs::PDDLAction action = domain.actions[i];
+
+    pddl_msgs::PDDLAction planner_action;
+    planner_action.name = action.name;
+    ROS_INFO("Adding action: %s", planner_action.name.c_str());
+    // get parameters as single string
+    std::stringstream param_ss;
+    for (size_t j = 0; j < action.params.size(); ++j) {
+      param_ss << "?obj" << j + 1 << " - " << action.params[j].type.name << " ";
+    }
+    planner_action.parameters = param_ss.str();
+
+    ROS_INFO("action params: %s", planner_action.parameters.c_str());
+    // get preconditions as single string
+    planner_action.precondition =
+        PrintAllPredicates(action.preconditions, "precondition");
+
+    ROS_INFO("action pre: %s", planner_action.precondition.c_str());
+    planner_action.effect = PrintAllPredicates(action.effects, "effect");
+
+    ROS_INFO("action eff: %s", planner_action.effect.c_str());
+    planner_domain.actions.push_back(planner_action);
+  }
+
+  // create pddl_msgs::PDDLProblem element
+  pddl_msgs::PDDLProblem planner_problem;
+  planner_problem.name = problem.name;
+  ROS_INFO("Get Problem: %s", planner_problem.name.c_str());
+  // get objects
+  for (size_t i = 0; i < problem.objects.size(); ++i) {
+    pddl_msgs::PDDLObject planner_object;
+    std::string str = problem.objects[i].name;
+    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
+
+    planner_object.name = str;
+    planner_object.type = problem.objects[i].type.name;
+    planner_problem.objects.push_back(planner_object);
+
+    ROS_INFO("added object: %s", str.c_str());
+  }
+  // get initial states
+  for (size_t i = 0; i < problem.initial_states.size(); ++i) {
+    planner_problem.initial.push_back(
+        PrintPDDLPredicate(problem.initial_states[i], "init"));
+    ROS_INFO("added initial state: %s", planner_problem.initial[i].c_str());
+  }
+  planner_problem.goal = PrintAllPredicates(problem.goal_states, "goal");
+
+  ROS_INFO("added goal: %s", planner_problem.goal.c_str());
+  pddl_msgs::PDDLPlannerGoal goal;
+  goal.domain = planner_domain;
+  goal.problem = planner_problem;
+
+  ROS_INFO("sending goal to solver: %s", planner_problem.goal.c_str());
+  action_clients_->pddl_solver_client.sendGoal(goal);
+  success =
+      action_clients_->pddl_solver_client.waitForResult(ros::Duration(30));
+  if (!success) {
+    ROS_INFO("No plan found for problem %s", problem.name.c_str());
+  }
+  pddl_msgs::PDDLPlannerResult::ConstPtr result =
+      action_clients_->pddl_solver_client.getResult();
+  ROS_INFO("Plan found for problem \"%s\" with %zu data", problem.name.c_str(),
+           result->data.size());
+  ROS_INFO("...with %zu steps", result->sequence.size());
+  // TO DO: publish results
+}
+
 // rapid_pbd functions
 void Editor::GetJointValues(const std::string& db_id, size_t step_id,
                             size_t action_id,
@@ -1611,7 +1718,7 @@ void Editor::GetNewPose(const msgs::Landmark& landmark, const World& world,
     tf_listener_.lookupTransform(robot_config_.base_link(), ee_frame,
                                  ros::Time(0), transform);
   } catch (tf::TransformException ex) {
-    ROS_ERROR("%s", ex.what());
+    ROS_ERROR("GetNewPose tf: %s", ex.what());
     return;
   }
   graph.Add("end effector",
@@ -1648,7 +1755,7 @@ void Editor::GetNewPose(const msgs::Landmark& landmark, const World& world,
                                    action->landmark.name, ros::Time(0),
                                    landmark_transform);
     } catch (tf::TransformException ex) {
-      ROS_ERROR("%s", ex.what());
+      ROS_ERROR("GetNewPose tf2: %s", ex.what());
       return;
     }
     graph.Add("landmark", transform_graph::RefFrame(robot_config_.base_link()),
@@ -1717,7 +1824,7 @@ void Editor::ReinterpretPose(const msgs::Landmark& new_landmark,
                                    action->landmark.name, ros::Time(0),
                                    landmark_transform);
     } catch (tf::TransformException ex) {
-      ROS_ERROR("%s", ex.what());
+      ROS_ERROR("ReinterpretPose tf: %s", ex.what());
       return;
     }
     graph.Add("old landmark",
@@ -1747,7 +1854,7 @@ void Editor::ReinterpretPose(const msgs::Landmark& new_landmark,
                                    action->landmark.name, ros::Time(0),
                                    landmark_transform);
     } catch (tf::TransformException ex) {
-      ROS_ERROR("%s", ex.what());
+      ROS_ERROR("ReinterpretPose tf: %s", ex.what());
       return;
     }
     graph.Add("new landmark",
