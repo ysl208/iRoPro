@@ -1527,7 +1527,8 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
     // get parameters as single string
     std::stringstream param_ss;
     for (size_t j = 0; j < action.params.size(); ++j) {
-      param_ss << "?obj" << j + 1 << " - " << action.params[j].type.name << " ";
+      param_ss << "?" << action.params[j].name << " - "
+               << action.params[j].type.name << " ";
     }
     planner_action.parameters = "(" + param_ss.str() + ")";
 
