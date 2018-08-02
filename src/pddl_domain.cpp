@@ -52,7 +52,7 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   msgs::PDDLPredicate predicate;
   // Predicate has at least 1 arg of type table_entity
   msgs::PDDLObject obj;
-  obj.name = "Obj 1";
+  obj.name = "Obj1";
   type.name = msgs::PDDLType::TABLE_ENTITY;
   obj.type = type;
   predicate.arg1 = obj;
@@ -65,7 +65,7 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   predicate.arg2 = obj;
 
   msgs::PDDLObject obj2;
-  obj2.name = "Obj 2";
+  obj2.name = "Obj2";
   type.name = msgs::PDDLType::OBJECT;
   obj2.type = type;
   predicate.arg1 = obj2;
@@ -126,7 +126,7 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
              world_landmark.surface_box_dims.z);
     // Generate Predicates for type == OBJECT
     std::stringstream ss;
-    ss << "Obj " << i + 1;
+    ss << "Obj" << i + 1;
     obj.name = ss.str();
     msgs::PDDLType obj_type;
     obj_type.name = msgs::PDDLType::OBJECT;
@@ -355,7 +355,7 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
 
   for (size_t i = 0; i < name_list.size(); ++i) {
     std::stringstream ss;
-    ss << "Position " << name_list[i];
+    ss << "Position" << name_list[i];
     obj.name = ss.str();
     geometry_msgs::Pose pose;
     pose.position.x = pos_x_list[i];
