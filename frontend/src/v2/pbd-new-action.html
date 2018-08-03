@@ -501,9 +501,10 @@
                 }
             },
             load: function (db_id, paramsChangeRecord) {
-                /* if (!db_id) {
-                    return;
-                } */
+                if (!db_id) {
+                    this._startDemo();
+                    //return;
+                }
                 if (!this.params.robot) {
                     return;
                 }
@@ -564,20 +565,20 @@
                                 topic: '/rapid_pbd/scene/' + db_id,
                             },
                         }, {
-                            isShown: true,
-                            name: 'Surface segmentation',
-                            type: 'markers',
-                            options: {
-                                topic: '/rapid_pbd/surface_seg/visualization/'// + db_id,
-                            },
-                        }, {/* 
+                            //     isShown: true,
+                            //     name: 'Surface segmentation',
+                            //     type: 'markers',
+                            //     options: {
+                            //         topic: '/rapid_pbd/surface_seg/visualization/'// + db_id,
+                            //     },
+                            // }, { 
                             isShown: true,
                             name: 'Surface segmentation',
                             type: 'markerArray',
                             options: {
                                 topic: '/rapid_pbd/surface_segmentation/' + db_id,
                             },
-                        }, { */
+                        }, {
                             isShown: true,
                             name: 'Current robot model',
                             type: 'urdf',
@@ -604,7 +605,7 @@
                     ],
                     sidebarOpened: false,
                 };
-                if (this.$.rviz) {
+                if (this.$.rviz && !this._displayNavStep(this.navStep, 'demonstration')) {
                     this.$.rviz.config = config;
                 } else {
                     console.info('rviz not ready');
@@ -984,10 +985,9 @@
                 return (navStep == name);
             },
             _selectNavStep: function (evt) {
-
                 this.navStep = evt.target.getAttribute('name');
-                if (this.navStep == 'demonstration')
-                    this._startDemo();
+                // if (this.navStep == 'demonstration')
+                //     this._startDemo();
             },
             _negate: function (neg) {
                 if (neg) return 'not ';
