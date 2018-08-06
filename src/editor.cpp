@@ -1587,7 +1587,14 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
   ROS_INFO("Plan found for problem \"%s\" with %zu data", problem.name.c_str(),
            result->data.size());
   ROS_INFO("...with %zu steps", result->sequence.size());
-  // TO DO: publish results
+  msgs::PDDLProblem new_problem = problem;
+  new_problem.sequence.clear();
+  for (size_t i = 0; i < result->sequence.size(); ++i) {
+    pddl_msgs::PDDLStep step = result->sequence[i];
+    new_problem.sequence.push_back(step);
+    ROS_INFO("...%s", step.action.c_str());
+  }
+  UpdatePDDLProblem(domain_id, new_problem, "");
 }
 
 // rapid_pbd functions

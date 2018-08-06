@@ -177,8 +177,6 @@
     </style>
     <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
     <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
-    <!-- <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
-      ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service> -->
     <!-- PDDL -->
     <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
     <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
@@ -230,10 +228,6 @@
     </header>
 
     <div id="layout" class="layout vertical">
-      <!-- ***** Generated Plan **** 3/3 -->
-      <div id="plan" hidden$="[[!_displayNavStep(navStep,'generatedPlan')]]">
-        Action list
-      </div>
 
       <div class="content">
         <div id="stepContent" class="stepDiv">
@@ -356,6 +350,33 @@
               </paper-button>
             </fieldset>
 
+          </div>
+
+          <!-- ***** Generated Plan **** 3/3 -->
+          <div id="plan" hidden$="[[!_displayNavStep(navStep,'generatedPlan')]]">
+            <fieldset>
+              <legend>
+                Generated steps to solve problem
+              </legend>
+              <p>Verify all sequence is correct before proceeding.</p>
+              <p id="noObj">No steps generated</p>
+              <table>
+                <template is="dom-repeat" items="{{problem.sequence}}" as="item" index-as="stepIndex">
+                  <tr>
+                    <div id="listeObjet">
+                      <td>
+                        [[stepIndex]]
+                      </td>
+                      <td>[[_parseArgs(item)]]</td>
+                    </div>
+                  </tr>
+                </template>
+              </table>
+
+              <paper-button id="run" raised class="clear" on-tap="_detect">
+                Execute plan
+              </paper-button>
+            </fieldset>
           </div>
         </div>
         <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'generatedPlan')]]"></ros-rviz>
@@ -781,27 +802,6 @@
         }
       },
 
-      _handleServiceResponse(evt) {
-        var id = evt.detail.db_id;
-        this.problem.generated_plan = id;
-        console.debug('handleServResponse', this.problem.generated_plan);
-      },
-
-      _handleServiceError: function (evt) {
-        console.error(evt.detail);
-      },
-      _callPlanner: function (evt) {
-        if (this.problem.generated_plan && this.problem.generated_plan.length > 0) {
-          console.debug('Solution already exists ... ', this.problem.generated_plan);
-        } else {
-          console.debug('New Plan being generated ... ');
-          var name = 'Plan for: ' + this.problemName;
-          var request = {
-            name: name,
-          };
-          //this.$.plannerSrv.call(request);
-        }
-      },
       _detect: function (evt) {
         if (!this.ros) {
           console.error('Unable to call detection right now.');
@@ -923,14 +923,20 @@
         });
         return arr;
       },
+      _parseArgs: function (step) {
+        // translates string array to "english"
+        console.debug("_parseArgs: ", step);
+        if (step.args.length == 0) return step.action;
+        if (step.args.length == 1) return step.args[0] + " " + step.action;
+        if (step.args.length == 2) return step.action + " " + step.args[0] + " to/on " + step.args[1];
+        if (step.args.length == 3) return step.action + " " + step.args[0] + " from " + step.args[1] + " to/on " + step.args[1];
+        return step.action + "(" + step.args.join() + ")";
+      },
       _displayNavStep: function (navStep, name) {
         return (navStep == name);
       },
       _selectNavStep: function (evt) {
-
         this.navStep = evt.target.getAttribute('name');
-        if (this.navStep == 'generatedPlan')
-          this._callPlanner();
       },
       _negate: function (neg) {
         if (neg) return 'not ';
