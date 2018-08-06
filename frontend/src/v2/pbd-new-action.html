@@ -187,7 +187,7 @@
         <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
             ros="[[ros]]"></ros-topic>
         <header>
-            <paper-input id="actionName" label="Action name" value="{{actionName}}" allowed-pattern="[\x00-\x7F]"></paper-input>
+            <paper-input id="actionName" label="Action name" value="{{actionName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
             <nav>
                 <!-- Action navigation buttons -->
                 <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
