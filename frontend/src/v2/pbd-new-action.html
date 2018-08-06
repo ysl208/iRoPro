@@ -190,15 +190,18 @@
             <paper-input id="actionName" label="Action name" value="{{actionName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
             <nav>
                 <!-- Action navigation buttons -->
-                <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
+                <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]"
+                    data-args="perception">
                     1. Perception
                 </paper-button>
                 <!-- <a href="#/program/{{action.program_id}}"> -->
-                <paper-button name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]">
+                <paper-button name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]"
+                    data-args="demonstration">
                     2. Demonstration
                 </paper-button>
                 <!-- </a> -->
-                <paper-button class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]">
+                <paper-button class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]"
+                    data-args="actionModel">
                     3. Action Model
                 </paper-button>
             </nav>
@@ -268,6 +271,10 @@
 
                             <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
                                 Detect World Objects
+                            </paper-button>
+
+                            <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="demonstration">
+                                Next
                             </paper-button>
                         </fieldset>
                     </div>
@@ -985,9 +992,9 @@
                 return (navStep == name);
             },
             _selectNavStep: function (evt) {
-                this.navStep = evt.target.getAttribute('name');
-                // if (this.navStep == 'demonstration')
-                //     this._startDemo();
+                this.navStep = evt.target.getAttribute('data-args');
+                if (this.navStep == 'demonstration')
+                    this._assignSurfaceObjects();
             },
             _negate: function (neg) {
                 if (neg) return 'not ';

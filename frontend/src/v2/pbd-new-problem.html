@@ -187,15 +187,16 @@
       <paper-input id="problemName" label="Problem name" value="{{problemName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
       <nav>
         <!-- Action navigation buttons -->
-        <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
+        <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]"
+          data-args="perception">
           1. Initial State
         </paper-button>
-        <!-- <a href="#/program/{{action.program_id}}"> -->
-        <paper-button name="problemModel" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'problemModel')]]">
+        <paper-button name="problemModel" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'problemModel')]]"
+          data-args="problemModel">
           2. Goal State
         </paper-button>
-        <!-- </a> -->
-        <paper-button class="petit" name="generatedPlan" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'generatedPlan')]]">
+        <paper-button class="petit" name="generatedPlan" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'generatedPlan')]]"
+          data-args="generatedPlan">
           3. Generated Plan
         </paper-button>
       </nav>
@@ -297,6 +298,10 @@
               </div>
               <br>
               <paper-button noink class="petit" on-click="addPredicate" data-args="InitialState">+ add new predicate</paper-button>
+
+              <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="problemModel">
+                Next
+              </paper-button>
             </fieldset>
           </div>
 
@@ -363,7 +368,7 @@
               <table>
                 <template is="dom-repeat" items="{{problem.sequence}}" as="item" index-as="stepIndex">
                   <tr>
-                    <div id="listeObjet">
+                    <div id="listSteps">
                       <td>
                         [[stepIndex]]
                       </td>
@@ -774,6 +779,7 @@
           pddl_problem: this.problem
         };
         this.$.eventPub.publish(msg);
+        this.navStep = 'generatedPlan';
       },
 
       _domainUpdated: function (changedDomain, changedList) {
@@ -927,16 +933,16 @@
         // translates string array to "english"
         console.debug("_parseArgs: ", step);
         if (step.args.length == 0) return step.action;
-        if (step.args.length == 1) return step.args[0] + " " + step.action;
-        if (step.args.length == 2) return step.action + " " + step.args[0] + " to/on " + step.args[1];
-        if (step.args.length == 3) return step.action + " " + step.args[0] + " from " + step.args[1] + " to/on " + step.args[1];
+        if (step.args.length == 1) return step.args[0] + ": " + step.action;
+        if (step.args.length == 2) return step.action + ": " + step.args[0] + " to " + step.args[1];
+        if (step.args.length == 3) return step.action + ": " + step.args[0] + " from " + step.args[1] + " to " + step.args[2];
         return step.action + "(" + step.args.join() + ")";
       },
       _displayNavStep: function (navStep, name) {
         return (navStep == name);
       },
       _selectNavStep: function (evt) {
-        this.navStep = evt.target.getAttribute('name');
+        this.navStep = evt.target.getAttribute('data-args');
       },
       _negate: function (neg) {
         if (neg) return 'not ';
