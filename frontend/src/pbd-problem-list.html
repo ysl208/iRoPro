@@ -94,16 +94,17 @@
             </template>
 
             <template is="dom-if" restamp if="{{_showProblemProperties}}">
-                            <template is="dom-repeat" items="[[pddlDomain.problems]]" as="problem">
-                                <div>
-                                    <template is="dom-if" restamp if="[[_displayProblem(selectedProblemName,problem.name)]]">
-                                        <pbd-new-problem on-quit="quitProblem" name="new-problem" params="[[params]]" ros="[[ros]]" problem="[[problem]]" domain="[[pddlDomain]]"  showing="{{_showActionProperties}"}></pbd-new-problem>
-                                    </template>
-                                </div>
-                            </template>
+                <template is="dom-repeat" items="[[pddlDomain.problems]]" as="problem">
+                    <div>
+                        <template is="dom-if" restamp if="[[_displayProblem(selectedProblemName,problem.name)]]">
+                            <pbd-new-problem on-quit="quitProblem" name="new-problem" params="[[params]]" ros="[[ros]]" problem="[[problem]]" domain="[[pddlDomain]]"
+                                showing="{{_showActionProperties}" }></pbd-new-problem>
+                        </template>
+                    </div>
+                </template>
 
-                        </td>
-                    </tr>
+                </td>
+                </tr>
 
                 </table>
             </template>
@@ -202,12 +203,12 @@
 
             getProblemName: function (problems) {
                 var problemNo = problems.length + 1;
-                var problem_name = 'Problem ' + problemNo;
+                var problem_name = 'Problem' + problemNo;
                 for (var i = 0; i < problems.length; ++i) {
                     if (problems[i].name == problem_name) {
                         problemNo++;
                     }
-                    problem_name = 'Problem ' + problemNo;
+                    problem_name = 'Problem' + problemNo;
                 }
                 return problem_name;
             },
@@ -229,8 +230,8 @@
             _displayProblem: function (selected, problemname) {
                 return (selected && selected.length > 0 && selected == problemname);
             },
-            quitProblem: function(e) {
-               this._showProblemProperties = false;
+            quitProblem: function (e) {
+                this._showProblemProperties = false;
             }
 
         });

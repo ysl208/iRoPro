@@ -106,14 +106,15 @@
                         </th>
                         <tr>
                             <td colspan="2">-->
-                                <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
-                                    <div>
-                                        <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
-                                            <pbd-new-action on-quit="quitNewAction" name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain="[[pddlDomain]]" showing="{{_showActionProperties}}"></pbd-new-action>
-                                        </template>
-                                    </div>
-                                </template>
-               <!--             </td>
+                <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
+                    <div>
+                        <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
+                            <pbd-new-action on-quit="quitNewAction" name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain="[[pddlDomain]]"
+                                showing="{{_showActionProperties}}"></pbd-new-action>
+                        </template>
+                    </div>
+                </template>
+                <!--             </td>
                         </tr>
 
                 </table>-->
@@ -159,8 +160,8 @@
                 'load(pddlDomain.*,domainList.*)',
                 '_domainUpdated(pddlDomain.*)',
             ],
-            quitNewAction: function(e) {
-               this._showActionProperties = false;
+            quitNewAction: function (e) {
+                this._showActionProperties = false;
             },
             load: function (changedDomain, changedList) {
                 if (this.domainList && this.domainList.domains.length == 1) {
@@ -216,12 +217,12 @@
 
             getActionName: function (actions) {
                 var actionNo = actions.length + 1;
-                var action_name = 'Action ' + actionNo;
+                var action_name = 'action' + actionNo;
                 for (var i = 0; i < actions.length; ++i) {
                     if (actions[i].name == action_name) {
                         actionNo++;
                     }
-                    action_name = 'Action ' + actionNo;
+                    action_name = 'action' + actionNo;
                 }
                 return action_name;
             },
