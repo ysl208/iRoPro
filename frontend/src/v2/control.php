@@ -1,6 +1,6 @@
  <?php
 	//line to change to your catkin workspace
-	chdir("/home/stagiaire/catkin_ws");
+	chdir("~/catkin_ws");
 	if (isset($_GET["untuckArm"])) {
 		tuckArms($_GET["untuckArm"]);
 	}
