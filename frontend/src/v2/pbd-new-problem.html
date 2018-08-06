@@ -184,7 +184,7 @@
 
 
     <header>
-      <paper-input id="problemName" label="Problem name" value="{{problemName}}" allowed-pattern="[\x00-\x7F]"></paper-input>
+      <paper-input id="problemName" label="Problem name" value="{{problemName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
       <nav>
         <!-- Action navigation buttons -->
         <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]">
