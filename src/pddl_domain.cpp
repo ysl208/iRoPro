@@ -40,13 +40,14 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   type.name = msgs::PDDLType::OBJECT;
   type.parent = msgs::PDDLType::TABLE_ENTITY;
   domain->types.push_back(type);
+  type.name = msgs::PDDLType::POSITION;
+  AddType(&domain->types, type);
   type.name = msgs::PDDLType::CUBE_OBJECT;
+  type.parent = msgs::PDDLType::OBJECT;
   AddType(&domain->types, type);
   type.name = msgs::PDDLType::TOWER_OBJECT;
   AddType(&domain->types, type);
   type.name = msgs::PDDLType::PLATE_OBJECT;
-  AddType(&domain->types, type);
-  type.name = msgs::PDDLType::POSITION;
   AddType(&domain->types, type);
 
   msgs::PDDLPredicate predicate;
