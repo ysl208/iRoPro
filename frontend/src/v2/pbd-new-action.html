@@ -263,7 +263,15 @@
                                                 <paper-icon-button icon="check"></paper-icon-button>
                                             </td>
                                             <td>[[item.name]]</td>
-                                            <td>([[item.type.name]])</td>
+                                            <td>
+                                                <paper-dropdown-menu>
+                                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{item.type.name}}">
+                                                        <template is="dom-repeat" items="[[_getTypes(item)]]" as="item2" index-as="typeIndex">
+                                                            <paper-item name="[[item2]]" on-tap="_updateType" data-args="[[item]]">[[item2]]</paper-item>
+                                                        </template>
+                                                    </paper-listbox>
+                                                </paper-dropdown-menu>
+                                            </td>
                                         </div>
                                     </tr>
                                 </template>
@@ -884,7 +892,6 @@
                 });
             },
             _getName: function (all_types) {
-
                 var names = ['-'];
                 if (all_types) {
                     for (var i = 0; i < all_types.length; ++i) {
@@ -894,16 +901,29 @@
                 return this.removeDuplicates(names);
             },
 
-            _getType: function (all_types) {
-                var names = ['-'];
-                console.debug('_getType: ', all_types);
+            _getTypes: function (item) {
+                var names = [];
+                //console.debug('_getTypes: ', item);
 
-                if (all_types) {
-                    for (var i = 0; i < all_types.length; ++i) {
-                        names.push(all_types[i].type.name);
-                    }
+                if (item) {
+                    names.push(item.type.name);
+                    if (item.type.parent != '')
+                        names.push(item.type.parent);
                 }
-                return this.removeDuplicates(names);
+                return (names);
+            },
+
+            _updateType: function (evt) {
+                console.debug("_updateType: ", evt.target);
+            },
+
+            /*_updatePredicate: function (evt) {
+                var args = evt.target.getAttribute('data-args');
+                this.set(args, evt.target.name);
+                console.debug(args, ' is ', this.newPrecondition);
+            },*/
+            _printItem: function (evt) {
+                console.debug("_print: ", evt.target.name);
             },
             _generateConditions: function () {
                 // check preconditions and effects are there
