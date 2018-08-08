@@ -26,7 +26,7 @@ PDDLDomain::PDDLDomain(const ros::Publisher& pub) : pddl_domain_pub_(pub) {}
 
 void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   domain->name = name;
-  domain->requirements = ":typing";
+  domain->requirements = ":typing :strips";
   msgs::PDDLType type;
   geometry_msgs::Vector3 obj_dims;
   // TO DO: get obj_dims from yaml file
@@ -41,6 +41,7 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   type.parent = msgs::PDDLType::TABLE_ENTITY;
   domain->types.push_back(type);
   type.name = msgs::PDDLType::POSITION;
+  type.parent = msgs::PDDLType::TABLE_ENTITY;
   AddType(&domain->types, type);
   type.name = msgs::PDDLType::CUBE_OBJECT;
   type.parent = msgs::PDDLType::OBJECT;
