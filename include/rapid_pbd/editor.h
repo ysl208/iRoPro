@@ -164,9 +164,12 @@ class Editor {
                          const std::string& problem_name);
   int FindPDDLProblem(const std::string name,
                       const std::vector<msgs::PDDLProblem>& problems);
-                      void SolvePDDLProblem(const std::string domain_id,
-                            const msgs::PDDLProblem& problem,
-                            const std::string planner);
+  void SolvePDDLProblem(const std::string domain_id,
+                        const msgs::PDDLProblem& problem,
+                        const std::string planner);
+  void RunPDDLPlan(const std::string domain_id,
+                   const msgs::PDDLProblem& problem, const std::string planner);
+
   ProgramDb db_;
   SceneDb scene_db_;
   PDDLDomainDb domain_db_;

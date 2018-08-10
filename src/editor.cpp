@@ -104,6 +104,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
                         event.problem_name);
     } else if (event.type == msgs::EditorEvent::SOLVE_PDDL_PROBLEM) {
       SolvePDDLProblem(event.domain_id, event.pddl_problem, event.planner);
+    } else if (event.type == msgs::EditorEvent::SOLVE_PDDL_PROBLEM) {
+      RunPDDLPlan(event.domain_id, event.pddl_problem, event.planner);
     }
 
     // Condition events
@@ -1596,7 +1598,59 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
   }
   UpdatePDDLProblem(domain_id, new_problem, "");
 }
+void Editor::RunPDDLPlan(const std::string domain_id,
+                         const msgs::PDDLProblem& problem,
+                         const std::string planner) {
+  ROS_INFO("Execute (%zu steps) plan for problem %s with planner %s",
+           problem.sequence.size(), problem.name.c_str(), planner.c_str());
+  // look for pddl domain
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  }
+  for (size_t i = 0; i < problem.sequence.size(); ++i) {
+    pddl_msgs::PDDLStep step = problem.sequence[i];
+    ROS_INFO("Step %zu: Action '%s'", i, step.action.c_str());
+    // Look for action in PDDL domain
+    std::string action_name = step.action;
+    msgs::PDDLAction action;
+    int index = FindPDDLAction(action_name, pddl_domain_.domain_.actions);
+    if (index < 0) {
+      ROS_ERROR("Could not save PDDL action named %s because it does not exist",
+                action_name.c_str());
+    }
+    ROS_INFO("Action found...");
+    action = pddl_domain_.domain_.actions[index];
+    // Look for associated program_id (db_id)
+    std::string db_id;
+    db_id = action.program_id;
+    msgs::Program main_program;
+    bool success = db_.Get(db_id, &main_program);
+    if (!success) {
+      ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
+      return;
+    }
+    // Create new program that will be modified and run for this step
+    msgs::Program new_program = main_program;
 
+    // run program
+    std::cout << "Running program for action ..." << action_name << "\n";
+    msgs::ExecuteProgramGoal goal;
+    goal.program = new_program;
+    action_clients_->program_client.sendGoal(goal);
+    bool finished_before_timeout =
+        action_clients_->program_client.waitForResult(ros::Duration(30.0));
+    if (!finished_before_timeout) {
+      ROS_INFO("Program did not finish before the time out.");
+    }
+    msgs::ExecuteProgramResult::ConstPtr result =
+        action_clients_->program_client.getResult();
+    ROS_INFO("Place done. Press enter to continue");
+    std::cin.ignore();
+  }
+}
 // rapid_pbd functions
 void Editor::GetJointValues(const std::string& db_id, size_t step_id,
                             size_t action_id,
