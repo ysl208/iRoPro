@@ -26,6 +26,7 @@ struct World {
   std::vector<msgs::Condition> world_conditions;
   // std::vector<std::vector<std::string> > grid;
   std::vector<geometry_msgs::PoseArray> grid;
+  std::vector<msgs::WorldState> world_state;
 };
 
 void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,

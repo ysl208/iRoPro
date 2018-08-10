@@ -15,6 +15,7 @@
 #include "ros/ros.h"
 
 #include "rapid_pbd/joint_state.h"
+#include "rapid_pbd/pddl_domain.h"
 #include "rapid_pbd/program_db.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/world.h"
@@ -87,6 +88,10 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
 void GetSurfaceMarker(const msgs::Surface& surface,
                       const RobotConfig& robot_config,
                       visualization_msgs::MarkerArray* scene_markers);
+void GetPositionMarkers(const msgs::WorldState& world_state,
+                        const RobotConfig& robot_config,
+                        visualization_msgs::MarkerArray* scene_markers);
+
 void ClearMarkers(visualization_msgs::MarkerArray* scene_markers,
                   const int& type, const std::string& ns);
 }  // namespace pbd

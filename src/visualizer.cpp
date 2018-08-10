@@ -24,6 +24,7 @@
 #include "visualization_msgs/Marker.h"
 #include "visualization_msgs/MarkerArray.h"
 
+#include "rapid_pbd/pddl_domain.h"
 #include "rapid_pbd/robot_config.h"
 #include "rapid_pbd/world.h"
 #include "ros/ros.h"
@@ -100,6 +101,8 @@ void Visualizer::Publish(const std::string& program_id, const World& world) {
     }
     // Publish surface marker
     GetSurfaceMarker(world.surface, robot_config_, &scene_markers);
+    // Publish position markers
+    GetPositionMarkers(world.surface, robot_config_, &scene_markers);
     step_vizs_[program_id].surface_seg_pub.publish(scene_markers);
   }
 }
@@ -454,6 +457,32 @@ void GetSurfaceMarker(const msgs::Surface& surface,
     scene_markers->markers.push_back(table);
   }
 }
+void GetPositionMarkers(const msgs::WorldState& world_state,
+                        const RobotConfig& robot_config,
+                        visualization_msgs::MarkerArray* scene_markers) {
+  std::string base_link(robot_config.base_link());
+  if (surface.dimensions.x <= 0) {
+    ROS_INFO("No surface to publish");
+  } else {
+    Marker table;
+    table.header.frame_id = base_link;
+    table.type = Marker::CUBE;
+    table.ns = "table";
+    geometry_msgs::Pose pose;
+    pose.position = surface.pose_stamped.pose.position;
+    pose.orientation = surface.pose_stamped.pose.orientation;
+    table.pose = pose;
+    table.pose.position.z -= surface.dimensions.z;
+    table.scale.x = surface.dimensions.x;
+    table.scale.y = surface.dimensions.y;
+    table.scale.z = surface.dimensions.z;
 
+    table.color.r = 0.01;
+    table.color.g = 0.01;
+    table.color.b = 0.01;
+    table.color.a = 1;
+    scene_markers->markers.push_back(table);
+  }
+}
 }  // namespace pbd
 }  // namespace rapid
