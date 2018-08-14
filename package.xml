@@ -30,6 +30,7 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>surface_perception</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>tf2_web_republisher</build_depend>
   <build_depend>trajectory_msgs</build_depend>
   <build_depend>transform_graph</build_depend>
   <build_depend>urdf</build_depend>
