@@ -1,5 +1,6 @@
 #include "rapid_pbd/editor.h"
 
+#include <string.h>
 #include <cmath>
 #include <exception>
 #include <string>
@@ -104,7 +105,7 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
                         event.problem_name);
     } else if (event.type == msgs::EditorEvent::SOLVE_PDDL_PROBLEM) {
       SolvePDDLProblem(event.domain_id, event.pddl_problem, event.planner);
-    } else if (event.type == msgs::EditorEvent::SOLVE_PDDL_PROBLEM) {
+    } else if (event.type == msgs::EditorEvent::RUN_PDDL_PLAN) {
       RunPDDLPlan(event.domain_id, event.pddl_problem, event.planner);
     }
 
@@ -622,18 +623,6 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
   // 1.2 get demo reference position by looking for 'open gripper action' and
   // taking the latest 'move to cart pose'
   // Note: reference position in demo always aligns with 1st object in grid
-  // std::pair<int, int> reference_pose;
-  // int release_step = 0;
-  // int release_action = 0;
-
-  // std::cout << "new program has size: " << new_program.steps.size() <<
-  // "\n"; int ref_step = reference_pose.first; int ref_action =
-  // reference_pose.second; std::cout << "Release step/actions: " << ref_step
-  // << "," << ref_action
-  //           << "\n";
-  // std::cout << "cart_pose_actions: " << cart_pose_actions.size() << "\n";
-  // geometry_msgs::Pose ref_pose =
-  //     new_program.steps[ref_step].actions[ref_action].pose;
 
   // 2. Loop through grid positions
   // 2.1 if landmark on position, skip
@@ -802,6 +791,8 @@ bool Editor::GetCartActions(
     }
     new_program->steps.push_back(step);
   }
+  std::cout << "End of demo steps: " << new_program->steps.size()
+            << " Cart actions found: " << cart_pose_actions->size() << "\n";
   return new_program->steps.size() > 0;
 }
 
@@ -1338,7 +1329,7 @@ int Editor::FindPDDLAction(const std::string name,
   ROS_INFO("Start looking for action '%s' out of %zu actions", name.c_str(),
            actions.size());
   for (int i = 0; i < actions.size(); ++i) {
-    if (actions[i].name == name) {
+    if (strcasecmp(actions[i].name.c_str(), name.c_str()) == 0) {
       return i;
     }
   }
@@ -1623,7 +1614,7 @@ void Editor::RunPDDLPlan(const std::string domain_id,
     }
     ROS_INFO("Action found...");
     action = pddl_domain_.domain_.actions[index];
-    // Look for associated program_id (db_id)
+    // 1. Look for associated program_id (db_id)
     std::string db_id;
     db_id = action.program_id;
     msgs::Program main_program;
@@ -1632,8 +1623,45 @@ void Editor::RunPDDLPlan(const std::string domain_id,
       ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
       return;
     }
-    // Create new program that will be modified and run for this step
+
+    // 3. Run associated program for this step
+    // 3.1 Create new program that will be modified and run for this step
     msgs::Program new_program = main_program;
+    msgs::Program alt_program = main_program;
+
+    // 3.2 save 'move to cart pose' action/step no. in an array that are
+    // relative to a landmark (not torso)
+    std::vector<std::pair<int, int> > cart_pose_actions;
+    new_program.steps.clear();
+    bool newProgramSuccess =
+        GetCartActions(&cart_pose_actions, alt_program, &new_program);
+    if (!newProgramSuccess) {
+      ROS_ERROR("No cartesian actions found in program \"%s\"",
+                alt_program.name.c_str());
+      return;
+    }
+    // 3.3 update the cart action's relative landmark's dimensions according to
+    // the matching PDDLaction parameter dimension
+    for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
+      int s_id = cart_pose_actions[id].first;
+      int a_id = cart_pose_actions[id].second;
+      std::string lm_name = new_program.steps[s_id].actions[a_id].landmark.name;
+
+      std::cout << "Looking for matching lm: " << lm_name << "\n";
+      for (size_t z = 0; z < action.params.size(); ++z) {
+        msgs::PDDLObject match = action.params[z];
+        if (lm_name == match.name) {
+          new_program.steps[s_id].actions[a_id].landmark.surface_box_dims.x =
+              match.surface_box_dims.x;
+          new_program.steps[s_id].actions[a_id].landmark.surface_box_dims.y =
+              match.surface_box_dims.y;
+          new_program.steps[s_id].actions[a_id].landmark.surface_box_dims.z =
+              match.surface_box_dims.z;
+          std::cout << "Updated dimension of step/action = " << s_id << ","
+                    << a_id << "  and landmark " << lm_name << "\n";
+        }
+      }
+    }
 
     // run program
     std::cout << "Running program for action ..." << action_name << "\n";
@@ -1647,10 +1675,53 @@ void Editor::RunPDDLPlan(const std::string domain_id,
     }
     msgs::ExecuteProgramResult::ConstPtr result =
         action_clients_->program_client.getResult();
-    ROS_INFO("Place done. Press enter to continue");
+    ROS_INFO("%s done. Press enter to continue", action_name.c_str());
     std::cin.ignore();
+
+    // 4. Check action effects after executing action
+    // TO DO: if effects are not satisfied stop action execution
   }
 }
+
+// *** adding check conditions action after table top detection
+
+// msgs::Program new_program = main_program;
+// int step_id = 0;
+// for (size_t k = 0; k < program.steps.size(); ++k) {
+//   msgs::Step step = program.steps[step_id];
+//   for (size_t action_id = 0; action_id < step.actions.size(); ++action_id) {
+//     msgs::Action action = step.actions[action_id];
+
+//     if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
+//         action.landmark.name != robot_config_.torso_link()) {
+//       cart_pose_actions->push_back(std::make_pair(step_id, action_id));
+//     }
+//     if (action.type == Action::DETECT_TABLETOP_OBJECTS) {
+//       new_program->steps.push_back(step);
+//       ++step_id;
+//       step.actions.clear();
+//       action_id = 0;
+//       // 3.2. Add check conditions action before executing action
+//       if (action_name == msgs::PDDLPredicate::IS_CLEAR &&
+//           action.params.size() == 1) {
+//         // check if position is clear
+//       } else if (action_name == msgs::PDDLPredicate::IS_ON &&
+//                  action.params.size() == 2) {
+//         // check if object is on position
+//         AddCheckConditionsAction(db_id, step_id);
+//         msgs::Condition action_condition =
+//             step->actions[action_id].condition;
+//         cond_gen_.AssignLandmarkCondition(initial_world, landmark_name,
+//                                           &action_condition);
+//         program.steps[step_id].actions[action_id].condition =
+//             action_condition;
+//       }
+//     }
+//   }
+//   new_program->steps.push_back(step);
+//   ++step_id;
+// }
+
 // rapid_pbd functions
 void Editor::GetJointValues(const std::string& db_id, size_t step_id,
                             size_t action_id,
