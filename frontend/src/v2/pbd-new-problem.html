@@ -378,7 +378,7 @@
                 </template>
               </table>
 
-              <paper-button id="run" raised class="clear" on-tap="_detect">
+              <paper-button id="execute" raised class="clear" on-tap="_execute">
                 Execute plan
               </paper-button>
             </fieldset>
@@ -770,18 +770,6 @@
         this.$.eventPub.publish(msg);
       },
 
-      _solve: function (evt) {
-        console.debug("Solve problem ", this.problem);
-        var msg = {
-          type: 'solve pddl problem',
-          domain_id: this.domain_id,
-          planner: this.planner,
-          pddl_problem: this.problem
-        };
-        this.$.eventPub.publish(msg);
-        this.navStep = 'generatedPlan';
-      },
-
       _domainUpdated: function (changedDomain, changedList) {
         if (changedDomain.value) {
           this.$.loading.close();
@@ -808,6 +796,30 @@
         }
       },
 
+
+      _solve: function (evt) {
+        console.debug("Solve problem ", this.problem);
+        var msg = {
+          type: 'solve pddl problem',
+          domain_id: this.domain_id,
+          planner: this.planner,
+          pddl_problem: this.problem
+        };
+        this.$.eventPub.publish(msg);
+        this.navStep = 'generatedPlan';
+      },
+      _execute: function (evt) {
+        console.debug("Execute plan..", this.problem.generated_plan);
+
+        var msg = {
+          type: 'run pddl plan',
+          domain_id: this.domain_id,
+          planner: this.planner,
+          pddl_problem: this.problem,
+          state_name: ''
+        };
+        this.$.eventPub.publish(msg);
+      },
       _detect: function (evt) {
         if (!this.ros) {
           console.error('Unable to call detection right now.');
