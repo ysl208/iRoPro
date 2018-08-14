@@ -88,9 +88,9 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
 void GetSurfaceMarker(const msgs::Surface& surface,
                       const RobotConfig& robot_config,
                       visualization_msgs::MarkerArray* scene_markers);
-void GetPositionMarkers(const msgs::WorldState& world_state,
-                        const RobotConfig& robot_config,
-                        visualization_msgs::MarkerArray* scene_markers);
+// void GetPositionMarkers(const WorldState& world_state,
+//                         const RobotConfig& robot_config,
+//                         visualization_msgs::MarkerArray* scene_markers);
 
 void ClearMarkers(visualization_msgs::MarkerArray* scene_markers,
                   const int& type, const std::string& ns);

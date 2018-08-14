@@ -31,7 +31,6 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
   world->joint_state = js;
   world->surface_box_landmarks.clear();
   world->world_conditions.clear();
-  world->world_state.clear();
   // world->grid.clear();
   // world->points.clear();
 

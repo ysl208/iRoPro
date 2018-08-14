@@ -11,6 +11,7 @@
 #include "rapid_pbd_msgs/Surface.h"
 
 #include "rapid_pbd/joint_state.h"
+#include "rapid_pbd/pddl_domain.h"
 #include "rapid_pbd/robot_config.h"
 
 namespace msgs = rapid_pbd_msgs;
@@ -26,7 +27,6 @@ struct World {
   std::vector<msgs::Condition> world_conditions;
   // std::vector<std::vector<std::string> > grid;
   std::vector<geometry_msgs::PoseArray> grid;
-  std::vector<msgs::WorldState> world_state;
 };
 
 void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
