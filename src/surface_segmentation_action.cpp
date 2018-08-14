@@ -219,7 +219,7 @@ void SurfaceSegmentationAction::Execute(
       landmark.type = msgs::Landmark::SURFACE_BOX;
       landmark.marker_type = visualization_msgs::Marker::CUBE;
       std::stringstream ss;
-      ss << "Obj " << obj_count;
+      ss << "Obj" << obj_count;
       landmark.name = ss.str();
       landmark.pose_stamped = object.pose_stamped;
       landmark.surface_box_dims = object.dimensions;
