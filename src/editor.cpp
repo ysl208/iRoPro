@@ -1341,6 +1341,7 @@ int Editor::FindPDDLAction(const std::string name,
 void Editor::DetectWorldState(const std::string& domain_id,
                               const std::string& problem_name,
                               const std::string& state_name) {
+  // Detect TT objects and assigns them to the PDDL problem initial/goal state
   // look for pddl domain
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
@@ -1647,23 +1648,52 @@ void Editor::RunPDDLPlan(const std::string domain_id,
       int a_id = cart_pose_actions[id].second;
       std::string lm_name = new_program.steps[s_id].actions[a_id].landmark.name;
 
+      // find argument in action that corresponds to the relative lm name
       std::cout << "Looking for matching lm: " << lm_name << "\n";
       for (size_t z = 0; z < action.params.size(); ++z) {
-        msgs::PDDLObject match = action.params[z];
-        if (lm_name == match.name) {
-          new_program.steps[s_id].actions[a_id].landmark.surface_box_dims.x =
-              match.surface_box_dims.x;
-          new_program.steps[s_id].actions[a_id].landmark.surface_box_dims.y =
-              match.surface_box_dims.y;
-          new_program.steps[s_id].actions[a_id].landmark.surface_box_dims.z =
-              match.surface_box_dims.z;
-          std::cout << "Updated dimension of step/action = " << s_id << ","
-                    << a_id << "  and landmark " << lm_name << "\n";
+        std::cout << "action param: " << action.params[z].name << "\n";
+        std::cout << "# problems landmarks: " << problem.landmarks.size()
+                  << "\n";
+
+        if (lm_name == action.params[z].name) {
+          std::cout << "action param: matched ! " << action.params[z].name
+                    << "\n";
+          // find landmark object in list of detected landmarks in problem
+          for (size_t l = 0; l < problem.landmarks.size(); ++l) {
+            msgs::Landmark match = problem.landmarks[l];
+            if (strcasecmp(match.name.c_str(), step.args[z].c_str()) == 0) {
+              std::cout << "step param: matched ! " << step.args[z] << "\n";
+              new_program.steps[s_id]
+                  .actions[a_id]
+                  .landmark.surface_box_dims.x = match.surface_box_dims.x;
+              new_program.steps[s_id]
+                  .actions[a_id]
+                  .landmark.surface_box_dims.y = match.surface_box_dims.y;
+              new_program.steps[s_id]
+                  .actions[a_id]
+                  .landmark.surface_box_dims.z = match.surface_box_dims.z;
+              std::cout << "Updated dimension of step/action = " << s_id << ","
+                        << a_id << "  and landmark " << lm_name << " ("
+                        << new_program.steps[s_id]
+                               .actions[a_id]
+                               .landmark.surface_box_dims.x
+                        << " ,"
+                        << new_program.steps[s_id]
+                               .actions[a_id]
+                               .landmark.surface_box_dims.y
+                        << " ,"
+                        << new_program.steps[s_id]
+                               .actions[a_id]
+                               .landmark.surface_box_dims.z
+                        << ") \n";
+            }
+          }
         }
       }
     }
 
-    // run program
+  // run program
+  RUN:
     std::cout << "Running program for action ..." << action_name << "\n";
     msgs::ExecuteProgramGoal goal;
     goal.program = new_program;
@@ -1675,8 +1705,13 @@ void Editor::RunPDDLPlan(const std::string domain_id,
     }
     msgs::ExecuteProgramResult::ConstPtr result =
         action_clients_->program_client.getResult();
-    ROS_INFO("%s done. Press enter to continue", action_name.c_str());
-    std::cin.ignore();
+
+    ROS_INFO(
+        "%s done with: %s \n Press enter to r to try again or c to continue.",
+        action_name.c_str(), result->error.c_str());
+    std::string n;
+    std::cin >> n;
+    if (n == "r") goto RUN;
 
     // 4. Check action effects after executing action
     // TO DO: if effects are not satisfied stop action execution
