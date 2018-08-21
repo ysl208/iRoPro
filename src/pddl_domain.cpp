@@ -136,6 +136,7 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
     obj_type.pose = world_landmark.pose_stamped.pose;
     obj_type.dimensions = world_landmark.surface_box_dims;
     obj.type = obj_type;
+    obj.surface_box_dims = world_landmark.surface_box_dims;
     AddObject(&world_state->objects_, obj);
     ros::param::param<double>("world_positions/radius", position_radius,
                               position_radius);
@@ -343,7 +344,7 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
   msgs::PDDLType obj_type;
   obj_type.name = msgs::PDDLType::POSITION;
 
-  std::vector<double> pos_x_list, pos_y_list, pos_z_list;
+  std::vector<double> pos_x_list, pos_y_list, pos_z_list, radius_list;
   std::vector<std::string> name_list;
 
   ros::param::param<std::vector<std::string> >("world_positions/names",
@@ -354,6 +355,8 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
                                           pos_x_list);
   ros::param::param<std::vector<double> >("world_positions/pos_z", pos_z_list,
                                           pos_x_list);
+  ros::param::param<std::vector<double> >("world_positions/radius", radius_list,
+                                          radius_list);
 
   for (size_t i = 0; i < name_list.size(); ++i) {
     std::stringstream ss;
@@ -370,6 +373,11 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
     obj_type.name = msgs::PDDLType::POSITION;
     obj_type.pose = pose;
     obj.type = obj_type;
+    geometry_msgs::Vector3 dims;
+    dims.x = radius_list[i];
+    dims.y = radius_list[i];
+    dims.z = 0.01;
+    obj.surface_box_dims = dims;
     ROS_INFO("%s at %f,%f,%f", obj.name.c_str(), pose.position.x,
              pose.position.y, pose.position.z);
     AddObject(objects, obj);
