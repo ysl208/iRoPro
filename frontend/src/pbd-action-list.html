@@ -210,7 +210,7 @@
                     action_name: name
                 };
                 this.$.eventPub.publish(msg);
-                console.debug('handleCreate', name, this.domain_id);
+                console.debug('handleCreate', name, ' in domain ', this.domain_id);
                 this.selectedActionName = name;
                 this._showActionProperties = true;
             },
