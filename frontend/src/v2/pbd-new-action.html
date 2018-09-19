@@ -625,6 +625,7 @@
                 } else {
                     console.info('rviz not ready');
                 }
+
             },
 
             _updatePredicate: function (evt) {
@@ -658,12 +659,15 @@
                 if (valide) {
                     // Without negation
                     if (!newPredicate.negate) {
-                        // To comment when you want to test, else it's impossible to test on simulation              
-                        //if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
-                        //    valide = false;
-                        //    msgErreur = "A position can't be on something else"
-                        //}
-                        /*else*/ if (newPredicate.name == "on" && newPredicate.arg1.name == newPredicate.arg2.name) {
+                        // To comment when you want to test, else it's impossible to test on simulation
+                        console.debug('test valide ' + newPredicate.arg1.type.name);
+                        console.debug('test valide ' + newPredicate.name);
+
+                        if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
+                            valide = false;
+                            msgErreur = "A position can't be on something else"
+                        }
+                        else if (newPredicate.name == "on" && newPredicate.arg1.name == newPredicate.arg2.name) {
                             valide = false;
                             msgErreur = "An element can't be set on himself";
                         }
