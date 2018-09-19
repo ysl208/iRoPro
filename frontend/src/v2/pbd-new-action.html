@@ -435,6 +435,7 @@
                 domain: Object,
                 domainID: String,
                 params: Object,
+                program_id_set: false,
                 program: {
                     type: Object,
                     observer: '_programChanged',
@@ -516,7 +517,7 @@
                 }
             },
             load: function (db_id, paramsChangeRecord) {
-                if (!db_id) {
+                if (!this.program_id_set) {
                     this._startDemo();
                     //return;
                 }
@@ -834,7 +835,7 @@
             _handleServiceResponse(evt) {
                 var id = evt.detail.db_id;
                 this.action.program_id = id;
-                console.debug('handleServResponse', this.action.program_id);
+                console.debug('_handleServResponse: action assigned program id: ', this.action.program_id);
                 /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
                 window.dispatchEvent(new CustomEvent("location-changed")); */
 
@@ -850,6 +851,7 @@
                     /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
                     window.dispatchEvent(new CustomEvent("location-changed")); */
                 } else {
+                    this.program_id_set = true;
                     console.debug('New Program being created ... ');
                     var name = 'Program for: ' + this.actionName;
                     var request = {
