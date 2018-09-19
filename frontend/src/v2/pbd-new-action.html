@@ -386,7 +386,7 @@
                         </fieldset>
                     </div>
                 </div>
-                <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[_displayNavStep(navStep,'demonstration')]]"></ros-rviz>
+                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -620,7 +620,7 @@
                     ],
                     sidebarOpened: false,
                 };
-                if (this.$.rviz && !this._displayNavStep(this.navStep, 'demonstration')) {
+                if (this.$.rviz /*&& !this._displayNavStep(this.navStep, 'demonstration')*/) {
                     this.$.rviz.config = config;
                 } else {
                     console.info('rviz not ready');
