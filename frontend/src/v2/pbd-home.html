@@ -27,7 +27,7 @@
       }
 
       paper-button {
-        flex : 1;
+        flex: 1;
         width: 100%;
       }
 
@@ -38,14 +38,12 @@
         text-decoration: none;
         padding: 15%;
       }
-      
     </style>
 
-    <h1 class="style-scope canvas-view">Welcome to the Programming by Demonstration Planning tool</h1>
-    <p>Programming by Demonstration (PbD) is a technique that allows you to teach the robot a new action by moving its arms and showing how the action should be performed. <br>
-
-      You can then give a problem to the robot by scpecifying a goal world state to achieve. It will plan a solution using the learned action.
-      Note that in order to create a problem, you need to teach action first.</p>
+    <h1 class="style-scope canvas-view">Welcome to the Programming by Demonstration Planning (PDP) tool</h1>
+    <p> The PDP tool allows you to teach the robot new actions by moving its arms. The robot can use these actions to solve more
+      complex problems. To solve a problem, you need to specify a goal state for the robot to achieve. It will plan a solution
+      using the learned action. Get started by teaching the robot a new action.</p>
     <div>
       <a href="#/action-list">
         <paper-button raised id="actionsMenu" class="style-scope canvas-view" on-tap="update" data-args="Actions">Teach actions</paper-button>
@@ -59,7 +57,7 @@
     </div>
     <div>
       <a href="#/help" id="help">
-        <paper-button raised  class="style-scope canvas-view" on-tap="update" data-args="Help">Help</paper-button>
+        <paper-button raised class="style-scope canvas-view" on-tap="update" data-args="Help">Help</paper-button>
       </a>
     </div>
   </template>
@@ -67,8 +65,8 @@
     Polymer({
       is: "pbd-home",
 
-      update: function(e) {
-        this.fire('updatebtn', {button: e.target.getAttribute('data-args')});
+      update: function (e) {
+        this.fire('updatebtn', { button: e.target.getAttribute('data-args') });
       }
     });
   </script>
