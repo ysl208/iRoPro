@@ -78,7 +78,7 @@ void SurfaceSegmentationAction::Execute(
 
   // Transform into base frame.
 
-  ROS_INFO("Transform into base frame... ");
+  ROS_INFO("Surf Seg Action: Transform into base frame... ");
   tf::TransformListener tf_listener;
   std::string base_link(robot_config_.base_link());
 
