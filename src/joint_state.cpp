@@ -35,8 +35,10 @@ double JointState::position(const std::string& name) const {
 void JointState::ToMsg(sensor_msgs::JointState* msg) const {
   for (std::map<std::string, double>::const_iterator it = positions_.begin();
        it != positions_.end(); ++it) {
-    msg->name.push_back(it->first);
-    msg->position.push_back(it->second);
+    if (it->first != "torso_t0" && it->first != "head_nod") {
+      msg->name.push_back(it->first);
+      msg->position.push_back(it->second);
+    }
   }
 }
 
