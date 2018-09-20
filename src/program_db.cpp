@@ -200,7 +200,7 @@ std::string PDDLDomainDb::Insert(const msgs::PDDLDomain& domain) {
 
 void PDDLDomainDb::Update(const std::string& domain_id,
                           const msgs::PDDLDomain& domain) {
-  ROS_INFO("Updating %s with domain (%s)", domain_id.c_str(),
+  ROS_INFO("Updating domain id '%s' with domain name '%s'", domain_id.c_str(),
            domain.name.c_str());
   bool success = domain_->updateID(domain_id, domain);
   if (!success) {
@@ -307,6 +307,7 @@ bool PDDLDomainDb::GetList(std::vector<std::string>* names) {
 }
 
 void PDDLDomainDb::PublishPDDLDomain(const std::string& domain_id) {
+  // republish domain
   if (domain_pubs_.find(domain_id) == domain_pubs_.end()) {
     ROS_ERROR("No publisher for domain ID: \"%s\"", domain_id.c_str());
     return;

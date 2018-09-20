@@ -169,9 +169,10 @@ std::string Editor::CreatePDDLDomain(const std::string& name) {
   if (!domain_db_.GetByName(name, &domain)) {
     pddl_domain_.Init(&domain, name);
     std::string id = domain_db_.Insert(domain);
+    domain_db_.StartPublishingPDDLDomainById(id);
   }
 
-  pddl_domain_.PublishPDDLDomain(domain);
+  // pddl_domain_.PublishPDDLDomain(domain);
   return domain.name;
 }
 
@@ -187,15 +188,25 @@ std::string Editor::Create(const std::string& name) {
 
   joint_state_reader_.ToMsg(&program.start_joint_state);
   std::string id = db_.Insert(program);
+  db_.StartPublishingProgramById(id);
 
-  World world;
-  GetWorld(robot_config_, program, 0, &world);
-  viz_.Publish(id, world);
+  AddSenseSteps(id, 0);
+
+  msgs::Program test_program;
+  bool success = db_.Get(id, &test_program);
+  if (!success) {
+    ROS_ERROR("Unable to view program \"%s\"", id.c_str());
+    }
+  ROS_INFO("Program '%s' should have 2 steps but has '%ld'",
+           test_program.name.c_str(), test_program.steps.size());
+
   // AddStep(id);
+  ROS_INFO("Created new Program '%s' (%s)", program.name.c_str(), id.c_str());
   return id;
 }
 
 void Editor::AddSenseSteps(const std::string& db_id, size_t step_id) {
+  last_viewed_[db_id] = step_id;
   AddStep(db_id);
   // AddMoveHeadAction(db_id, step_id, 45, 0);
   // AddOpenGripperAction(db_id, step_id, 100, 0);
@@ -206,6 +217,7 @@ void Editor::AddSenseSteps(const std::string& db_id, size_t step_id) {
   AddStep(db_id);
   ++step_id;
   AddDetectTTObjectsAction(db_id, step_id);
+  ROS_INFO("Added sense steps for '%s'", db_id.c_str());
   // AddStep(db_id);
   //++step_id;
   // AddCheckConditionsAction(db_id, step_id);
@@ -397,7 +409,7 @@ void Editor::GenerateConditions(const std::string& db_id, size_t step_id,
     GetWorld(robot_config_, program, last_viewed_[db_id], &world);
     viz_.PublishConditionMarkers(db_id, world, action_condition);
   } else {
-    ROS_ERROR("Unable to publish visualization: unknown step");
+    ROS_ERROR("Unable to publish condition visualization: unknown step");
   }
 }
 
@@ -429,7 +441,7 @@ void Editor::ViewConditions(const std::string& db_id, size_t step_id,
     GetWorld(robot_config_, program, last_viewed_[db_id], &world);
     viz_.PublishConditionMarkers(db_id, world, action_condition);
   } else {
-    ROS_ERROR("Unable to publish visualization: unknown step");
+    ROS_ERROR("Unable to publish condition visualization: unknown step");
   }
 }
 
@@ -468,7 +480,7 @@ void Editor::UpdateConditions(const std::string& db_id, size_t step_id,
     viz_.PublishConditionMarkers(db_id, world,
                                  step->actions[action_id].condition);
   } else {
-    ROS_ERROR("Unable to publish visualization: unknown step");
+    ROS_ERROR("Unable to publish condition visualization: unknown step");
   }
 }
 
@@ -571,7 +583,7 @@ void Editor::ViewSpecification(const std::string& db_id, size_t step_id,
   if (last_viewed_.find(db_id) != last_viewed_.end()) {
     viz_.PublishSpecMarkers(db_id, world, grid, spec.landmark);
   } else {
-    ROS_ERROR("Unable to publish visualization: unknown step");
+    ROS_ERROR("Unable to publish spec visualization: unknown step");
   }
 }
 
@@ -1164,6 +1176,7 @@ void Editor::UpdatePDDLDomain(const std::string& domain_id,
 void Editor::DetectActionConditions(const std::string& domain_id,
                                     const std::string& action_name,
                                     const std::string& state_name) {
+  ROS_INFO("DetectActionConditions... '%s'", action_name.c_str());
   // look for pddl domain
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
@@ -1197,6 +1210,7 @@ void Editor::DetectActionConditions(const std::string& domain_id,
     new_action.scene_id = result->cloud_db_id;
     new_action.surface = result->surface;
     new_action.landmarks.clear();
+    ROS_INFO("Saved action scene_id '%s'", new_action.scene_id.c_str());
     // std::vector<msgs::Landmark> world_landmarks;
     for (size_t i = 0; i < result->landmarks.size(); ++i) {
       msgs::Landmark landmark;
@@ -1219,6 +1233,15 @@ void Editor::DetectActionConditions(const std::string& domain_id,
 
     PrintAllPredicates(world_state.predicates_, "");
     UpdatePDDLAction(domain_id, new_action, "");
+
+    msgs::Program program;
+    success = db_.Get(new_action.program_id, &program);
+    if (!success) {
+      ROS_ERROR("Unable to update scene for program ID \"%s\"",
+                new_action.program_id.c_str());
+      return;
+    }
+    Update(new_action.program_id, program);
   }
 }
 
@@ -1254,10 +1277,10 @@ void Editor::AssignSurfaceObjects(const std::string& db_id,
 // PDDL Action functions
 void Editor::AddPDDLAction(const std::string& domain_id,
                            const std::string& action_name) {
-  ROS_INFO("Start add pddl action: %s", action_name.c_str());
+  ROS_INFO("Adding pddl action: %s", action_name.c_str());
   domain_db_.StartPublishingPDDLDomainById(domain_id);
 
-  ROS_INFO("Trying to get %s from db", domain_id.c_str());
+  ROS_INFO("Trying to get domain id '%s' from db", domain_id.c_str());
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
   if (!success) {
@@ -1266,9 +1289,9 @@ void Editor::AddPDDLAction(const std::string& domain_id,
   }
   int index = FindPDDLAction(action_name, domain.actions);
   if (index >= 0) {
-    ROS_INFO("Pddl action called %s already exists", action_name.c_str());
+    ROS_INFO("Pddl action '%s' already exists", action_name.c_str());
   }
-  ROS_INFO("Creating new pddl action %s", action_name.c_str());
+  ROS_INFO("Creating new pddl action '%s'", action_name.c_str());
   msgs::PDDLAction action;
   action.name = action_name;
   domain.actions.push_back(action);
@@ -1278,6 +1301,7 @@ void Editor::AddPDDLAction(const std::string& domain_id,
 void Editor::UpdatePDDLAction(const std::string& domain_id,
                               const msgs::PDDLAction& action,
                               const std::string& action_name) {
+  ROS_INFO("UpdatePDDLAction... '%s'", action_name.c_str());
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
   if (!success) {
@@ -1412,9 +1436,9 @@ void Editor::AddPDDLProblem(const std::string& domain_id,
   }
   int index = FindPDDLProblem(problem_name, domain.problems);
   if (index >= 0) {
-    ROS_INFO("Pddl problem called %s already exists", problem_name.c_str());
+    ROS_INFO("Pddl problem '%s' already exists", problem_name.c_str());
   }
-  ROS_INFO("Creating new pddl problem %s", problem_name.c_str());
+  ROS_INFO("Creating new pddl problem '%s'", problem_name.c_str());
   msgs::PDDLProblem problem;
   problem.name = problem_name;
   domain.problems.push_back(problem);
@@ -1672,6 +1696,9 @@ void Editor::RunPDDLPlan(const std::string domain_id,
               new_program.steps[s_id]
                   .actions[a_id]
                   .landmark.surface_box_dims.z = match.surface_box_dims.z;
+              new_program.steps[s_id].actions[a_id].landmark.pose_stamped =
+                  match.pose_stamped;
+
               std::cout << "Updated dimension of step/action = " << s_id << ","
                         << a_id << "  and landmark " << lm_name << " ("
                         << new_program.steps[s_id]

@@ -207,7 +207,7 @@
             </nav>
             <div id="buttonDiv">
 
-                <paper-button class="clear" on-tap="_assignSurfaceObjects" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
+                <paper-button class="clear" on-tap="_assignSurfaceObjects">
                     Refresh
                 </paper-button>
                 <paper-button raised on-click="exiting">
@@ -570,7 +570,7 @@
                             name: 'Program robot model',
                             type: 'markerArray',
                             options: {
-                                topic: '/rapid_pbd/robot/' + db_id,
+                                topic: '/rapid_pbd/robot/' + this.action.program_id,
                             },
                         }, {
                             isShown: true,
@@ -578,7 +578,7 @@
                             type: 'pointCloud2',
                             options: {
                                 size: 0.01,
-                                topic: '/rapid_pbd/scene/' + db_id,
+                                topic: '/rapid_pbd/scene/' + this.action.program_id,
                             },
                         }, {
                             //     isShown: true,
@@ -592,7 +592,7 @@
                             name: 'Surface segmentation',
                             type: 'markerArray',
                             options: {
-                                topic: '/rapid_pbd/surface_segmentation/' + db_id,
+                                topic: '/rapid_pbd/surface_segmentation/' + this.action.program_id,
                             },
                         }, {
                             isShown: true,
@@ -872,6 +872,7 @@
 
                 console.debug('_assignSurfaceObjects: ', this.action);
                 this.$.eventPub.publish(msg);
+                this.load();
             },
             _detect: function (evt) {
                 if (!this.ros) {
@@ -891,6 +892,7 @@
                 this.$.eventPub.publish(msg);
                 if (state == "Effect")
                     this._generateConditions();
+
             },
             removeDuplicates: function (a) {
                 uniqueArray = a.filter(function (item, pos) {
@@ -1019,8 +1021,8 @@
             },
             _selectNavStep: function (evt) {
                 this.navStep = evt.target.getAttribute('data-args');
-                if (this.navStep == 'demonstration')
-                    this._assignSurfaceObjects();
+                /* if (this.navStep == 'demonstration')
+                    this._assignSurfaceObjects(); */
             },
             _negate: function (neg) {
                 if (neg) return 'not ';
