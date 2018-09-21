@@ -124,11 +124,11 @@ string MotionPlanning::AddPoseGoal(
   if (!success) {
     std::string error("No IK solution found");
     // std::cout << pose_in_base << std::endl;
-    ROS_INFO("%f %f %f, %f %f %f %f", pose_in_base.position.x,
+    ROS_ERROR("%s", error.c_str());
+    ROS_INFO("pose in base: %f %f %f, %f %f %f %f", pose_in_base.position.x,
              pose_in_base.position.y, pose_in_base.position.z,
              pose_in_base.orientation.x, pose_in_base.orientation.y,
              pose_in_base.orientation.z, pose_in_base.orientation.w);
-    ROS_ERROR("%s", error.c_str());
     return error;
   }
 
@@ -195,7 +195,7 @@ void MotionPlanning::ClearGoals() {
     robot_state_.config.joints_for_group(msgs::Action::RIGHT_ARM, &joints);
     std::vector<double> joint_values;
     robot_state_.js_reader.get_positions(joints, &joint_values);
-    
+
     current_joint_goal_.clear();
     for (size_t i = 0; i < joints.size(); ++i) {
       current_joint_goal_[joints[i]] = joint_values[i];
