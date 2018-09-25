@@ -520,17 +520,15 @@ void GetPositionMarkers(const msgs::Surface& surface,
       pos_marker.pose.orientation.y = 0.7071;
       pos_marker.pose.orientation.z = 0;
       pos_marker.pose.orientation.w = 0.7071;
-      marker.scale.x = 0.25;
-      marker.scale.y = 0.25;
+      marker.scale.x = radius_list[i];
+      marker.scale.y = radius_list[i];
       marker.scale.z = 0.05;
       marker.color.r = 0;
       marker.color.g = 0;
       marker.color.b = 1;
       marker.color.a = 1;
       scene_markers->markers.push_back(marker);
-      
-      
-
+    
     }
   }
 }
