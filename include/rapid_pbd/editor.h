@@ -144,6 +144,8 @@ class Editor {
                             const msgs::PDDLAction& action, size_t step_id);
   void AddPDDLAction(const std::string& domain_id,
                      const std::string& action_name);
+  void CopyPDDLAction(const std::string& domain_id,
+                      const std::string& action_name);
   void DeletePDDLAction(const std::string& domain_id,
                         const std::string& action_name);
   void UpdatePDDLAction(const std::string& domain_id,

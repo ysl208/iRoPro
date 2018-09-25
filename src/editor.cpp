@@ -89,6 +89,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       // PDDL actions
     } else if (event.type == msgs::EditorEvent::ADD_PDDL_ACTION) {
       AddPDDLAction(event.domain_id, event.action_name);
+    } else if (event.type == msgs::EditorEvent::COPY_PDDL_ACTION) {
+      CopyPDDLAction(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::DELETE_PDDL_ACTION) {
       DeletePDDLAction(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_ACTION) {
@@ -196,7 +198,7 @@ std::string Editor::Create(const std::string& name) {
   bool success = db_.Get(id, &test_program);
   if (!success) {
     ROS_ERROR("Unable to view program \"%s\"", id.c_str());
-    }
+  }
   ROS_INFO("Program '%s' should have 2 steps but has '%ld'",
            test_program.name.c_str(), test_program.steps.size());
 
@@ -1042,6 +1044,32 @@ void Editor::AssignGripperBoundingBox(msgs::Step* cart_step,
   }
   ROS_INFO("No cart poses found for bounding box");
 }
+
+void Editor::CopyPDDLAction(const std::string& domain_id,
+                            const std::string& action_name) {
+  ROS_INFO("Trying to get domain id '%s' from db", domain_id.c_str());
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  }
+
+  msgs::PDDLAction action;
+  int index = FindPDDLAction(action_name, pddl_domain_.domain_.actions);
+  if (index >= 0) {
+    action = pddl_domain_.domain_.actions[index];
+    ROS_INFO("Action found...");
+
+    action.name += "-copy";
+    domain.actions.push_back(action);
+    UpdatePDDLDomain(domain_id, domain);
+  } else {
+    ROS_ERROR("Could not save PDDL action named %s because it does not exist",
+              action_name.c_str());
+  }
+}
+
 void Editor::DeleteAction(const std::string& db_id, size_t step_id,
                           size_t action_id) {
   msgs::Program program;

@@ -87,6 +87,9 @@
                                 <paper-button class="delete" data-db-id="{{action.name}}" on-tap="_maybeDelete">
                                     <paper-icon-button icon="delete"></paper-icon-button>
                                 </paper-button>
+                                <paper-button class="clear" data-db-id="{{action.name}}" on-tap="_copy">
+                                    <paper-icon-button icon="copy"></paper-icon-button>
+                                </paper-button>
                             </td>
                         </tr>
                     </template>
@@ -188,6 +191,16 @@
                     type: 'delete pddl action',
                     domain_id: this.domain_id,
                     action_name: this._actionToDelete
+                };
+                this.$.eventPub.publish(msg);
+            },
+
+            _copy: function (evt) {
+                var action_name = evt.model.get('action.name');
+                var msg = {
+                    type: 'copy pddl action',
+                    domain_id: this.domain_id,
+                    action_name: action_name
                 };
                 this.$.eventPub.publish(msg);
             },
