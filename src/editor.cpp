@@ -174,7 +174,7 @@ std::string Editor::CreatePDDLDomain(const std::string& name) {
     domain_db_.StartPublishingPDDLDomainById(id);
   }
 
-  // pddl_domain_.PublishPDDLDomain(domain);
+  pddl_domain_.PublishPDDLDomain(domain);
   return domain.name;
 }
 
@@ -1065,9 +1065,10 @@ void Editor::CopyPDDLAction(const std::string& domain_id,
     // copy program
 
     msgs::Program program;
-    success = db_.Get(action.program_id, &program);
+    success = db_.Get(action.program_id.c_str(), &program);
     if (!success) {
-      ROS_ERROR("Unable to get program with ID \"%s\"", db_id.c_str());
+      ROS_ERROR("Unable to get program with ID \"%s\"",
+                action.program_id.c_str());
       return;
     }
     program.name += "-copy";
