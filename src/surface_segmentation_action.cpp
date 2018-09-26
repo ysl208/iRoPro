@@ -181,6 +181,7 @@ void SurfaceSegmentationAction::Execute(
   seg.set_max_cluster_size(max_cluster_size);
 
   std::vector<surface_perception::SurfaceObjects> surface_objects;
+  std::vector<surface_perception::SurfaceObjects> new_surface_objects;
   bool success = seg.Segment(&surface_objects);
 
   if (!success) {
@@ -192,22 +193,42 @@ void SurfaceSegmentationAction::Execute(
   size_t min_size = std::numeric_limits<size_t>::max();
   size_t max_size = std::numeric_limits<size_t>::min();
   size_t num_objects = 0;
-
+  std::cout << "Surf Seg action detected surfaces: " << surface_objects.size()
+            << std::endl;
   int obj_count = 0;
   for (size_t i = 0; i < surface_objects.size(); ++i) {
     const SurfaceObjects& surface_scene = surface_objects[i];
+    const SurfaceObjects new_surface_scene;
+    new_surface_objects.push_back(surface_scene);
     // get tabletop objects as landmarks
     num_objects += surface_scene.objects.size();
     if (i == 0) {
       msgs::Surface surface;
       surface.dimensions = surface_objects[i].surface.dimensions;
       surface.pose_stamped = surface_objects[i].surface.pose_stamped;
+      surface.pose_stamped.pose.position.z -= surface.dimensions.z / 2;
       result.surface = surface;
     }
 
+    std::cout << "Surf Seg action objects.objects: "
+              << surface_objects[i].objects.size() << std::endl;
     for (size_t j = 0; j < surface_scene.objects.size(); ++j) {
-      const Object& object = surface_scene.objects[j];
+      Object object = surface_scene.objects[j];
       size_t cloud_size = object.indices->indices.size();
+      surface_objects[i].objects[j].cloud->header.frame_id = base_link;
+      if (object.cloud->header.frame_id == "") {
+        std::cout << "skipping obj because cloud header frame_id: "
+                  << surface_objects[i].objects[j].cloud->header.frame_id
+                  << std::endl;
+        surface_objects[i].objects[j].cloud->header.frame_id = base_link;
+        // surface_scene.objects.erase(j);
+        break;
+      } else {
+        std::cout << "obj with frame_id: "
+                  << surface_objects[i].objects[j].cloud->header.frame_id
+                  << std::endl;
+      }
+
       if (cloud_size < min_size) {
         min_size = cloud_size;
       }
@@ -219,19 +240,23 @@ void SurfaceSegmentationAction::Execute(
       landmark.type = msgs::Landmark::SURFACE_BOX;
       landmark.marker_type = visualization_msgs::Marker::CUBE;
       std::stringstream ss;
-      ss << "Obj" << obj_count;
+      ss << "obj" << obj_count;
       landmark.name = ss.str();
       landmark.pose_stamped = object.pose_stamped;
       landmark.surface_box_dims = object.dimensions;
       result.landmarks.push_back(landmark);
+      // publish labels
+      // landmark.type = msgs::Landmark::TEXT_VIEW_FACING;
+      Object new_object = surface_scene.objects[j];
+      // new_surface_scene.objects.push_back(new_object);
     }
   }
   ROS_INFO("Detected %ld objects, smallest: %ld points, largest: %ld points",
            num_objects, min_size, max_size);
-
+  ROS_INFO("Result has %ld objects", result.landmarks.size());
+  as_.setSucceeded(result);
   viz_.set_surface_objects(surface_objects);
   viz_.Show();
-  as_.setSucceeded(result);
 }
 }  // namespace pbd
 }  // namespace rapid
