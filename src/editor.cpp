@@ -1060,8 +1060,19 @@ void Editor::CopyPDDLAction(const std::string& domain_id,
   if (index >= 0) {
     action = pddl_domain_.domain_.actions[index];
     ROS_INFO("Action found...");
-
     action.name += "-copy";
+
+    // copy program
+
+    msgs::Program program;
+    success = db_.Get(action.program_id, &program);
+    if (!success) {
+      ROS_ERROR("Unable to get program with ID \"%s\"", db_id.c_str());
+      return;
+    }
+    program.name += "-copy";
+    std::string new_id = db_.Insert(program);
+    action.program_id = new_id;
     domain.actions.push_back(action);
     UpdatePDDLDomain(domain_id, domain);
   } else {
