@@ -1238,7 +1238,7 @@ void Editor::DetectActionConditions(const std::string& domain_id,
 
     action_clients_->surface_segmentation_client.sendGoal(goal);
     success = action_clients_->surface_segmentation_client.waitForResult(
-        ros::Duration(20));
+        ros::Duration(50));
     if (!success) {
       ROS_ERROR("Failed to segment surface.");
       return;
@@ -1426,7 +1426,7 @@ void Editor::DetectWorldState(const std::string& domain_id,
     goal.save_cloud = true;
     action_clients_->surface_segmentation_client.sendGoal(goal);
     success = action_clients_->surface_segmentation_client.waitForResult(
-        ros::Duration(20));
+        ros::Duration(50));
     if (!success) {
       ROS_ERROR("Failed to segment surface.");
       return;
