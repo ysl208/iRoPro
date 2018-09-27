@@ -1073,6 +1073,7 @@ void Editor::CopyPDDLAction(const std::string& domain_id,
     }
     program.name += "-copy";
     std::string new_id = db_.Insert(program);
+    db_.StartPublishingProgramById(new_id);
     action.program_id = new_id;
     domain.actions.push_back(action);
     UpdatePDDLDomain(domain_id, domain);
