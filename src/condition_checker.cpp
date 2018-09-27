@@ -35,7 +35,7 @@ ConditionChecker::ConditionChecker(World* world,
 std::string ConditionChecker::CheckConditions(
     const msgs::Condition& condition) {
   // Checks if the given condition holds in a world
-  ROS_INFO("Landmark %s", condition.landmark.name.c_str());
+  ROS_INFO("CheckConditions: Landmark %s", condition.landmark.name.c_str());
 
   info_.passed = false;
   // Find matched landmark
