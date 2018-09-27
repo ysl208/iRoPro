@@ -408,7 +408,6 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
              pose.position.y, pose.position.z);
     AddObject(objects, obj);
   }
-  double a_center_x = 0, a_center_y = 0, a_center_z = 0;
 }
 
 std::string PrintAllPredicates(std::vector<msgs::PDDLPredicate> predicates,
