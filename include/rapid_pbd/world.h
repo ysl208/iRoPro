@@ -37,7 +37,9 @@ bool MatchLandmark(const World& world, const msgs::Landmark& landmark,
 
 void GetRPY(const geometry_msgs::Quaternion& q, geometry_msgs::Vector3* rpy);
 void PointToVector3(const geometry_msgs::Point& p, geometry_msgs::Vector3* v);
-
+/* void SortByDistance(const std::vector<msgs::Landmark>& surface_box_landmarks,
+                    std::vector<msgs::Landmark>* sorted_landmarks,
+                    const geometry_msgs::Pose_Stamped& pose); */
 void UpdateGrid(const msgs::Landmark& landmark,
                 std::vector<geometry_msgs::PoseArray>* grid);
 
