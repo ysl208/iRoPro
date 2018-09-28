@@ -517,8 +517,10 @@
                 }
             },
             load: function (db_id, paramsChangeRecord) {
+
                 if (!this.program_id_set) {
                     this._startDemo();
+                    this.navStep = "perception"
                     //return;
                 }
                 if (!this.params.robot) {
@@ -530,7 +532,7 @@
                 } else if (this.params.robot === "fetch") {
                     depthCloudFrameId = '/head_camera_rgb_optical_frame';
                 } else if (this.params.robot === "baxter") {
-                    depthCloudFrameId = '/kinect2_rgb_optical_frame';
+                    depthCloudFrameId = '/camera_rgb_optical_frame';
                 } else {
                     console.error('Unknown robot type', this.params.robot);
                 }
@@ -861,12 +863,13 @@
                 }
             },
             _assignSurfaceObjects: function (evt) {
+                step = this.navStep == "actionModel" ? -1 : 0;
                 var msg = {
                     type: 'assign surface objects',
                     program_info: {
                         db_id: this.action.program_id
                     },
-                    step_num: 0,
+                    step_num: step,
                     pddl_action: this.action,
                 };
 
@@ -890,8 +893,8 @@
                 };
                 this.$.loading.open();
                 this.$.eventPub.publish(msg);
-                if (state == "Effect")
-                    this._generateConditions();
+                /* if (state == "Effect")
+                    this._generateConditions(); */
 
             },
             removeDuplicates: function (a) {
