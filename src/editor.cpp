@@ -85,7 +85,7 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
                              event.state_name);
     } else if (event.type == msgs::EditorEvent::ASSIGN_SURFACE_OBJECTS) {
       AssignSurfaceObjects(event.program_info.db_id, event.pddl_action,
-                           event.step_num);
+                           event.state_name, event.step_num);
       // PDDL actions
     } else if (event.type == msgs::EditorEvent::ADD_PDDL_ACTION) {
       AddPDDLAction(event.domain_id, event.action_name);
@@ -171,9 +171,9 @@ std::string Editor::CreatePDDLDomain(const std::string& name) {
   if (!domain_db_.GetByName(name, &domain)) {
     pddl_domain_.Init(&domain, name);
     std::string id = domain_db_.Insert(domain);
-    domain_db_.StartPublishingPDDLDomainById(id);
+    pddl_domain_.domain_id = id;
   }
-
+  domain_db_.StartPublishingPDDLDomainById(pddl_domain_.domain_id);
   pddl_domain_.PublishPDDLDomain(domain);
   return domain.name;
 }
@@ -1167,7 +1167,8 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   }
   if (step_id >= program.steps.size()) {
     ROS_ERROR(
-        "Unable to update scene for step %ld, program \"%s\", which has %ld "
+        "DetectSurfaceObjects: Unable to update scene for step %ld, program "
+        "\"%s\", which has %ld "
         "steps",
         step_id, db_id.c_str(), program.steps.size());
     return;
@@ -1288,6 +1289,7 @@ void Editor::DetectActionConditions(const std::string& domain_id,
 
 void Editor::AssignSurfaceObjects(const std::string& db_id,
                                   const msgs::PDDLAction& action,
+                                  const std::string& state_name,
                                   size_t step_id) {
   // Assigns detected surface objects to step
   msgs::Program program;
@@ -1296,9 +1298,15 @@ void Editor::AssignSurfaceObjects(const std::string& db_id,
     ROS_ERROR("Unable to update scene for program ID \"%s\"", db_id.c_str());
     return;
   }
+  if (state_name == "Effect") {
+    step_id = program.steps.size() - 1;
+    ROS_INFO("Updating effect, so set step_id to last step: %ld ", step_id);
+  }
+
   if (step_id >= program.steps.size()) {
     ROS_ERROR(
-        "Unable to update scene for step %ld, program \"%s\", which has %ld "
+        "AssignSurfaceObjects: Unable to update scene for step %ld, program "
+        "\"%s\", which has %ld "
         "steps",
         step_id, db_id.c_str(), program.steps.size());
     return;

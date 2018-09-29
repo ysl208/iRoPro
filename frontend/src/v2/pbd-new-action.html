@@ -863,14 +863,16 @@
                 }
             },
             _assignSurfaceObjects: function (evt) {
-                step = this.navStep == "actionModel" ? -1 : 0;
+                state = this.navStep == "actionModel" ? "Effect" : "Precondition";
+                console.debug('_assignSurfaceObjects: state: ', state);
                 var msg = {
                     type: 'assign surface objects',
                     program_info: {
                         db_id: this.action.program_id
                     },
-                    step_num: step,
+                    step_num: 0,
                     pddl_action: this.action,
+                    state_name: state
                 };
 
                 console.debug('_assignSurfaceObjects: ', this.action);
