@@ -2,14 +2,26 @@
   <arg name="camera_frame" default="/kinect2_rgb_optical_frame" />
   <arg name="pddl_solver_topic" default="/pddl_planner" />
 
-  <arg name="sim" />
+  <arg name="kinect2" default="false"/>
+  <arg if="$(arg kinect2)" name="point_cloud_topic" default="/kinect2/sd/points" />
+  <arg if="$(arg kinect2)" name="depth_topic" default="/kinect2/sd/image_depth" />
+  <arg if="$(arg kinect2)" name="color_topic" default="/kinect2/sd/image_depth_rect" />
+
+  <arg name="kinect" default="false"/>
+  <arg if="$(arg kinect)" name="point_cloud_topic" default="/camera/depth_registered/points" />
+  <arg if="$(arg kinect)" name="depth_topic" default="/camera/depth_registered/image_raw" />
+  <arg if="$(arg kinect)" name="color_topic" default="/camera/rgb/image_rect_color" />
+
+  <arg name="sim" default="false" />
   <arg if="$(arg sim)" name="point_cloud_topic" default="/mock_point_cloud" />
   <arg if="$(arg sim)" name="depth_topic" default="/camera/depth_registered/image_raw" />
   <arg if="$(arg sim)" name="color_topic" default="/camera/rgb/image_rect_color" />
 
-  <arg unless="$(arg sim)" name="point_cloud_topic" default="/kinect2/sd/points" />
-  <arg unless="$(arg sim)" name="depth_topic" default="/kinect2/sd/image_depth" />
-  <arg unless="$(arg sim)" name="color_topic" default="/kinect2/sd/image_depth_rect" />
+  <!-- start camera -->
+  <include file="$(find rapid_pbd)/launch/kinect2.launch" unless="$(arg sim)">
+    <arg name="kinect" value="$(arg kinect)" />
+    <arg name="kinect2" value="$(arg kinect2)" />
+  </include>
 
   <group ns="rapid_pbd"> 
     <param name="robot" value="baxter" />
