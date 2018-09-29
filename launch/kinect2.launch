@@ -1,11 +1,27 @@
 <launch>
 
-  <node pkg="tf" type="static_transform_publisher" name="world_to_camera" args="0.205 -0.075 0.57 -0.664 0.671 -0.235 0.232 world kinect2_link 100" />
+
+  <arg name="kinect" default="false"/>
+  <group if="$(arg kinect)">
+    <include file="$(find freenect_launch)/launch/freenect.launch" />
+    <node pkg="tf" type="static_transform_publisher" name="world_to_camera" args="0.02 0.04 0.04 -1.55 -0.875 0.05 head_camera camera_link 100" />
+  </group>
+
+  <arg name="kinect2" default="false"/>
+  <group if="$(arg kinect2)">
+    <include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch">
+      <arg name="publish_tf" value="true" />
+    </include>
+  <node pkg="tf" type="static_transform_publisher" name="world_to_camera" args="0.177 -0.029 0.118 0.177 -0.029 0.118 world kinect2_link 100" />
+  </group>
+
 <!--
 quaternions: -0.664 0.671 -0.235 0.232
 radians: -1.58 0 -2.46855
 
 old values: 0.177 -0.021 0.523 -0.591606 0.573909 -0.276283 0.280376 world kinect2_link 100
 17/09/2018 0.205 -0.075 0.57 -1.64 0 -2.46855-->
+
+
 
 </launch>
