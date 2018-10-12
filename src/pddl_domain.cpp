@@ -28,33 +28,29 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   domain->name = name;
   domain->requirements = ":typing :strips";
   msgs::PDDLType type;
-  geometry_msgs::Vector3 obj_dims;
-  // TO DO: get obj_dims from yaml file
-  obj_dims.x = 1.0;
-  obj_dims.x = 1.0;
-  obj_dims.x = 1.0;
 
-  type.name = msgs::PDDLType::TABLE_ENTITY;
-  domain->types.push_back(type);
-
-  type.name = msgs::PDDLType::OBJECT;
-  type.parent = msgs::PDDLType::TABLE_ENTITY;
-  domain->types.push_back(type);
-  type.name = msgs::PDDLType::POSITION;
-  type.parent = msgs::PDDLType::TABLE_ENTITY;
-  AddType(&domain->types, type);
-
-  // get names of different objects, then iterate through them to get their
-  // dimensions
+  // get names of different objects from yaml file
   std::vector<std::string> name_list;
+  std::vector<std::string> parent_list;
+  std::vector<double> obj_dims;
   ros::param::param<std::vector<std::string> >("world_objects/names", name_list,
                                                name_list);
-  type.parent = msgs::PDDLType::OBJECT;
+  ros::param::param<std::vector<std::string> >("world_objects/parent_lists",
+                                               parent_list, parent_list);
+
   for (size_t i = 0; i < name_list.size(); ++i) {
     std::stringstream ss;
     ss << name_list[i];
     type.name = ss.str();
-    ROS_INFO("Added type %s", type.name.c_str());
+    type.parent = parent_list[i];
+    ros::param::param<std::vector<double> >("world_objects/" + ss.str(),
+                                            obj_dims, obj_dims);
+    type.dimensions.x = obj_dims[0];
+    type.dimensions.y = obj_dims[1];
+    type.dimensions.z = obj_dims[2];
+
+    ROS_INFO("Added type %s with parent %s", type.name.c_str(),
+             type.parent.c_str());
     AddType(&domain->types, type);
   }
 
@@ -338,9 +334,8 @@ void GetTypeFromDims(const geometry_msgs::Vector3& dims,
     std::stringstream ss;
     ss << name_list[i];
     obj_type->name = ss.str();
-    ros::param::param<std::vector<double> >("world_positions/" + ss.str(),
+    ros::param::param<std::vector<double> >("world_objects/" + ss.str(),
                                             obj_dims, obj_dims);
-    // TO DO: find closest matching type
     obj_type->dimensions.x = obj_dims[0];
     obj_type->dimensions.y = obj_dims[1];
     obj_type->dimensions.z = obj_dims[2];
