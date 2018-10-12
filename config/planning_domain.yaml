@@ -1,6 +1,6 @@
 robot_grippers:
-  - vacuum_gripper: 'right arm'
-  - claw_gripper: 'left arm'
+  - vacuum_gripper: 'right'
+  - claw_gripper: 'left'
 
 world_positions:
   names: ['A', 'B', 'C', 'D']
@@ -10,11 +10,9 @@ world_positions:
   radius: [0.1,0.1,0.1,0.05]
   
 world_objects:
-  # Table object dimension ratio
-  cube: {'x': 1.0, 'y': 1.0,'z': 1.0}
-  tower: {'x': 1.0, 'y': 1.0,'z': 3.0}
-  plate: {'x': 1.0, 'y': 1.0,'z': 0.25}
-  #- {'name': 'cube', 'dims_ratio': '[1.0,1.0,1.0]'}
-  #- {'name': 'rectangle', 'dims_ratio': '[1.0,1.0,2.0]'}
-  #- {'name': 'plate', 'dims_ratio': '[1.0,1.0,0.25]'}
-  #- {'name': 'tower', 'dims_ratio': '[1.0,1.0,3.0]'}
+  names: ['cube', 'base', 'roof', 'pillar']
+  cube: [10, 10, 5.0]
+  base: [13.0, 13.0, 2.5]
+  roof: [3.4, 8.0, 5.0]
+  pillar: [3.5, 3.5, 7.0]
+  variance: [0.075]

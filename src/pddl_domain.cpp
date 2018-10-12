@@ -43,13 +43,20 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   type.name = msgs::PDDLType::POSITION;
   type.parent = msgs::PDDLType::TABLE_ENTITY;
   AddType(&domain->types, type);
-  type.name = msgs::PDDLType::CUBE_OBJECT;
+
+  // get names of different objects, then iterate through them to get their
+  // dimensions
+  std::vector<std::string> name_list;
+  ros::param::param<std::vector<std::string> >("world_objects/names", name_list,
+                                               name_list);
   type.parent = msgs::PDDLType::OBJECT;
-  AddType(&domain->types, type);
-  type.name = msgs::PDDLType::TOWER_OBJECT;
-  AddType(&domain->types, type);
-  type.name = msgs::PDDLType::PLATE_OBJECT;
-  AddType(&domain->types, type);
+  for (size_t i = 0; i < name_list.size(); ++i) {
+    std::stringstream ss;
+    ss << name_list[i];
+    type.name = ss.str();
+    ROS_INFO("Added type %s", type.name.c_str());
+    AddType(&domain->types, type);
+  }
 
   msgs::PDDLPredicate predicate;
   // Predicate has at least 1 arg of type table_entity
@@ -314,55 +321,46 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
 
 void GetTypeFromDims(const geometry_msgs::Vector3& dims,
                      msgs::PDDLType* obj_type) {
-  // TO DO: check yaml file to decide object type
-  obj_type->name = msgs::PDDLType::RECTANGLE_OBJECT;
   obj_type->parent = msgs::PDDLType::OBJECT;
 
-  // vector <map<std::string,std::string> > objects;
-  // ros::param::param< vector <map<std::string,std::string> >
-  // >("world_objects",objects, objects);
+  // get names of different objects, then iterate through them to get their
+  // dimensions and compare to given dims
+  std::vector<std::string> name_list;
+  std::vector<double> obj_dims;
+  std::vector<double> variance;
+  ros::param::param<std::vector<std::string> >("world_objects/names", name_list,
+                                               name_list);
 
-  /*double x_y_ratio = dims.x/dims.y;
-  double x_z_ratio = dims.x/dims.z;
-  double y_z_ratio = dims.y/dims.z;
-  */
-  double x = dims.x;
-  double y = dims.y;
-  double z = dims.z;
-  std::vector<std::string> types;
-  // types.push_back = {"cube", "rectangle", "tower", "plate"};
-  double x_y_ratio;
-  double x_z_ratio;
-  double y_z_ratio;
-  // for (size_t i = 0; i < types.size(); ++i) {
-  std::string type = "rectangle";
-  /* std::map<std::string, double> cube;
-  std::string param_name = "world_objects/" + types[i];
-  ros::param::param<std::map<std::string, double> >(param_name, cube, cube); */
-  /* std::cout << cube.find("x") << std::endl;
-
-  x_z_ratio = cube.find("x") / cube.find("z"); */
-  if (x / y > 0.85) {
-    // is one of three shapes
-    std::cout << x / z << std::endl;
-    std::cout << y / z << std::endl;
-    if (x / z > 3.5 || y / z > 3.5) {
-      type = "plate";
-      obj_type->name = msgs::PDDLType::PLATE_OBJECT;
-    } else if ((x / z > 0.85 || y / z > 0.85) && (x / z < 1.3 || y / z < 1.3)) {
-      type = "cube";
-      obj_type->name = msgs::PDDLType::CUBE_OBJECT;
-    } else if (x / z < 0.5 || y / z < 0.5) {
-      type = "tower";
-      obj_type->name = msgs::PDDLType::TOWER_OBJECT;
+  ros::param::param<std::vector<double> >("variance", variance, variance);
+  double closest_distance = std::numeric_limits<double>::max();
+  double squ_dist_cutoff = variance[0] * variance[0];
+  for (size_t i = 0; i < name_list.size(); ++i) {
+    std::stringstream ss;
+    ss << name_list[i];
+    obj_type->name = ss.str();
+    ros::param::param<std::vector<double> >("world_positions/" + ss.str(),
+                                            obj_dims, obj_dims);
+    // TO DO: find closest matching type
+    obj_type->dimensions.x = obj_dims[0];
+    obj_type->dimensions.y = obj_dims[1];
+    obj_type->dimensions.z = obj_dims[2];
+    double dx = obj_dims[0] - dims.x;
+    double dy = obj_dims[0] - dims.y;
+    double dz = obj_dims[0] - dims.z;
+    double squared_distance = dx * dx + dy * dy + dz * dz;
+    if (squared_distance < closest_distance &&
+        squared_distance <= squ_dist_cutoff) {
+      // closest_distance = squared_distance;
+      ROS_INFO("Assigned type %s with dims (%f,%f,%f)", obj_type->name.c_str(),
+               obj_type->dimensions.x, obj_type->dimensions.y,
+               obj_type->dimensions.z);
+      return;
     }
   }
-  //}
-  /*for (size_t i = 0; i < objects.size(); ++i) {
-  std::cout << objects.at('name').c_str() << std::endl;
-
-  std::cout << objects.at('dims_ratio').c_str() << std::endl;
-}*/
+  obj_type->name = "object";
+  obj_type->dimensions.x = 1.0;
+  obj_type->dimensions.y = 1.0;
+  obj_type->dimensions.z = 1.0;
 }
 
 void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
