@@ -78,6 +78,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     // PDDL events
     else if (event.type == msgs::EditorEvent::SAVE_ON_EXIT) {
       SaveOnExit(event.domain_id, event.action_name);
+    } else if (event.type == msgs::EditorEvent::SELECT_PDDL_DOMAIN) {
+      SelectPDDLDomain(event.domain_id);
     } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_DOMAIN) {
       UpdatePDDLDomain(event.domain_id, event.pddl_domain);
     } else if (event.type == msgs::EditorEvent::DETECT_ACTION_CONDITIONS) {
@@ -1212,6 +1214,16 @@ void Editor::SaveOnExit(const std::string& db_id,
     }
   }
   Update(db_id, program);
+}
+
+void Editor::SelectPDDLDomain(const std::string& domain_id) {
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  }
+  pddl_domain_.PublishPDDLDomain(domain);
 }
 
 void Editor::UpdatePDDLDomain(const std::string& domain_id,

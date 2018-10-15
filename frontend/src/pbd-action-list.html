@@ -65,9 +65,9 @@
                     <div class="listeDomain">
                         Choose domain:
                         <paper-dropdown-menu>
-                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{pddlDomain.name}}">
+                            <paper-listbox slot="dropdown-content" attr-for-selected="name">
                                 <template is="dom-repeat" items="{{domainList.domains}}" as="item" index-as="typeIndex">
-                                    <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item]]">[[item.name]]</paper-item>
+                                    <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item.domain_id]]">[[item.name]]</paper-item>
                                 </template>
                             </paper-listbox>
                         </paper-dropdown-menu>
@@ -265,6 +265,17 @@
                     type: 'update pddl domain',
                     domain_id: this.domain_id,
                     pddl_domain: this.pddlDomain
+                };
+                this.$.eventPub.publish(msg);
+            },
+
+            _selectDomain: function (evt) {
+
+                this.domain_id = evt.target.name.domain_id;
+                console.log('select domain: ', this.domain_id);
+                var msg = {
+                    type: 'select pddl domain',
+                    domain_id: this.domain_id
                 };
                 this.$.eventPub.publish(msg);
             },
