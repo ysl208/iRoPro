@@ -53,21 +53,34 @@
         <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{routeTail}}"></app-route>
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
         <!-- PDDL -->
+        <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_domain"
+            ros="[[ros]]" service-type="rapid_pbd_msgs/CreatePDDLDomain"></ros-service>
         <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
         <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
             ros="[[ros]]"></ros-topic>
 
         <div class="paper-material">
             <template is="dom-if" restamp if="[[!_showActionProperties]]">
+                <template is="dom-repeat" items="{{domainList}}" as="item" index-as="domainIndex">
+                    <div class="listeDomain">
+                        Choose domain:
+                        <paper-dropdown-menu>
+                            <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{pddlDomain.name}}">
+                                <template is="dom-repeat" items="{{domainList.domains}}" as="item" index-as="typeIndex">
+                                    <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item]]">[[item.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <paper-button id="createButton" class="important" raised on-tap="_handleCreate">+ Create new domain</paper-button>
+                    </div>
+                </template>
                 <table>
                     <tr>
                         <th>Programmed actions</th>
                         <th>
-                            <!-- <a href="#/[[domain_id]]"> -->
-                            <paper-button id="createButton" class="important" on-tap="_handleCreate">
+                            <paper-button id="createButton" class="important" on-tap="_createNewAction">
                                 + new action
                             </paper-button>
-                            <!-- </a> -->
                         </th>
                     </tr>
                     <template is="dom-if" if="[[!pddlDomain.actions.length]]">
@@ -97,18 +110,6 @@
             </template>
 
             <template is="dom-if" restamp if="{{_showActionProperties}}">
-                <!--<table style="height:auto;">
-                    <tr>
-                        <th>Action Properties</th>
-                        <th>
-                            <div class="cancelButtons">
-                                <paper-button class="cancel" on-tap="_hideAction">
-                                    <paper-icon-button icon="cancel"></paper-icon-button>
-                                </paper-button>
-                            </div>
-                        </th>
-                        <tr>
-                            <td colspan="2">-->
                 <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
                     <div>
                         <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
@@ -117,10 +118,6 @@
                         </template>
                     </div>
                 </template>
-                <!--             </td>
-                        </tr>
-
-                </table>-->
             </template>
         </div>
 
@@ -170,7 +167,6 @@
                 if (this.domainList && this.domainList.domains.length == 1) {
                     this.domain_id = this.domainList.domains[0].domain_id;
                 }
-                //console.debug('domain_id is ', this.domain_id);
             },
             _domainUpdated(changedDomain, changedList) {
                 if (changedDomain.value) {
@@ -204,17 +200,7 @@
                 };
                 this.$.eventPub.publish(msg);
             },
-
-            _updateDomain: function (evt) {
-                var msg = {
-                    type: 'update pddl domain',
-                    domain_id: this.domain_id,
-                    pddl_domain: this.pddlDomain
-                };
-                this.$.eventPub.publish(msg);
-            },
-
-            _handleCreate: function (evt) {
+            _createNewAction: function (evt) {
                 var name = this.getActionName(this.actions);
 
                 var msg = {
@@ -223,7 +209,7 @@
                     action_name: name
                 };
                 this.$.eventPub.publish(msg);
-                console.debug('handleCreate', name, ' in domain ', this.domain_id);
+                console.debug('_createNewAction', name, ' in domain ', this.domain_id);
                 this.selectedActionName = name;
                 this._showActionProperties = true;
             },
@@ -258,6 +244,30 @@
                 return (selected && selected.length > 0 && selected == actionname);
             },
 
+            _handleCreate: function (evt) {
+                var number = this.domainList.domains.length + 1;
+                var name = 'Domain' + number;
+                var request = {
+                    name: name,
+                };
+                this.$.createSrv.call(request);
+            },
+
+            _handleServiceResponse(evt) {
+                var id = evt.detail.domain_id;
+                this.domain_id = id;
+            },
+            _handleServiceError: function (evt) {
+                console.error(evt.detail);
+            },
+            _updateDomain: function (evt) {
+                var msg = {
+                    type: 'update pddl domain',
+                    domain_id: this.domain_id,
+                    pddl_domain: this.pddlDomain
+                };
+                this.$.eventPub.publish(msg);
+            },
         });
     </script>
 </dom-module>

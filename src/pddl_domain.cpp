@@ -35,16 +35,17 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   std::vector<double> obj_dims;
   ros::param::param<std::vector<std::string> >("world_objects/names", name_list,
                                                name_list);
-  ros::param::param<std::vector<std::string> >("world_objects/parent_lists",
+  ros::param::param<std::vector<std::string> >("world_objects/parents",
                                                parent_list, parent_list);
 
   for (size_t i = 0; i < name_list.size(); ++i) {
     std::stringstream ss;
     ss << name_list[i];
     type.name = ss.str();
-    type.parent = parent_list[i];
-    ros::param::param<std::vector<double> >("world_objects/" + ss.str(),
-                                            obj_dims, obj_dims);
+    if (parent_list.size() > i) type.parent = parent_list[i];
+    std::string name = "world_objects/" + type.name;
+
+    ros::param::param<std::vector<double> >(name, obj_dims, obj_dims);
     type.dimensions.x = obj_dims[0];
     type.dimensions.y = obj_dims[1];
     type.dimensions.z = obj_dims[2];

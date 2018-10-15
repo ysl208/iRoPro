@@ -65,7 +65,7 @@ void Editor::Start() {
   joint_state_reader_.Start();
   viz_.Init();
   spec_inf_.Init();
-  CreatePDDLDomain("MainDomain");
+  // CreatePDDLDomain("MainDomain");
 }
 
 void Editor::HandleEvent(const msgs::EditorEvent& event) {
@@ -162,20 +162,25 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
 bool Editor::HandleCreatePDDLDomain(
     msgs::CreatePDDLDomain::Request& request,
     msgs::CreatePDDLDomain::Response& response) {
+  ROS_INFO("Handle request to create PDDL domain '%s'", request.name.c_str());
   response.domain_id = CreatePDDLDomain(request.name);
   return true;
 }
 
 std::string Editor::CreatePDDLDomain(const std::string& name) {
   msgs::PDDLDomain domain;
-  if (!domain_db_.GetByName(name, &domain)) {
-    pddl_domain_.Init(&domain, name);
-    std::string id = domain_db_.Insert(domain);
-    pddl_domain_.domain_id = id;
-  }
+  // if (!domain_db_.GetByName(name, &domain)) {
+  pddl_domain_.Init(&domain, name);
+  std::string id = domain_db_.Insert(domain);
+  pddl_domain_.domain_id = id;
+  ROS_INFO("Created new domain '%s' with id %s", name.c_str(),
+           pddl_domain_.domain_id.c_str());
+  //}
+  if (pddl_domain_.domain_id.size() == 0)
+    pddl_domain_.domain_id = "5bc0a6266fbe3c069ef413e3";
   domain_db_.StartPublishingPDDLDomainById(pddl_domain_.domain_id);
   pddl_domain_.PublishPDDLDomain(domain);
-  return domain.name;
+  return id;
 }
 
 bool Editor::HandleCreateProgram(msgs::CreateProgram::Request& request,
