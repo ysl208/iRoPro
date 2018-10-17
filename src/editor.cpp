@@ -1054,7 +1054,7 @@ void Editor::AssignGripperBoundingBox(msgs::Step* cart_step,
 
 void Editor::CopyPDDLAction(const std::string& domain_id,
                             const std::string& action_name) {
-  ROS_INFO("Trying to get domain id '%s' from db", domain_id.c_str());
+  ROS_INFO("CopyPDDLAction... '%s'", action_name.c_str());
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
   if (!success) {
@@ -1062,17 +1062,20 @@ void Editor::CopyPDDLAction(const std::string& domain_id,
     return;
   }
 
-  msgs::PDDLAction action;
-  int index = FindPDDLAction(action_name, pddl_domain_.domain_.actions);
-  if (index >= 0) {
-    action = pddl_domain_.domain_.actions[index];
+  int index = FindPDDLAction(action_name, domain.actions);
+  if (index < 0) {
+    ROS_ERROR("Could not copy PDDL action '%s' because it does not exist",
+              action_name.c_str());
+
+  } else {
     ROS_INFO("Action found...");
+    msgs::PDDLAction action;
+    action = domain.actions[index];
     action.name += "-copy";
 
     // copy program
-
     msgs::Program program;
-    success = db_.Get(action.program_id.c_str(), &program);
+    success = db_.Get(action.program_id, &program);
     if (!success) {
       ROS_ERROR("Unable to get program with ID \"%s\"",
                 action.program_id.c_str());
@@ -1084,9 +1087,6 @@ void Editor::CopyPDDLAction(const std::string& domain_id,
     action.program_id = new_id;
     domain.actions.push_back(action);
     UpdatePDDLDomain(domain_id, domain);
-  } else {
-    ROS_ERROR("Could not save PDDL action named %s because it does not exist",
-              action_name.c_str());
   }
 }
 
@@ -1101,8 +1101,7 @@ void Editor::DeleteAction(const std::string& db_id, size_t step_id,
   if (step_id >= program.steps.size()) {
     ROS_ERROR(
         "Unable to delete action from step %ld from program \"%s\", which "
-        "has "
-        "%ld steps",
+        "has %ld steps",
         step_id, db_id.c_str(), program.steps.size());
     return;
   }
@@ -1393,25 +1392,24 @@ void Editor::UpdatePDDLAction(const std::string& domain_id,
 
 void Editor::DeletePDDLAction(const std::string& domain_id,
                               const std::string& action_name) {
+  ROS_INFO("DeletePDDLAction... '%s'", action_name.c_str());
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
   if (!success) {
     ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
-  msgs::PDDLAction action;
+
   int index = FindPDDLAction(action_name, domain.actions);
   if (index < 0) {
     ROS_ERROR("Unable to find pddl action %s for domain %s",
               action_name.c_str(), domain_id.c_str());
   } else {
+    // deleting the program linked to the action
+    Delete(domain.actions[index].program_id);
+    domain.actions.erase(domain.actions.begin() + index);
+    UpdatePDDLDomain(domain_id, domain);
   }
-  // deleting the program linked to the action
-  Delete(domain.actions[index].program_id);
-
-  domain.actions.erase(domain.actions.begin() + index);
-
-  UpdatePDDLDomain(domain_id, domain);
 }
 
 int Editor::FindPDDLAction(const std::string name,
