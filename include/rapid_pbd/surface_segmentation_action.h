@@ -22,6 +22,8 @@ class SurfaceSegmentationAction {
                             const RobotConfig& robot_config);
   void Start();
   void Execute(const msgs::SegmentSurfacesGoalConstPtr& goal);
+  void GetRGB(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+              const pcl::PointIndices::Ptr indices, pcl::PointXYZRGB* point);
 
  private:
   std::string topic_;
