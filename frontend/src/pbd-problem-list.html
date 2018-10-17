@@ -97,8 +97,8 @@
                 <template is="dom-repeat" items="[[pddlDomain.problems]]" as="problem">
                     <div>
                         <template is="dom-if" restamp if="[[_displayProblem(selectedProblemName,problem.name)]]">
-                            <pbd-new-problem on-quit="quitProblem" name="new-problem" params="[[params]]" ros="[[ros]]" problem="[[problem]]" domain="[[pddlDomain]]"
-                                showing="{{_showActionProperties}" }></pbd-new-problem>
+                            <pbd-new-problem on-quit="quitProblem" name="new-problem" params="[[params]]" ros="[[ros]]" problem="[[problem]]" domain_id="[[domain_id]]"
+                                domain="[[pddlDomain]]" showing="{{_showActionProperties}" }></pbd-new-problem>
                         </template>
                     </div>
                 </template>
