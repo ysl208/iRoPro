@@ -212,14 +212,14 @@
       </div>
 
       <paper-dialog modal id="saving">
-        <h2>Save current action ?</h2>
+        <h2>Save current problem ?</h2>
         <div>
           <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
           <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
         </div>
       </paper-dialog>
       <paper-dialog modal id="exiting">
-        <h2>Quit current action ?</h2>
+        <h2>Quit current problem ?</h2>
         <p>All change not saved will be lost.</p>
         <div>
           <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
@@ -247,12 +247,20 @@
                       <paper-icon-button icon="check"></paper-icon-button>
                     </td>
                     <td>[[item.name]]</td>
-                    <td>([[item.type.name]])</td>
+                    <td>
+                      <paper-dropdown-menu>
+                        <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{item.type.name}}">
+                          <template is="dom-repeat" items="[[_getTypes(item)]]" as="item2" index-as="typeIndex">
+                            <paper-item name="[[item2]]" on-tap="_updateType" data-args="[[item]]">[[item2]]</paper-item>
+                          </template>
+                        </paper-listbox>
+                      </paper-dropdown-menu>
+                    </td>
                   </div>
                 </tr>
               </template>
               <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="initial">
-                Detect World Instances
+                Detect World Objects
               </paper-button>
             </fieldset>
 
@@ -424,7 +432,7 @@
         },
         problem: Object,
         domain: Object,
-        domainID: String,
+        domain_id: String,
         params: Object,
         planner: {
           type: String,
@@ -480,7 +488,7 @@
       },
 
       observers: [
-        'load(routeData.id, params.*)',
+        'load(domain_id, params.*)',
         '_domainUpdated(pddlDomain.*,domainList.*)',
         '_problemUpdated(problem.*)',
         '_checkClearPrecond(newInitialState.name)',
@@ -513,7 +521,7 @@
 
       load: function (db_id, paramsChangeRecord) {
         /* if (!db_id) {
-            return;
+                return;
         } */
         if (!this.params.robot) {
           return;
@@ -582,13 +590,13 @@
                 topic: '/rapid_pbd/surface_seg/visualization/'// + db_id,
               },
             }, {/* 
-                            isShown: true,
-                            name: 'Surface segmentation',
-                            type: 'markerArray',
-                            options: {
-                                topic: '/rapid_pbd/surface_segmentation/' + db_id,
-                            },
-                        }, { */
+                                                        isShown: true,
+                                                        name: 'Surface segmentation',
+                                                        type: 'markerArray',
+                                                        options: {
+                                                                topic: '/rapid_pbd/surface_segmentation/' + db_id,
+                                                        },
+                                                }, { */
               isShown: true,
               name: 'Current robot model',
               type: 'urdf',
@@ -654,12 +662,12 @@
         if (valide) {
           // Without negation
           if (!newPredicate.negate) {
-                        // To comment when you want to test else it's impossible to test on simulation              
-                        //if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
-                        //    valide = false;
-                        //    msgErreur = "A position can't be on something else"
-                        //}
-                        /*else*/ if (newPredicate.name == "on" && newPredicate.arg1.name == newPredicate.arg2.name) {
+            // To comment when you want to test else it's impossible to test on simulation                            
+            if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
+              valide = false;
+              msgErreur = "A position can't be on something else"
+            }
+            else if (newPredicate.name == "on" && newPredicate.arg1.name == newPredicate.arg2.name) {
               valide = false;
               msgErreur = "An element can't be set on himself";
             }
@@ -679,7 +687,7 @@
                   msgErreur = "You can't place two objects on one position, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
                 } else if (newPredicate.arg1.name == liste[index].arg1.name) {
                   valide = false;
-                  msgErreur = "One object can't be on two positions, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
+                  msgErreur = "One object can't be on two positions, see :<br><strong>" + liste[index].arg1.name + liste[index].name + " " + liste[index].arg2.name + "</strong>";
                 }
               }
               else if (newPredicate.name == "clear" && (liste[index].name == "on" && liste[index].arg2.name == newPredicate.arg1.name)) {
@@ -852,87 +860,28 @@
         return this.removeDuplicates(names);
       },
 
-      _getType: function (all_types) {
-        var names = ['-'];
-        console.debug('_getType: ', all_types);
+      _getTypes: function (item) {
+        var names = [];
+        //console.debug('_getTypes: ', item);
 
-        if (all_types) {
-          for (var i = 0; i < all_types.length; ++i) {
-            names.push(all_types[i].type.name);
-          }
+        if (item) {
+          names.push(item.type.name);
+          if (item.type.parent != '')
+            names.push(item.type.parent);
         }
-        return this.removeDuplicates(names);
+        return (names);
       },
-      _generateConditions: function () {
-        // check initial_states and goal_states are there
-        if (this.problem.initial_states.length == 0) {
-          console.info('No initial_states');
-        }
-        if (this.problem.goal_states.length == 0) {
-          console.info('No goal_states');
-        }
+      // _getType: function (all_types) {
+      //   var names = ['-'];
+      //   console.debug('_getType: ', all_types);
 
-        this._getPredicateDiff(this.problem.initial_states, this.problem.goal_states);
-
-        this.reevaluateArray('problem.initial_states', this.problem.initial_states);
-        this.reevaluateArray('problem.goal_states', this.problem.goal_states);
-        var predList = this.problem.initial_states.concat(this.problem.goal_states)
-        var parms = this._getParams(predList);
-        console.debug(typeof parms, typeof this.problem.objects);
-        console.debug('parms:', parms);
-        this.problem.objects = parms;
-        //this.reevaluateArray('problem.objects', this.problem.objects);
-      },
-      _getPredicateDiff: function (list1, list2) {
-        // removes predicates which are in both lists
-
-        for (var i = 0; i < list1.length; ++i) {
-          for (var j = 0; j < list2.length; ++j) {
-            if (this._samePredicate(list1[i], list2[j])) {
-              list1.splice(i, 1);
-              list2.splice(j, 1);
-              i--;
-              break;
-            }
-          }
-        }
-        return [list1, list2];
-      },
-      _samePredicate: function (pred1, pred2) {
-        if (pred1.name != pred2.name) {
-          //console.debug("_samePredicate: name ", pred1, pred2);
-          return false;
-        }
-        if (pred1.arg1.name != pred2.arg1.name) {
-          //console.debug("_samePredicate: arg1 ", pred1, pred2);
-          return false;
-        }
-        if (pred1.negate != pred2.negate) {
-          //console.debug("_samePredicate: negate ", pred1, pred2);
-          return false;
-        }
-        if (pred1.arg2 && pred2.arg2 && pred1.arg2.name != pred2.arg2.name) {
-          //console.debug("_samePredicate: arg2 ", pred1, pred2);
-          return false;
-        }
-        return true;
-      },
-      _getParams: function (predList) {
-        var objects = this.problem.objects;
-        objects.length = 0;
-        const nameList = new Set([]);
-        for (var i = 0; i < predList.length; ++i) {
-          if (predList[i].arg1.name != '' && !nameList.has(predList[i].arg1.name)) {
-            objects.push(predList[i].arg1);
-            nameList.add(predList[i].arg1.name);
-          }
-          if (predList[i].arg2 && predList[i].arg2.name != '' && !nameList.has(predList[i].arg2.name)) {
-            objects.push(predList[i].arg2);
-            nameList.add(predList[i].arg2.name);
-          }
-        }
-        return objects;
-      },
+      //   if (all_types) {
+      //     for (var i = 0; i < all_types.length; ++i) {
+      //       names.push(all_types[i].type.name);
+      //     }
+      //   }
+      //   return this.removeDuplicates(names);
+      // },
       sortByName: function (arr) {
         arr.sort(function (a, b) {
           if (a.name < b.name) return -1;
