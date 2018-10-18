@@ -433,9 +433,14 @@
                 },
                 action: Object,
                 domain: Object,
-                domainID: String,
+                domain_id: String,
                 params: Object,
-                program_id_set: false,
+                program_id_set: {
+                    type: Object,
+                    value: function () {
+                        return { data: false };
+                    }
+                },
                 program: {
                     type: Object,
                     observer: '_programChanged',
@@ -487,7 +492,7 @@
             },
 
             observers: [
-                'load(routeData.id, params.*)',
+                'load(domain_id, params.*)',
                 '_domainUpdated(pddlDomain.*,domainList.*)',
                 '_actionUpdated(action.*)',
                 '_checkClearPrecond(newPrecondition.name)',
@@ -886,7 +891,7 @@
                 }
 
                 var state = evt.target.getAttribute('data-args');
-
+                console.log("_detect for domain: ", this.domain_id);
                 var msg = {
                     type: 'detect action conditions',
                     domain_id: this.domain_id,

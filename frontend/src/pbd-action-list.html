@@ -55,13 +55,14 @@
         <!-- PDDL -->
         <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_domain"
             ros="[[ros]]" service-type="rapid_pbd_msgs/CreatePDDLDomain"></ros-service>
-        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/domain/{{domain_id}}"
+            ros="[[ros]]"></ros-topic>
         <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
             ros="[[ros]]"></ros-topic>
 
         <div class="paper-material">
             <template is="dom-if" restamp if="[[!_showActionProperties]]">
-                <template is="dom-repeat" items="{{domainList}}" as="item" index-as="domainIndex">
+                <template is="dom-repeat" items="{{domainList}}" as="item" index-as="domainIndex" selected="{{pddlDomain}}">
                     <div class="listeDomain">
                         Choose domain:
                         <paper-dropdown-menu>
@@ -113,8 +114,8 @@
                 <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
                     <div>
                         <template is="dom-if" restamp if="[[_displayAction(selectedActionName,action.name)]]">
-                            <pbd-new-action on-quit="quitNewAction" name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain="[[pddlDomain]]"
-                                showing="{{_showActionProperties}}"></pbd-new-action>
+                            <pbd-new-action on-quit="quitNewAction" name="new-action" params="[[params]]" ros="[[ros]]" action="[[action]]" domain_id="[[domain_id]]"
+                                domain="[[pddlDomain]]" showing="{{_showActionProperties}}"></pbd-new-action>
                         </template>
                     </div>
                 </template>
@@ -159,16 +160,20 @@
             observers: [
                 'load(pddlDomain.*,domainList.*)',
                 '_domainUpdated(pddlDomain.*)',
+                '_domainIDchanged(domain_id)',
             ],
+            _domainIDchanged(newID) {
+                console.log("domain id changed to ", newID);
+            },
             quitNewAction: function (e) {
                 this._showActionProperties = false;
             },
             load: function (changedDomain, changedList) {
-                if (this.domainList && this.domainList.domains.length == 1) {
+                if (!this.domain_id && this.domainList && this.domainList.domains.length > 0) {
                     this.domain_id = this.domainList.domains[0].domain_id;
                 }
             },
-            _domainUpdated(changedDomain, changedList) {
+            _domainUpdated(changedDomain) {
                 if (changedDomain.value) {
                     this.actions = changedDomain.value.actions;
                     this.pddlDomain = changedDomain.value;
