@@ -1223,6 +1223,7 @@ void Editor::SelectPDDLDomain(const std::string& domain_id) {
     return;
   }
   pddl_domain_.PublishPDDLDomain(domain);
+  domain_db_.StartPublishingPDDLDomainById(domain_id);
 }
 
 void Editor::UpdatePDDLDomain(const std::string& domain_id,
@@ -1307,6 +1308,7 @@ void Editor::AssignSurfaceObjects(const std::string& db_id,
                                   const msgs::PDDLAction& action,
                                   const std::string& state_name,
                                   size_t step_id) {
+  ROS_INFO("AssignSurfaceObjects...");
   // Assigns detected surface objects to step
   msgs::Program program;
   bool success = db_.Get(db_id, &program);
@@ -1343,7 +1345,6 @@ void Editor::AssignSurfaceObjects(const std::string& db_id,
 void Editor::AddPDDLAction(const std::string& domain_id,
                            const std::string& action_name) {
   ROS_INFO("Adding pddl action: %s", action_name.c_str());
-  domain_db_.StartPublishingPDDLDomainById(domain_id);
 
   ROS_INFO("Trying to get domain id '%s' from db", domain_id.c_str());
   msgs::PDDLDomain domain;
