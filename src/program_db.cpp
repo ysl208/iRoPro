@@ -94,13 +94,17 @@ void ProgramDb::StartPublishingProgramById(const std::string& db_id) {
 
 bool ProgramDb::Get(const std::string& db_id, msgs::Program* program) const {
   vector<shared_ptr<Program> > results;
-  bool success = db_->queryID(db_id, results);
-  if (!success || results.size() < 1) {
-    ROS_ERROR("Can't get program with ID: \"%s\"", db_id.c_str());
-    return false;
+
+  if (db_id != "") {
+    bool success = db_->queryID(db_id, results);
+    if (!success || results.size() < 1) {
+      ROS_ERROR("Can't get program with ID: \"%s\"", db_id.c_str());
+      return false;
+    }
+    *program = *results[0];
+    return true;
   }
-  *program = *results[0];
-  return true;
+  return false;
 }
 
 bool ProgramDb::GetByName(const std::string& name,
@@ -212,6 +216,7 @@ void PDDLDomainDb::Update(const std::string& domain_id,
 }
 
 void PDDLDomainDb::StartPublishingPDDLDomainById(const std::string& domain_id) {
+  // publishes under /rapid_pbd/domain/<domain_id>
   if (domain_pubs_.find(domain_id) != domain_pubs_.end()) {
     return;
   }
@@ -231,13 +236,16 @@ void PDDLDomainDb::StartPublishingPDDLDomainById(const std::string& domain_id) {
 bool PDDLDomainDb::Get(const std::string& domain_id,
                        msgs::PDDLDomain* domain) const {
   vector<shared_ptr<PDDLDomain> > results;
-  bool success = domain_->queryID(domain_id, results);
-  if (!success || results.size() < 1) {
-    ROS_ERROR("Can't get domain with ID: \"%s\"", domain_id.c_str());
-    return false;
+  if (domain_id != "") {
+    bool success = domain_->queryID(domain_id, results);
+    if (!success || results.size() < 1) {
+      ROS_ERROR("Can't get domain with ID: \"%s\"", domain_id.c_str());
+      return false;
+    }
+    *domain = *results[0];
+    return true;
   }
-  *domain = *results[0];
-  return true;
+  return false;
 }
 
 bool PDDLDomainDb::GetByName(const std::string& name,
