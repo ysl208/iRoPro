@@ -53,18 +53,31 @@
         <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{routeTail}}"></app-route>
         <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
         <!-- PDDL -->
-        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/domain/{{domain_id}}"
+            ros="[[ros]]"></ros-topic>
         <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
             ros="[[ros]]"></ros-topic>
 
         <div class="paper-material">
             <template is="dom-if" restamp if="[[!_showProblemProperties]]">
+                <template is="dom-repeat" items="{{domainList}}" as="item" index-as="domainIndex" selected="{{pddlDomain}}">
+                    <div class="listeDomain">
+                        Choose domain:
+                        <paper-dropdown-menu>
+                            <paper-listbox slot="dropdown-content" attr-for-selected="name">
+                                <template is="dom-repeat" items="{{domainList.domains}}" as="item" index-as="typeIndex">
+                                    <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item.domain_id]]">[[item.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </div>
+                </template>
                 <table>
                     <tr>
                         <th>Programmed problems</th>
                         <th>
                             <!-- <a href="#/[[domain_id]]"> -->
-                            <paper-button id="createButton" class="important" on-tap="_handleCreate">
+                            <paper-button id="createButton" class="important" on-tap="_createNewProblem">
                                 + new problem
                             </paper-button>
                             <!-- </a> -->
@@ -98,7 +111,7 @@
                     <div>
                         <template is="dom-if" restamp if="[[_displayProblem(selectedProblemName,problem.name)]]">
                             <pbd-new-problem on-quit="quitProblem" name="new-problem" params="[[params]]" ros="[[ros]]" problem="[[problem]]" domain_id="[[domain_id]]"
-                                domain="[[pddlDomain]]" showing="{{_showActionProperties}" }></pbd-new-problem>
+                                domain="[[pddlDomain]]" showing="{{_showActionProperties}}"></pbd-new-problem>
                         </template>
                     </div>
                 </template>
@@ -148,13 +161,17 @@
             observers: [
                 'load(pddlDomain.*,domainList.*)',
                 '_domainUpdated(pddlDomain.*)',
+                '_domainIDchanged(domain_id)',
             ],
+            _domainIDchanged(newID) {
+                console.log("domain id changed to ", newID);
+            },
             load: function (changedDomain, changedList) {
-                if (this.domainList && this.domainList.domains.length == 1) {
+                if (!this.domain_id && this.domainList && this.domainList.domains.length > 0) {
                     this.domain_id = this.domainList.domains[0].domain_id;
                 }
             },
-            _domainUpdated(changedDomain, changedList) {
+            _domainUpdated(changedDomain) {
                 if (changedDomain.value) {
                     this.problems = changedDomain.value.problems;
                     this.pddlDomain = changedDomain.value;
@@ -177,38 +194,29 @@
                 this.$.eventPub.publish(msg);
             },
 
-            _updateDomain: function (evt) {
-                var msg = {
-                    type: 'update pddl domain',
-                    domain_id: this.domain_id,
-                    pddl_domain: this.pddlDomain
-                };
-                this.$.eventPub.publish(msg);
-            },
-
-            _handleCreate: function (evt) {
+            _createNewProblem: function (evt) {
                 var name = this.getProblemName(this.problems);
-                console.debug('handleCreate', name, this.pddlDomain);
+                console.debug('createNewProblem', name, this.pddlDomain);
                 var msg = {
                     type: 'add pddl problem',
                     domain_id: this.domain_id,
                     problem_name: name
                 };
                 this.$.eventPub.publish(msg);
-                console.debug('handleCreate', name, this.domain_id);
+                console.debug('createNewProblem', name, this.domain_id);
                 this.selectedProblemName = name;
                 this._showProblemProperties = true;
-                console.debug('handleCreate: params is ', this.params);
+                console.debug('createNewProblem: params is ', this.params);
             },
 
             getProblemName: function (problems) {
                 var problemNo = problems.length + 1;
-                var problem_name = 'Problem' + problemNo;
+                var problem_name = 'problem' + problemNo;
                 for (var i = 0; i < problems.length; ++i) {
                     if (problems[i].name == problem_name) {
                         problemNo++;
                     }
-                    problem_name = 'Problem' + problemNo;
+                    problem_name = 'problem' + problemNo;
                 }
                 return problem_name;
             },
@@ -232,6 +240,24 @@
             },
             quitProblem: function (e) {
                 this._showProblemProperties = false;
+            },
+
+            _updateDomain: function (evt) {
+                var msg = {
+                    type: 'update pddl domain',
+                    domain_id: this.domain_id,
+                    pddl_domain: this.pddlDomain
+                };
+                this.$.eventPub.publish(msg);
+            },
+            _selectDomain: function (evt) {
+                this.domain_id = evt.target.name.domain_id;
+                console.log('select domain: ', this.domain_id);
+                var msg = {
+                    type: 'select pddl domain',
+                    domain_id: this.domain_id
+                };
+                this.$.eventPub.publish(msg);
             }
 
         });
