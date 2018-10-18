@@ -1219,7 +1219,7 @@ void Editor::SelectPDDLDomain(const std::string& domain_id) {
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
   if (!success) {
-    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    ROS_ERROR("Unable to get domain for \"%s\"", domain_id.c_str());
     return;
   }
   pddl_domain_.PublishPDDLDomain(domain);
@@ -1359,6 +1359,7 @@ void Editor::AddPDDLAction(const std::string& domain_id,
   ROS_INFO("Creating new pddl action '%s'", action_name.c_str());
   msgs::PDDLAction action;
   action.name = action_name;
+  action.program_id = Create(action_name);
   domain.actions.push_back(action);
   UpdatePDDLDomain(domain_id, domain);
 }
