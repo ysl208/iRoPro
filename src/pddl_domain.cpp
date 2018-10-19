@@ -59,7 +59,7 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   // Predicate has at least 1 arg of type table_entity
   msgs::PDDLObject obj;
   obj.name = "obj1";
-  type.name = msgs::PDDLType::TABLE_ENTITY;
+  type.name = msgs::PDDLType::ENTITY;
   obj.type = type;
   predicate.arg1 = obj;
 
@@ -319,23 +319,27 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
 void GetTypeFromDims(const geometry_msgs::Vector3& dims,
                      msgs::PDDLType* obj_type) {
   obj_type->parent = msgs::PDDLType::OBJECT;
+  ROS_INFO("GetTypeFromDims.... ");
 
   // get names of different objects, then iterate through them to get their
   // dimensions and compare to given dims
   std::vector<std::string> name_list;
   std::vector<double> obj_dims;
   std::vector<double> variance;
+
   ros::param::param<std::vector<std::string> >("world_objects/names", name_list,
                                                name_list);
 
-  ros::param::param<std::vector<double> >("variance", variance, variance);
+  ros::param::param<std::vector<double> >("world_objects/variance", variance,
+                                          variance);
+
   double closest_distance = std::numeric_limits<double>::max();
   double squ_dist_cutoff = variance[0] * variance[0];
   for (size_t i = 0; i < name_list.size(); ++i) {
     std::stringstream ss;
     ss << name_list[i];
     obj_type->name = ss.str();
-    ros::param::param<std::vector<double> >("world_objects/" + ss.str(),
+    ros::param::param<std::vector<double> >("world_objects/" + obj_type->name,
                                             obj_dims, obj_dims);
     obj_type->dimensions.x = obj_dims[0];
     obj_type->dimensions.y = obj_dims[1];
@@ -363,6 +367,7 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
   msgs::PDDLObject obj;
   msgs::PDDLType obj_type;
   obj_type.name = msgs::PDDLType::POSITION;
+  obj_type.parent = msgs::PDDLType::ENTITY;
 
   std::vector<double> pos_x_list, pos_y_list, pos_z_list, radius_list;
   std::vector<std::string> name_list;
@@ -391,6 +396,7 @@ void GetFixedPositions(std::vector<msgs::PDDLObject>* objects) {
     pose.orientation.y = 0;
     pose.orientation.z = 0;
     obj_type.name = msgs::PDDLType::POSITION;
+    obj_type.parent = msgs::PDDLType::ENTITY;
     obj_type.pose = pose;
     obj.type = obj_type;
     geometry_msgs::Vector3 dims;
