@@ -497,6 +497,7 @@
                 '_actionUpdated(action.*)',
                 '_checkClearPrecond(newPrecondition.name)',
                 '_checkClearEffect(newEffect.name)',
+                '_stepChanged(ros, action.*, currentStepNum)',
             ],
             _checkClearPrecond: function (nom_precond) {
                 if (nom_precond == "clear") {
@@ -813,6 +814,21 @@
                 this.$.eventPub.publish(msg);
             },
 
+            _stepChanged(ros, action, currentStepNum) {
+                // Load robot visualization
+                // need this to start publishing program_id
+                if (!ros || !this.action.program_id) {
+                    return;
+                }
+                var msg = {
+                    type: 'view step',
+                    program_info: {
+                        db_id: this.action.program_id
+                    },
+                    step_num: 0
+                };
+                this.$.eventPub.publish(msg);
+            },
             _domainUpdated: function (changedDomain, changedList) {
                 if (changedDomain.value) {
                     this.$.loading.close();
