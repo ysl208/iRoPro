@@ -1490,8 +1490,7 @@ void Editor::DetectWorldState(const std::string& domain_id,
 
 void Editor::AddPDDLProblem(const std::string& domain_id,
                             const std::string& problem_name) {
-  ROS_INFO("Start add pddl problem: %s", problem_name.c_str());
-  domain_db_.StartPublishingPDDLDomainById(domain_id);
+  ROS_INFO("Adding pddl problem: %s", problem_name.c_str());
 
   ROS_INFO("Trying to get %s from db", domain_id.c_str());
   msgs::PDDLDomain domain;
