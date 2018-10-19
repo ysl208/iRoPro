@@ -53,7 +53,7 @@ void Visualizer::Init() {
 
 void Visualizer::Publish(const std::string& program_id, const World& world) {
   CreateStepVizIfNotExists(program_id);
-  ROS_INFO("Viz::Publish...");
+  // ROS_INFO("Viz::Publish...");
   // Publish the robot visualization
   MarkerArray robot_markers;
   std::map<std::string, double> joint_positions;
@@ -395,6 +395,18 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
   for (size_t i = 0; i < objects.size(); ++i) {
     scene_markers->markers[i].ns = "segmentation";
     scene_markers->markers[i].id = i;
+    ROS_INFO(
+        "%zu color was r: %d g: %d b: %d", i, scene_markers->markers[i].color.r,
+        scene_markers->markers[i].color.g, scene_markers->markers[i].color.b);
+    if (landmarks[i].color.r > 0) {
+      scene_markers->markers[i].color.r = scene_markers->markers[i].color.g;
+      scene_markers->markers[i].color.g = 0.0;
+      // scene_markers->markers[i].color.g = landmarks[i].color.g;
+      // scene_markers->markers[i].color.b = landmarks[i].color.b;
+    } else if (landmarks[i].color.b > 0) {
+      scene_markers->markers[i].color.b = scene_markers->markers[i].color.g;
+      scene_markers->markers[i].color.g = 0.0;
+    }
   }
   for (size_t i = 0; i < objects.size(); ++i) {
     Marker marker = scene_markers->markers[i];
@@ -507,8 +519,8 @@ void GetPositionMarkers(const msgs::Surface& surface,
       pos_marker.color.g = 1;
       pos_marker.color.b = 1;
       pos_marker.color.a = 1;  // alpha for visibility
-      ROS_INFO("GetPositionMarkers: pos%s at %f,%f,%f", name_list[i].c_str(),
-               pose.position.x, pose.position.y, pose.position.z);
+      // ROS_INFO("GetPositionMarkers: pos%s at %f,%f,%f", name_list[i].c_str(),
+      //          pose.position.x, pose.position.y, pose.position.z);
       scene_markers->markers.push_back(pos_marker);
       // text marker
       Marker marker = pos_marker;
@@ -528,7 +540,6 @@ void GetPositionMarkers(const msgs::Surface& surface,
       marker.color.b = 1;
       marker.color.a = 1;
       scene_markers->markers.push_back(marker);
-    
     }
   }
 }

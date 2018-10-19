@@ -1,5 +1,6 @@
 #include "rapid_pbd/surface_segmentation_action.h"
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 
@@ -227,6 +228,9 @@ void SurfaceSegmentationAction::Execute(
       ss << "obj" << obj_count;
       landmark.name = ss.str();
       landmark.pose_stamped = object.pose_stamped;
+      landmark.color.r = point.r / 255.0;
+      landmark.color.g = point.g / 255.0;
+      landmark.color.b = point.b / 255.0;
       landmark.surface_box_dims = object.dimensions;
       result.landmarks.push_back(landmark);
     }
@@ -240,24 +244,81 @@ void SurfaceSegmentationAction::Execute(
   as_.setSucceeded(result);
 }
 
+int SurfaceSegmentationAction::GetDistance(const std::vector<int>& a,
+                                           const std::vector<int>& b) {
+  int dx = (a[0] - b[0]);
+  int dy = (a[1] - b[1]);
+  int dz = (a[2] - b[2]);
+  return dx * dx + dy * dy + dz * dz;
+}
+
 void SurfaceSegmentationAction::GetRGB(
     const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
     const pcl::PointIndices::Ptr indices, pcl::PointXYZRGB* point) {
   // look through point cloud and get average colour
+  int distance_r = 0;
+  int distance_g = 0;
+  int distance_b = 0;
+  int count_r = 0;
+  int count_g = 0;
+  int count_b = 0;
+
+  int red[] = {255, 0, 0};
+  std::vector<int> rgb_red(red, red + sizeof(red) / sizeof(int));
+  int green[] = {0, 255, 0};
+  std::vector<int> rgb_green(green, green + sizeof(green) / sizeof(int));
+  int blue[] = {0, 0, 255};
+  std::vector<int> rgb_blue(blue, blue + sizeof(blue) / sizeof(int));
 
   ROS_INFO("Colours for %zu points are: ", indices->indices.size());
   for (std::vector<int>::const_iterator i = indices->indices.begin();
        i != indices->indices.end(); ++i) {
-    point->r += cloud->points[*i].r;
-    point->g += cloud->points[*i].g;
-    point->b += cloud->points[*i].b;
+    std::vector<int> p;
+    p.push_back(cloud->points[*i].r);
+    p.push_back(cloud->points[*i].g);
+    p.push_back(cloud->points[*i].b);
 
-    ROS_INFO("r: %d g: %d b: %d", point->r, point->g, point->b);
+    distance_r = GetDistance(rgb_red, p);
+    distance_g = GetDistance(rgb_green, p);
+    distance_b = GetDistance(rgb_blue, p);
+
+    if (distance_r < distance_g) {
+      if (distance_r < distance_b) {
+        ++count_r;
+      } else {
+        ++count_b;
+      }
+    } else {
+      if (distance_g < distance_b) {
+        ++count_g;
+      } else {
+        ++count_b;
+      }
+    }
   }
-  point->r /= indices->indices.size();
-  point->g /= indices->indices.size();
-  point->b /= indices->indices.size();
-  ROS_INFO("Average r: %d g: %d b: %d", point->r, point->g, point->b);
+  int* colour;
+  if (count_r > count_g) {
+    if (count_r > count_b) {
+      colour = red;
+      ROS_INFO("color is red");
+    } else {
+      colour = blue;
+      ROS_INFO("color is blue");
+    }
+  } else {
+    if (count_g > count_b) {
+      colour = green;
+      ROS_INFO("color is green");
+    } else {
+      colour = blue;
+      ROS_INFO("color is blue");
+    }
+  }
+  point->r = *(colour + 0) / 255.0;
+  point->g = *(colour + 1) / 255.0;
+  point->b = *(colour + 2) / 255.0;
+  ROS_INFO("distribution r: %d g: %d b: %d", count_r, count_g, count_b);
+  ROS_INFO("color is r: %d g: %d b: %d", point->r, point->g, point->b);
 }
 
 }  // namespace pbd

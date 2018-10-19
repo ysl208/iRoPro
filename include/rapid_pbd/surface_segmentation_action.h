@@ -24,6 +24,7 @@ class SurfaceSegmentationAction {
   void Execute(const msgs::SegmentSurfacesGoalConstPtr& goal);
   void GetRGB(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
               const pcl::PointIndices::Ptr indices, pcl::PointXYZRGB* point);
+  int GetDistance(const std::vector<int>& a, const std::vector<int>& b);
 
  private:
   std::string topic_;
