@@ -393,16 +393,24 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
   for (size_t i = 0; i < objects.size(); ++i) {
     scene_markers->markers[i].ns = "segmentation";
     scene_markers->markers[i].id = i;
+    ROS_INFO(
+        "%zu color was r: %f g: %f b: %f", i, scene_markers->markers[i].color.r,
+        scene_markers->markers[i].color.g, scene_markers->markers[i].color.b);
+    scene_markers->markers[i].color = landmarks[i].color;
+    ROS_INFO("%zu color is NOW r: %f g: %f b: %f", i,
+             scene_markers->markers[i].color.r,
+             scene_markers->markers[i].color.g,
+             scene_markers->markers[i].color.b);
 
-    if (landmarks[i].color.r == 1) {
-      scene_markers->markers[i].color.r = scene_markers->markers[i].color.g;
-    }
-    if (landmarks[i].color.b == 1) {
-      scene_markers->markers[i].color.b = scene_markers->markers[i].color.g;
-    }
-    if (landmarks[i].color.g != 1) {
-      scene_markers->markers[i].color.g = 0;
-    }
+    // if (landmarks[i].color.r == 1) {
+    //   scene_markers->markers[i].color.r = scene_markers->markers[i].color.g;
+    // }
+    // if (landmarks[i].color.b == 1) {
+    //   scene_markers->markers[i].color.b = scene_markers->markers[i].color.g;
+    // }
+    // if (landmarks[i].color.g != 1) {
+    //   scene_markers->markers[i].color.g = 0;
+    // }
   }
   for (size_t i = 0; i < objects.size(); ++i) {
     Marker marker = scene_markers->markers[i];

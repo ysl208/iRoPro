@@ -231,6 +231,7 @@ void SurfaceSegmentationAction::Execute(
       landmark.color.r = point.r / 255.0;
       landmark.color.g = point.g / 255.0;
       landmark.color.b = point.b / 255.0;
+      landmark.color.a = 1;
       landmark.surface_box_dims = object.dimensions;
       result.landmarks.push_back(landmark);
     }
@@ -351,9 +352,9 @@ void SurfaceSegmentationAction::GetRGB(
       ROS_INFO("color is blue");
     }
   }
-  point->r = *(colour + 0) / 255.0;
-  point->g = *(colour + 1) / 255.0;
-  point->b = *(colour + 2) / 255.0;
+  point->r = *(colour + 0);
+  point->g = *(colour + 1);
+  point->b = *(colour + 2);
   ROS_INFO("distribution r: %d g: %d b: %d", count_r, count_g, count_b);
   ROS_INFO("color is r: %d g: %d b: %d", point->r, point->g, point->b);
 }
