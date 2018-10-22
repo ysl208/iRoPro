@@ -1699,114 +1699,117 @@ void Editor::RunPDDLPlan(const std::string domain_id,
     msgs::PDDLAction action;
     int index = FindPDDLAction(action_name, pddl_domain_.domain_.actions);
     if (index < 0) {
-      ROS_ERROR("Could not save PDDL action named %s because it does not exist",
+      ROS_ERROR("Could not find PDDL action named %s because it does not exist",
                 action_name.c_str());
-    }
-    ROS_INFO("Action found...");
-    action = pddl_domain_.domain_.actions[index];
-    // 1. Look for associated program_id (db_id)
-    std::string db_id;
-    db_id = action.program_id;
-    msgs::Program main_program;
-    bool success = db_.Get(db_id, &main_program);
-    if (!success) {
-      ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
-      return;
-    }
+    } else {
+      ROS_INFO("Action found...");
+      action = pddl_domain_.domain_.actions[index];
+      // 1. Look for associated program_id (db_id)
+      std::string db_id;
+      db_id = action.program_id;
+      msgs::Program main_program;
+      bool success = db_.Get(db_id, &main_program);
+      if (!success) {
+        ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
+        return;
+      }
 
-    // 3. Run associated program for this step
-    // 3.1 Create new program that will be modified and run for this step
-    msgs::Program new_program = main_program;
-    msgs::Program alt_program = main_program;
+      // 2. Run associated program for this step
+      // need to replace the generic program params (object and EE positions)
+      // 3.1 Create new program that will be modified and run for this step
+      msgs::Program new_program = main_program;
+      msgs::Program alt_program = main_program;
 
-    // 3.2 save 'move to cart pose' action/step no. in an array that are
-    // relative to a landmark (not torso)
-    std::vector<std::pair<int, int> > cart_pose_actions;
-    new_program.steps.clear();
-    bool newProgramSuccess =
-        GetCartActions(&cart_pose_actions, alt_program, &new_program);
-    if (!newProgramSuccess) {
-      ROS_ERROR("No cartesian actions found in program \"%s\"",
-                alt_program.name.c_str());
-      return;
-    }
-    // 3.3 update the cart action's relative landmark's dimensions according to
-    // the matching PDDLaction parameter dimension
-    for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
-      int s_id = cart_pose_actions[id].first;
-      int a_id = cart_pose_actions[id].second;
-      std::string lm_name = new_program.steps[s_id].actions[a_id].landmark.name;
+      // 3.2 save 'move to cart pose' action/step no. in an array that are
+      // relative to a landmark (not torso)
+      std::vector<std::pair<int, int> > cart_pose_actions;
+      new_program.steps.clear();
+      bool newProgramSuccess =
+          GetCartActions(&cart_pose_actions, alt_program, &new_program);
+      if (!newProgramSuccess) {
+        ROS_ERROR("No cartesian actions found in program \"%s\"",
+                  alt_program.name.c_str());
+        return;
+      }
+      // 3.3 update the cart action's relative landmark's dimensions according
+      // to the matching PDDLaction parameter dimension
+      for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
+        int s_id = cart_pose_actions[id].first;
+        int a_id = cart_pose_actions[id].second;
+        std::string lm_name =
+            new_program.steps[s_id].actions[a_id].landmark.name;
 
-      // find argument in action that corresponds to the relative lm name
-      std::cout << "Looking for matching lm: " << lm_name << "\n";
-      for (size_t z = 0; z < action.params.size(); ++z) {
-        std::cout << "action param: " << action.params[z].name << "\n";
-        std::cout << "# problems landmarks: " << problem.landmarks.size()
-                  << "\n";
-
-        if (lm_name == action.params[z].name) {
-          std::cout << "action param: matched ! " << action.params[z].name
+        // find argument in action that corresponds to the relative lm name
+        std::cout << "Looking for matching lm: " << lm_name << "\n";
+        for (size_t z = 0; z < action.params.size(); ++z) {
+          std::cout << "action param: " << action.params[z].name << "\n";
+          std::cout << "# problems landmarks: " << problem.landmarks.size()
                     << "\n";
-          // find landmark object in list of detected landmarks in problem
-          for (size_t l = 0; l < problem.landmarks.size(); ++l) {
-            msgs::Landmark match = problem.landmarks[l];
-            if (strcasecmp(match.name.c_str(), step.args[z].c_str()) == 0) {
-              std::cout << "step param: matched ! " << step.args[z] << "\n";
-              new_program.steps[s_id]
-                  .actions[a_id]
-                  .landmark.surface_box_dims.x = match.surface_box_dims.x;
-              new_program.steps[s_id]
-                  .actions[a_id]
-                  .landmark.surface_box_dims.y = match.surface_box_dims.y;
-              new_program.steps[s_id]
-                  .actions[a_id]
-                  .landmark.surface_box_dims.z = match.surface_box_dims.z;
-              new_program.steps[s_id].actions[a_id].landmark.pose_stamped =
-                  match.pose_stamped;
 
-              std::cout << "Updated dimension of step/action = " << s_id << ","
-                        << a_id << "  and landmark " << lm_name << " ("
-                        << new_program.steps[s_id]
-                               .actions[a_id]
-                               .landmark.surface_box_dims.x
-                        << " ,"
-                        << new_program.steps[s_id]
-                               .actions[a_id]
-                               .landmark.surface_box_dims.y
-                        << " ,"
-                        << new_program.steps[s_id]
-                               .actions[a_id]
-                               .landmark.surface_box_dims.z
-                        << ") \n";
+          if (lm_name == action.params[z].name) {
+            std::cout << "action param: matched ! " << action.params[z].name
+                      << "\n";
+            // find landmark object in list of detected landmarks in problem
+            for (size_t l = 0; l < problem.landmarks.size(); ++l) {
+              msgs::Landmark match = problem.landmarks[l];
+              if (strcasecmp(match.name.c_str(), step.args[z].c_str()) == 0) {
+                std::cout << "step param: matched ! " << step.args[z] << "\n";
+                new_program.steps[s_id]
+                    .actions[a_id]
+                    .landmark.surface_box_dims.x = match.surface_box_dims.x;
+                new_program.steps[s_id]
+                    .actions[a_id]
+                    .landmark.surface_box_dims.y = match.surface_box_dims.y;
+                new_program.steps[s_id]
+                    .actions[a_id]
+                    .landmark.surface_box_dims.z = match.surface_box_dims.z;
+                new_program.steps[s_id].actions[a_id].landmark.pose_stamped =
+                    match.pose_stamped;
+
+                std::cout << "Updated dimension of step/action = " << s_id
+                          << "," << a_id << "  and landmark " << lm_name << " ("
+                          << new_program.steps[s_id]
+                                 .actions[a_id]
+                                 .landmark.surface_box_dims.x
+                          << " ,"
+                          << new_program.steps[s_id]
+                                 .actions[a_id]
+                                 .landmark.surface_box_dims.y
+                          << " ,"
+                          << new_program.steps[s_id]
+                                 .actions[a_id]
+                                 .landmark.surface_box_dims.z
+                          << ") \n";
+              }
             }
           }
         }
       }
+
+    // run program
+    RUN:
+      std::cout << "Running program for action ..." << action_name << "\n";
+      msgs::ExecuteProgramGoal goal;
+      goal.program = new_program;
+      action_clients_->program_client.sendGoal(goal);
+      bool finished_before_timeout =
+          action_clients_->program_client.waitForResult(ros::Duration(60.0));
+      if (!finished_before_timeout) {
+        ROS_INFO("Program did not finish before the time out.");
+      }
+      msgs::ExecuteProgramResult::ConstPtr result =
+          action_clients_->program_client.getResult();
+
+      ROS_INFO(
+          "%s done with: %s \n Press enter to r to try again or c to continue.",
+          action_name.c_str(), result->error.c_str());
+      std::string n;
+      std::cin >> n;
+      if (n == "r") goto RUN;
+
+      // 4. Check action effects after executing action
+      // TO DO: if effects are not satisfied stop action execution
     }
-
-  // run program
-  RUN:
-    std::cout << "Running program for action ..." << action_name << "\n";
-    msgs::ExecuteProgramGoal goal;
-    goal.program = new_program;
-    action_clients_->program_client.sendGoal(goal);
-    bool finished_before_timeout =
-        action_clients_->program_client.waitForResult(ros::Duration(30.0));
-    if (!finished_before_timeout) {
-      ROS_INFO("Program did not finish before the time out.");
-    }
-    msgs::ExecuteProgramResult::ConstPtr result =
-        action_clients_->program_client.getResult();
-
-    ROS_INFO(
-        "%s done with: %s \n Press enter to r to try again or c to continue.",
-        action_name.c_str(), result->error.c_str());
-    std::string n;
-    std::cin >> n;
-    if (n == "r") goto RUN;
-
-    // 4. Check action effects after executing action
-    // TO DO: if effects are not satisfied stop action execution
   }
 }
 
