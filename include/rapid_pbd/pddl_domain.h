@@ -54,7 +54,6 @@ void AddPredicate(std::vector<msgs::PDDLPredicate>* predicates,
                   const std::vector<msgs::PDDLObject>& args, bool negate);
 void GetTypeFromDims(const geometry_msgs::Vector3& dims,
                      msgs::PDDLType* obj_type);
-void GetFixedPositions(std::vector<msgs::PDDLObject>* objects);
 bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
                             const double squared_distance_cutoff,
                             msgs::PDDLObject* found_position);

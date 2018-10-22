@@ -84,8 +84,6 @@ void Visualizer::Publish(const std::string& program_id, const World& world) {
   MarkerArray scene_markers;
   GetSegmentationMarker(world.surface_box_landmarks, robot_config_,
                         &scene_markers);
-  // Publish position markers
-  GetPositionMarkers(world.surface, robot_config_, &scene_markers);
   if (scene_markers.markers.size() > 0) {
     step_vizs_[program_id].surface_seg_pub.publish(scene_markers);
   } else {
@@ -395,17 +393,15 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
   for (size_t i = 0; i < objects.size(); ++i) {
     scene_markers->markers[i].ns = "segmentation";
     scene_markers->markers[i].id = i;
-    ROS_INFO(
-        "%zu color was r: %d g: %d b: %d", i, scene_markers->markers[i].color.r,
-        scene_markers->markers[i].color.g, scene_markers->markers[i].color.b);
-    if (landmarks[i].color.r > 0) {
+
+    if (landmarks[i].color.r == 1) {
       scene_markers->markers[i].color.r = scene_markers->markers[i].color.g;
-      scene_markers->markers[i].color.g = 0.0;
-      // scene_markers->markers[i].color.g = landmarks[i].color.g;
-      // scene_markers->markers[i].color.b = landmarks[i].color.b;
-    } else if (landmarks[i].color.b > 0) {
+    }
+    if (landmarks[i].color.b == 1) {
       scene_markers->markers[i].color.b = scene_markers->markers[i].color.g;
-      scene_markers->markers[i].color.g = 0.0;
+    }
+    if (landmarks[i].color.g != 1) {
+      scene_markers->markers[i].color.g = 0;
     }
   }
   for (size_t i = 0; i < objects.size(); ++i) {
@@ -467,80 +463,6 @@ void GetSurfaceMarker(const msgs::Surface& surface,
     table.color.b = 0.01;
     table.color.a = 1;
     scene_markers->markers.push_back(table);
-  }
-}
-
-void GetPositionMarkers(const msgs::Surface& surface,
-                        const RobotConfig& robot_config,
-                        visualization_msgs::MarkerArray* scene_markers) {
-  std::string base_link(robot_config.base_link());
-
-  std::vector<double> pos_x_list, pos_y_list, pos_z_list, radius_list;
-  std::vector<std::string> name_list;
-
-  ros::param::param<std::vector<std::string> >("world_positions/names",
-                                               name_list, name_list);
-  ros::param::param<std::vector<double> >("world_positions/pos_x", pos_x_list,
-                                          pos_x_list);
-  ros::param::param<std::vector<double> >("world_positions/pos_y", pos_y_list,
-                                          pos_x_list);
-  ros::param::param<std::vector<double> >("world_positions/pos_z", pos_z_list,
-                                          pos_x_list);
-  ros::param::param<std::vector<double> >("world_positions/radius", radius_list,
-                                          radius_list);
-  if (name_list.size() == 0) {
-    ROS_INFO("GetPositionMarkers: no positions found, check yaml file");
-  } else {
-    for (size_t i = 0; i < name_list.size(); ++i) {
-      std::stringstream ss;
-      ss << name_list[i];
-
-      geometry_msgs::Pose pose;
-      pose.position.x = pos_x_list[i];
-      pose.position.y = pos_y_list[i];
-      pose.position.z = surface.pose_stamped.pose.position.z + 0.01;
-      pose.orientation.w = 0;
-      pose.orientation.x = 0;
-      pose.orientation.y = 1;
-      pose.orientation.z = 0;
-
-      Marker pos_marker;
-      pos_marker.header.frame_id = base_link;
-      pos_marker.type = Marker::CUBE;
-      pos_marker.ns = "table";
-      pos_marker.id = i;
-      pos_marker.scale.x = 2 * radius_list[i];
-      pos_marker.scale.y = 2 * radius_list[i];
-      pos_marker.scale.z = 0.005;
-      pos_marker.pose = pose;
-      pos_marker.pose.position.z -= pos_marker.scale.z;
-
-      pos_marker.color.r = 1;
-      pos_marker.color.g = 1;
-      pos_marker.color.b = 1;
-      pos_marker.color.a = 1;  // alpha for visibility
-      // ROS_INFO("GetPositionMarkers: pos%s at %f,%f,%f", name_list[i].c_str(),
-      //          pose.position.x, pose.position.y, pose.position.z);
-      scene_markers->markers.push_back(pos_marker);
-      // text marker
-      Marker marker = pos_marker;
-      marker.type = Marker::TEXT_VIEW_FACING;
-      marker.ns = "position_names";
-      marker.text = ss.str();
-      pos_marker.pose.position.z += 0.01;
-      pos_marker.pose.orientation.x = 0;
-      pos_marker.pose.orientation.y = 0.7071;
-      pos_marker.pose.orientation.z = 0;
-      pos_marker.pose.orientation.w = 0.7071;
-      marker.scale.x = radius_list[i];
-      marker.scale.y = radius_list[i];
-      marker.scale.z = 0.05;
-      marker.color.r = 0;
-      marker.color.g = 0;
-      marker.color.b = 1;
-      marker.color.a = 1;
-      scene_markers->markers.push_back(marker);
-    }
   }
 }
 

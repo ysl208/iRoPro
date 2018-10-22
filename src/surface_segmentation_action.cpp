@@ -234,16 +234,53 @@ void SurfaceSegmentationAction::Execute(
       landmark.surface_box_dims = object.dimensions;
       result.landmarks.push_back(landmark);
     }
+
+    // Add Position Landmarks from yaml file
+    std::vector<double> pos_x_list, pos_y_list, pos_z_list, obj_dims;
+    std::vector<std::string> name_list;
+
+    ros::param::param<std::vector<std::string> >("world_positions/names",
+                                                 name_list, name_list);
+    ros::param::param<std::vector<double> >("world_positions/pos_x", pos_x_list,
+                                            pos_x_list);
+    ros::param::param<std::vector<double> >("world_positions/pos_y", pos_y_list,
+                                            pos_x_list);
+    ros::param::param<std::vector<double> >("world_positions/pos_z", pos_z_list,
+                                            pos_x_list);
+    ros::param::param<std::vector<double> >("world_objects/position", obj_dims,
+                                            obj_dims);
+
+    obj_count = 0;
+    for (size_t i = 0; i < name_list.size(); ++i) {
+      ++obj_count;
+      msgs::Landmark landmark;
+      landmark.type = msgs::Landmark::SURFACE_BOX;
+      landmark.marker_type = visualization_msgs::Marker::CUBE;
+      std::stringstream ss;
+      ss << "pos" << name_list[i];
+      landmark.name = ss.str();
+      landmark.pose_stamped = result.surface.pose_stamped;
+      landmark.pose_stamped.pose.position.x = pos_x_list[i];
+      landmark.pose_stamped.pose.position.y = pos_y_list[i];
+      landmark.surface_box_dims.x = obj_dims[0];
+      landmark.surface_box_dims.y = obj_dims[1];
+      landmark.surface_box_dims.z = obj_dims[2];
+      landmark.color.r = 1;
+      landmark.color.g = 1;
+      landmark.color.b = 1;
+      landmark.color.a = 1;
+      result.landmarks.push_back(landmark);
+    }
+
+    ROS_INFO("Added %d positions", obj_count);
+    ROS_INFO("Detected %ld objects, smallest: %ld points, largest: %ld points",
+             num_objects, min_size, max_size);
+
+    viz_.set_surface_objects(surface_objects);
+    viz_.Show();
+    as_.setSucceeded(result);
   }
-
-  ROS_INFO("Detected %ld objects, smallest: %ld points, largest: %ld points",
-           num_objects, min_size, max_size);
-
-  viz_.set_surface_objects(surface_objects);
-  viz_.Show();
-  as_.setSucceeded(result);
 }
-
 int SurfaceSegmentationAction::GetDistance(const std::vector<int>& a,
                                            const std::vector<int>& b) {
   int dx = (a[0] - b[0]);
