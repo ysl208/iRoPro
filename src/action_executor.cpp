@@ -109,16 +109,6 @@ std::string ActionExecutor::Start() {
   } else if (action_.type == Action::MOVE_TO_CARTESIAN_GOAL) {
     std::vector<std::string> joint_names;
     std::vector<double> joint_positions;
-    ROS_INFO("Move to cart goal: %s at (%f,%f,%f,%f,%f,%f,%f",
-             action_.landmark.name.c_str(),
-             action_.landmark.pose_stamped.pose.position.x,
-             action_.landmark.pose_stamped.pose.position.y,
-             action_.landmark.pose_stamped.pose.position.z,
-             action_.landmark.pose_stamped.pose.orientation.x,
-             action_.landmark.pose_stamped.pose.orientation.y,
-             action_.landmark.pose_stamped.pose.orientation.z,
-             action_.landmark.pose_stamped.pose.orientation.w);
-
     if (HasJointValues(action_)) {
       GetJointPositions(action_, &joint_names, &joint_positions);
     }

@@ -47,6 +47,15 @@ string MotionPlanning::AddPoseGoal(
     const rapid_pbd_msgs::Landmark& landmark,
     const std::vector<std::string>& seed_joint_names,
     const std::vector<double>& seed_joint_positions) {
+  ROS_INFO("AddPoseGoal: %s at (%f,%f,%f,%f,%f,%f,%f", landmark.name.c_str(),
+           landmark.pose_stamped.pose.position.x,
+           landmark.pose_stamped.pose.position.y,
+           landmark.pose_stamped.pose.position.z,
+           landmark.pose_stamped.pose.orientation.x,
+           landmark.pose_stamped.pose.orientation.y,
+           landmark.pose_stamped.pose.orientation.z,
+           landmark.pose_stamped.pose.orientation.w);
+
   const string& base_link(robot_state_.config.base_link());
   const string& ee_link(robot_state_.config.ee_frame_for_group(actuator_group));
   if (ee_link == "") {
@@ -71,10 +80,14 @@ string MotionPlanning::AddPoseGoal(
     graph.Add("landmark", tg::RefFrame(base_link), st);
   } else if (landmark.type == msgs::Landmark::SURFACE_BOX) {
     msgs::Landmark match;
-    double variance = 0.075;
-    bool success = MatchLandmark(*world_, landmark, &match, variance);
-    if (!success) {
-      return errors::kNoLandmarksMatch;
+    if (landmark.name.find("pos") != std::string::npos) {
+      match = landmark;
+    } else {
+      double variance = 0.075;
+      bool success = MatchLandmark(*world_, landmark, &match, variance);
+      if (!success) {
+        return errors::kNoLandmarksMatch;
+      }
     }
     if (match.pose_stamped.header.frame_id != base_link) {
       ROS_ERROR("Landmark not in base frame: \"%s\"",
@@ -121,14 +134,14 @@ string MotionPlanning::AddPoseGoal(
   ros::service::call("/compute_ik", ik_req, ik_res);
   bool success =
       ik_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+  ROS_INFO("pose in base: %f %f %f, %f %f %f %f", pose_in_base.position.x,
+           pose_in_base.position.y, pose_in_base.position.z,
+           pose_in_base.orientation.x, pose_in_base.orientation.y,
+           pose_in_base.orientation.z, pose_in_base.orientation.w);
   if (!success) {
     std::string error("No IK solution found");
     // std::cout << pose_in_base << std::endl;
     ROS_ERROR("%s", error.c_str());
-    ROS_INFO("pose in base: %f %f %f, %f %f %f %f", pose_in_base.position.x,
-             pose_in_base.position.y, pose_in_base.position.z,
-             pose_in_base.orientation.x, pose_in_base.orientation.y,
-             pose_in_base.orientation.z, pose_in_base.orientation.w);
     return error;
   }
 
@@ -171,7 +184,8 @@ std::string MotionPlanning::AddJointGoal(
   ros::param::param("max_vel_scale", max_vel_scale, 1.0);
   double max_acc_scale;
   ros::param::param("max_acc_scale", max_acc_scale, 1.0);
-  ROS_INFO("Velocity scale: %f, acc scale: %f", max_vel_scale, max_acc_scale);
+  // ROS_INFO("Velocity scale: %f, acc scale: %f", max_vel_scale,
+  // max_acc_scale);
   builder_.max_velocity_scaling_factor = max_vel_scale;
   builder_.max_acceleration_scaling_factor = max_acc_scale;
 
