@@ -2,9 +2,11 @@
 
 #include <math.h>
 #include <algorithm>  // std::find
-#include <set>
+#include <iostream>
 #include <string>
 #include <vector>
+
+#include <bits/stdc++.h>
 
 #include "geometry_msgs/Pose.h"
 #include "rapid_pbd_msgs/Action.h"
@@ -131,10 +133,11 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
       GetTypeFromDims(world_landmark.surface_box_dims, &obj_type);
     } else if (world_landmark.name.find("pos") != std::string::npos) {
       obj_type.name = msgs::PDDLType::POSITION;
-    } else {
+      obj_type.parent = msgs::PDDLType::ENTITY;
+    }
+    if (obj_type.name == "") {
       obj_type.name = msgs::PDDLType::ENTITY;
     }
-    obj_type.parent = msgs::PDDLType::ENTITY;
 
     obj_type.pose = world_landmark.pose_stamped.pose;
     obj_type.dimensions = world_landmark.surface_box_dims;
@@ -192,7 +195,7 @@ void AddObject(std::vector<msgs::PDDLObject>* objects,
                const msgs::PDDLObject& new_obj) {
   if (!ObjectExists(objects, new_obj.name)) {
     objects->push_back(new_obj);
-    ROS_INFO("Added object #%zd: %s", objects->size(), new_obj.name.c_str());
+    // ROS_INFO("Added object #%zd: %s", objects->size(), new_obj.name.c_str());
   } else {
     ROS_INFO("%s already exists", new_obj.name.c_str());
   }
@@ -288,8 +291,8 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
         double dz = pose.z - obj.pose.position.z;
         double squared_distance = dx * dx + dy * dy;  // + dz * dz;
 
-        ROS_INFO("%s : Dist = %f < cutoff %f", pos_object.name.c_str(),
-                 squared_distance, squ_dist_cutoff);
+        // ROS_INFO("%s : Dist = %f < cutoff %f", pos_object.name.c_str(),
+        //          squared_distance, squ_dist_cutoff);
         if (squared_distance < closest_distance &&
             squared_distance <= squ_dist_cutoff) {
           *found_position = pos_object;
@@ -304,11 +307,16 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
     return false;
   }
 }
-
-void GetTypeFromDims(const geometry_msgs::Vector3& dims,
+bool wayToSort(double i, double j) { return i < j; }
+void GetTypeFromDims(const geometry_msgs::Vector3& init_dims,
                      msgs::PDDLType* obj_type) {
   obj_type->parent = msgs::PDDLType::OBJECT;
-
+  std::vector<double> s;
+  s.push_back(init_dims.x);
+  s.push_back(init_dims.y);
+  s.push_back(init_dims.z);
+  std::sort(s.begin(), s.end(), wayToSort);
+  ROS_INFO("GetTypeFromDims: Obj with dims (%f,%f,%f)", s[0], s[1], s[2]);
   // get names of different objects, then iterate through them to get their
   // dimensions and compare to given dims
   std::vector<std::string> name_list;
@@ -325,29 +333,35 @@ void GetTypeFromDims(const geometry_msgs::Vector3& dims,
   for (size_t i = 0; i < name_list.size(); ++i) {
     std::stringstream ss;
     ss << name_list[i];
-    obj_type->name = ss.str();
-    ros::param::param<std::vector<double> >("world_objects/" + obj_type->name,
+    ros::param::param<std::vector<double> >("world_objects/" + ss.str(),
                                             obj_dims, obj_dims);
-    obj_type->dimensions.x = obj_dims[0];
-    obj_type->dimensions.y = obj_dims[1];
-    obj_type->dimensions.z = obj_dims[2];
-    double dx = obj_dims[0] - dims.x;
-    double dy = obj_dims[0] - dims.y;
-    double dz = obj_dims[0] - dims.z;
+    double dx = obj_dims[0] - s[0];
+    double dy = obj_dims[1] - s[1];
+    double dz = obj_dims[2] - s[2];
     double squared_distance = dx * dx + dy * dy + dz * dz;
-    if (dims.z > 0.005 && squared_distance < closest_distance &&
-        squared_distance <= squ_dist_cutoff) {
-      // closest_distance = squared_distance;
-      ROS_INFO("Assigned type %s with dims (%f,%f,%f)", obj_type->name.c_str(),
-               obj_type->dimensions.x, obj_type->dimensions.y,
-               obj_type->dimensions.z);
-      return;
+    std::cout << ss.str();
+    ROS_INFO("squared distance to sum(%f,%f,%f) = %f", dx, dy, dz,
+             squared_distance);
+    if (obj_dims[2] > 0.005 && squared_distance < closest_distance) {
+      closest_distance = squared_distance;
+      obj_type->name = ss.str();
+      obj_type->dimensions.x = obj_dims[0];
+      obj_type->dimensions.y = obj_dims[1];
+      obj_type->dimensions.z = obj_dims[2];
+      obj_type->parent = msgs::PDDLType::OBJECT;
     }
   }
-  obj_type->name = "object";
-  obj_type->dimensions.x = 1.0;
-  obj_type->dimensions.y = 1.0;
-  obj_type->dimensions.z = 1.0;
+  if (obj_type->name == "") {
+    obj_type->name = msgs::PDDLType::OBJECT;
+    obj_type->dimensions.x = 0.001;
+    obj_type->dimensions.y = 0.001;
+    obj_type->dimensions.z = 0.001;
+    obj_type->parent = msgs::PDDLType::ENTITY;
+  }
+  ROS_INFO("Assigned type '%s'", obj_type->name.c_str());
+  //  with dims (%f,%f,%f)",
+  //          obj_type->dimensions.x, obj_type->dimensions.y,
+  //          obj_type->dimensions.z);
 }
 
 std::string PrintAllPredicates(std::vector<msgs::PDDLPredicate> predicates,
