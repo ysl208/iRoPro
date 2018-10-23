@@ -108,12 +108,10 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
   world_state->positions_.clear();
   std::vector<msgs::PDDLObject> args;
   std::string predicate;
-  msgs::PDDLObject position;
   bool negate = false;
-  double position_radius = 0.5;
   msgs::PDDLObject obj;
   msgs::PDDLType obj_type;
-
+  // go through landmarks and add them to object/position list
   for (size_t i = 0; i < world_landmarks.size(); ++i) {
     const msgs::Landmark& world_landmark = world_landmarks[i];
     ROS_INFO("Generating predicates for %s at (%f,%f,%f)",
@@ -125,13 +123,13 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
              world_landmark.surface_box_dims.y,
              world_landmark.surface_box_dims.z);
 
+    obj.name = world_landmark.name;
+    obj.surface_box_dims = world_landmark.surface_box_dims;
     msgs::PDDLType obj_type;
     if (world_landmark.name.find("obj") != std::string::npos) {
-      // Generate Predicates for type == OBJECT
       obj_type.name = msgs::PDDLType::OBJECT;
       GetTypeFromDims(world_landmark.surface_box_dims, &obj_type);
     } else if (world_landmark.name.find("pos") != std::string::npos) {
-      // Generate Predicates for type == POSITION
       obj_type.name = msgs::PDDLType::POSITION;
     } else {
       obj_type.name = msgs::PDDLType::ENTITY;
@@ -142,48 +140,36 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
     obj_type.dimensions = world_landmark.surface_box_dims;
     obj.type = obj_type;
 
-    obj.name = world_landmark.name;
-    obj.surface_box_dims = world_landmark.surface_box_dims;
     AddObject(&world_state->objects_, obj);
-    ros::param::param<double>("world_positions/radius", position_radius,
-                              position_radius);
+    if (world_landmark.name.find("pos") != std::string::npos) {
+      AddObject(&world_state->positions_, obj);
+    }
+  }
+  // go through objects/positions and generate predicates IS_ON and IS_CLEAR
+  double variance = 0.05;
+  ros::param::param<double>("world_objects/variance", variance, variance);
+  for (size_t i = 0; i < world_state->objects_.size(); ++i) {
+    const msgs::PDDLObject& obj = world_state->objects_[i];
     // IS_ON predicates
     // Check which position the object is on
-    if (GetObjectTablePosition(obj_type, world_state, position_radius,
-                               &position)) {
-      negate = false;
-      predicate = msgs::PDDLPredicate::IS_ON;
-      args.clear();
-      args.push_back(obj);
-      args.push_back(position);
-      AddPredicate(&world_state->predicates_, predicate, args, negate);
-
-      // // Due to closed world assumption not needed (implied by having IS_ON)
-      // predicate = msgs::PDDLPredicate::IS_STACKABLE;
-      // AddPredicate(&world_state->predicates_, predicate, args, negate);
-
-      // // Object is clear
-      // predicate = msgs::PDDLPredicate::IS_CLEAR;
-      // args.clear();
-      // args.push_back(obj);
-      // AddPredicate(&world_state->predicates_, predicate, args, negate);
-
-      // // Position is not clear because occupied by object
-      // predicate = msgs::PDDLPredicate::IS_CLEAR;
-      // args.clear();
-      // args.push_back(position);
-      // negate = true;
-      // AddPredicate(&world_state->predicates_, predicate, args, negate);
-      // ROS_INFO("Predicates now: %zd", world_state->predicates_.size());
-    } else {
-      ROS_ERROR("Object not on any predefined position");
+    msgs::PDDLObject position;
+    if (obj.name.find("obj") != std::string::npos) {
+      if (GetObjectTablePosition(obj.type, world_state, variance, &position)) {
+        negate = false;
+        predicate = msgs::PDDLPredicate::IS_ON;
+        args.clear();
+        args.push_back(obj);
+        args.push_back(position);
+        AddPredicate(&world_state->predicates_, predicate, args, negate);
+      } else {
+        ROS_ERROR("Object not on any predefined position");
+      }
     }
   }
   // Generate Predicates for type == POSITION
   // based on IS_ON predicates, we can infer IS_CLEAR
   for (size_t i = 0; i < world_state->positions_.size(); ++i) {
     const msgs::PDDLObject& pos_object = world_state->positions_[i];
-
     args.clear();
     obj.name = "";
     args.push_back(obj);
@@ -282,11 +268,10 @@ bool PredicateExists(std::vector<msgs::PDDLPredicate>* predicates,
 }
 
 bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
-                            const double distance,
+                            const double variance,
                             msgs::PDDLObject* found_position) {
   // return closest position
-  // TO DO: get squared_distance_cutoff from yaml file
-  double squ_dist_cutoff = distance * distance;
+  double squ_dist_cutoff = variance * variance;
   bool success = false;
   double closest_distance = std::numeric_limits<double>::max();
   if (obj.name == msgs::PDDLType::OBJECT ||
@@ -302,8 +287,9 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
         double dy = pose.y - obj.pose.position.y;
         double dz = pose.z - obj.pose.position.z;
         double squared_distance = dx * dx + dy * dy;  // + dz * dz;
-        // ROS_INFO("Dist = %f < cutoff %f", squared_distance, squ_dist_cutoff);
 
+        ROS_INFO("%s : Dist = %f < cutoff %f", pos_object.name.c_str(),
+                 squared_distance, squ_dist_cutoff);
         if (squared_distance < closest_distance &&
             squared_distance <= squ_dist_cutoff) {
           *found_position = pos_object;
@@ -327,16 +313,15 @@ void GetTypeFromDims(const geometry_msgs::Vector3& dims,
   // dimensions and compare to given dims
   std::vector<std::string> name_list;
   std::vector<double> obj_dims;
-  std::vector<double> variance;
+  double variance;
 
   ros::param::param<std::vector<std::string> >("world_objects/names", name_list,
                                                name_list);
 
-  ros::param::param<std::vector<double> >("world_objects/variance", variance,
-                                          variance);
+  ros::param::param<double>("world_objects/variance", variance, variance);
 
   double closest_distance = std::numeric_limits<double>::max();
-  double squ_dist_cutoff = variance[0] * variance[0];
+  double squ_dist_cutoff = variance * variance;
   for (size_t i = 0; i < name_list.size(); ++i) {
     std::stringstream ss;
     ss << name_list[i];
