@@ -237,7 +237,7 @@ void SurfaceSegmentationAction::Execute(
     }
 
     // Add Position Landmarks from yaml file
-    std::vector<double> pos_x_list, pos_y_list, pos_z_list, obj_dims;
+    std::vector<double> pos_x_list, pos_y_list, obj_dims;
     std::vector<std::string> name_list;
 
     ros::param::param<std::vector<std::string> >("world_positions/names",
@@ -245,8 +245,6 @@ void SurfaceSegmentationAction::Execute(
     ros::param::param<std::vector<double> >("world_positions/pos_x", pos_x_list,
                                             pos_x_list);
     ros::param::param<std::vector<double> >("world_positions/pos_y", pos_y_list,
-                                            pos_x_list);
-    ros::param::param<std::vector<double> >("world_positions/pos_z", pos_z_list,
                                             pos_x_list);
     ros::param::param<std::vector<double> >("world_objects/position", obj_dims,
                                             obj_dims);
@@ -338,18 +336,14 @@ void SurfaceSegmentationAction::GetRGB(
   if (count_r > count_g) {
     if (count_r > count_b) {
       colour = red;
-      ROS_INFO("color is red");
     } else {
       colour = blue;
-      ROS_INFO("color is blue");
     }
   } else {
     if (count_g > count_b) {
       colour = green;
-      ROS_INFO("color is green");
     } else {
       colour = blue;
-      ROS_INFO("color is blue");
     }
   }
   point->r = *(colour + 0);
