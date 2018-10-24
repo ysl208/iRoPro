@@ -303,7 +303,8 @@
                             </legend>
                             <template is="dom-repeat" items="{{action.preconditions}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
-                                    <p>[[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]</p>
+                                    <p>[[item.arg1.name]] ([[item.arg1.type.name]]) is [[_negate(item.negate)]] [[item.name]]
+                                        [[item.arg2.name]]</p>
                                     <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
                                         <paper-icon-button icon="delete"></paper-icon-button>
                                     </paper-button>
@@ -348,7 +349,8 @@
 
                             <template is="dom-repeat" items="{{action.effects}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
-                                    <p>[[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]</p>
+                                    <p>[[item.arg1.name]] ([[item.arg1.type.name]]) is [[_negate(item.negate)]] [[item.name]]
+                                        [[item.arg2.name]]</p>
                                     <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
                                         <paper-icon-button icon="delete"></paper-icon-button>
                                     </paper-button>

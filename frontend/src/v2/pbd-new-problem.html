@@ -270,7 +270,7 @@
               </legend>
               <template is="dom-repeat" items="{{problem.initial_states}}" as="item" index-as="objectIndex">
                 <div class="listeWorldState">
-                  [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                  [[item.arg1.name]] ([[item.arg1.type.name]]) is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
                   <paper-button class="delete" on-tap="deletePred" data-args="InitialState">
                     <paper-icon-button icon="delete"></paper-icon-button>
                   </paper-button>
@@ -322,7 +322,7 @@
 
               <template is="dom-repeat" items="{{problem.goal_states}}" as="item" index-as="objectIndex">
                 <div class="listeWorldState">
-                  [[item.arg1.name]] is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                  [[item.arg1.name]] ([[item.arg1.type.name]]) is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
                   <paper-button class="delete" on-tap="deletePred" data-args="InitialState">
                     <paper-icon-button icon="delete"></paper-icon-button>
                   </paper-button>
