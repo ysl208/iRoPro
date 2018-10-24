@@ -1184,11 +1184,12 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   program.steps[step_id].surface = result->surface;
   DeleteLandmarks(msgs::Landmark::SURFACE_BOX, &program.steps[step_id]);
 
+  std::cout << "Adding # detected landmarks: " << result->landmarks.size()
+            << " to program_id: " << db_id;
   for (size_t i = 0; i < result->landmarks.size(); ++i) {
     msgs::Landmark landmark;
     ProcessSurfaceBox(result->landmarks[i], &landmark);
     program.steps[step_id].landmarks.push_back(landmark);
-    // std::cout << i << "th landmark: " << landmark.pose_stamped.pose << "\n";
   }
   Update(db_id, program);
 }
@@ -1243,7 +1244,6 @@ void Editor::DetectActionConditions(const std::string& domain_id,
     ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
-
   // look for pddl action
   int index = FindPDDLAction(action_name, domain.actions);
   if (index < 0) {
@@ -1251,34 +1251,45 @@ void Editor::DetectActionConditions(const std::string& domain_id,
     return;
   } else {
     msgs::PDDLAction new_action = domain.actions[index];
-    // detect surface landmarks
-    msgs::SegmentSurfacesGoal goal;
-    goal.save_cloud = true;
-
-    action_clients_->surface_segmentation_client.sendGoal(goal);
-    success = action_clients_->surface_segmentation_client.waitForResult(
-        ros::Duration(50));
+    // look for associated PbD program
+    msgs::Program program;
+    success = db_.Get(new_action.program_id, &program);
     if (!success) {
-      ROS_ERROR("Failed to segment surface.");
+      ROS_ERROR("Unable to update scene for program ID \"%s\"",
+                new_action.program_id.c_str());
       return;
     }
-    msgs::SegmentSurfacesResult::ConstPtr result =
-        action_clients_->surface_segmentation_client.getResult();
-
-    // save scene_id and surface for later
-    new_action.scene_id = result->cloud_db_id;
-    new_action.surface = result->surface;
-    new_action.landmarks.clear();
-    ROS_INFO("Saved action scene_id '%s'", new_action.scene_id.c_str());
-    // std::vector<msgs::Landmark> world_landmarks;
-    for (size_t i = 0; i < result->landmarks.size(); ++i) {
-      msgs::Landmark landmark;
-      ProcessSurfaceBox(result->landmarks[i], &landmark);
-      new_action.landmarks.push_back(landmark);
+    size_t step_id;
+    if (state_name == "Precondition") {
+      step_id = 1;
+    } else if (state_name == "Effect") {
+      step_id = program.steps.size() - 1;
+    } else {
+      ROS_ERROR("Unknown condition type: %s", state_name.c_str());
     }
+    // detect surface landmarks and assign to step
+    DetectSurfaceObjects(new_action.program_id, step_id);
+    // get latest program with new landmarks
+    success = db_.Get(new_action.program_id, &program);
+    if (!success) {
+      ROS_ERROR("Unable to update scene for program ID \"%s\"",
+                new_action.program_id.c_str());
+      return;
+    }
+    // // save scene_id and surface for later
+    // new_action.scene_id = result->cloud_db_id;
+    // new_action.surface = result->surface;
+    // ROS_INFO("Saved action scene_id '%s'", new_action.scene_id.c_str());
+    // // save landmarks to PDDL action
+    // new_action.landmarks.clear();
+    // for (size_t i = 0; i < result->landmarks.size(); ++i) {
+    //   msgs::Landmark landmark;
+    //   ProcessSurfaceBox(result->landmarks[i], &landmark);
+    //   new_action.landmarks.push_back(landmark);
+    // }
 
     WorldState world_state;
-    GetWorldState(new_action.landmarks, &world_state);
+    GetWorldState(program.steps[step_id].landmarks, &world_state);
     new_action.params = world_state.objects_;
     if (state_name == "Precondition") {
       new_action.preconditions = world_state.predicates_;
@@ -1293,14 +1304,7 @@ void Editor::DetectActionConditions(const std::string& domain_id,
     PrintAllPredicates(world_state.predicates_, "");
     UpdatePDDLAction(domain_id, new_action, "");
 
-    msgs::Program program;
-    success = db_.Get(new_action.program_id, &program);
-    if (!success) {
-      ROS_ERROR("Unable to update scene for program ID \"%s\"",
-                new_action.program_id.c_str());
-      return;
-    }
-    Update(new_action.program_id, program);
+    ViewStep(new_action.program_id, step_id);
   }
 }
 
@@ -1316,31 +1320,18 @@ void Editor::AssignSurfaceObjects(const std::string& db_id,
     ROS_ERROR("Unable to update scene for program ID \"%s\"", db_id.c_str());
     return;
   }
-  if (state_name == "Effect") {
+  if (state_name == "Precondition") {
+    step_id = 1;
+  } else if (state_name == "Effect") {
     step_id = program.steps.size() - 1;
-    ROS_INFO("Updating effect, so set step_id to last step: %ld ", step_id);
+  } else {
+    ROS_ERROR("Unknown condition type: %s", state_name.c_str());
   }
 
-  if (step_id >= program.steps.size()) {
-    ROS_ERROR(
-        "AssignSurfaceObjects: Unable to update scene for step %ld, program "
-        "\"%s\", which has %ld "
-        "steps",
-        step_id, db_id.c_str(), program.steps.size());
-    return;
-  }
-  DeleteScene(program.steps[step_id].scene_id);
-  program.steps[step_id].scene_id = action.scene_id;
-  program.steps[step_id].surface = action.surface;
-  DeleteLandmarks(msgs::Landmark::SURFACE_BOX, &program.steps[step_id]);
-
-  for (size_t i = 0; i < action.landmarks.size(); ++i) {
-    msgs::Landmark landmark;
-    ProcessSurfaceBox(action.landmarks[i], &landmark);
-    program.steps[step_id].landmarks.push_back(landmark);
-  }
-  Update(db_id, program);
+  ViewStep(db_id, step_id);
+  // Update(db_id, program);
 }
+
 // PDDL Action functions
 void Editor::AddPDDLAction(const std::string& domain_id,
                            const std::string& action_name) {
@@ -1691,6 +1682,7 @@ void Editor::RunPDDLPlan(const std::string domain_id,
     ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
+  std::cout << "# problems landmarks: " << problem.landmarks.size() << "\n";
   for (size_t i = 0; i < problem.sequence.size(); ++i) {
     pddl_msgs::PDDLStep step = problem.sequence[i];
     ROS_INFO("Step %zu: Action '%s'", i, step.action.c_str());
@@ -1713,15 +1705,14 @@ void Editor::RunPDDLPlan(const std::string domain_id,
         ROS_ERROR("Unable to submit program \"%s\"", db_id.c_str());
         return;
       }
-
       // 2. Run associated program for this step
-      // need to replace the generic program params (object and EE positions)
-      // 3.1 Create new program that will be modified and run for this step
+      // -  Create new program that will be modified and run for this step
       msgs::Program new_program = main_program;
       msgs::Program alt_program = main_program;
 
-      // 3.2 save 'move to cart pose' action/step no. in an array that are
-      // relative to a landmark (not torso)
+      // 3.1 replace the generic program params (object and table positions)
+      // 3.2 save 'move to cart pose' action&step no. in an array
+      // - only those that are relative to a landmark (not torso)
       std::vector<std::pair<int, int> > cart_pose_actions;
       new_program.steps.clear();
       bool newProgramSuccess =
@@ -1740,15 +1731,14 @@ void Editor::RunPDDLPlan(const std::string domain_id,
             new_program.steps[s_id].actions[a_id].landmark.name;
 
         // find argument in action that corresponds to the relative lm name
-        std::cout << "Looking for matching lm: " << lm_name << "\n";
+        std::cout << "step " << s_id << " action " << a_id
+                  << " is relative to: " << lm_name
+                  << ", checking action param: \n ";
         for (size_t z = 0; z < action.params.size(); ++z) {
-          std::cout << "action param: " << action.params[z].name << "\n";
-          std::cout << "# problems landmarks: " << problem.landmarks.size()
-                    << "\n";
+          std::cout << action.params[z].name << "...";
 
           if (lm_name == action.params[z].name) {
-            std::cout << "action param: matched ! " << action.params[z].name
-                      << "\n";
+            std::cout << " matched ! \n";
             // find landmark object in list of detected landmarks in problem
             for (size_t l = 0; l < problem.landmarks.size(); ++l) {
               msgs::Landmark match = problem.landmarks[l];
