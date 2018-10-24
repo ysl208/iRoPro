@@ -57,10 +57,11 @@
         max-width: 100px;
         margin-left: 10px;
         margin-top: 0px;
+        text-align: center;
       }
 
       .stepDiv {
-        min-width: 350px;
+        min-width: 450px;
         margin-bottom: 10px;
         /*overflow-y: auto;*/
         padding-left: 2px;
@@ -107,7 +108,7 @@
           @apply(--layout-flex);
         }
         .stepDiv {
-          width: 350px;
+          width: 450px;
           max-height: 100%;
           margin-bottom: 0px;
           margin-right: 10px;
@@ -172,7 +173,7 @@
 
       .listeWorldState p {
         flex: 2;
-        margin: 3px;
+        margin: 2px;
       }
     </style>
     <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
@@ -248,7 +249,7 @@
                     </td>
                     <td>[[item.name]]</td>
                     <td>
-                      <paper-dropdown-menu>
+                      <paper-dropdown-menu no-label-float>
                         <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{item.type.name}}">
                           <template is="dom-repeat" items="[[_getTypes(item)]]" as="item2" index-as="typeIndex">
                             <paper-item name="[[item2]]" on-tap="_updateType" data-args="[[item]]">[[item2]]</paper-item>
@@ -270,7 +271,12 @@
               </legend>
               <template is="dom-repeat" items="{{problem.initial_states}}" as="item" index-as="objectIndex">
                 <div class="listeWorldState">
-                  [[item.arg1.name]] ([[item.arg1.type.name]]) is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                  <p>
+                    [[item.arg1.name]] ([[item.arg1.type.name]])
+                  </p>
+                  <p>
+                    is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                  </p>
                   <paper-button class="delete" on-tap="deletePred" data-args="InitialState">
                     <paper-icon-button icon="delete"></paper-icon-button>
                   </paper-button>
@@ -322,7 +328,12 @@
 
               <template is="dom-repeat" items="{{problem.goal_states}}" as="item" index-as="objectIndex">
                 <div class="listeWorldState">
-                  [[item.arg1.name]] ([[item.arg1.type.name]]) is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                  <p>
+                    [[item.arg1.name]] ([[item.arg1.type.name]])
+                  </p>
+                  <p>
+                    is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                  </p>
                   <paper-button class="delete" on-tap="deletePred" data-args="InitialState">
                     <paper-icon-button icon="delete"></paper-icon-button>
                   </paper-button>

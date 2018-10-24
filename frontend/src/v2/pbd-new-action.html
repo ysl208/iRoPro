@@ -58,10 +58,11 @@
                 max-width: 100px;
                 margin-left: 10px;
                 margin-top: 0px;
+                text-align: center;
             }
 
             .stepDiv {
-                min-width: 350px;
+                min-width: 450px;
                 margin-bottom: 10px;
                 /*overflow-y: auto;*/
                 padding-left: 2px;
@@ -77,6 +78,7 @@
 
             fieldset>p {
                 display: inline-block;
+                margin-top: 5px;
             }
 
             fieldset iron-icon {
@@ -100,7 +102,7 @@
                 color: steelblue;
             }
 
-            @media (min-width: 768px) {
+            @media (min-width: 668px) {
                 #layout {
                     height: 100%;
                 }
@@ -109,7 +111,7 @@
                     @apply(--layout-flex);
                 }
                 .stepDiv {
-                    width: 350px;
+                    width: 450px;
                     height: 100%;
                     margin-bottom: 0px;
                     margin-right: 10px;
@@ -117,7 +119,7 @@
                 }
                 #rviz {
                     height: 350px;
-                    width: 350px;
+                    width: 250px;
                     @apply(--layout-flex);
                 }
             }
@@ -175,7 +177,7 @@
 
             .listeWorldState p {
                 flex: 2;
-                margin: 3px;
+                margin: 2px;
             }
         </style>
         <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
@@ -255,27 +257,20 @@
                             </legend>
                             <p>Verify all objects have been detected before proceeding.</p>
                             <p id="noObj">No objects detected</p>
-                            <table>
-                                <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
-                                    <tr>
-                                        <div id="listeObjet">
-                                            <td>
-                                                <paper-icon-button icon="check"></paper-icon-button>
-                                            </td>
-                                            <td>[[item.name]]</td>
-                                            <td>
-                                                <paper-dropdown-menu>
-                                                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{item.type.name}}">
-                                                        <template is="dom-repeat" items="[[_getTypes(item)]]" as="item2" index-as="typeIndex">
-                                                            <paper-item name="[[item2]]" on-tap="_updateType" data-args="[[item]]">[[item2]]</paper-item>
-                                                        </template>
-                                                    </paper-listbox>
-                                                </paper-dropdown-menu>
-                                            </td>
-                                        </div>
-                                    </tr>
-                                </template>
-                            </table>
+
+                            <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
+                                <div id="listeObjets">
+                                    <paper-icon-button icon="check"></paper-icon-button>
+                                    [[item.name]]
+                                    <paper-dropdown-menu no-label-float>
+                                        <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{item.type.name}}">
+                                            <template is="dom-repeat" items="[[_getTypes(item)]]" as="item2" index-as="typeIndex">
+                                                <paper-item name="[[item2]]" on-tap="_updateType" data-args="[[item]]">[[item2]]</paper-item>
+                                            </template>
+                                        </paper-listbox>
+                                    </paper-dropdown-menu>
+                                </div>
+                            </template>
 
                             <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
                                 Detect World Objects
@@ -303,8 +298,12 @@
                             </legend>
                             <template is="dom-repeat" items="{{action.preconditions}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
-                                    <p>[[item.arg1.name]] ([[item.arg1.type.name]]) is [[_negate(item.negate)]] [[item.name]]
-                                        [[item.arg2.name]]</p>
+                                    <p>
+                                        [[item.arg1.name]] ([[item.arg1.type.name]])
+                                    </p>
+                                    <p>
+                                        is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                                    </p>
                                     <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
                                         <paper-icon-button icon="delete"></paper-icon-button>
                                     </paper-button>
@@ -349,8 +348,12 @@
 
                             <template is="dom-repeat" items="{{action.effects}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
-                                    <p>[[item.arg1.name]] ([[item.arg1.type.name]]) is [[_negate(item.negate)]] [[item.name]]
-                                        [[item.arg2.name]]</p>
+                                    <p>
+                                        [[item.arg1.name]] ([[item.arg1.type.name]])
+                                    </p>
+                                    <p>
+                                        is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                                    </p>
                                     <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
                                         <paper-icon-button icon="delete"></paper-icon-button>
                                     </paper-button>
