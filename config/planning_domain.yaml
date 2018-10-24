@@ -3,19 +3,19 @@ robot_grippers:
   - claw_gripper: 'left'
 
 world_positions: # measurements in meters
-  names: ['A', 'B', 'C'] #, 'D']
-  pos_x: [0.8, 0.8, 0.8, 1.1]
-  pos_y: [-0.434, 0.0, 0.434, 0.0]
-  pos_z: [-0.05, -0.05, -0.05, -0.05]
+  names: ['A', 'B', 'C', 'D', 'E'] #, 'C1'] # F is on second row
+  pos_x: [0.8, 0.8, 0.8, 0.8, 0.8, 1.1]
+  pos_y: [-0.434, -0.217, 0.0, 0.217, 0.434, 0.0]
+  pos_z: [-0.05, -0.05, -0.05, -0.05, -0.05, -0.05]
   
 world_objects: # measurements in meters
   names: ['entity', 'position', 'object', 'cube', 'base', 'roof', 'pillar']
   parents: ['', 'entity', 'entity', 'object', 'object', 'object', 'object']
   entity: [0.001, 0.001, 0.001]
   position: [0.2, 0.2, 0.005]
-  object: [0.1, 0.1, 0.1]
-  cube: [0.1, 0.1, 0.05]
-  base: [0.13, 0.13, 0.025]
-  roof: [0.034, 0.08, 0.05]
+  object: [0.001, 0.001, 0.001]
+  cube: [0.065, 0.065, 0.065]
+  base: [0.02, 0.085, 0.9]
+  roof: [0.03, 0.07, 0.115]
   pillar: [0.035, 0.035, 0.07]
   variance: 0.075
