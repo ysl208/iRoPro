@@ -378,7 +378,7 @@
                   <tr>
                     <div id="listSteps">
                       <td>
-                        [[stepIndex]]
+                        Action [[stepIndex]]:
                       </td>
                       <td>[[_parseArgs(item)]]</td>
                     </div>
@@ -868,14 +868,19 @@
         });
         return arr;
       },
+      format: function (s) {
+        s = s.toLowerCase();
+        var len = s.length - 1;
+        return s.substring(0, len) + s.substr(len).toUpperCase();
+      },
       _parseArgs: function (step) {
         // translates string array to "english"
         console.debug("_parseArgs: ", step);
         if (step.args.length == 0) return step.action;
-        if (step.args.length == 1) return step.args[0] + ": " + step.action;
-        if (step.args.length == 2) return step.action + ": " + step.args[0] + " to " + step.args[1];
-        if (step.args.length == 3) return step.action + ": " + step.args[0] + " from " + step.args[1] + " to " + step.args[2];
-        return step.action + "(" + step.args.join() + ")";
+        if (step.args.length == 1) return this.format(step.args[0]) + " " + (step.action);
+        if (step.args.length == 2) return (step.action) + " " + this.format(step.args[0]) + " to " + this.format(step.args[1]);
+        if (step.args.length == 3) return (step.action) + " " + this.format(step.args[0]) + " from " + this.format(step.args[1]) + " to " + this.format(step.args[2]);
+        return (step.action) + "(" + step.args.join() + ")";
       },
       _displayNavStep: function (navStep, name) {
         return (navStep == name);
