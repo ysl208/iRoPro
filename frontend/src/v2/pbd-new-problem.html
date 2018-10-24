@@ -236,13 +236,13 @@
           <div id="perception" hidden$="[[!_displayNavStep(navStep,'perception')]]">
             <fieldset>
               <legend>
-                Detected World Instances
+                Detected World Objects
               </legend>
               <p>Verify all objects have been detected before proceeding.</p>
               <p id="noObj">No objects detected</p>
               <template is="dom-repeat" items="{{sortByName(problem.objects)}}" as="item" index-as="paramIndex">
                 <tr>
-                  <div id="listeObjet">
+                  <div id="listeObjet" class="petit">
                     <td>
                       <paper-icon-button icon="check"></paper-icon-button>
                     </td>
@@ -849,39 +849,17 @@
           return a.indexOf(item) == pos;
         });
       },
-      _getName: function (all_types) {
-
-        var names = ['-'];
-        if (all_types) {
-          for (var i = 0; i < all_types.length; ++i) {
-            names.push(all_types[i].name);
-          }
-        }
-        return this.removeDuplicates(names);
-      },
 
       _getTypes: function (item) {
         var names = [];
-        //console.debug('_getTypes: ', item);
+        // console.debug('_getTypes: ', item);
 
-        if (item) {
-          names.push(item.type.name);
-          if (item.type.parent != '')
-            names.push(item.type.parent);
+        for (var i = 0; i < this.domain.types.length; ++i) {
+          names.push(this.domain.types[i].name);
         }
         return (names);
       },
-      // _getType: function (all_types) {
-      //   var names = ['-'];
-      //   console.debug('_getType: ', all_types);
 
-      //   if (all_types) {
-      //     for (var i = 0; i < all_types.length; ++i) {
-      //       names.push(all_types[i].type.name);
-      //     }
-      //   }
-      //   return this.removeDuplicates(names);
-      // },
       sortByName: function (arr) {
         arr.sort(function (a, b) {
           if (a.name < b.name) return -1;

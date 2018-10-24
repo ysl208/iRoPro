@@ -925,24 +925,12 @@
                     return a.indexOf(item) == pos;
                 });
             },
-            _getName: function (all_types) {
-                var names = ['-'];
-                if (all_types) {
-                    for (var i = 0; i < all_types.length; ++i) {
-                        names.push(all_types[i].name);
-                    }
-                }
-                return this.removeDuplicates(names);
-            },
-
             _getTypes: function (item) {
                 var names = [];
-                //console.debug('_getTypes: ', item);
+                // console.debug('_getTypes: ', item);
 
-                if (item) {
-                    names.push(item.type.name);
-                    if (item.type.parent != '')
-                        names.push(item.type.parent);
+                for (var i = 0; i < this.domain.types.length; ++i) {
+                    names.push(this.domain.types[i].name);
                 }
                 return (names);
             },
