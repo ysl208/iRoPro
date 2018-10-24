@@ -104,7 +104,7 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
   // Given: World_landmarks
   // Create World state of objects
   ROS_INFO("Getting World State with %zd landmarks...", world_landmarks.size());
-
+  if (world_landmarks.size() == 0) return;
   world_state->objects_.clear();
   world_state->predicates_.clear();
   world_state->positions_.clear();
