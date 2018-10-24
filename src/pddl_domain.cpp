@@ -157,6 +157,11 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
     // Check which position the object is on
     msgs::PDDLObject position;
     if (obj.name.find("obj") != std::string::npos) {
+      // IS_CLEAR predicate by default for all objects
+      predicate = msgs::PDDLPredicate::IS_CLEAR;
+      args.clear();
+      args.push_back(obj);
+      AddPredicate(&world_state->predicates_, predicate, args, negate);
       if (GetObjectTablePosition(obj.type, world_state, variance, &position)) {
         negate = false;
         predicate = msgs::PDDLPredicate::IS_ON;
@@ -169,6 +174,7 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
       }
     }
   }
+
   // Generate Predicates for type == POSITION
   // based on IS_ON predicates, we can infer IS_CLEAR
   for (size_t i = 0; i < world_state->positions_.size(); ++i) {
