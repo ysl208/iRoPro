@@ -174,6 +174,14 @@ class Editor {
   void RunPDDLPlan(const std::string domain_id,
                    const msgs::PDDLProblem& problem, const std::string planner);
 
+  void GetMentalModel(const msgs::Program main_program,
+                      const msgs::PDDLAction& action_op,
+                      const pddl_msgs::PDDLStep& action,
+                      const std::vector<msgs::Landmark> problem_lms,
+                      std::vector<msgs::Landmark>* mental_lms);
+  bool FindLandmarkByName(const std::string name,
+                          const std::vector<msgs::Landmark>& lms,
+                          msgs::Landmark* match);
   ProgramDb db_;
   SceneDb scene_db_;
   PDDLDomainDb domain_db_;
