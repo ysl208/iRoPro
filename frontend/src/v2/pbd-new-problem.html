@@ -392,6 +392,11 @@
                         Action [[stepIndex]]:
                       </td>
                       <td>[[_parseArgs(item)]]</td>
+                      <td>
+                        <paper-button class="delete" on-tap="deletePlanStep">
+                          <paper-icon-button icon="delete"></paper-icon-button>
+                        </paper-button>
+                      </td>
                     </div>
                   </tr>
                 </template>
@@ -502,10 +507,23 @@
         'load(domain_id, params.*)',
         '_domainUpdated(pddlDomain.*,domainList.*)',
         '_problemUpdated(problem.*)',
+        // '_checkClearPos(newInitialState.arg1.type,newGoalState.arg1.type)',
         '_checkClearPrecond(newInitialState.name)',
         '_checkClearGoalState(newGoalState.name)',
       ],
 
+      _checkClearPos: function (type) {
+        // TO DO: not sure if the added predicate is valid
+        if (type && type.name == "position") {
+          this.newInitialState.name = "is clear";
+          this.$.menu_instance2_precond.disabled = true;
+          this.$.menu_instance2_precond.value = undefined;
+          this.$.menu_name_precond.value = "is clear";
+          this.newInitialState.arg2 = undefined;
+        } else {
+          //this.$.menu_instance2_precond.disabled = false;
+        }
+      },
       _checkClearPrecond: function (nom_precond) {
         if (nom_precond == "clear") {
           this.$.menu_instance2_precond.disabled = true;
@@ -657,14 +675,20 @@
         if (mode == "initial_state") {
           var liste = this.problem.initial_states;
           // Check if items are well selected
-          if (this.$.menu_instance1_precond.value == undefined || this.$.menu_name_precond.value == undefined || (this.$.menu_name_precond.value != "is clear" && this.$.menu_instance2_precond.value == undefined)) {
+          if (this.$.menu_instance1_precond.value == undefined
+            || this.$.menu_name_precond.value == undefined
+            || (this.$.menu_name_precond.value != "is clear"
+              && this.$.menu_instance2_precond.value == undefined)) {
             valide = false;
             msgErreur = "Complete your new predicate before adding it";
           }
         } else {
           var liste = this.problem.goal_states;
           // Check if items are well selected
-          if (this.$.menu_instance1_goal_state.value == undefined || this.$.menu_name_goal_state.value == undefined || (this.$.menu_name_goal_state.value != "is clear" && this.$.menu_instance2_goal_state.value == undefined)) {
+          if (this.$.menu_instance1_goal_state.value == undefined
+            || this.$.menu_name_goal_state.value == undefined
+            || (this.$.menu_name_goal_state.value != "is clear"
+              && this.$.menu_instance2_goal_state.value == undefined)) {
             valide = false;
             msgErreur = "Complete your new predicate before adding it";
           }
@@ -674,21 +698,27 @@
           // Without negation
           if (!newPredicate.negate) {
             // To comment when you want to test else it's impossible to test on simulation                            
-            if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
+            if (newPredicate.arg1.type.name == "position"
+              && (newPredicate.name == "on" || newPredicate.name == "stackable on")) {
               valide = false;
-              msgErreur = "A position can't be on something else"
+              msgErreur = "A position can never be stacked on something else"
             }
-            else if (newPredicate.name == "on" && newPredicate.arg1.name == newPredicate.arg2.name) {
+            else if ((newPredicate.name == "on" || newPredicate.name == "stackable on")
+              && newPredicate.arg1.name == newPredicate.arg2.name) {
               valide = false;
-              msgErreur = "An element can't be set on himself";
+              msgErreur = "An object can never be stacked on itself";
             }
 
             while (valide && index < liste.length) {
-              if (newPredicate.name == "clear" && liste[index].name == "clear" && newPredicate.arg1.name == liste[index].arg1.name) {
+              if (newPredicate.name == "clear"
+                && liste[index].name == "clear"
+                && newPredicate.arg1.name == liste[index].arg1.name) {
                 valide = false;
                 msgErreur = "This " + mode + " exists already";
               }
-              else if (newPredicate.name == liste[index].name && newPredicate.arg1.name == liste[index].arg1.name && newPredicate.arg2.name == liste[index].arg2.name) {
+              else if (newPredicate.name == liste[index].name
+                && newPredicate.arg1.name == liste[index].arg1.name
+                && newPredicate.arg2.name == liste[index].arg2.name) {
                 valide = false;
                 msgErreur = "This " + mode + " exists already";
               }
@@ -698,14 +728,18 @@
                   msgErreur = "You can't place two objects on one position, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
                 } else if (newPredicate.arg1.name == liste[index].arg1.name) {
                   valide = false;
-                  msgErreur = "One object can't be on two positions, see :<br><strong>" + liste[index].arg1.name + liste[index].name + " " + liste[index].arg2.name + "</strong>";
+                  msgErreur = "One object can't be placed on two positions, see :<br><strong>" + liste[index].arg1.name + liste[index].name + " " + liste[index].arg2.name + "</strong>";
                 }
               }
-              else if (newPredicate.name == "clear" && (liste[index].name == "on" && liste[index].arg2.name == newPredicate.arg1.name)) {
+              else if (newPredicate.name == "clear"
+                && (liste[index].name == "on"
+                  && liste[index].arg2.name == newPredicate.arg1.name)) {
                 valide = false;
                 msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + "is " + liste[index].name + " " + liste[index].arg2.name + "</strong>";
               }
-              else if (liste[index].name == "clear" && (newPredicate.name == "on" && newPredicate.arg2.name == liste[index].arg1.name)) {
+              else if (liste[index].name == "clear"
+                && (newPredicate.name == "on"
+                  && newPredicate.arg2.name == liste[index].arg1.name)) {
                 valide = false;
                 msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + " is " + liste[index].name + "</strong>";
               }
@@ -768,6 +802,18 @@
         }
       },
 
+      deletePlanStep: function (evt) {
+        var item = evt.model.item;
+        console.debug('deletePlanStep', item);
+        var index = -1;
+        index = this.problem.sequence.indexOf(item);
+        if (index != -1) {
+          this.splice('problem.sequence', index, 1, );
+          this.reevaluateArray('problem.sequence', this.problem.sequence);
+          console.debug('deleted action ', index, ' from solution sequence');
+        }
+      },
+
       reevaluateArray: function (name, property) {
         var conds = property;
         this.set(name, []);
@@ -803,7 +849,8 @@
           }
           //show if no objects have been detected
           var i = 0;
-          while (i < this.problem.objects.length && this.problem.objects[i].type.name == "position") {
+          while (i < this.problem.objects.length
+            && this.problem.objects[i].type.name == "position") {
             i++;
           }
           if (i != this.problem.objects.length) {
