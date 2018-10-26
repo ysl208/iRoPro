@@ -116,7 +116,8 @@ class Editor {
   void SelectSpecification(const std::string& db_id, size_t step_id,
                            const msgs::Specification& spec);
   bool GetCartActions(std::vector<std::pair<int, int> >* cart_pose_actions,
-                      const msgs::Program& program, msgs::Program* new_program);
+                      const msgs::Program& program, msgs::Program* new_program,
+                      const std::string ignore);
 
   geometry_msgs::Vector3 QuaternionToRPY(const geometry_msgs::Quaternion& msg);
   bool AABBintersect(const msgs::Landmark& lm1, const msgs::Landmark& lm2);
@@ -177,11 +178,10 @@ class Editor {
   void GetMentalModel(const msgs::Program main_program,
                       const msgs::PDDLAction& action_op,
                       const pddl_msgs::PDDLStep& action,
-                      const std::vector<msgs::Landmark> problem_lms,
                       std::vector<msgs::Landmark>* mental_lms);
   bool FindLandmarkByName(const std::string name,
                           const std::vector<msgs::Landmark>& lms,
-                          msgs::Landmark* match);
+                          msgs::Landmark* match, size_t index);
   ProgramDb db_;
   SceneDb scene_db_;
   PDDLDomainDb domain_db_;

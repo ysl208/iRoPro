@@ -712,7 +712,7 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
           std::vector<std::pair<int, int> > cart_pose_actions;
           new_program.steps.clear();
           bool newProgramSuccess =
-              GetCartActions(&cart_pose_actions, alt_program, &new_program);
+              GetCartActions(&cart_pose_actions, alt_program, &new_program, "");
           if (!newProgramSuccess) {
             ROS_ERROR("No cartesian actions found in program \"%s\"",
                       alt_program.name.c_str());
@@ -784,7 +784,8 @@ void Editor::SelectSpecification(const std::string& db_id, size_t step_id,
 }
 bool Editor::GetCartActions(
     std::vector<std::pair<int, int> >* cart_pose_actions,
-    const msgs::Program& program, msgs::Program* new_program) {
+    const msgs::Program& program, msgs::Program* new_program,
+    const std::string ignore) {
   // 1. Extracts step and action pairs with 'move-to-cart-pose'-actions
   // 2. Creates new program cut off at INF SPEC
   for (size_t step_id = 0; step_id < program.steps.size(); ++step_id) {
@@ -795,6 +796,13 @@ bool Editor::GetCartActions(
         std::cout << "Infer action detected, end of demo steps: "
                   << new_program->steps.size() << "\n";
         return new_program->steps.size() > 0;
+      }
+      if (action.type == ignore) {
+        // removes action type in step that should be ignored e.g. Detect
+        // Surface
+        step.actions.erase(step.actions.begin() + action_id);
+        ROS_INFO("GetCartActions: removing action %zu in step %zu of type %s ",
+                 action_id, step_id, ignore.c_str());
       }
       if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
           action.landmark.name != robot_config_.torso_link()) {
@@ -1674,13 +1682,12 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
 void Editor::GetMentalModel(const msgs::Program program,
                             const msgs::PDDLAction& action_op,
                             const pddl_msgs::PDDLStep& action,
-                            const std::vector<msgs::Landmark> problem_lms,
                             std::vector<msgs::Landmark>* mental_lms) {
   // action_op is the general operator
   // action is the instantiated action from the plan to be executed
   // mental_lms is a list of previous lms, will return updated list
   ROS_INFO("GetMentalModel: checking %zu params out of %zu lms ",
-           action.args.size(), problem_lms.size());
+           action.args.size(), mental_lms->size());
 
   // get landmarks from precondition and effect
   std::vector<msgs::Landmark> pre_lms, eff_lms;
@@ -1694,16 +1701,20 @@ void Editor::GetMentalModel(const msgs::Program program,
       // check if parameter is in list of landmarks
       msgs::Landmark mental_obj;
       ROS_INFO("...is object ");
-      if (FindLandmarkByName(param, problem_lms, &mental_obj)) {
+      size_t index, pre_id, eff_id;
+      if (FindLandmarkByName(param, *mental_lms, &mental_obj, index)) {
         // get the i-th parameter from the action operator
         msgs::PDDLObject op_param = action_op.params[i];
         if (op_param.type.name == msgs::PDDLType::OBJECT) {
-          ROS_INFO("Matching operator param is object '%s'", op_param.name.c_str());
+          ROS_INFO("Matching operator param is object '%s'",
+                   op_param.name.c_str());
           // get the op_param's landmark object before and after from pre/eff
           msgs::Landmark pre_obj;
-          bool found_pre = FindLandmarkByName(op_param.name, pre_lms, &pre_obj);
+          bool found_pre =
+              FindLandmarkByName(op_param.name, pre_lms, &pre_obj, pre_id);
           msgs::Landmark eff_obj;
-          bool found_eff = FindLandmarkByName(op_param.name, eff_lms, &eff_obj);
+          bool found_eff =
+              FindLandmarkByName(op_param.name, eff_lms, &eff_obj, eff_id);
           if (found_pre && found_eff) {
             // get pose difference
             geometry_msgs::Pose pose_trans;
@@ -1718,18 +1729,18 @@ void Editor::GetMentalModel(const msgs::Program program,
             // TO DO: get also orientation change
             // update position of obj to mental model
             ROS_INFO("Old pose was (%f,%f,%f) ",
-                     mental_obj.pose_stamped.pose.position.x,
-                     mental_obj.pose_stamped.pose.position.y,
-                     mental_obj.pose_stamped.pose.position.z);
+                     mental_lms->at(index).pose_stamped.pose.position.x,
+                     mental_lms->at(index).pose_stamped.pose.position.y,
+                     mental_lms->at(index).pose_stamped.pose.position.z);
             mental_obj.pose_stamped.pose.position.x += pose_trans.position.x;
             mental_obj.pose_stamped.pose.position.y += pose_trans.position.y;
             mental_obj.pose_stamped.pose.position.z += pose_trans.position.z;
-            mental_lms->push_back(mental_obj);
+            mental_lms->at(index) = mental_obj;
 
             ROS_INFO("New pose is (%f,%f,%f) ",
-                     mental_obj.pose_stamped.pose.position.x,
-                     mental_obj.pose_stamped.pose.position.y,
-                     mental_obj.pose_stamped.pose.position.z);
+                     mental_lms->at(index).pose_stamped.pose.position.x,
+                     mental_lms->at(index).pose_stamped.pose.position.y,
+                     mental_lms->at(index).pose_stamped.pose.position.z);
           }
         }
       }
@@ -1740,13 +1751,14 @@ void Editor::GetMentalModel(const msgs::Program program,
 
 bool Editor::FindLandmarkByName(const std::string name,
                                 const std::vector<msgs::Landmark>& lms,
-                                msgs::Landmark* match) {
+                                msgs::Landmark* match, size_t index) {
   ROS_INFO("FindLandmarkByName: checking %s out of %zu lms", name.c_str(),
            lms.size());
   for (size_t j = 0; j < lms.size(); ++j) {
     ROS_INFO("%s == %s ?", name.c_str(), lms[j].name.c_str());
     if (strcasecmp(lms[j].name.c_str(), name.c_str()) == 0) {
       *match = lms[j];
+      index = j;
       ROS_INFO("...matched! ");
       return true;
     }
@@ -1767,8 +1779,10 @@ void Editor::RunPDDLPlan(const std::string domain_id,
     ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
-  std::cout << "# problems landmarks: " << problem.landmarks.size() << "\n";
+  std::cout << "# problems landmarks that are already detected: "
+            << problem.landmarks.size() << "\n";
 
+  std::vector<msgs::Landmark> mental_lms = problem.landmarks;
   for (size_t i = 0; i < problem.sequence.size(); ++i) {
     pddl_msgs::PDDLStep step = problem.sequence[i];
     ROS_INFO("Step %zu: Action '%s'", i, step.action.c_str());
@@ -1792,11 +1806,6 @@ void Editor::RunPDDLPlan(const std::string domain_id,
         return;
       }
 
-      // create mental model of the world state
-      std::vector<msgs::Landmark> mental_lms;
-      GetMentalModel(main_program, action, step, problem.landmarks,
-                     &mental_lms);
-
       // 2. Run associated program for this step
       // -  Create new program that will be modified and run for this step
       msgs::Program new_program = main_program;
@@ -1808,7 +1817,8 @@ void Editor::RunPDDLPlan(const std::string domain_id,
       std::vector<std::pair<int, int> > cart_pose_actions;
       new_program.steps.clear();
       bool newProgramSuccess =
-          GetCartActions(&cart_pose_actions, alt_program, &new_program);
+          GetCartActions(&cart_pose_actions, alt_program, &new_program,
+                         msgs::Action::DETECT_TABLETOP_OBJECTS);
       if (!newProgramSuccess) {
         ROS_ERROR("No cartesian actions found in program \"%s\"",
                   alt_program.name.c_str());
@@ -1832,8 +1842,8 @@ void Editor::RunPDDLPlan(const std::string domain_id,
           if (lm_name == action.params[z].name) {
             std::cout << " matched ! \n";
             // find landmark object in list of detected landmarks in problem
-            for (size_t l = 0; l < problem.landmarks.size(); ++l) {
-              msgs::Landmark match = problem.landmarks[l];
+            for (size_t l = 0; l < mental_lms.size(); ++l) {
+              msgs::Landmark match = mental_lms[l];
               if (strcasecmp(match.name.c_str(), step.args[z].c_str()) == 0) {
                 std::cout << "step param: matched ! " << match.name << " with "
                           << step.args[z] << "\n";
@@ -1846,23 +1856,35 @@ void Editor::RunPDDLPlan(const std::string domain_id,
                 new_program.steps[s_id]
                     .actions[a_id]
                     .landmark.surface_box_dims.z = match.surface_box_dims.z;
+
+                // set (try to find matching landmark) match to false
+                new_program.steps[s_id].actions[a_id].landmark.match = false;
+                // replace with already detected pose
                 new_program.steps[s_id].actions[a_id].landmark.pose_stamped =
                     match.pose_stamped;
 
-                std::cout << "Updated dimension of step/action = " << s_id
-                          << "," << a_id << "  and landmark " << lm_name << " ("
-                          << new_program.steps[s_id]
-                                 .actions[a_id]
-                                 .landmark.surface_box_dims.x
-                          << " ,"
-                          << new_program.steps[s_id]
-                                 .actions[a_id]
-                                 .landmark.surface_box_dims.y
-                          << " ,"
-                          << new_program.steps[s_id]
-                                 .actions[a_id]
-                                 .landmark.surface_box_dims.z
-                          << ") \n";
+                ROS_INFO(
+                    "Updated step/action %d/%d: landmark %s with dims "
+                    "(%f,%f,%f) and pose (%f,%f,%f)",
+                    s_id, a_id, lm_name.c_str(),
+                    new_program.steps[s_id]
+                        .actions[a_id]
+                        .landmark.surface_box_dims.x,
+                    new_program.steps[s_id]
+                        .actions[a_id]
+                        .landmark.surface_box_dims.y,
+                    new_program.steps[s_id]
+                        .actions[a_id]
+                        .landmark.surface_box_dims.z,
+                    new_program.steps[s_id]
+                        .actions[a_id]
+                        .landmark.pose_stamped.pose.position.x,
+                    new_program.steps[s_id]
+                        .actions[a_id]
+                        .landmark.pose_stamped.pose.position.y,
+                    new_program.steps[s_id]
+                        .actions[a_id]
+                        .landmark.pose_stamped.pose.position.z);
               }
             }
           }
@@ -1888,7 +1910,13 @@ void Editor::RunPDDLPlan(const std::string domain_id,
           action_name.c_str(), result->error.c_str());
       std::string n;
       std::cin >> n;
-      if (n == "r") goto RUN;
+      if (n == "r")
+        goto RUN;
+      else {
+        // Assume action succeeded, update mental model of landmarks in the
+        // world
+        GetMentalModel(main_program, action, step, &mental_lms);
+      }
 
       // 4. Check action effects after executing action
       // TO DO: if effects are not satisfied stop action execution
