@@ -1702,7 +1702,7 @@ void Editor::GetMentalModel(const msgs::Program program,
       msgs::Landmark mental_obj;
       ROS_INFO("...is object ");
       size_t index, pre_id, eff_id;
-      if (FindLandmarkByName(param, *mental_lms, &mental_obj, index)) {
+      if (FindLandmarkByName(param, *mental_lms, &mental_obj, &index)) {
         // get the i-th parameter from the action operator
         msgs::PDDLObject op_param = action_op.params[i];
         if (op_param.type.name == msgs::PDDLType::OBJECT) {
@@ -1711,10 +1711,10 @@ void Editor::GetMentalModel(const msgs::Program program,
           // get the op_param's landmark object before and after from pre/eff
           msgs::Landmark pre_obj;
           bool found_pre =
-              FindLandmarkByName(op_param.name, pre_lms, &pre_obj, pre_id);
+              FindLandmarkByName(op_param.name, pre_lms, &pre_obj, &pre_id);
           msgs::Landmark eff_obj;
           bool found_eff =
-              FindLandmarkByName(op_param.name, eff_lms, &eff_obj, eff_id);
+              FindLandmarkByName(op_param.name, eff_lms, &eff_obj, &eff_id);
           if (found_pre && found_eff) {
             // get pose difference
             geometry_msgs::Pose pose_trans;
@@ -1751,14 +1751,14 @@ void Editor::GetMentalModel(const msgs::Program program,
 
 bool Editor::FindLandmarkByName(const std::string name,
                                 const std::vector<msgs::Landmark>& lms,
-                                msgs::Landmark* match, size_t index) {
+                                msgs::Landmark* match, size_t* index) {
   ROS_INFO("FindLandmarkByName: checking %s out of %zu lms", name.c_str(),
            lms.size());
   for (size_t j = 0; j < lms.size(); ++j) {
     ROS_INFO("%s == %s ?", name.c_str(), lms[j].name.c_str());
     if (strcasecmp(lms[j].name.c_str(), name.c_str()) == 0) {
       *match = lms[j];
-      index = j;
+      *index = j;
       ROS_INFO("...matched! ");
       return true;
     }

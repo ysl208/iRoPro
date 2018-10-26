@@ -181,7 +181,7 @@ class Editor {
                       std::vector<msgs::Landmark>* mental_lms);
   bool FindLandmarkByName(const std::string name,
                           const std::vector<msgs::Landmark>& lms,
-                          msgs::Landmark* match, size_t index);
+                          msgs::Landmark* match, size_t* index);
   ProgramDb db_;
   SceneDb scene_db_;
   PDDLDomainDb domain_db_;
