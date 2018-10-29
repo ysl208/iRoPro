@@ -1684,8 +1684,8 @@ void Editor::GetMentalModel(const msgs::Program program,
   // action_op is the general operator
   // action is the instantiated action from the plan to be executed
   // mental_lms is a list of previous lms, will return updated list
-  // ROS_INFO("GetMentalModel: checking %zu params out of %zu lms ",
-  //  action.args.size(), mental_lms->size());
+  ROS_INFO("GetMentalModel: checking %zu params out of %zu lms ",
+           action.args.size(), mental_lms->size());
 
   // get landmarks from precondition and effect
   std::vector<msgs::Landmark> pre_lms, eff_lms;
@@ -1694,7 +1694,7 @@ void Editor::GetMentalModel(const msgs::Program program,
   for (size_t i = 0; i < action.args.size(); ++i) {
     std::string param = action.args[i];
     // check if argument is an object
-    // ROS_INFO("Checking param %zu: %s ", i, param.c_str());
+    ROS_INFO("Checking param %zu: %s ", i, param.c_str());
     if (param.find("OBJ") != std::string::npos) {
       // check if parameter is in list of landmarks
       msgs::Landmark mental_obj;
@@ -1703,45 +1703,45 @@ void Editor::GetMentalModel(const msgs::Program program,
       if (FindLandmarkByName(param, *mental_lms, &mental_obj, &index)) {
         // get the i-th parameter from the action operator
         msgs::PDDLObject op_param = action_op.params[i];
-        if (op_param.type.name == msgs::PDDLType::OBJECT) {
-          // ROS_INFO("Matching operator param is object '%s'",
-          //          op_param.name.c_str());
-          // get the op_param's landmark object before and after from
-          // pre/eff
-          msgs::Landmark pre_obj;
-          bool found_pre =
-              FindLandmarkByName(op_param.name, pre_lms, &pre_obj, &pre_id);
-          msgs::Landmark eff_obj;
-          bool found_eff =
-              FindLandmarkByName(op_param.name, eff_lms, &eff_obj, &eff_id);
-          if (found_pre && found_eff) {
-            // get pose difference
-            geometry_msgs::Pose pose_trans;
-            geometry_msgs::Pose pre_pose = pre_obj.pose_stamped.pose;
-            geometry_msgs::Pose eff_pose = eff_obj.pose_stamped.pose;
-            pose_trans.position.x = eff_obj.pose_stamped.pose.position.x -
-                                    pre_obj.pose_stamped.pose.position.x;
-            pose_trans.position.y = eff_obj.pose_stamped.pose.position.y -
-                                    pre_obj.pose_stamped.pose.position.y;
-            pose_trans.position.z = eff_obj.pose_stamped.pose.position.z -
-                                    pre_obj.pose_stamped.pose.position.z;
-            // TO DO: get also orientation change
-            // update position of obj to mental model
-            ROS_INFO("Old pose was (%.2f,%.2f,%.2f) ",
-                     mental_lms->at(index).pose_stamped.pose.position.x,
-                     mental_lms->at(index).pose_stamped.pose.position.y,
-                     mental_lms->at(index).pose_stamped.pose.position.z);
-            mental_obj.pose_stamped.pose.position.x += pose_trans.position.x;
-            mental_obj.pose_stamped.pose.position.y += pose_trans.position.y;
-            mental_obj.pose_stamped.pose.position.z += pose_trans.position.z;
-            mental_lms->at(index) = mental_obj;
+        ROS_INFO("Matching operator param is object '%s' with type '%s'",
+                 op_param.name.c_str(), op_param.type.name.c_str());
+        // if (op_param.type.name == msgs::PDDLType::OBJECT) {
+        // get the op_param's landmark object before and after from
+        // pre/eff
+        msgs::Landmark pre_obj;
+        bool found_pre =
+            FindLandmarkByName(op_param.name, pre_lms, &pre_obj, &pre_id);
+        msgs::Landmark eff_obj;
+        bool found_eff =
+            FindLandmarkByName(op_param.name, eff_lms, &eff_obj, &eff_id);
+        if (found_pre && found_eff) {
+          // get pose difference
+          geometry_msgs::Pose pose_trans;
+          geometry_msgs::Pose pre_pose = pre_obj.pose_stamped.pose;
+          geometry_msgs::Pose eff_pose = eff_obj.pose_stamped.pose;
+          pose_trans.position.x = eff_obj.pose_stamped.pose.position.x -
+                                  pre_obj.pose_stamped.pose.position.x;
+          pose_trans.position.y = eff_obj.pose_stamped.pose.position.y -
+                                  pre_obj.pose_stamped.pose.position.y;
+          pose_trans.position.z = eff_obj.pose_stamped.pose.position.z -
+                                  pre_obj.pose_stamped.pose.position.z;
+          // TO DO: get also orientation change
+          // update position of obj to mental model
+          ROS_INFO("%s : Old pose was (%.2f,%.2f,%.2f) ", param.c_str(),
+                   mental_lms->at(index).pose_stamped.pose.position.x,
+                   mental_lms->at(index).pose_stamped.pose.position.y,
+                   mental_lms->at(index).pose_stamped.pose.position.z);
+          mental_obj.pose_stamped.pose.position.x += pose_trans.position.x;
+          mental_obj.pose_stamped.pose.position.y += pose_trans.position.y;
+          mental_obj.pose_stamped.pose.position.z += pose_trans.position.z;
+          mental_lms->at(index) = mental_obj;
 
-            ROS_INFO("New pose is (%.2f,%.2f,%.2f) ",
-                     mental_lms->at(index).pose_stamped.pose.position.x,
-                     mental_lms->at(index).pose_stamped.pose.position.y,
-                     mental_lms->at(index).pose_stamped.pose.position.z);
-          }
+          ROS_INFO("New pose is (%.2f,%.2f,%.2f) ",
+                   mental_lms->at(index).pose_stamped.pose.position.x,
+                   mental_lms->at(index).pose_stamped.pose.position.y,
+                   mental_lms->at(index).pose_stamped.pose.position.z);
         }
+        //}
       }
     }
   }
@@ -1751,7 +1751,7 @@ bool Editor::FindLandmarkByName(const std::string name,
                                 const std::vector<msgs::Landmark>& lms,
                                 msgs::Landmark* match, size_t* index) {
   // ROS_INFO("FindLandmarkByName: checking %s out of %zu lms", name.c_str(),
-  //  lms.size());
+  //          lms.size());
   for (size_t j = 0; j < lms.size(); ++j) {
     // ROS_INFO("%s == %s ?", name.c_str(), lms[j].name.c_str());
     if (strcasecmp(lms[j].name.c_str(), name.c_str()) == 0) {
@@ -1914,6 +1914,7 @@ void Editor::RunPDDLPlan(const std::string domain_id,
       else {
         // Assume action succeeded, update mental model of landmarks in the
         // world
+
         GetMentalModel(main_program, action, step, &mental_lms);
       }
 
