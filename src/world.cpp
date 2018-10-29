@@ -31,7 +31,7 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
   world->joint_state = js;
   world->surface_box_landmarks.clear();
   world->world_conditions.clear();
-  // world->grid.clear();
+  world->grid.clear();
   // world->points.clear();
 
   // TODO: If this gets noticeably slow, change it so that it searches backward
@@ -208,7 +208,12 @@ double BoxDissimilarity(const std::vector<double>& a,
 bool MatchLandmark(const World& world, const msgs::Landmark& landmark,
                    msgs::Landmark* match, const double& variance) {
   // Picks the closest object which is still <= kMaxDistance
-  ROS_INFO("Landmark %s", landmark.name.c_str());
+  ROS_INFO("MatchLandmark: Landmark %s", landmark.name.c_str());
+  if (world.surface_box_landmarks.size() == 0) {
+    ROS_ERROR("World has no landmarks to match");
+    return false;
+  }
+
   const double kMaxDistance = variance * variance;
   std::vector<double> landmark_dims;
   GetDims(landmark, &landmark_dims);
@@ -229,6 +234,7 @@ bool MatchLandmark(const World& world, const msgs::Landmark& landmark,
         }
       }
     }
+    ROS_INFO("Best Match is %f <= %f", best, kMaxDistance);
     return best <= kMaxDistance;
   } else {
     return false;
