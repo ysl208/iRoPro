@@ -47,8 +47,12 @@ string MotionPlanning::AddPoseGoal(
     const rapid_pbd_msgs::Landmark& landmark,
     const std::vector<std::string>& seed_joint_names,
     const std::vector<double>& seed_joint_positions) {
-  ROS_INFO("AddPoseGoal: %s at (%f,%f,%f,%f,%f,%f,%f", landmark.name.c_str(),
-           landmark.pose_stamped.pose.position.x,
+  ROS_INFO("AddPoseGoal: Pose is at \n (%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
+           pose.position.x, pose.position.y, pose.position.z,
+           pose.orientation.x, pose.orientation.y, pose.orientation.z,
+           pose.orientation.w);
+  ROS_INFO("relative to %s at \n (%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
+           landmark.name.c_str(), landmark.pose_stamped.pose.position.x,
            landmark.pose_stamped.pose.position.y,
            landmark.pose_stamped.pose.position.z,
            landmark.pose_stamped.pose.orientation.x,
@@ -80,7 +84,7 @@ string MotionPlanning::AddPoseGoal(
     graph.Add("landmark", tg::RefFrame(base_link), st);
   } else if (landmark.type == msgs::Landmark::SURFACE_BOX) {
     msgs::Landmark match;
-    if (landmark.name.find("pos") != std::string::npos || !landmark.match) {
+    if (landmark.name.find("pos") != std::string::npos || landmark.match) {
       match = landmark;
     } else {
       double variance = 0.075;
@@ -134,10 +138,12 @@ string MotionPlanning::AddPoseGoal(
   ros::service::call("/compute_ik", ik_req, ik_res);
   bool success =
       ik_res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
-  ROS_INFO("pose in base: %f %f %f, %f %f %f %f", pose_in_base.position.x,
-           pose_in_base.position.y, pose_in_base.position.z,
-           pose_in_base.orientation.x, pose_in_base.orientation.y,
-           pose_in_base.orientation.z, pose_in_base.orientation.w);
+  ROS_INFO(
+      "Transformed pose in base_frame is: \n (%.2f %.2f %.2f, %.2f %.2f "
+      "%.2f %.2f)",
+      pose_in_base.position.x, pose_in_base.position.y, pose_in_base.position.z,
+      pose_in_base.orientation.x, pose_in_base.orientation.y,
+      pose_in_base.orientation.z, pose_in_base.orientation.w);
   if (!success) {
     std::string error("No IK solution found");
     // std::cout << pose_in_base << std::endl;
@@ -184,7 +190,7 @@ std::string MotionPlanning::AddJointGoal(
   ros::param::param("max_vel_scale", max_vel_scale, 1.0);
   double max_acc_scale;
   ros::param::param("max_acc_scale", max_acc_scale, 1.0);
-  // ROS_INFO("Velocity scale: %f, acc scale: %f", max_vel_scale,
+  // ROS_INFO("Velocity scale: %.2f, acc scale: %.2f", max_vel_scale,
   // max_acc_scale);
   builder_.max_velocity_scaling_factor = max_vel_scale;
   builder_.max_acceleration_scaling_factor = max_acc_scale;

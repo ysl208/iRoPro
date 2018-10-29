@@ -264,6 +264,7 @@ void SurfaceSegmentationAction::Execute(
       landmark.surface_box_dims.x = obj_dims[0];
       landmark.surface_box_dims.y = obj_dims[1];
       landmark.surface_box_dims.z = obj_dims[2];
+      landmark.match = true;
       landmark.color.r = 1;
       landmark.color.g = 1;
       landmark.color.b = 1;
