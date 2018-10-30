@@ -1846,6 +1846,41 @@ void Editor::RunPDDLPlan(const std::string domain_id,
                 // std::cout << "step param: matched ! " << match.name << " with
                 // "
                 //           << step.args[z] << "\n";
+
+                // if the new object is larger, then need to adjust the gripper
+                // position relative to object (as it is relative to its center)
+                geometry_msgs::Vector3 default_dims =
+                    new_program.steps[s_id]
+                        .actions[a_id]
+                        .landmark.surface_box_dims;
+                if (default_dims.z < match.surface_box_dims.z) {
+                  ROS_INFO("Adjust gripper top space? Press y or n ");
+                  std::string n;
+                  // std::cin >> n;
+                  n = "y";
+                  if (n == "y") {
+                    // top_space = dist(gripper_pos, landmark_pos) -
+                    // landmark_dims/2
+                    ROS_INFO(
+                        "Adjust gripper pose top_space for %s with height: %f "
+                        "at %f from %f to ",
+                        match.name.c_str(), match.surface_box_dims.z,
+                        match.pose_stamped.pose.position.z,
+                        new_program.steps[s_id].actions[a_id].pose.position.z);
+                    float top_space = fabs(new_program.steps[s_id]
+                                               .actions[a_id]
+                                               .pose.position.z -
+                                           match.pose_stamped.pose.position.z) -
+                                      default_dims.z;
+                    new_program.steps[s_id].actions[a_id].pose.position.z =
+                        match.pose_stamped.pose.position.z + top_space +
+                        match.surface_box_dims.z / 2;
+                    ROS_INFO(
+                        ".... %f ",
+                        new_program.steps[s_id].actions[a_id].pose.position.z);
+                  }
+                }
+
                 new_program.steps[s_id]
                     .actions[a_id]
                     .landmark.surface_box_dims.x = match.surface_box_dims.x;
@@ -1915,7 +1950,7 @@ void Editor::RunPDDLPlan(const std::string domain_id,
         // Assume action succeeded, update mental model of landmarks in the
         // world
 
-        GetMentalModel(main_program, action, step, &mental_lms);
+        GetMentalModel(new_program, action, step, &mental_lms);
       }
 
       // 4. Check action effects after executing action
