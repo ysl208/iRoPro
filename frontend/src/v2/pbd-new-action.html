@@ -212,12 +212,12 @@
                 <paper-button class="clear" on-tap="_assignSurfaceObjects">
                     Refresh
                 </paper-button>
-                <paper-button raised on-click="exiting">
-                    <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
-                </paper-button>
                 <paper-button raised on-click="saving">
                     Save
                     <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
+                </paper-button>
+                <paper-button raised on-click="exiting">
+                    <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
                 </paper-button>
 
             </div>
@@ -796,7 +796,7 @@
                     console.debug('Saving ', this.domain, " with name ", this.domain_id);
                     console.debug('Saving ', this.action, " with name ", this.actionName);
                     this.$.eventPub.publish(msg);
-                    this.quit();
+                    //this.quit();
                 }
             },
             saving: function (evt) {

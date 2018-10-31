@@ -202,12 +202,12 @@
         </paper-button>
       </nav>
       <div id="buttonDiv">
-        <paper-button raised on-click="exiting">
-          <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
-        </paper-button>
         <paper-button raised on-click="saving">
           Save
           <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
+        </paper-button>
+        <paper-button raised on-click="exiting">
+          <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
         </paper-button>
 
       </div>
@@ -975,7 +975,7 @@
           console.debug('Saving ', this.domain, " with name ", this.domain_id);
           console.debug('Saving ', this.problem, " with name ", this.problemName);
           this.$.eventPub.publish(msg);
-          this.quit();
+          //this.quit();
         }
 
       },
