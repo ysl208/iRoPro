@@ -12,10 +12,12 @@ world_objects: # measurements in meters
   names: ['entity', 'position', 'object', 'cube', 'base', 'roof', 'pillar']
   parents: ['', 'entity', 'entity', 'object', 'object', 'object', 'object']
   entity: [0.001, 0.001, 0.001]
-  position: [0.2, 0.2, 0.005]
+  position: [0.08, 0.08, 0.005]
   object: [0.001, 0.001, 0.001]
   cube: [0.065, 0.065, 0.065]
   base: [0.02, 0.085, 0.9]
   roof: [0.03, 0.07, 0.115]
   pillar: [0.035, 0.035, 0.07]
   variance: 0.075
+
+max_acc_scale: 0.5
