@@ -1684,68 +1684,81 @@ void Editor::GetMentalModel(const msgs::Program program,
   // action_op is the general operator
   // action is the instantiated action from the plan to be executed
   // mental_lms is a list of previous lms, will return updated list
+  // if IS_ON(a,b) predicate found in effects:
+  // - find obj in instantiated action params
+  // - check if there is x s.t. is_on(b,x)
+  // - else set a.pose = b.pose + b.dims.z
   ROS_INFO("GetMentalModel: checking %zu params out of %zu lms ",
            action.args.size(), mental_lms->size());
-
-  // get landmarks from precondition and effect
-  std::vector<msgs::Landmark> pre_lms, eff_lms;
-  pre_lms = program.steps[1].landmarks;
-  eff_lms = program.steps[program.steps.size() - 1].landmarks;
-  for (size_t i = 0; i < action.args.size(); ++i) {
-    std::string param = action.args[i];
-    // check if argument is an object
-    ROS_INFO("Checking param %zu: %s ", i, param.c_str());
-    if (param.find("OBJ") != std::string::npos) {
-      // check if parameter is in list of landmarks
-      msgs::Landmark mental_obj;
-      // ROS_INFO("...is object ");
-      size_t index, pre_id, eff_id;
-      if (FindLandmarkByName(param, *mental_lms, &mental_obj, &index)) {
-        // get the i-th parameter from the action operator
-        msgs::PDDLObject op_param = action_op.params[i];
-        ROS_INFO("Matching operator param is object '%s' with type '%s'",
-                 op_param.name.c_str(), op_param.type.name.c_str());
-        // if (op_param.type.name == msgs::PDDLType::OBJECT) {
-        // get the op_param's landmark object before and after from
-        // pre/eff
-        msgs::Landmark pre_obj;
-        bool found_pre =
-            FindLandmarkByName(op_param.name, pre_lms, &pre_obj, &pre_id);
-        msgs::Landmark eff_obj;
-        bool found_eff =
-            FindLandmarkByName(op_param.name, eff_lms, &eff_obj, &eff_id);
-        if (found_pre && found_eff) {
-          // get pose difference
-          geometry_msgs::Pose pose_trans;
-          geometry_msgs::Pose pre_pose = pre_obj.pose_stamped.pose;
-          geometry_msgs::Pose eff_pose = eff_obj.pose_stamped.pose;
-          pose_trans.position.x = eff_obj.pose_stamped.pose.position.x -
-                                  pre_obj.pose_stamped.pose.position.x;
-          pose_trans.position.y = eff_obj.pose_stamped.pose.position.y -
-                                  pre_obj.pose_stamped.pose.position.y;
-          pose_trans.position.z = eff_obj.pose_stamped.pose.position.z -
-                                  pre_obj.pose_stamped.pose.position.z;
-          // TO DO: get also orientation change
-          // update position of obj to mental model
-          ROS_INFO("%s : Old pose was (%.2f,%.2f,%.2f) ", param.c_str(),
-                   mental_lms->at(index).pose_stamped.pose.position.x,
-                   mental_lms->at(index).pose_stamped.pose.position.y,
-                   mental_lms->at(index).pose_stamped.pose.position.z);
-          mental_obj.pose_stamped.pose.position.x += pose_trans.position.x;
-          mental_obj.pose_stamped.pose.position.y += pose_trans.position.y;
-          mental_obj.pose_stamped.pose.position.z += pose_trans.position.z;
-          mental_lms->at(index) = mental_obj;
-
-          ROS_INFO("New pose is (%.2f,%.2f,%.2f) ",
-                   mental_lms->at(index).pose_stamped.pose.position.x,
-                   mental_lms->at(index).pose_stamped.pose.position.y,
-                   mental_lms->at(index).pose_stamped.pose.position.z);
+  for (size_t i = 0; i < action_op.effects.size(); ++i) {
+    msgs::PDDLPredicate pred = action_op.effects[i];
+    std::string obj_name, pos_name;
+    if (pred.name == msgs::PDDLPredicate::IS_ON && !pred.negate) {
+      // find param index in action declaration
+      for (size_t j = 0; j < action_op.params.size(); ++j) {
+        if (action_op.params[j].name == pred.arg1.name) {
+          obj_name = action.args[j];
+          ROS_INFO("found instantiated obj %s at param index %zu",
+                   obj_name.c_str(), j);
+        } else if (action_op.params[j].name == pred.arg2.name) {
+          pos_name = action.args[j];
+          ROS_INFO("found instantiated pos %s at param index %zu",
+                   obj_name.c_str(), j);
         }
-        //}
+      }
+      // TO DO: if more objects change positions, then need to keep a stack of
+      // objects that have been treated
+      // std::string stack = [];
+
+      // if (obj_name.find("OBJ") != std::string::npos) {
+      //   // only update if it is an *object* that is_on something else
+      //   // check if it is already in the stack
+      //   size_t stack_obj =
+      //       distance(stack, find(stack, stack + stack.size(), obj_name));
+      //   size_t stack_pos =
+      //       distance(stack, find(stack, stack + stack.size(), pos_name));
+      //   if (stack_pos < 0 && stack_obj < 0) {
+      //     // both are not on the stack
+      //     stack.append(obj_name);
+      //     stack.append(pos_name);
+      //   } else if (stack_pos < 0 && stack_obj >= 0) {
+      //     // obj is on stack, pos not on stack
+      //   } else if (stack_pos < 0 && stack_obj >= 0) {
+      //     // obj not on stack, pos on stack
+      //   } else {
+      //     // both on stack
+      //     if (stack_pos != stack_obj + 1) {
+      //       ROS_ERROR(
+      //           "GetMentalModel: wrong as %s (index %zu) is not on %s (index
+      //           "
+      //           "%zu)",
+      //           obj_name.c_str(), stack_obj, pos_name.c_str(), stack_pos);
+      //     }
+      //   }
+      msgs::Landmark mental_obj, mental_pos;
+      // ROS_INFO("...is object ");
+      size_t obj_index, pos_index;
+      if (FindLandmarkByName(obj_name, *mental_lms, &mental_obj, &obj_index) &&
+          FindLandmarkByName(pos_name, *mental_lms, &mental_pos, &pos_index)) {
+        ROS_INFO("Both params found in landmarks");
+        ROS_INFO("%s : Old pose of obj (%.2f,%.2f,%.2f) ", obj_name.c_str(),
+                 mental_lms->at(obj_index).pose_stamped.pose.position.x,
+                 mental_lms->at(obj_index).pose_stamped.pose.position.y,
+                 mental_lms->at(obj_index).pose_stamped.pose.position.z);
+        // update pose of obj_name to pos_name+pos_name.dims.z
+        mental_obj.pose_stamped = mental_pos.pose_stamped;
+        mental_obj.pose_stamped.pose.position.z +=
+            mental_pos.surface_box_dims.z;
+        mental_lms->at(obj_index) = mental_obj;
+        ROS_INFO("New pose is (%.2f,%.2f,%.2f) ",
+                 mental_lms->at(obj_index).pose_stamped.pose.position.x,
+                 mental_lms->at(obj_index).pose_stamped.pose.position.y,
+                 mental_lms->at(obj_index).pose_stamped.pose.position.z);
+        //   }
       }
     }
   }
-}
+}  // namespace pbd
 
 bool Editor::FindLandmarkByName(const std::string name,
                                 const std::vector<msgs::Landmark>& lms,
@@ -1843,12 +1856,14 @@ void Editor::RunPDDLPlan(const std::string domain_id,
             for (size_t l = 0; l < mental_lms.size(); ++l) {
               msgs::Landmark match = mental_lms[l];
               if (strcasecmp(match.name.c_str(), step.args[z].c_str()) == 0) {
-                // std::cout << "step param: matched ! " << match.name << " with
+                // std::cout << "step param: matched ! " << match.name << "
+                // with
                 // "
                 //           << step.args[z] << "\n";
 
-                // if the new object is larger, then need to adjust the gripper
-                // position relative to object (as it is relative to its center)
+                // if the new object is larger, then need to adjust the
+                // gripper position relative to object (as it is relative to
+                // its center)
                 geometry_msgs::Vector3 default_dims =
                     new_program.steps[s_id]
                         .actions[a_id]
@@ -1862,7 +1877,8 @@ void Editor::RunPDDLPlan(const std::string domain_id,
                     // top_space = dist(gripper_pos, landmark_pos) -
                     // landmark_dims/2
                     ROS_INFO(
-                        "Adjust gripper pose top_space for %s with height: %f "
+                        "Adjust gripper pose top_space for %s with height: "
+                        "%f "
                         "at %f from %f to ",
                         match.name.c_str(), match.surface_box_dims.z,
                         match.pose_stamped.pose.position.z,
@@ -1940,7 +1956,8 @@ void Editor::RunPDDLPlan(const std::string domain_id,
           action_clients_->program_client.getResult();
 
       ROS_INFO(
-          "%s done with: %s \n Press enter to r to try again or c to continue.",
+          "%s done with: %s \n Press enter to r to try again or c to "
+          "continue.",
           action_name.c_str(), result->error.c_str());
       std::string n;
       std::cin >> n;
@@ -1965,7 +1982,8 @@ void Editor::RunPDDLPlan(const std::string domain_id,
 // int step_id = 0;
 // for (size_t k = 0; k < program.steps.size(); ++k) {
 //   msgs::Step step = program.steps[step_id];
-//   for (size_t action_id = 0; action_id < step.actions.size(); ++action_id) {
+//   for (size_t action_id = 0; action_id < step.actions.size(); ++action_id)
+//   {
 //     msgs::Action action = step.actions[action_id];
 
 //     if (action.type == Action::MOVE_TO_CARTESIAN_GOAL &&
