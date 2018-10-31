@@ -299,7 +299,7 @@
                             <template is="dom-repeat" items="{{action.preconditions}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
                                     <p>
-                                        [[item.arg1.name]] ([[item.arg1.type.name]])
+                                        [[item.arg1.name]] ([[_getParamTypeByName(item.arg1)]])
                                     </p>
                                     <p>
                                         is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
@@ -349,7 +349,7 @@
                             <template is="dom-repeat" items="{{action.effects}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
                                     <p>
-                                        [[item.arg1.name]] ([[item.arg1.type.name]])
+                                        [[item.arg1.name]] ([[_getParamTypeByName(item.arg1)]])
                                     </p>
                                     <p>
                                         is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
@@ -930,6 +930,16 @@
                     return a.indexOf(item) == pos;
                 });
             },
+            _getParamTypeByName: function (obj) {
+                // console.debug('_getParamTypeByName: ', item);
+
+                for (var i = 0; i < this.action.params.length; ++i) {
+                    if (this.action.params[i].name == obj.name)
+                        return this.action.params[i].type.name;
+                }
+                return "?";
+
+            },
             _getTypes: function (item) {
                 var names = [];
                 // console.debug('_getTypes: ', item);
@@ -941,14 +951,10 @@
             },
 
             _updateType: function (evt) {
+                this.reevaluateArray('action.params', this.action.params);
                 console.debug("_updateType: ", evt.target);
             },
 
-            /*_updatePredicate: function (evt) {
-                var args = evt.target.getAttribute('data-args');
-                this.set(args, evt.target.name);
-                console.debug(args, ' is ', this.newPrecondition);
-            },*/
             _printItem: function (evt) {
                 console.debug("_print: ", evt.target.name);
             },
@@ -964,7 +970,7 @@
                 // If they are there then you can generate the conditions
                 else {
                     this._getPredicateDiff(this.action.preconditions, this.action.effects);
-
+                    //this._addNegations(this.action.preconditions, this.action.effects);
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
                     this.reevaluateArray('action.effects', this.action.effects);
                     var predList = this.action.preconditions.concat(this.action.effects)
@@ -979,7 +985,6 @@
             },
             _getPredicateDiff: function (list1, list2) {
                 // removes predicates which are in both lists
-
                 for (var i = 0; i < list1.length; ++i) {
                     for (var j = 0; j < list2.length; ++j) {
                         if (this._samePredicate(list1[i], list2[j])) {
@@ -990,7 +995,23 @@
                         }
                     }
                 }
+                this._addNegations(list1, list2);
                 return [list1, list2];
+            },
+            _addNegations: function (pre, eff) {
+                // add negations in eff for is_on and is_clear in pre
+                for (var i = 0; i < pre.length; ++i) {
+                    var predic = pre[i];
+                    if (predic.name == "on") {
+                        predic.negate = true;
+                        eff.push(predic);
+                        predic.arg1 = predic.arg2;
+                        predic.arg2 = undefined;
+                        predic.name = "clear";
+                        eff.push(predic);
+                    }
+                }
+                return eff;
             },
             _samePredicate: function (pred1, pred2) {
                 if (pred1.name != pred2.name) {

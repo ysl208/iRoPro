@@ -272,7 +272,7 @@
               <template is="dom-repeat" items="{{problem.initial_states}}" as="item" index-as="objectIndex">
                 <div class="listeWorldState">
                   <p>
-                    [[item.arg1.name]] ([[item.arg1.type.name]])
+                    [[item.arg1.name]] ([[_getParamTypeByName(item.arg1)]])
                   </p>
                   <p>
                     is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
@@ -329,7 +329,7 @@
               <template is="dom-repeat" items="{{problem.goal_states}}" as="item" index-as="objectIndex">
                 <div class="listeWorldState">
                   <p>
-                    [[item.arg1.name]] ([[item.arg1.type.name]])
+                    [[item.arg1.name]] ([[_getParamTypeByName(item.arg1)]])
                   </p>
                   <p>
                     is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
@@ -906,6 +906,17 @@
         uniqueArray = a.filter(function (item, pos) {
           return a.indexOf(item) == pos;
         });
+      },
+
+      _getParamTypeByName: function (obj) {
+        // console.debug('_getParamTypeByName: ', item);
+
+        for (var i = 0; i < this.action.params.length; ++i) {
+          if (this.action.params[i].name == obj.name)
+            return this.action.params[i].type.name;
+        }
+        return "?";
+
       },
 
       _getTypes: function (item) {
