@@ -1677,8 +1677,7 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
   UpdatePDDLProblem(domain_id, new_problem, "");
 }
 
-void Editor::GetMentalModel(const msgs::Program program,
-                            const msgs::PDDLAction& action_op,
+void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
                             const pddl_msgs::PDDLStep& action,
                             std::vector<msgs::Landmark>* mental_lms) {
   // action_op is the general operator
