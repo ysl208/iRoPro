@@ -214,6 +214,7 @@
 
       <paper-dialog modal id="saving">
         <h2>Save current problem ?</h2>
+        <p>If problem name changed, please reopen problem after save.</p>
         <div>
           <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
           <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
@@ -961,6 +962,17 @@
         if (neg) return 'not ';
         else return '';
       },
+      _generateMsg: function (msg_type) {
+        var msg = ""
+        if (msg_type == "save") {
+          msg = "Save current problem ?";
+          if (this.problemName != this.problem.name) {
+            msg += "\n If problem name changed, please reopen problem after save.";
+          }
+        }
+        return msg;
+      },
+
       save: function () {
         if (this.problemName != this.problem.name && !this._nameValid(this.problemName)) {
           alert(this.problemName + ' already exists. Please choose a different name.');
@@ -975,7 +987,8 @@
           console.debug('Saving ', this.domain, " with name ", this.domain_id);
           console.debug('Saving ', this.problem, " with name ", this.problemName);
           this.$.eventPub.publish(msg);
-          //this.quit();
+          if (this.problemName != this.problem.name)
+            this.quit();
         }
 
       },

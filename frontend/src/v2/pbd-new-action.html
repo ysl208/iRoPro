@@ -224,6 +224,7 @@
 
             <paper-dialog modal id="saving">
                 <h2>Save current action ?</h2>
+                <p>If action name changed, please reopen action after save.</p>
                 <div>
                     <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
                     <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
@@ -782,6 +783,16 @@
                 }
                 return true;
             },
+            _generateMsg: function (msg_type) {
+                var msg = ""
+                if (msg_type == "save") {
+                    msg = "Save current action ?";
+                    if (this.actionName != this.action.name) {
+                        msg += "\n If action name changed, please reopen action after save.";
+                    }
+                }
+                return msg;
+            },
             save: function () {
                 if (this.actionName != this.action.name && !this._nameValid(this.actionName)) {
                     alert(this.actionName + ' already exists. Please choose a different name.');
@@ -796,7 +807,8 @@
                     console.debug('Saving ', this.domain, " with name ", this.domain_id);
                     console.debug('Saving ', this.action, " with name ", this.actionName);
                     this.$.eventPub.publish(msg);
-                    //this.quit();
+                    if (this.actionName != this.action.name)
+                        this.quit();
                 }
             },
             saving: function (evt) {
