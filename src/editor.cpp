@@ -1966,7 +1966,7 @@ void Editor::RunPDDLPlan(const std::string domain_id,
         // Assume action succeeded, update mental model of landmarks in the
         // world
 
-        GetMentalModel(new_program, action, step, &mental_lms);
+        GetMentalModel(action, step, &mental_lms);
       }
 
       // 4. Check action effects after executing action
@@ -2111,6 +2111,15 @@ void Editor::GetPose(const std::string& db_id, size_t step_id, size_t action_id,
   // pose.
   // If the landmark has changed, then reinterpret the action's pose in the
   // new landmark frame.
+
+  ROS_INFO(
+      "Saved landmark is: %s (%.2f, %.2f, %.2f) vs new landmark %s (%.2f, "
+      "%.2f, %.2f)",
+      action->landmark.name.c_str(), action->landmark.surface_box_dims.x,
+      action->landmark.surface_box_dims.y, action->landmark.surface_box_dims.z,
+      landmark.name.c_str(), landmark.surface_box_dims.x,
+      landmark.surface_box_dims.y, landmark.surface_box_dims.z);
+
   if (action->landmark.type == "" || landmark.type == "" ||
       action->landmark.type == landmark.type) {
     size_t prev_step_id = 0;
@@ -2244,7 +2253,6 @@ void Editor::ReinterpretPose(const msgs::Landmark& new_landmark,
   transform_graph::Graph graph;
   graph.Add("end effector", transform_graph::RefFrame("old landmark"),
             action->pose);
-
   if (action->landmark.type == msgs::Landmark::TF_FRAME) {
     tf::StampedTransform landmark_transform;
     try {
@@ -2305,6 +2313,10 @@ void Editor::ReinterpretPose(const msgs::Landmark& new_landmark,
     return;
   }
 
+  ROS_INFO("Landmark has dimensions %.2f, %.2f, %.2f",
+           action->landmark.surface_box_dims.x,
+           action->landmark.surface_box_dims.y,
+           action->landmark.surface_box_dims.z);
   // Update the pose
   transform_graph::Transform ee_in_new_landmark;
   bool success = graph.ComputeDescription(
