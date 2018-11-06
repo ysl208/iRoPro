@@ -982,7 +982,7 @@
                 // If they are there then you can generate the conditions
                 else {
                     this._getPredicateDiff(this.action.preconditions, this.action.effects);
-                    //this._addNegations(this.action.preconditions, this.action.effects);
+                    this._addNegations(this.action.preconditions, this.action.effects);
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
                     this.reevaluateArray('action.effects', this.action.effects);
                     var predList = this.action.preconditions.concat(this.action.effects)
@@ -1007,23 +1007,40 @@
                         }
                     }
                 }
-                this._addNegations(list1, list2);
+                //this._addNegations(list1, list2);
                 return [list1, list2];
             },
             _addNegations: function (pre, eff) {
                 // add negations in eff for is_on and is_clear in pre
-                for (var i = 0; i < pre.length; ++i) {
-                    var predic = pre[i];
-                    if (predic.name == "on") {
-                        predic.negate = true;
-                        eff.push(predic);
-                        predic.arg1 = predic.arg2;
-                        predic.arg2 = undefined;
-                        predic.name = "clear";
-                        eff.push(predic);
+                for (var i = 0; i < eff.length; ++i) {
+                    let predic = Object.assign({}, eff[i]);
+                    if (predic.name == "on" && !predic.negate) {
+                        // check pre's "on" predicates and negate them
+                        for (var p = 0; p < pre.length; ++p) {
+                            if (pre[p].name == "on") {
+                                let notOnPred = Object.assign({}, pre[p]);
+                                notOnPred.negate = true;
+                                eff.push(notOnPred);
+                            }
+                        }
+                        // add a predicate that the target position is not clear
+                        var clearPred = predic;
+                        clearPred.arg1 = predic.arg2;
+                        clearPred.arg2 = undefined;
+                        clearPred.negate = true;
+                        clearPred.name = "clear";
                     }
                 }
+                // check if the clear predicate already exists, if yes then dont add
+                var clearExists = false;
+                for (var j = 0; j < eff.length; ++j) {
+                    if (this._samePredicate(clearPred, eff[j]))
+                        clearExists = true;
+                }
+                if (!clearExists)
+                    eff.push(clearPred);
                 return eff;
+
             },
             _samePredicate: function (pred1, pred2) {
                 if (pred1.name != pred2.name) {
