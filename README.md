@@ -28,12 +28,13 @@ rosrun baxter_interface head_action_server.py
 
 roslaunch rapid_pbd baxter_moveit.launch right_electric_gripper:=false left_electric_gripper:=true
 roslaunch rapid_pbd web_prereqs.launch
-roslaunch rapid_pbd baxter.launch sim:=false --screen
+roslaunch rapid_pbd baxter.launch sim:=false kinect:=true --screen
 roslaunch rapid_pbd editor.launch robot:=baxter --screen
 
 # kinect + PDDL planner
 roslaunch pddl_planner_viewer pddl_planner_sample-pddl.launch
 roslaunch kinect2_bridge kinect2_bridge.launch publish_tf:=true
+roslaunch freenect_launch freenect.launch
 
 cd ~/local/collada
 caddy
