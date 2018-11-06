@@ -13,29 +13,17 @@
       :host {
         display: block;
       }
+
       paper-button {
         margin-left: 10px;
       }
     </style>
     <!-- TODO: this is Fetch-specific -->
-    <ros-action-client
-      id="armAction"
-      server="/gripper_controller/gripper_action"
-      action-type="control_msgs/GripperCommandAction"
-      ros="[[ros]]"
-    ></ros-action-client>
-    <ros-action-client
-      id="leftAction"
-      server="/rapid_pbd/l_gripper_action"
-      action-type="control_msgs/GripperCommandAction"
-      ros="[[ros]]"
-    ></ros-action-client>
-    <ros-action-client
-      id="rightAction"
-      server="/rapid_pbd/r_gripper_action"
-      action-type="control_msgs/GripperCommandAction"
-      ros="[[ros]]"
-    ></ros-action-client>
+    <ros-action-client id="armAction" server="/gripper_controller/gripper_action" action-type="control_msgs/GripperCommandAction"
+      ros="[[ros]]"></ros-action-client>
+    <ros-action-client id="leftAction" server="/rapid_pbd/l_gripper_action" action-type="control_msgs/GripperCommandAction" ros="[[ros]]"></ros-action-client>
+    <ros-action-client id="rightAction" server="/rapid_pbd/r_gripper_action" action-type="control_msgs/GripperCommandAction"
+      ros="[[ros]]"></ros-action-client>
     <div class="layout horizontal center">
       <paper-dropdown-menu label="Gripper" hidden$="[[!params.hasTwoArms]]">
         <paper-listbox slot="dropdown-content" attr-for-selected="data-actuator-group" selected="{{action.actuator_group}}">
@@ -43,12 +31,9 @@
           <paper-item data-actuator-group="right gripper">Right gripper</paper-item>
         </paper-listbox>
       </paper-dropdown-menu>
-      <paper-input hidden$="[[_isOpen]]"
-        label="Closing force (35-100 N)"
-        value="[[action.gripper_command.max_effort]]"
-        on-change="_maxEffortChanged"></paper-input>
-      <paper-button class="normal" hidden$="[[!_isOpen]]" on-tap="_openGripper">Open now</paper-button>
-      <paper-button class="normal" hidden$="[[_isOpen]]" on-tap="_closeGripper">Close now</paper-button>
+      <paper-input hidden$="[[_isOpen]]" label="Closing force (35-100 N)" value="[[action.gripper_command.max_effort]]" on-change="_maxEffortChanged"></paper-input>
+      <paper-button class="normal" hidden$="[[!_isOpen]]" on-tap="_openGripper">Actuate now</paper-button>
+      <paper-button class="normal" hidden$="[[_isOpen]]" on-tap="_closeGripper">Actuate now</paper-button>
     </div>
   </template>
   <script>
@@ -72,14 +57,14 @@
         '_actionChanged(action)',
       ],
 
-      _actionChanged: function(action) {
+      _actionChanged: function (action) {
         var actionType = action.type;
         var actuatorGroup = action.actuator_group;
         if (actionType !== 'actuate gripper') {
           return;
         }
         if (actuatorGroup !== 'gripper' && actuatorGroup !== 'left gripper'
-            && actuatorGroup !== 'right gripper') {
+          && actuatorGroup !== 'right gripper') {
           return;
         }
         if (!action.gripper_command) {
@@ -87,7 +72,7 @@
         }
       },
 
-      _computeIsOpen: function(gripperCommand) {
+      _computeIsOpen: function (gripperCommand) {
         if (gripperCommand) {
           return gripperCommand.position > 0;
         }
@@ -96,7 +81,7 @@
         }
       },
 
-      _openGripper: function() {
+      _openGripper: function () {
         var goal = { command: this.action.gripper_command };
         if (this.action.actuator_group === 'gripper') {
           this.$.armAction.send(goal);
@@ -107,7 +92,7 @@
         }
       },
 
-      _closeGripper: function() {
+      _closeGripper: function () {
         var goal = { command: this.action.gripper_command };
         if (this.action.actuator_group === 'gripper') {
           this.$.armAction.send(goal);
@@ -118,7 +103,7 @@
         }
       },
 
-      _maxEffortChanged: function(evt) {
+      _maxEffortChanged: function (evt) {
         var value = evt.target.value;
         if (typeof value === 'string') {
           var parsed = parseFloat(value);
