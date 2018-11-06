@@ -196,8 +196,7 @@ void BaxterRobotConfig::gripper_joints_for_group(
     joint_names->push_back("l_gripper_l_finger_joint");
     joint_names->push_back("l_gripper_r_finger_joint");
   } else if (actuator_group == Action::RIGHT_GRIPPER) {
-    joint_names->push_back("r_gripper_l_finger_joint");
-    joint_names->push_back("r_gripper_r_finger_joint");
+    // joint_names->push_back("right_endpoint");
   }
 }
 void BaxterRobotConfig::gripper_open_positions(
