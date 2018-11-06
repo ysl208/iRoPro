@@ -21,3 +21,4 @@ world_objects: # measurements in meters
   variance: 0.075
 
 max_acc_scale: 0.5
+max_vel_scale: 0.5
