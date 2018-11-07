@@ -227,8 +227,9 @@ bool MatchLandmark(const World& world, const msgs::Landmark& landmark,
       if (distance <= kMaxDistance) {
         // if x-distance of world_landmark is closer than current best match,
         // then choose this object
-        if (match->name == "" || world_landmark.pose_stamped.pose.position.x <
-                                     match->pose_stamped.pose.position.x) {
+        if (!world_landmark.match &&
+            (match->name == "" || world_landmark.pose_stamped.pose.position.x <
+                                      match->pose_stamped.pose.position.x)) {
           best = distance;
           *match = world_landmark;
         }
