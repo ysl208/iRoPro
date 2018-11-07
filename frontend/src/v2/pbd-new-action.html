@@ -759,13 +759,13 @@
                 var index = -1;
                 index = this.action.preconditions.indexOf(item);
                 if (index != -1) {
-                    this.splice('action.preconditions', index, 1, );
+                    this.splice('action.preconditions', index, 1);
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
                     console.debug('deletePred from pre');
                 } else {
                     index = this.action.effects.indexOf(item);
                     if (index != -1) {
-                        this.splice('action.effects', index, 1, );
+                        this.splice('action.effects', index, 1);
                         this.reevaluateArray('action.effects', this.action.effects);
                         console.debug('deletePred from eff');
                     }
@@ -782,16 +782,6 @@
                     if (this.domain.actions[i].name == name) return false;
                 }
                 return true;
-            },
-            _generateMsg: function (msg_type) {
-                var msg = ""
-                if (msg_type == "save") {
-                    msg = "Save current action ?";
-                    if (this.actionName != this.action.name) {
-                        msg += "\n If action name changed, please reopen action after save.";
-                    }
-                }
-                return msg;
             },
             save: function () {
                 if (this.actionName != this.action.name && !this._nameValid(this.actionName)) {

@@ -384,7 +384,7 @@
                 Generated steps to solve problem
               </legend>
               <p>Verify all sequence is correct before proceeding.</p>
-              <p id="noObj">No steps generated</p>
+              <p id="noObj">No steps generated: [[problem.output]]</p>
               <table>
                 <template is="dom-repeat" items="{{problem.sequence}}" as="item" index-as="stepIndex">
                   <tr>
@@ -790,13 +790,13 @@
         var index = -1;
         index = this.problem.initial_states.indexOf(item);
         if (index != -1) {
-          this.splice('problem.initial_states', index, 1, );
+          this.splice('problem.initial_states', index, 1);
           this.reevaluateArray('problem.initial_states', this.problem.initial_states);
           console.debug('deletePred from pre');
         } else {
           index = this.problem.goal_states.indexOf(item);
           if (index != -1) {
-            this.splice('problem.goal_states', index, 1, );
+            this.splice('problem.goal_states', index, 1);
             this.reevaluateArray('problem.goal_states', this.problem.goal_states);
             console.debug('deletePred from eff');
           }
@@ -809,7 +809,7 @@
         var index = -1;
         index = this.problem.sequence.indexOf(item);
         if (index != -1) {
-          this.splice('problem.sequence', index, 1, );
+          this.splice('problem.sequence', index, 1);
           this.reevaluateArray('problem.sequence', this.problem.sequence);
           console.debug('deleted action ', index, ' from solution sequence');
         }
@@ -912,9 +912,9 @@
       _getParamTypeByName: function (obj) {
         // console.debug('_getParamTypeByName: ', item);
 
-        for (var i = 0; i < this.action.params.length; ++i) {
-          if (this.action.params[i].name == obj.name)
-            return this.action.params[i].type.name;
+        for (var i = 0; i < this.problem.objects.length; ++i) {
+          if (this.problem.objects[i].name == obj.name)
+            return this.problem.objects[i].type.name;
         }
         return "?";
 
@@ -962,17 +962,6 @@
         if (neg) return 'not ';
         else return '';
       },
-      _generateMsg: function (msg_type) {
-        var msg = ""
-        if (msg_type == "save") {
-          msg = "Save current problem ?";
-          if (this.problemName != this.problem.name) {
-            msg += "\n If problem name changed, please reopen problem after save.";
-          }
-        }
-        return msg;
-      },
-
       save: function () {
         if (this.problemName != this.problem.name && !this._nameValid(this.problemName)) {
           alert(this.problemName + ' already exists. Please choose a different name.');
