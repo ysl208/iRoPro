@@ -127,6 +127,11 @@ std::string ActionExecutor::Start() {
 
 bool ActionExecutor::IsDone(std::string* error) const {
   if (action_.type == Action::ACTUATE_GRIPPER) {
+    std::string gripper_type =
+        robot_config_.gripper_type(action_.actuator_group);
+    if (gripper_type == Action::SUCTION_GRIPPER) {
+      return true;
+    }
     if (action_.actuator_group == Action::GRIPPER) {
       return clients_->gripper_client.getState().isDone();
     } else if (action_.actuator_group == Action::LEFT_GRIPPER) {
