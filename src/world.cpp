@@ -209,14 +209,18 @@ bool MatchLandmark(const World& world, const msgs::Landmark& landmark,
                    msgs::Landmark* match, const double& variance) {
   // Picks the closest object which is still <= kMaxDistance
   ROS_INFO("MatchLandmark: Landmark %s", landmark.name.c_str());
-  if (world.surface_box_landmarks.size() == 0) {
-    ROS_ERROR("World has no landmarks to match");
-    return false;
-  }
+  // if (world.surface_box_landmarks.size() == 0) {
+  //   ROS_ERROR("World has no landmarks to match");
+  //   return false;
+  // }
 
   const double kMaxDistance = variance * variance;
   std::vector<double> landmark_dims;
   GetDims(landmark, &landmark_dims);
+  if (landmark.match) {
+    *match = landmark;
+    return true;
+  }
   if (landmark.type == msgs::Landmark::SURFACE_BOX) {
     double best = std::numeric_limits<double>::max();
     for (size_t i = 0; i < world.surface_box_landmarks.size(); ++i) {
@@ -236,7 +240,7 @@ bool MatchLandmark(const World& world, const msgs::Landmark& landmark,
       }
     }
     ROS_INFO("Best Match is %f <= %f", best, kMaxDistance);
-    return best <= kMaxDistance;
+    return (best <= kMaxDistance);
   } else {
     return false;
   }
