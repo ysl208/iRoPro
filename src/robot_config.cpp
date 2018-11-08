@@ -103,6 +103,14 @@ void Pr2RobotConfig::joints_for_group(
   }
 }
 int Pr2RobotConfig::num_arms() const { return 2; }
+std::string Pr2RobotConfig::gripper_type(
+    const std::string& actuator_group) const {
+  if (actuator_group == Action::LEFT_ARM) {
+    // TO DO: check yaml file
+  } else if (actuator_group == Action::RIGHT_ARM) {
+  }
+  return "";
+}  // namespace pbd
 
 FetchRobotConfig::FetchRobotConfig() {}
 
@@ -167,6 +175,11 @@ void FetchRobotConfig::joints_for_group(
   }
 }
 int FetchRobotConfig::num_arms() const { return 1; }
+std::string FetchRobotConfig::gripper_type(
+    const std::string& actuator_group) const {
+  // TO DO: check yaml file
+  return "";
+}
 
 BaxterRobotConfig::BaxterRobotConfig() {}
 
@@ -254,6 +267,18 @@ void BaxterRobotConfig::joints_for_group(
   }
 }
 int BaxterRobotConfig::num_arms() const { return 2; }
+std::string BaxterRobotConfig::gripper_type(
+    const std::string& actuator_group) const {
+  std::vector<std::string> grippers, gripper_types;
+  ros::param::param<std::vector<std::string> >("robot_grippers/actuator_groups",
+                                               grippers, grippers);
+  ros::param::param<std::vector<std::string> >("robot_grippers/gripper_types",
+                                               gripper_types, gripper_types);
+  for (size_t i = 0; i < grippers.size(); ++i) {
+    if (grippers[i] == actuator_group) return gripper_types[i];
+  }
+  return "";
+}
 }  // namespace pbd
 }  // namespace rapid
 

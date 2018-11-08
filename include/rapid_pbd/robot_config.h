@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "ros/ros.h"
 
 namespace rapid {
 namespace pbd {
@@ -27,6 +28,7 @@ class RobotConfig {
       const std::string& actuator_group,
       std::vector<std::string>* joint_names) const = 0;
   virtual int num_arms() const = 0;
+  virtual std::string gripper_type(const std::string& actuator_group) const = 0;
   virtual std::string joint_states_topic() const = 0;
 };
 
@@ -46,6 +48,7 @@ class Pr2RobotConfig : public RobotConfig {
   void joints_for_group(const std::string& actuator_group,
                         std::vector<std::string>* joint_names) const;
   int num_arms() const;
+  std::string gripper_type(const std::string& actuator_group) const;
   std::string joint_states_topic() const;
 };
 
@@ -65,6 +68,7 @@ class FetchRobotConfig : public RobotConfig {
   void joints_for_group(const std::string& actuator_group,
                         std::vector<std::string>* joint_names) const;
   int num_arms() const;
+  std::string gripper_type(const std::string& actuator_group) const;
   std::string joint_states_topic() const;
 };
 
@@ -84,6 +88,7 @@ class BaxterRobotConfig : public RobotConfig {
   void joints_for_group(const std::string& actuator_group,
                         std::vector<std::string>* joint_names) const;
   int num_arms() const;
+  std::string gripper_type(const std::string& actuator_group) const;
   std::string joint_states_topic() const;
 };
 
