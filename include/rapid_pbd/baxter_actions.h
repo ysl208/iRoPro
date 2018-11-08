@@ -31,7 +31,8 @@ namespace pbd {
 namespace baxter {
 class GripperAction {
  public:
-  GripperAction(const std::string& name, const std::string& baxter_action_name);
+  GripperAction(const std::string& name, const std::string& baxter_action_name,
+                const std::string& gripper_type);
 
   void Start();
   void Execute(const control_msgs::GripperCommandGoalConstPtr& goal);
@@ -40,6 +41,7 @@ class GripperAction {
  private:
   actionlib::SimpleActionServer<control_msgs::GripperCommandAction> server_;
   BaxterGripperClient baxter_client_;
+  std::string gripper_type;
 };
 
 // HeadAction manages the controllers running on the BAXTER head.

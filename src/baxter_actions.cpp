@@ -6,6 +6,7 @@
 #include "control_msgs/GripperCommandAction.h"
 #include "control_msgs/SingleJointPositionAction.h"
 
+#include "rapid_pbd/robot_config.h"
 #include "rapid_pbd_msgs/Action.h"
 
 using actionlib::SimpleClientGoalState;
@@ -22,10 +23,12 @@ namespace rapid {
 namespace pbd {
 namespace baxter {
 GripperAction::GripperAction(const std::string& action_name,
-                             const std::string& baxter_action_name)
+                             const std::string& baxter_action_name,
+                             const std::string& gripper_type)
     : server_(action_name, boost::bind(&GripperAction::Execute, this, _1),
               false),
-      baxter_client_(baxter_action_name, true) {}
+      baxter_client_(baxter_action_name, true),
+      gripper_type(gripper_type) {}
 
 void GripperAction::Start() {
   while (!baxter_client_.waitForServer(ros::Duration(5))) {
@@ -37,9 +40,22 @@ void GripperAction::Start() {
 void GripperAction::Execute(
     const control_msgs::GripperCommandGoalConstPtr& goal) {
   control_msgs::GripperCommandGoal baxter_goal;
-  // Baxter uses values in the interval [0,100] corresponding to 0-10cm
-  const float kMaxWidth = 0.1;
-  baxter_goal.command.position = goal->command.position / kMaxWidth * 100;
+  // Electric gripper:
+  // - Baxter uses values in the interval [0,100] corresponding to 0-10cm
+  // Suction gripper: according to baxter_interface/gripper_action.py
+  // - if position < 100: activate suction
+  // - if position >= 100: stop suction
+  if (gripper_type == "suction gripper") {
+    if (goal->command.position == 0)
+      baxter_goal.command.position = 100;  // stop suction
+    else
+      baxter_goal.command.position = 1;  // activate suction
+    ROS_INFO("GripperAction: suction gripper, set position to: %.2f",
+             baxter_goal.command.position);
+  } else {
+    const float kMaxWidth = 0.1;
+    baxter_goal.command.position = goal->command.position / kMaxWidth * 100;
+  }
   baxter_goal.command.max_effort = goal->command.max_effort;
   baxter_client_.sendGoal(
       baxter_goal,
@@ -119,8 +135,8 @@ void HeadAction::Execute(
   control_msgs::FollowJointTrajectoryResult result;
   result.error_code = 0;
 
-  // To Do: generate correct result, but SingleJointPositionResult msg seems to
-  // be empty
+  // To Do: generate correct result, but SingleJointPositionResult msg seems
+  // to be empty
   server_.setSucceeded();
 }
 
