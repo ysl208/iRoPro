@@ -200,13 +200,7 @@
       _displayActionTypeChanged: function (displayActionType) {
         var open_position = 0.1;
         var close_position = 0;
-        if (this.action.actuator_group === 'right gripper') {
-          // assume that right gripper is a suction gripper
-          // start suction position*100/0.1 < 100
-          // stop suction position*100/0.1 >= 100, according to baxter_interface/gripper_action.py
-          open_position = 0.01;
-          close_position = 100;
-        }
+
         if (displayActionType === 'open gripper') {
           this.set('action.type', 'actuate gripper');
           this.set('action.gripper_command.position', open_position);

@@ -32,8 +32,8 @@
         </paper-listbox>
       </paper-dropdown-menu>
       <paper-input hidden$="[[_isOpen]]" label="Closing force (35-100 N)" value="[[action.gripper_command.max_effort]]" on-change="_maxEffortChanged"></paper-input>
-      <paper-button class="normal" hidden$="[[!_isOpen]]" on-tap="_openGripper">Actuate now</paper-button>
-      <paper-button class="normal" hidden$="[[_isOpen]]" on-tap="_closeGripper">Actuate now</paper-button>
+      <paper-button class="normal" hidden$="[[!_isOpen]]" on-tap="_openGripper">Open now</paper-button>
+      <paper-button class="normal" hidden$="[[_isOpen]]" on-tap="_closeGripper">Close now</paper-button>
     </div>
   </template>
   <script>
