@@ -202,6 +202,10 @@
         </paper-button>
       </nav>
       <div id="buttonDiv">
+
+        <paper-button class="clear" on-tap="_refreshViz">
+          Refresh
+        </paper-button>
         <paper-button raised on-click="saving">
           Save
           <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
@@ -550,9 +554,11 @@
       },
 
       load: function (db_id, paramsChangeRecord) {
-        /* if (!db_id) {
-                return;
-        } */
+        if (this.problem.scene_id) {
+          this.scene_id = this.problem.scene_id;
+        } else {
+          this.scene_id = "";
+        }
         if (!this.params.robot) {
           return;
         }
@@ -602,7 +608,7 @@
               name: 'Program robot model',
               type: 'markerArray',
               options: {
-                topic: '/rapid_pbd/robot/' + db_id,
+                topic: '/rapid_pbd/robot/' + this.scene_id,
               },
             }, {
               isShown: true,
@@ -610,23 +616,23 @@
               type: 'pointCloud2',
               options: {
                 size: 0.01,
-                topic: '/rapid_pbd/scene/' + db_id,
+                topic: '/rapid_pbd/scene/' + this.scene_id,
               },
+              // }, {
+              //   isShown: true,
+              //   name: 'Surface segmentation',
+              //   type: 'markers',
+              //   options: {
+              //     topic: '/rapid_pbd/surface_seg/visualization,
+              //   },
             }, {
               isShown: true,
               name: 'Surface segmentation',
-              type: 'markers',
+              type: 'markerArray',
               options: {
-                topic: '/rapid_pbd/surface_seg/visualization/'// + db_id,
+                topic: '/rapid_pbd/surface_segmentation/' + this.scene_id,
               },
-            }, {/* 
-                                                        isShown: true,
-                                                        name: 'Surface segmentation',
-                                                        type: 'markerArray',
-                                                        options: {
-                                                                topic: '/rapid_pbd/surface_segmentation/' + db_id,
-                                                        },
-                                                }, { */
+            }, {
               isShown: true,
               name: 'Current robot model',
               type: 'urdf',
@@ -886,6 +892,18 @@
           state_name: ''
         };
         this.$.eventPub.publish(msg);
+      },
+
+      _refreshViz: function (evt) {
+        console.debug('_refreshViz: ', );
+        var msg = {
+          type: 'refresh problem',
+          domain_id: this.domain_id,
+          pddl_problem: this.problem
+        };
+        console.debug('_refreshViz: ', this.problem);
+        this.$.eventPub.publish(msg);
+        this.load();
       },
       _detect: function (evt) {
         if (!this.ros) {

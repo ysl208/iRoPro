@@ -174,7 +174,8 @@ class Editor {
                         const std::string planner);
   void RunPDDLPlan(const std::string domain_id,
                    const msgs::PDDLProblem& problem, const std::string planner);
-
+  void RefreshPDDLProblem(const std::string domain_id,
+                          const msgs::PDDLProblem& problem);
   void GetMentalModel(const msgs::PDDLAction& action_op,
                       const pddl_msgs::PDDLStep& action,
                       std::vector<msgs::Landmark>* mental_lms);

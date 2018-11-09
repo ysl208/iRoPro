@@ -111,6 +111,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       SolvePDDLProblem(event.domain_id, event.pddl_problem, event.planner);
     } else if (event.type == msgs::EditorEvent::RUN_PDDL_PLAN) {
       RunPDDLPlan(event.domain_id, event.pddl_problem, event.planner);
+    } else if (event.type == msgs::EditorEvent::REFRESH_PROBLEM) {
+      RefreshPDDLProblem(event.domain_id, event.pddl_problem);
     }
 
     // Condition events
@@ -1436,7 +1438,6 @@ void Editor::DetectWorldState(const std::string& domain_id,
     ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
-
   // look for pddl problem
   int index = FindPDDLProblem(problem_name, domain.problems);
   if (index < 0) {
@@ -1467,6 +1468,10 @@ void Editor::DetectWorldState(const std::string& domain_id,
       new_problem.landmarks.push_back(landmark);
     }
 
+    ROS_INFO("detected %zu landmarks, now publishScene",
+             new_problem.landmarks.size());
+    RefreshPDDLProblem(domain_id, new_problem);
+
     WorldState world_state;
     GetWorldState(new_problem.landmarks, &world_state);
     new_problem.objects = world_state.objects_;
@@ -1483,6 +1488,13 @@ void Editor::DetectWorldState(const std::string& domain_id,
     PrintAllPredicates(world_state.predicates_, "");
     UpdatePDDLProblem(domain_id, new_problem, "");
   }
+}
+
+void Editor::RefreshPDDLProblem(const std::string domain_id,
+                                const msgs::PDDLProblem& problem) {
+  ROS_INFO("RefreshPDDLProblem %zu landmarks, now publishScene",
+           problem.landmarks.size());
+  viz_.PublishScene(problem.scene_id, problem.landmarks, problem.surface);
 }
 
 void Editor::AddPDDLProblem(const std::string& domain_id,
@@ -1659,8 +1671,13 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
   action_clients_->pddl_solver_client.sendGoal(goal);
   success =
       action_clients_->pddl_solver_client.waitForResult(ros::Duration(30));
+  std::string output;
+  output = action_clients_->pddl_solver_client.getState().toString();
+  ROS_INFO("No plan found for problem %s: \n %s", problem.name.c_str(),
+           output.c_str());
   if (!success) {
-    ROS_INFO("No plan found for problem %s", problem.name.c_str());
+    ROS_INFO("No plan found for problem %s: \n %s", problem.name.c_str(),
+             output.c_str());
   }
   pddl_msgs::PDDLPlannerResult::ConstPtr result =
       action_clients_->pddl_solver_client.getResult();
@@ -1668,6 +1685,7 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
            result->data.size());
   ROS_INFO("...with %zu steps", result->sequence.size());
   msgs::PDDLProblem new_problem = problem;
+  new_problem.output = output;
   new_problem.sequence.clear();
   for (size_t i = 0; i < result->sequence.size(); ++i) {
     pddl_msgs::PDDLStep step = result->sequence[i];
@@ -1843,23 +1861,14 @@ void Editor::RunPDDLPlan(const std::string domain_id,
             new_program.steps[s_id].actions[a_id].landmark.name;
 
         // find argument in action that corresponds to the relative lm name
-        // std::cout << "step " << s_id << " action " << a_id
-        //           << " is relative to: " << lm_name
-        //           << ", checking action param: \n ";
         for (size_t z = 0; z < action.params.size(); ++z) {
           std::cout << action.params[z].name << "...";
 
           if (lm_name == action.params[z].name) {
-            // std::cout << " matched ! \n";
             // find landmark object in list of detected landmarks in problem
             for (size_t l = 0; l < mental_lms.size(); ++l) {
               msgs::Landmark match = mental_lms[l];
               if (strcasecmp(match.name.c_str(), step.args[z].c_str()) == 0) {
-                // std::cout << "step param: matched ! " << match.name << "
-                // with
-                // "
-                //           << step.args[z] << "\n";
-
                 // if the new object is larger, then need to adjust the
                 // gripper position relative to object (as it is relative to
                 // its center)

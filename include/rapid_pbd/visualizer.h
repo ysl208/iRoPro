@@ -44,6 +44,9 @@ class Visualizer {
 
   // Publish the visualization for a particular step.
   void Publish(const std::string& program_id, const World& world);
+  void PublishScene(const std::string& scene_id,
+                    const std::vector<msgs::Landmark>& surface_box_landmarks,
+                    const msgs::Surface& surface);
   void PublishConditionMarkers(const std::string& program_id,
                                const World& world,
                                const msgs::Condition& condition);
