@@ -61,7 +61,7 @@
       }
 
       .stepDiv {
-        min-width: 450px;
+        min-width: 550px;
         margin-bottom: 10px;
         /*overflow-y: auto;*/
         padding-left: 2px;
@@ -72,7 +72,7 @@
 
       #rviz {
         display: block;
-        height: 500px;
+        min-height: 500px;
       }
 
       fieldset>p {
@@ -99,7 +99,7 @@
         color: steelblue;
       }
 
-      @media (min-width: 768px) {
+      @media (min-width: 468px) {
         #layout {
           height: 100%;
         }
@@ -108,15 +108,15 @@
           @apply(--layout-flex);
         }
         .stepDiv {
-          width: 450px;
+          min-width: 500px;
           max-height: 100%;
           margin-bottom: 0px;
           margin-right: 10px;
           /*padding: 2%;*/
         }
         #rviz {
-          height: 350px;
-          width: 350px;
+          min-height: 350px;
+          max-width: 800px;
           @apply(--layout-flex);
         }
         .button_not {
