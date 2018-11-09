@@ -171,7 +171,7 @@
         </iron-selector>
         <!-- <paper-button class="condition" id="Post" hidden$="[[!submitted]]" on-tap="selectCondition">Post</paper-button> -->
         <paper-button class="add important" on-tap="addStep">+ Add Step</paper-button>
-        <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
+        <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="running">
           <iron-icon icon="av:play-arrow"></iron-icon>
           Run
         </paper-button>
@@ -192,6 +192,14 @@
       </div>
     </div>
 
+    <paper-dialog modal id="running">
+      <h2>Run program from current step [[currentStepNum]] ?</h2>
+      <p></p>
+      <div>
+        <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+        <paper-button dialog-confirm raised on-tap="run">Run</paper-button>
+      </div>
+    </paper-dialog>
     <paper-dialog id="errorDialog" modal>
       <h2>Error running the program</h2>
       <p>[[error]]</p>
@@ -403,10 +411,6 @@
         this._conditionCheck(1);
       },
 
-      _wait: function () {
-
-      },
-
       run: function () {
         // Run main program (without Sense action)
         // console.debug('run: main steps...', mainProgram);
@@ -417,6 +421,8 @@
         var goal = {
           program: this.program
         }
+        goal.program.steps.splice(0, this.currentStepNum);
+        console.debug('*** send goal to run: ', goal);
         this.$.programAction.send(goal);
 
         // Check postconditions
@@ -671,8 +677,10 @@
         console.log("currentCondition " + this.currentCondition);
       },
 
+      running: function (evt) {
+        this.$.running.open();
+      },
       _isSenseStep: function (index) {
-
         return index < 3;
       }
     });
