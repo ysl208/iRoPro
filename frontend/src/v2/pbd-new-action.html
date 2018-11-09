@@ -946,6 +946,19 @@
                 return "?";
 
             },
+            _getObjects: function (item) {
+                var names = [];
+                console.debug('_getObjects: action params: ', this.action.params);
+                // for (var i = 0; i < this.action.landmarks.length; ++i) {
+                //     if (this.action.params.length > 0) {
+                //         let pddlObj = Object.assign({}, this.action.params[0]);
+                //         pddlObj.name = this.action.landmarks[i].name;
+                //         names.push(pddlObj);
+                //     }
+                // }
+                return (names);
+            },
+
             _getTypes: function (item) {
                 var names = [];
                 // console.debug('_getTypes: ', item);
@@ -990,7 +1003,7 @@
                     this.reevaluateArray('action.effects', this.action.effects);
 
                     // regenerate params:
-                    this._generateParams();
+                    //this._generateParams();
                 }
             },
             _getPredicateDiff: function (list1, list2) {
