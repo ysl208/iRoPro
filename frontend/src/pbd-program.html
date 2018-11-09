@@ -171,7 +171,7 @@
         </iron-selector>
         <!-- <paper-button class="condition" id="Post" hidden$="[[!submitted]]" on-tap="selectCondition">Post</paper-button> -->
         <paper-button class="add important" on-tap="addStep">+ Add Step</paper-button>
-        <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="running">
+        <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
           <iron-icon icon="av:play-arrow"></iron-icon>
           Run
         </paper-button>
@@ -193,7 +193,7 @@
     </div>
 
     <paper-dialog modal id="running">
-      <h2>Run program from current step [[currentStepNum]] ?</h2>
+      <h2>Run program?</h2>
       <p></p>
       <div>
         <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
@@ -421,7 +421,7 @@
         var goal = {
           program: this.program
         }
-        goal.program.steps.splice(0, this.currentStepNum);
+        //goal.program.steps.splice(0, this.currentStepNum);
         console.debug('*** send goal to run: ', goal);
         this.$.programAction.send(goal);
 
