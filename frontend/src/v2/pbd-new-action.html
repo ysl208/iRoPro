@@ -794,12 +794,16 @@
                         pddl_action: this.action
                     };
 
+                    // regenerate params:
+                    this._generateParams();
+
                     console.debug('Saving ', this.domain, " with name ", this.domain_id);
                     console.debug('Saving ', this.action, " with name ", this.actionName);
                     this.$.eventPub.publish(msg);
                     if (this.actionName != this.action.name)
                         this.quit();
                 }
+
             },
             saving: function (evt) {
                 this.$.saving.open();
@@ -960,6 +964,15 @@
             _printItem: function (evt) {
                 console.debug("_print: ", evt.target.name);
             },
+
+            _generateParams: function () {
+                var predList = this.action.preconditions.concat(this.action.effects)
+                var parms = this._getParams(predList);
+                console.debug(typeof parms, typeof this.action.params);
+                console.debug('parms:', parms);
+                this.action.params = parms;
+                this.reevaluateArray('action.params', this.action.params);
+            },
             _generateConditions: function () {
                 // check preconditions and effects are there
                 if (this.action.preconditions.length == 0) {
@@ -975,15 +988,10 @@
                     this._addNegations(this.action.preconditions, this.action.effects);
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
                     this.reevaluateArray('action.effects', this.action.effects);
-                    var predList = this.action.preconditions.concat(this.action.effects)
-                    var parms = this._getParams(predList);
-                    console.debug(typeof parms, typeof this.action.params);
-                    console.debug('parms:', parms);
-                    this.action.params = parms;
-                    this.reevaluateArray('action.params', this.action.params);
+
+                    // regenerate params:
+                    this._generateParams();
                 }
-
-
             },
             _getPredicateDiff: function (list1, list2) {
                 // removes predicates which are in both lists
