@@ -394,7 +394,7 @@
                   <tr>
                     <div id="listSteps">
                       <td>
-                        Action [[stepIndex]]:
+                        <b>Action [[stepIndex]]:</b>
                       </td>
                       <td>[[_parseArgs(item)]]</td>
                       <td>
@@ -406,6 +406,48 @@
                   </tr>
                 </template>
               </table>
+              <!-- Add new action to plan manually -->
+              <div>
+                <paper-dropdown-menu id="menu_instance1_goal_state" label="Action">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="name">
+                    <template is="dom-repeat" items="[[domain.actions]]">
+                      <paper-item name="[[item]]" on-tap="_updatePlanStep" data-args="action">
+                        [[item.name]]
+                      </paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <!-- Action parameters -->
+                <paper-dropdown-menu id="menu_instance1_goal_state" label="Arg 1">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="name">
+                    <template is="dom-repeat" items="[[problem.objects]]">
+                      <paper-item name="[[item]]" on-tap="_updatePlanStep" data-args="arg1">
+                        [[item.name]]
+                      </paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-dropdown-menu id="menu_instance1_goal_state" label="Arg 2">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="name">
+                    <template is="dom-repeat" items="[[problem.objects]]">
+                      <paper-item name="[[item]]" on-tap="_updatePlanStep" data-args="arg2">
+                        [[item.name]]
+                      </paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-dropdown-menu id="menu_instance1_goal_state" label="Arg 3">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="name">
+                    <template is="dom-repeat" items="[[problem.objects]]">
+                      <paper-item name="[[item]]" on-tap="_updatePlanStep" data-args="arg3">
+                        [[item.name]]
+                      </paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+              </div>
+              <br>
+              <paper-button noink class="petit" on-click="addPlanStep" data-args="addPlanStep">+ add action step</paper-button>
 
               <paper-button id="execute" raised class="clear" on-tap="_execute">
                 Execute plan
@@ -498,10 +540,17 @@
           type: Object,
           value: function () {
             return {
-              arg1: Object,
-              name: '',
-              arg2: Object,
-              negate: false,
+              action: '',
+              args: [],
+            };
+          }
+        },
+        newPlanStep: {
+          type: Object,
+          value: function () {
+            return {
+              action: '',
+              args: ['', '', '']
             };
           }
         },
@@ -759,6 +808,36 @@
         }
         return { valid: valide, msg: msgErreur };
       },
+
+      deletePlanStep: function (evt) {
+        var item = evt.model.item;
+        console.debug('deletePlanStep', item);
+        var index = -1;
+        index = this.problem.sequence.indexOf(item);
+        if (index != -1) {
+          this.splice('problem.sequence', index, 1);
+          this.reevaluateArray('problem.sequence', this.problem.sequence);
+          console.debug('deleted action ', index, ' from solution sequence');
+        }
+      },
+      _updatePlanStep: function (evt) {
+        var args = evt.target.getAttribute('data-args');
+        if (args == "action")
+          this.set("newPlanStep.action", evt.target.name.name);
+        if (args == "arg1")
+          this.newPlanStep.args[0] = evt.target.name.name;
+        if (args == "arg2")
+          this.newPlanStep.args[1] = evt.target.name.name;
+        if (args == "arg3")
+          this.newPlanStep.args[2] = evt.target.name.name;
+        console.debug(args, ' is ', this.newPlanStep);
+      },
+      addPlanStep: function (evt) {
+        this.problem.sequence.push(this.newPlanStep);
+        this.reevaluateArray('problem.sequence', this.problem.sequence);
+        console.debug('added action to solution sequence:', this.problem.sequence);
+
+      },
       addPredicate: function (evt) {
         var condition = evt.target.getAttribute('data-args');
         if (condition == "InitialState") {
@@ -806,18 +885,6 @@
             this.reevaluateArray('problem.goal_states', this.problem.goal_states);
             console.debug('deletePred from eff');
           }
-        }
-      },
-
-      deletePlanStep: function (evt) {
-        var item = evt.model.item;
-        console.debug('deletePlanStep', item);
-        var index = -1;
-        index = this.problem.sequence.indexOf(item);
-        if (index != -1) {
-          this.splice('problem.sequence', index, 1);
-          this.reevaluateArray('problem.sequence', this.problem.sequence);
-          console.debug('deleted action ', index, ' from solution sequence');
         }
       },
 
@@ -963,12 +1030,12 @@
       },
       _parseArgs: function (step) {
         // translates string array to "english"
+        var phrase = step.action.toLowerCase() + ": ";
         console.debug("_parseArgs: ", step);
-        if (step.args.length == 0) return step.action;
-        if (step.args.length == 1) return this.format(step.args[0]) + " " + (step.action);
-        if (step.args.length == 2) return (step.action) + " " + this.format(step.args[0]) + " to " + this.format(step.args[1]);
-        if (step.args.length == 3) return (step.action) + " " + this.format(step.args[0]) + " from " + this.format(step.args[1]) + " to " + this.format(step.args[2]);
-        return (step.action) + "(" + step.args.join() + ")";
+        for (var i = 0; i < step.args.length; ++i) {
+          phrase += this.format(step.args[i]) + ", ";
+        }
+        return phrase.substring(0, phrase.length - 1);
       },
       _displayNavStep: function (navStep, name) {
         return (navStep == name);
