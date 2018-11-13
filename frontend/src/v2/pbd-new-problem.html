@@ -408,7 +408,7 @@
               </table>
               <!-- Add new action to plan manually -->
               <div>
-                <paper-dropdown-menu id="menu_instance1_goal_state" label="Action">
+                <paper-dropdown-menu id="menu_plan_step_action" label="Action">
                   <paper-listbox slot="dropdown-content" attr-for-selected="name">
                     <template is="dom-repeat" items="[[domain.actions]]">
                       <paper-item name="[[item]]" on-tap="_updatePlanStep" data-args="action">
@@ -418,7 +418,7 @@
                   </paper-listbox>
                 </paper-dropdown-menu>
                 <!-- Action parameters -->
-                <paper-dropdown-menu id="menu_instance1_goal_state" label="Arg 1">
+                <paper-dropdown-menu id="menu_plan_step_arg1" label="Arg 1">
                   <paper-listbox slot="dropdown-content" attr-for-selected="name">
                     <template is="dom-repeat" items="[[problem.objects]]">
                       <paper-item name="[[item]]" on-tap="_updatePlanStep" data-args="arg1">
@@ -427,7 +427,7 @@
                     </template>
                   </paper-listbox>
                 </paper-dropdown-menu>
-                <paper-dropdown-menu id="menu_instance1_goal_state" label="Arg 2">
+                <paper-dropdown-menu id="menu_plan_step_arg2" label="Arg 2">
                   <paper-listbox slot="dropdown-content" attr-for-selected="name">
                     <template is="dom-repeat" items="[[problem.objects]]">
                       <paper-item name="[[item]]" on-tap="_updatePlanStep" data-args="arg2">
@@ -436,7 +436,7 @@
                     </template>
                   </paper-listbox>
                 </paper-dropdown-menu>
-                <paper-dropdown-menu id="menu_instance1_goal_state" label="Arg 3">
+                <paper-dropdown-menu id="menu_plan_step_arg3" label="Arg 3">
                   <paper-listbox slot="dropdown-content" attr-for-selected="name">
                     <template is="dom-repeat" items="[[problem.objects]]">
                       <paper-item name="[[item]]" on-tap="_updatePlanStep" data-args="arg3">
