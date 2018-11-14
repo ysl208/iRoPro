@@ -53,9 +53,9 @@
       <!-- <paper-button class="delete" hidden$="[[isSenseStep(index)]]" on-tap="_maybeDeleteStep">DEL</paper-button> -->
       <paper-icon-button icon="delete" hidden$="[[isSenseStep(index)]]" on-tap="_maybeDeleteStep"></paper-icon-button>
     </div>
-    <div>
+    <!-- <div>
       <p>[[_description(index)]]</p>
-    </div>
+    </div> -->
     <iron-collapse id="specPicker">
       <pbd-spec-picker class="dropdown-content" index="[[index]]" landmarks="[[landmarks]]" params="[[params]]" program="[[program]]"
         ros="[[ros]]" on-iron-select="_selectSpec" on-iron-deselect="closeSpecPicker"></pbd-spec-picker>
