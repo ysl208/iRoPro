@@ -228,22 +228,22 @@ void BaxterRobotConfig::default_gripper_poses(
     std::vector<double>* poses) const {
   poses->clear();
   // left arm ori=x,y,z,w, pos=x,y,z
-  poses->push_back(0.351);
-  poses->push_back(0.739);
-  poses->push_back(0.127);
-  poses->push_back(-0.009);
-  poses->push_back(-0.472);
-  poses->push_back(0.881);
-  poses->push_back(0.021);
+  poses->push_back(0.602);
+  poses->push_back(0.761);
+  poses->push_back(0.107);
+  poses->push_back(-0.255);
+  poses->push_back(0.966);
+  poses->push_back(0.000);
+  poses->push_back(0.023);
 
   // right arm ori=x,y,z,w, pos=x,y,z
-  poses->push_back(0.4350);
-  poses->push_back(-0.6660);
-  poses->push_back(0.2020);
-  poses->push_back(0.0150);
-  poses->push_back(0.2680);
-  poses->push_back(0.9570);
-  poses->push_back(-0.1050);
+  poses->push_back(0.666);
+  poses->push_back(-0.747);
+  poses->push_back(0.180);
+  poses->push_back(0.302);
+  poses->push_back(0.953);
+  poses->push_back(0.000);
+  poses->push_back(0.016);
 }
 void BaxterRobotConfig::joints_for_group(
     const std::string& actuator_group,
