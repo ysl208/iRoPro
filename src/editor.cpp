@@ -80,6 +80,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       SaveOnExit(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::SELECT_PDDL_DOMAIN) {
       SelectPDDLDomain(event.domain_id);
+    } else if (event.type == msgs::EditorEvent::DELETE_PDDL_DOMAIN) {
+      DeletePDDLDomain(event.domain_id);
     } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_DOMAIN) {
       UpdatePDDLDomain(event.domain_id, event.pddl_domain);
     } else if (event.type == msgs::EditorEvent::DETECT_ACTION_CONDITIONS) {
@@ -832,14 +834,14 @@ geometry_msgs::Vector3 Editor::QuaternionToRPY(
   // the tf::Quaternion has a method to access roll pitch and yaw
   double roll, pitch, yaw;
   tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-  ROS_INFO("quaternion: %.2f,%.2f,%.2f,%.2f", msg.w, msg.x, msg.y, msg.z);
+  ROS_INFO("quaternion: %.3f,%.3f,%.3f,%.3f", msg.w, msg.x, msg.y, msg.z);
   // the found angles are written in a geometry_msgs::Vector3
   geometry_msgs::Vector3 rpy;
   rpy.x = roll * 180.0 / M_PI;
   rpy.y = pitch * 180.0 / M_PI;
   rpy.z = yaw * 180.0 / M_PI;
 
-  ROS_INFO("euler: %.2f,%.2f,%.2f", rpy.x, rpy.y, rpy.z);
+  ROS_INFO("euler: %.3f,%.3f,%.3f", rpy.x, rpy.y, rpy.z);
   return rpy;
 }
 
@@ -1241,6 +1243,25 @@ void Editor::UpdatePDDLDomain(const std::string& domain_id,
   pddl_domain_.PublishPDDLDomain(domain);
 }
 
+void Editor::DeletePDDLDomain(const std::string& domain_id) {
+  msgs::PDDLDomain domain;
+  bool success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to delete domain for \"%s\"", domain_id.c_str());
+    return;
+  }
+  for (size_t i = 0; i < domain.actions.size(); ++i) {
+    DeletePDDLAction(domain_id, domain.actions[i].name);
+  }
+  for (size_t i = 0; i < domain.problems.size(); ++i) {
+    DeletePDDLProblem(domain_id, domain.problems[i].name);
+  }
+  // pddl_domain_.PublishPDDLDomain(domain);
+  // domain_db_.StartPublishingPDDLDomainById(domain_id);
+
+  domain_db_.Delete(domain_id);
+}
+
 void Editor::DetectActionConditions(const std::string& domain_id,
                                     const std::string& action_name,
                                     const std::string& state_name) {
@@ -1288,13 +1309,14 @@ void Editor::DetectActionConditions(const std::string& domain_id,
     // new_action.scene_id = result->cloud_db_id;
     // new_action.surface = result->surface;
     // ROS_INFO("Saved action scene_id '%s'", new_action.scene_id.c_str());
-    // // save landmarks to PDDL action
-    // new_action.landmarks.clear();
-    // for (size_t i = 0; i < result->landmarks.size(); ++i) {
-    //   msgs::Landmark landmark;
-    //   ProcessSurfaceBox(result->landmarks[i], &landmark);
-    //   new_action.landmarks.push_back(landmark);
-    // }
+
+    // save landmarks to PDDL action
+    new_action.landmarks.clear();
+    for (size_t i = 0; i < program.steps[1].landmarks.size(); ++i) {
+      msgs::Landmark landmark;
+      ProcessSurfaceBox(program.steps[1].landmarks[i], &landmark);
+      new_action.landmarks.push_back(landmark);
+    }
 
     WorldState world_state;
     GetWorldState(program.steps[step_id].landmarks, &world_state);
@@ -1552,13 +1574,13 @@ void Editor::DeletePDDLProblem(const std::string& domain_id,
     ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
     return;
   }
-  msgs::PDDLProblem problem;
+
   int index = FindPDDLProblem(problem_name, domain.problems);
   if (index < 0) {
     ROS_ERROR("Unable to find pddl problem %s for domain %s",
               problem_name.c_str(), domain_id.c_str());
-  } else {
   }
+  DeleteScene(domain.problems[index].scene_id);
   domain.problems.erase(domain.problems.begin() + index);
 
   UpdatePDDLDomain(domain_id, domain);
@@ -1705,8 +1727,8 @@ void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
   // - find obj in instantiated action params
   // - check if there is x s.t. is_on(b,x)
   // - else set a.pose = b.pose + b.dims.z
-  ROS_INFO("GetMentalModel: checking %zu params out of %zu lms ",
-           action.args.size(), mental_lms->size());
+  ROS_INFO("GetMentalModel: for %s: checking %zu params out of %zu lms ",
+           action.action.c_str(), action.args.size(), mental_lms->size());
   for (size_t i = 0; i < action_op.effects.size(); ++i) {
     msgs::PDDLPredicate pred = action_op.effects[i];
     std::string obj_name, pos_name;
@@ -1715,12 +1737,13 @@ void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
       for (size_t j = 0; j < action_op.params.size(); ++j) {
         if (action_op.params[j].name == pred.arg1.name) {
           obj_name = action.args[j];
-          ROS_INFO("found instantiated obj %s at param index %zu",
-                   obj_name.c_str(), j);
+          ROS_INFO(
+              "found instantiated obj %s at param index %zu of the operator",
+              obj_name.c_str(), j);
         } else if (action_op.params[j].name == pred.arg2.name) {
           pos_name = action.args[j];
           ROS_INFO("found instantiated pos %s at param index %zu",
-                   obj_name.c_str(), j);
+                   pos_name.c_str(), j);
         }
       }
       // TO DO: if more objects change positions, then need to keep a stack of
@@ -1754,20 +1777,25 @@ void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
       //   }
       msgs::Landmark mental_obj, mental_pos;
       // ROS_INFO("...is object ");
+      // find object to place and target position
       size_t obj_index, pos_index;
       if (FindLandmarkByName(obj_name, *mental_lms, &mental_obj, &obj_index) &&
           FindLandmarkByName(pos_name, *mental_lms, &mental_pos, &pos_index)) {
         ROS_INFO("Both params found in landmarks");
-        ROS_INFO("%s : Old pose of obj (%.2f,%.2f,%.2f) ", obj_name.c_str(),
+        ROS_INFO("%s : Old pose of obj with height %.3f  was (%.3f,%.3f,%.3f) ",
+                 obj_name.c_str(), mental_obj.surface_box_dims.z,
                  mental_lms->at(obj_index).pose_stamped.pose.position.x,
                  mental_lms->at(obj_index).pose_stamped.pose.position.y,
                  mental_lms->at(obj_index).pose_stamped.pose.position.z);
         // update pose of obj_name to pos_name+pos_name.dims.z
         mental_obj.pose_stamped = mental_pos.pose_stamped;
+        if (mental_obj.surface_box_dims.z <= 0)
+          ROS_ERROR("dimensions are negative! %.3f",
+                    mental_obj.surface_box_dims.z);
         mental_obj.pose_stamped.pose.position.z +=
-            mental_pos.surface_box_dims.z;
+            fabs(mental_obj.surface_box_dims.z * 0.75);
         mental_lms->at(obj_index) = mental_obj;
-        ROS_INFO("New pose is (%.2f,%.2f,%.2f) ",
+        ROS_INFO("New pose is (%.3f,%.3f,%.3f) ",
                  mental_lms->at(obj_index).pose_stamped.pose.position.x,
                  mental_lms->at(obj_index).pose_stamped.pose.position.y,
                  mental_lms->at(obj_index).pose_stamped.pose.position.z);
@@ -1923,7 +1951,7 @@ void Editor::RunPDDLPlan(const std::string domain_id,
 
                 ROS_INFO(
                     "Updated step/action %d/%d: \n landmark %s with dims "
-                    "(%.2f,%.2f,%.2f) and pose (%.2f,%.2f,%.2f)",
+                    "(%.3f,%.3f,%.3f) and pose (%.3f,%.3f,%.3f)",
                     s_id, a_id, lm_name.c_str(),
                     new_program.steps[s_id]
                         .actions[a_id]
@@ -2122,8 +2150,8 @@ void Editor::GetPose(const std::string& db_id, size_t step_id, size_t action_id,
   // new landmark frame.
 
   ROS_INFO(
-      "Saved landmark is: %s (%.2f, %.2f, %.2f) vs new landmark %s (%.2f, "
-      "%.2f, %.2f)",
+      "Saved landmark is: %s (%.3f, %.3f, %.3f) vs new landmark %s (%.3f, "
+      "%.3f, %.3f)",
       action->landmark.name.c_str(), action->landmark.surface_box_dims.x,
       action->landmark.surface_box_dims.y, action->landmark.surface_box_dims.z,
       landmark.name.c_str(), landmark.surface_box_dims.x,
@@ -2322,7 +2350,7 @@ void Editor::ReinterpretPose(const msgs::Landmark& new_landmark,
     return;
   }
 
-  ROS_INFO("Landmark has dimensions %.2f, %.2f, %.2f",
+  ROS_INFO("Landmark has dimensions %.3f, %.3f, %.3f",
            action->landmark.surface_box_dims.x,
            action->landmark.surface_box_dims.y,
            action->landmark.surface_box_dims.z);

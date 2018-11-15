@@ -62,19 +62,25 @@
 
         <div class="paper-material">
             <template is="dom-if" restamp if="[[!_showActionProperties]]">
-                <template is="dom-repeat" items="{{domainList}}" as="item" index-as="domainIndex" selected="{{pddlDomain}}">
-                    <div class="listeDomain">
-                        Choose domain:
-                        <paper-dropdown-menu>
-                            <paper-listbox slot="dropdown-content" attr-for-selected="name">
-                                <template is="dom-repeat" items="{{domainList.domains}}" as="item" index-as="typeIndex">
-                                    <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item.domain_id]]">[[item.name]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                        <paper-button id="createButton" class="important" raised on-tap="_handleCreate">+ Create new domain</paper-button>
-                    </div>
-                </template>
+                <!-- <template is="dom-repeat" items="{{domainList}}" as="item" index-as="domainIndex"> -->
+                <p>Current domain: [[pddlDomain.name]]</p>
+                <div class="listeDomain">
+                    Choose domain:
+                    <paper-dropdown-menu>
+                        <paper-listbox slot="dropdown-content" attr-for-selected="name">
+                            <template is="dom-repeat" items="{{sortByName(domainList.domains)}}" as="item" index-as="typeIndex" selected="[[domain_id]]">
+                                <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item.domain_id]]">[[item.name]]</paper-item>
+                            </template>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                    <paper-button id="deleteButton" class="clear" raised on-tap="_maybeDeleteDomain">
+                        Delete domain
+                    </paper-button>
+                    <paper-button id="createButton" class="important" raised on-tap="_handleCreate">
+                        + Create new domain
+                    </paper-button>
+                </div>
+                <!-- </template> -->
                 <table>
                     <tr>
                         <th>Programmed actions</th>
@@ -122,8 +128,15 @@
             </template>
         </div>
 
+        <paper-dialog id="deleteDomainDialog" modal>
+            <h2>Are you sure you want to delete '[[pddlDomain.name]]'?</h2>
+            <div class="deleteButtons">
+                <paper-button class="clear" dialog-dismiss>Cancel</paper-button>
+                <paper-button dialog-confirm on-tap="_deleteDomain" class="delete">Delete</paper-button>
+            </div>
+        </paper-dialog>
         <paper-dialog id="deleteDialog" modal>
-            <h2>Delete action?</h2>
+            <h2>Are you sure you want to delete Action '[[_actionToDelete]]'?</h2>
             <div class="deleteButtons">
                 <paper-button class="clear" dialog-dismiss>Cancel</paper-button>
                 <paper-button dialog-confirm on-tap="_handleDelete" class="delete">Delete</paper-button>
@@ -148,6 +161,21 @@
                     }
                 },
                 domain_id: String,
+                currentDomain: {
+                    type: Object,
+                    observer: '_domainChanged',
+                    value: function () {
+                        return {
+                            domain_id: String,
+                            name: String
+                        };
+                    }
+                },
+                domain_name: {
+                    type: String,
+                    value: "Domain1",
+                    //observer: '_domainNameChanged',
+                },
                 pddlDomain: {
                     type: Object,
                     value: function () {
@@ -161,9 +189,13 @@
                 'load(pddlDomain.*,domainList.*)',
                 '_domainUpdated(pddlDomain.*)',
                 '_domainIDchanged(domain_id)',
+                '_domainChanged(domain_id)',
             ],
             _domainIDchanged(newID) {
                 console.log("domain id changed to ", newID);
+            },
+            _domainChanged(newID) {
+                console.log("domain name changed to ", newID);
             },
             quitNewAction: function (e) {
                 this._showActionProperties = false;
@@ -178,6 +210,10 @@
                     this.actions = changedDomain.value.actions;
                     this.pddlDomain = changedDomain.value;
                 }
+            },
+            _maybeDeleteDomain: function (evt) {
+                this.$.deleteDomainDialog.open();
+                console.debug("maybeDelDomain", this.pddlDomain.name);
             },
             _maybeDelete: function (evt) {
                 var action_name = evt.model.get('action.name');
@@ -274,10 +310,30 @@
                 this.$.eventPub.publish(msg);
             },
 
-            _selectDomain: function (evt) {
+            sortByName: function (arr) {
+                if (!arr) return [];
+                arr.sort(function (a, b) {
+                    if (a.name < b.name) return -1;
+                    if (a.name > b.name) return 1;
+                    return 0;
+                });
+                return arr;
+            },
 
+            _deleteDomain: function (evt) {
+                console.log('delete domain: ', this.pddlDomain, this.domain_id);
+                var msg = {
+                    type: 'delete pddl domain',
+                    domain_id: this.domain_id
+                };
+                this.$.eventPub.publish(msg);
+
+                this.domain_id = undefined;
+            },
+            _selectDomain: function (evt) {
                 this.domain_id = evt.target.name.domain_id;
-                console.log('select domain: ', this.domain_id);
+                this.domain_name = evt.target.name.name;
+                console.log('select domain: ', this.pddlDomain, this.domain_id);
                 var msg = {
                     type: 'select pddl domain',
                     domain_id: this.domain_id

@@ -139,6 +139,7 @@ class Editor {
   void UpdatePDDLDomain(const std::string& domain_id,
                         const msgs::PDDLDomain& domain);
   void SelectPDDLDomain(const std::string& domain_id);
+  void DeletePDDLDomain(const std::string& domain_id);
   void DetectActionConditions(const std::string& domain_id,
                               const std::string& action_name,
                               const std::string& state_name);

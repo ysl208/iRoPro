@@ -60,6 +60,7 @@
 
         <div class="paper-material">
             <template is="dom-if" restamp if="[[!_showProblemProperties]]">
+                <p>Current domain: [[pddlDomain.name]]</p>
                 <template is="dom-repeat" items="{{domainList}}" as="item" index-as="domainIndex" selected="{{pddlDomain}}">
                     <div class="listeDomain">
                         Choose domain:
