@@ -13,6 +13,7 @@
 #include "rapid_pbd_msgs/Landmark.h"
 #include "rapid_pbd_msgs/Program.h"
 #include "rapid_pbd_msgs/Step.h"
+#include "std_msgs/String.h"
 #include "transform_graph/graph.h"
 
 #include "rapid_pbd/landmarks.h"
@@ -52,8 +53,8 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
     type.dimensions.y = obj_dims[1];
     type.dimensions.z = obj_dims[2];
 
-    ROS_INFO("Added type %s with parent %s", type.name.c_str(),
-             type.parent.c_str());
+    // ROS_INFO("Added type %s with parent %s", type.name.c_str(),
+    //          type.parent.c_str());
     AddType(&domain->types, type);
   }
 
@@ -84,16 +85,18 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   ROS_INFO("# Predicates now: %zd", domain->predicates.size());
 }
 
-void PDDLDomain::PublishPDDLDomain(const msgs::PDDLDomain& domain) {
-  ROS_INFO("Publish PDDL Domain..");
-  domain_ = domain;
-  pddl_domain_pub_.publish(domain);
+void PDDLDomain::PublishPDDLDomain(const std::string domain_id) {
+  // ROS_INFO("Publish PDDL Domain..%s", domain_id.c_str());
+  std_msgs::String msg;
+
+  msg.data = domain_id.c_str();
+  pddl_domain_pub_.publish(msg);
 }
 void AddType(std::vector<msgs::PDDLType>* types,
              const msgs::PDDLType& new_type) {
   // if (find(types->begin(), types->end(), new_type) != types->end()) {
   types->push_back(new_type);
-  ROS_INFO("Added type #%zd: %s", types->size(), new_type.name.c_str());
+  // ROS_INFO("Added type #%zd: %s", types->size(), new_type.name.c_str());
   // } else {
   //  ROS_INFO("%s already exists", new_type.name.c_str());
   //}
@@ -238,8 +241,9 @@ void AddPredicate(std::vector<msgs::PDDLPredicate>* predicates,
   }
   if (!PredicateExists(predicates, name, args)) {
     predicates->push_back(new_pred);
-    ROS_INFO("Added predicate #%zd: %s(%s)", predicates->size(), name.c_str(),
-             args[0].name.c_str());
+    // ROS_INFO("Added predicate #%zd: %s(%s)", predicates->size(),
+    // name.c_str(),
+    //          args[0].name.c_str());
   } else {
     ROS_INFO("Predicate %s(%s) already exists", name.c_str(),
              args[0].name.c_str());
@@ -322,7 +326,7 @@ void GetTypeFromDims(const geometry_msgs::Vector3& init_dims,
   s.push_back(init_dims.y);
   s.push_back(init_dims.z);
   std::sort(s.begin(), s.end(), wayToSort);
-  ROS_INFO("GetTypeFromDims: Obj with dims (%f,%f,%f)", s[0], s[1], s[2]);
+  // ROS_INFO("GetTypeFromDims: Obj with dims (%f,%f,%f)", s[0], s[1], s[2]);
   // get names of different objects, then iterate through them to get their
   // dimensions and compare to given dims
   std::vector<std::string> name_list;
@@ -345,9 +349,9 @@ void GetTypeFromDims(const geometry_msgs::Vector3& init_dims,
     double dy = obj_dims[1] - s[1];
     double dz = obj_dims[2] - s[2];
     double squared_distance = dx * dx + dy * dy + dz * dz;
-    std::cout << ss.str();
-    ROS_INFO("squared distance to sum(%f,%f,%f) = %f", dx, dy, dz,
-             squared_distance);
+    // std::cout << ss.str();
+    // ROS_INFO("squared distance to sum(%f,%f,%f) = %f", dx, dy, dz,
+    //          squared_distance);
     if (obj_dims[2] > 0.005 && squared_distance < closest_distance) {
       closest_distance = squared_distance;
       obj_type->name = ss.str();
@@ -364,7 +368,7 @@ void GetTypeFromDims(const geometry_msgs::Vector3& init_dims,
     obj_type->dimensions.z = 0.001;
     obj_type->parent = msgs::PDDLType::ENTITY;
   }
-  ROS_INFO("Assigned type '%s'", obj_type->name.c_str());
+  // ROS_INFO("Assigned type '%s'", obj_type->name.c_str());
   //  with dims (%f,%f,%f)",
   //          obj_type->dimensions.x, obj_type->dimensions.y,
   //          obj_type->dimensions.z);

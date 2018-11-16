@@ -185,9 +185,10 @@
         <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_program"
             ros="[[ros]]" service-type="rapid_pbd_msgs/CreateProgram"></ros-service>
         <!-- PDDL -->
-        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
-        <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
+        <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/domain/{{domain_id}}"
             ros="[[ros]]"></ros-topic>
+        <ros-topic auto last-message="{{domain_msg}}" msg-type="std_msgs/String" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+
         <header>
             <paper-input id="actionName" label="Action name" value="{{actionName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
             <nav>
@@ -204,7 +205,7 @@
                 <!-- </a> -->
                 <paper-button class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]"
                     data-args="actionModel">
-                    3. Action Model
+                    3. Conditions
                 </paper-button>
             </nav>
             <div id="buttonDiv">
@@ -224,11 +225,20 @@
 
             <paper-dialog modal id="saving">
                 <h2>Save current action ?</h2>
-                <p>If action name changed, please reopen action after save.</p>
+                <p>If action name changed, action will be closed on save.</p>
                 <div>
                     <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
                     <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
                 </div>
+            </paper-dialog>
+
+            <!-- <paper-dialog modal id="saved">
+                <h2>Saved action: [[_getAction(action)]]</h2>
+                <p>Quit?</p>
+                <div>
+                    <paper-button dialog-dismiss raised class="cancel">Stay</paper-button>
+                    <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
+                </div> -->
             </paper-dialog>
             <paper-dialog modal id="exiting">
                 <h2>Quit current action ?</h2>
@@ -256,7 +266,7 @@
                             <legend>
                                 Detected World Instances
                             </legend>
-                            <p>Verify all objects have been detected before proceeding.</p>
+                            <!-- <p>Verify all objects have been detected before proceeding.</p> -->
                             <p id="noObj">No objects detected</p>
 
                             <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
@@ -274,12 +284,12 @@
                             </template>
 
                             <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
-                                Detect World Objects
+                                Detect World Instances
                             </paper-button>
 
-                            <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="demonstration">
+                            <!-- <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="demonstration">
                                 Next
-                            </paper-button>
+                            </paper-button> -->
                         </fieldset>
                     </div>
 
@@ -339,7 +349,7 @@
                                 </paper-dropdown-menu>
                             </div>
                             <br>
-                            <paper-button noink class="petit" on-click="addPredicate" data-args="Precondition">+ add new predicate</paper-button>
+                            <paper-button noink class="petit" on-click="addPredicate" data-args="Precondition">+ add new condition</paper-button>
                         </fieldset>
 
                         <fieldset>
@@ -388,7 +398,7 @@
                                 </paper-dropdown-menu>
                             </div>
                             <br>
-                            <paper-button noink class="petit" on-click="addPredicate" data-args="Effect">+ add new predicate</paper-button>
+                            <paper-button noink class="petit" on-click="addPredicate" data-args="Effect">+ add new condition</paper-button>
                         </fieldset>
                     </div>
                 </div>
@@ -440,6 +450,12 @@
                 action: Object,
                 domain: Object,
                 domain_id: String,
+                domain_msg: {
+                    type: Object,
+                    value: function () {
+                        return { data: false };
+                    }
+                },
                 params: Object,
                 program_id_set: {
                     type: Object,
@@ -457,12 +473,6 @@
                     type: Object,
                     value: function () {
                         return { data: false };
-                    }
-                },
-                domainList: {
-                    type: Object,
-                    value: function () {
-                        return { domains: [] };
                     }
                 },
                 pddlDomain: {
@@ -498,8 +508,8 @@
             },
 
             observers: [
-                'load(domain_id, params.*)',
-                '_domainUpdated(pddlDomain.*,domainList.*)',
+                'load(domain_id, params.*,domain_msg.data)',
+                '_domainUpdated(pddlDomain.*)',
                 '_actionUpdated(action.*)',
                 '_checkClearPrecond(newPrecondition.name)',
                 '_checkClearEffect(newEffect.name)',
@@ -528,12 +538,16 @@
                     this.actionName = action.base.name;
                 }
             },
-            load: function (db_id, paramsChangeRecord) {
+            load: function (db_id, paramsChangeRecord, changedMsg) {
 
                 if (!this.program_id_set) {
                     this._startDemo();
                     this.navStep = "perception"
                     //return;
+                }
+                if (!this.domain_id && changedMsg) {
+                    console.log("set domain_id to: ", changedMsg);
+                    this.domain_id = changedMsg;
                 }
                 if (!this.params.robot) {
                     return;
@@ -794,17 +808,15 @@
                         pddl_action: this.action
                     };
 
-                    // regenerate params:
-                    this._generateParams();
-
                     console.debug('Saving ', this.domain, " with name ", this.domain_id);
                     console.debug('Saving ', this.action, " with name ", this.actionName);
                     this.$.eventPub.publish(msg);
                     if (this.actionName != this.action.name)
                         this.quit();
                 }
-
+                // this.$.saved.open();
             },
+
             saving: function (evt) {
                 this.$.saving.open();
             },
@@ -840,7 +852,7 @@
                 };
                 this.$.eventPub.publish(msg);
             },
-            _domainUpdated: function (changedDomain, changedList) {
+            _domainUpdated: function (changedDomain) {
                 if (changedDomain.value) {
                     this.$.loading.close();
                     this.domain = changedDomain.value;
@@ -860,9 +872,6 @@
                     if (i != this.action.params.length) {
                         this.$.noObj.style.display = "none";
                     }
-                }
-                if (this.domainList && this.domainList.domains.length == 1) {
-                    this.domain_id = this.domainList.domains[0].domain_id;
                 }
             },
 
@@ -935,6 +944,16 @@
                 uniqueArray = a.filter(function (item, pos) {
                     return a.indexOf(item) == pos;
                 });
+            },
+            _getAction: function (a) {
+                // regenerate params:
+                this._generateParams();
+                var params = "";
+                for (var i = 0; i < this.action.params.length; ++i) {
+                    //params += this.action.params[i].name + "("+ this.action.params[i].type.name + " ),";
+                    params += this.action.params[i].type.name + ", ";
+                }
+                return this.action.name + ": " + params;
             },
             _getParamTypeByName: function (obj) {
                 // console.debug('_getParamTypeByName: ', item);

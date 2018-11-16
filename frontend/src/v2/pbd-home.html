@@ -3,6 +3,8 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../../bower_components/ros-service/ros-service.html">
 <link rel="import" href="./pbd-help.html">
 <!-- <base href="https://polygit.org/polymer+:master/webcomponents+:master/shadycss+webcomponents+:master/paper*+polymerelements+:master/iron*+polymerelements+:master/app*+polymerelements+:master/neon*+polymerelements+:master/components/">
 <script src="webcomponentsjs/webcomponents-loader.js"></script> -->
@@ -39,11 +41,48 @@
         padding: 15%;
       }
     </style>
+    <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
 
-    <h1 class="style-scope canvas-view">Welcome to the Programming by Demonstration Planning (PDP) tool</h1>
-    <p> The PDP tool allows you to teach the robot new actions by moving its arms. The robot can use these actions to solve more
-      complex problems. To solve a problem, you need to specify a goal state for the robot to achieve. It will plan a solution
-      using the learned action. Get started by teaching the robot a new action.</p>
+    <ros-service auto id="createSrv" on-fail="_handleServiceError" on-response="_handleServiceResponse" name="/rapid_pbd/create_domain"
+      ros="[[ros]]" service-type="rapid_pbd_msgs/CreatePDDLDomain"></ros-service>
+    <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
+      ros="[[ros]]"></ros-topic>
+
+    <h1 class="style-scope canvas-view">Welcome to iRoPro, the interactive Robot Programming tool!</h1>
+    <p>
+      <b>iRoPro</b> allows you to program the robot by
+      <b>demonstrating</b> actions directly on the robot.
+      <br>The robot automatically learns
+      <b>conditions</b> for the actions and reuses them to solve more complex problems.
+    </p>
+    <p>
+      Using these actions you can create new
+      <b>problems</b> for the robot to solve by specifying a
+      <b>goal</b> for the robot to achieve.
+      <br> iRoPro is connected to a
+      <b>task planner</b> that will find a solution to achieve the goal using the taught actions.
+    </p>
+    <p>
+      Get started by choosing your domain!
+      <div class="listeDomain">
+        Choose domain:
+        <paper-dropdown-menu>
+          <paper-listbox slot="dropdown-content" attr-for-selected="name">
+            <template is="dom-repeat" items="{{sortByName(domainList.domains)}}" as="item" index-as="typeIndex" selected="[[domain_id]]">
+              <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item.domain_id]]">[[item.name]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+        <br>
+        <paper-button id="createButton" class="important" raised on-tap="_handleCreate">
+          + Create new domain
+        </paper-button>
+        <br>
+        <paper-button id="deleteButton" class="clear" raised on-tap="_maybeDeleteDomain">
+          Delete domain
+        </paper-button>
+      </div>
+    </p>
     <div>
       <a href="#/action-list">
         <paper-button raised id="actionsMenu" class="style-scope canvas-view" on-tap="update" data-args="Actions">Teach actions</paper-button>
@@ -60,14 +99,79 @@
         <paper-button raised class="style-scope canvas-view" on-tap="update" data-args="Help">Help</paper-button>
       </a>
     </div>
+    <paper-dialog id="deleteDomainDialog" modal>
+      <h2>Are you sure you want to delete '[[pddlDomain.name]]'?</h2>
+      <div class="deleteButtons">
+        <paper-button class="clear" dialog-dismiss>Cancel</paper-button>
+        <paper-button dialog-confirm on-tap="_deleteDomain" class="delete">Delete</paper-button>
+      </div>
+    </paper-dialog>
   </template>
   <script>
     Polymer({
       is: "pbd-home",
+      properties: {
+        domainList: {
+          type: Object,
+          value: function () {
+            return { domains: [] };
+          }
+        },
+      },
 
       update: function (e) {
         this.fire('updatebtn', { button: e.target.getAttribute('data-args') });
-      }
+      },
+
+      sortByName: function (arr) {
+        if (!arr) return [];
+        arr.sort(function (a, b) {
+          if (a.name < b.name) return -1;
+          if (a.name > b.name) return 1;
+          return 0;
+        });
+        return arr;
+      },
+
+      _handleCreate: function (evt) {
+        var number = this.domainList.domains.length + 1;
+        var name = 'Domain' + number;
+        var request = {
+          name: name,
+        };
+        this.$.createSrv.call(request);
+      },
+      _handleServiceResponse(evt) {
+        var id = evt.detail.domain_id;
+        this.domain_id = id;
+      },
+      _handleServiceError: function (evt) {
+        console.error(evt.detail);
+      },
+      _maybeDeleteDomain: function (evt) {
+        this.$.deleteDomainDialog.open();
+        console.debug("maybeDelDomain", this.pddlDomain.name);
+      },
+      _deleteDomain: function (evt) {
+        console.log('delete domain: ', this.pddlDomain, this.domain_id);
+        var msg = {
+          type: 'delete pddl domain',
+          domain_id: this.domain_id
+        };
+        this.$.eventPub.publish(msg);
+
+        this.domain_id = undefined;
+      },
+      _selectDomain: function (evt) {
+        this.domain_id = evt.target.name.domain_id;
+        this.domain_name = evt.target.name.name;
+        console.log('select domain: ', this.pddlDomain, this.domain_id);
+        var msg = {
+          type: 'select pddl domain',
+          domain_id: this.domain_id
+        };
+        this.$.eventPub.publish(msg);
+      },
     });
   </script>
 </dom-module>

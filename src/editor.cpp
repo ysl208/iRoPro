@@ -185,7 +185,7 @@ std::string Editor::CreatePDDLDomain(const std::string& name) {
   if (pddl_domain_.domain_id.size() == 0)
     pddl_domain_.domain_id = "5bc0a6266fbe3c069ef413e3";
   domain_db_.StartPublishingPDDLDomainById(pddl_domain_.domain_id);
-  pddl_domain_.PublishPDDLDomain(domain);
+  pddl_domain_.PublishPDDLDomain(pddl_domain_.domain_id);
   return id;
 }
 
@@ -1233,14 +1233,14 @@ void Editor::SelectPDDLDomain(const std::string& domain_id) {
     ROS_ERROR("Unable to get domain for \"%s\"", domain_id.c_str());
     return;
   }
-  pddl_domain_.PublishPDDLDomain(domain);
+  pddl_domain_.PublishPDDLDomain(domain_id);
   domain_db_.StartPublishingPDDLDomainById(domain_id);
 }
 
 void Editor::UpdatePDDLDomain(const std::string& domain_id,
                               const msgs::PDDLDomain& domain) {
   domain_db_.Update(domain_id, domain);
-  pddl_domain_.PublishPDDLDomain(domain);
+  pddl_domain_.PublishPDDLDomain(domain_id);
 }
 
 void Editor::DeletePDDLDomain(const std::string& domain_id) {

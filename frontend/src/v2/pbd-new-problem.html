@@ -179,9 +179,10 @@
     <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
     <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
     <!-- PDDL -->
-    <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
-    <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
+    <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/domain/{{domain_id}}"
       ros="[[ros]]"></ros-topic>
+    <ros-topic auto last-message="{{domain_msg}}" msg-type="std_msgs/String" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+    ros="[[ros]]"></ros-topic>
 
 
     <header>
@@ -244,7 +245,7 @@
               <legend>
                 Detected World Objects
               </legend>
-              <p>Verify all objects have been detected before proceeding.</p>
+              <!-- <p>Verify all objects have been detected before proceeding.</p> -->
               <p id="noObj">No objects detected</p>
               <template is="dom-repeat" items="{{sortByName(problem.objects)}}" as="item" index-as="paramIndex">
                 <tr>
@@ -318,9 +319,9 @@
               <br>
               <paper-button noink class="petit" on-click="addPredicate" data-args="InitialState">+ add new predicate</paper-button>
 
-              <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="problemModel">
+              <!-- <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="problemModel">
                 Next
-              </paper-button>
+              </paper-button> -->
             </fieldset>
           </div>
 
@@ -387,14 +388,14 @@
               <legend>
                 Generated steps to solve problem
               </legend>
-              <p>Verify all sequence is correct before proceeding.</p>
-              <p id="noObj">No steps generated: [[problem.output]]</p>
+              <!-- <p>Verify all sequence is correct before proceeding.</p> -->
+              <p id="noSteps" hidden$="[[!_stepsFound]]">No steps generated: [[problem.output]]</p>
               <table>
                 <template is="dom-repeat" items="{{problem.sequence}}" as="item" index-as="stepIndex">
                   <tr>
                     <div id="listSteps">
                       <td>
-                        <b>Action [[stepIndex]]:</b>
+                        <b>Action {{displayIndex(stepIndex)}}:</b>
                       </td>
                       <td>[[_parseArgs(item)]]</td>
                       <td>
@@ -496,6 +497,12 @@
         problem: Object,
         domain: Object,
         domain_id: String,
+        domain_msg: {
+          type: Object,
+          value: function () {
+            return { data: false };
+          }
+        },
         params: Object,
         planner: {
           type: String,
@@ -511,12 +518,6 @@
           type: Object,
           value: function () {
             return { data: false };
-          }
-        },
-        domainList: {
-          type: Object,
-          value: function () {
-            return { domains: [] };
           }
         },
         pddlDomain: {
@@ -555,11 +556,12 @@
           }
         },
         problemName: String,
+        _stepsFound: true,
       },
 
       observers: [
-        'load(domain_id, params.*)',
-        '_domainUpdated(pddlDomain.*,domainList.*)',
+        'load(domain_id, params.*,domain_msg.data)',
+        '_domainUpdated(pddlDomain.*)',
         '_problemUpdated(problem.*)',
         // '_checkClearPos(newInitialState.arg1.type,newGoalState.arg1.type)',
         '_checkClearPrecond(newInitialState.name)',
@@ -608,6 +610,10 @@
         } else {
           this.scene_id = "";
         }
+        if (!this.domain_id && changedMsg) {
+          console.log("set domain_id to: ", changedMsg);
+          this.domain_id = changedMsg;
+        }
         if (!this.params.robot) {
           return;
         }
@@ -653,13 +659,13 @@
                 numCells: 20,
               },
             }, {
-              isShown: false,
-              name: 'Program robot model',
-              type: 'markerArray',
-              options: {
-                topic: '/rapid_pbd/robot/' + this.scene_id,
-              },
-            }, {
+              //   isShown: false,
+              //   name: 'Program robot model',
+              //   type: 'markerArray',
+              //   options: {
+              //     topic: '/rapid_pbd/robot/' + this.scene_id,
+              //   },
+              // }, {
               isShown: true,
               name: 'Scene',
               type: 'pointCloud2',
@@ -690,20 +696,20 @@
                 tfPrefix: ''
               },
             }, {
-              isShown: false,
-              name: 'Current surface segmentation',
-              type: 'markerArray',
-              options: {
-                topic: '/rapid_pbd/runtime_segmentation',
-              },
-            }, {
-              isShown: false,
-              name: 'Current depth cloud',
-              type: 'depthCloud',
-              options: {
-                topic: 'depthcloud_encoded',
-                frameId: depthCloudFrameId
-              },
+              //   isShown: false,
+              //   name: 'Current surface segmentation',
+              //   type: 'markerArray',
+              //   options: {
+              //     topic: '/rapid_pbd/runtime_segmentation',
+              //   },
+              // }, {
+              //   isShown: false,
+              //   name: 'Current depth cloud',
+              //   type: 'depthCloud',
+              //   options: {
+              //     topic: 'depthcloud_encoded',
+              //     frameId: depthCloudFrameId
+              //   },
             },
           ],
           sidebarOpened: false,
@@ -909,7 +915,7 @@
         this.$.eventPub.publish(msg);
       },
 
-      _domainUpdated: function (changedDomain, changedList) {
+      _domainUpdated: function (changedDomain) {
         if (changedDomain.value) {
           this.$.loading.close();
           this.domain = changedDomain.value;
@@ -930,9 +936,6 @@
           if (i != this.problem.objects.length) {
             this.$.noObj.style.display = "none";
           }
-        }
-        if (this.domainList && this.domainList.domains.length == 1) {
-          this.domain_id = this.domainList.domains[0].domain_id;
         }
       },
 
@@ -1002,7 +1005,6 @@
             return this.problem.objects[i].type.name;
         }
         return "?";
-
       },
 
       _getTypes: function (item) {
@@ -1074,6 +1076,12 @@
       },
       exiting: function (evt) {
         this.$.exiting.open();
+      },
+      displayIndex: function (index) {
+        if (index < 1)
+          this._stepsFound = false;
+        return index + 1;
+
       }
     });
   </script>

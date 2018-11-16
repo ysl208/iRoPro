@@ -35,7 +35,7 @@ class PDDLDomain {
   PDDLDomain(const ros::Publisher& pub);
   void Init(msgs::PDDLDomain* domain, const std::string& name);
   // void GetDomain(Domain* domain);
-  void PublishPDDLDomain(const msgs::PDDLDomain& domain);
+  void PublishPDDLDomain(const std::string domain_id);
 };
 
 void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,

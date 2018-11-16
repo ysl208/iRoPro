@@ -13,6 +13,7 @@
 #include "robot_markers/builder.h"
 #include "ros/ros.h"
 #include "std_msgs/Bool.h"
+#include "std_msgs/String.h"
 #include "urdf/model.h"
 #include "visualization_msgs/MarkerArray.h"
 
@@ -72,9 +73,9 @@ int main(int argc, char** argv) {
   //        ros::ok()) {
   //   ROS_WARN("Waiting for pddl planner server.");
   // }
-  // PDDL domain publisher
+  // PDDL domain publisher publishes domain_id that is currently used
   ros::Publisher pddl_domain_pub =
-      nh.advertise<rapid_pbd_msgs::PDDLDomain>("pddl_domain", 5, true);
+      nh.advertise<std_msgs::String>("pddl_domain", 5, true);
 
   // Build visualizer
   urdf::Model model;

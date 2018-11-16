@@ -55,24 +55,11 @@
         <!-- PDDL -->
         <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/domain/{{domain_id}}"
             ros="[[ros]]"></ros-topic>
-        <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
-            ros="[[ros]]"></ros-topic>
+        <ros-topic auto last-message="{{domain_msg}}" msg-type="std_msgs/String" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
 
         <div class="paper-material">
             <template is="dom-if" restamp if="[[!_showProblemProperties]]">
                 <p>Current domain: [[pddlDomain.name]]</p>
-                <template is="dom-repeat" items="{{domainList}}" as="item" index-as="domainIndex" selected="{{pddlDomain}}">
-                    <div class="listeDomain">
-                        Choose domain:
-                        <paper-dropdown-menu>
-                            <paper-listbox slot="dropdown-content" attr-for-selected="name">
-                                <template is="dom-repeat" items="{{domainList.domains}}" as="item" index-as="typeIndex">
-                                    <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item.domain_id]]">[[item.name]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                    </div>
-                </template>
                 <table>
                     <tr>
                         <th>Programmed problems</th>
@@ -143,13 +130,13 @@
                 route: Object,
                 params: Object,
                 selectedProblemName: String,
-                domainList: {
+                domain_id: String,
+                domain_msg: {
                     type: Object,
                     value: function () {
-                        return { domains: [] };
+                        return { data: false };
                     }
                 },
-                domain_id: String,
                 pddlDomain: {
                     type: Object,
                     value: function () {
@@ -160,16 +147,18 @@
             },
 
             observers: [
-                'load(pddlDomain.*,domainList.*)',
+                'load(pddlDomain.*,domain_msg.data)',
                 '_domainUpdated(pddlDomain.*)',
                 '_domainIDchanged(domain_id)',
             ],
             _domainIDchanged(newID) {
                 console.log("domain id changed to ", newID);
             },
-            load: function (changedDomain, changedList) {
-                if (!this.domain_id && this.domainList && this.domainList.domains.length > 0) {
-                    this.domain_id = this.domainList.domains[0].domain_id;
+            load: function (changedDomain, changedMsg) {
+                console.log("load: ", changedMsg);
+                if (!this.domain_id && changedMsg) {
+                    console.log("set domain_id to: ", changedMsg);
+                    this.domain_id = changedMsg;
                 }
             },
             _domainUpdated(changedDomain) {
