@@ -134,7 +134,8 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
     if (world_landmark.name.find("obj") != std::string::npos) {
       obj_type.name = msgs::PDDLType::OBJECT;
       GetTypeFromDims(world_landmark.surface_box_dims, &obj_type);
-    } else if (world_landmark.name.find("pos") != std::string::npos) {
+    } else if (world_landmark.name.find("p") != std::string::npos ||
+               world_landmark.match) {
       obj_type.name = msgs::PDDLType::POSITION;
       obj_type.parent = msgs::PDDLType::ENTITY;
     }
@@ -147,7 +148,8 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
     obj.type = obj_type;
 
     AddObject(&world_state->objects_, obj);
-    if (world_landmark.name.find("pos") != std::string::npos) {
+    if (world_landmark.name.find("p") != std::string::npos ||
+        world_landmark.match) {
       AddObject(&world_state->positions_, obj);
     }
   }

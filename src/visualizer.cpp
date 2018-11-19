@@ -448,7 +448,8 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
     marker.ns = "segmentation_names";
     marker.text = landmarks[i].name;
 
-    if (landmarks[i].name.find("pos") != std::string::npos) {
+    if (landmarks[i].name.find("p") != std::string::npos ||
+        landmarks[i].match) {
       marker.pose.position.z -= 0.1;
       ROS_INFO("Adding position %s as scene markers: %zu ",
                landmarks[i].name.c_str(), i);
