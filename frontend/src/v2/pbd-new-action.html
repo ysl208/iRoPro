@@ -210,6 +210,7 @@
             </nav>
             <div id="buttonDiv">
 
+                <!-- <paper-radio-button class="button_not" id="button_show_robot">Show Robot</paper-radio-button> -->
                 <paper-button class="clear" on-tap="_assignSurfaceObjects">
                     Refresh
                 </paper-button>
@@ -286,7 +287,7 @@
                             <!-- <p>Verify all objects have been detected before proceeding.</p> -->
                             <p id="noObj">No objects detected</p>
 
-                            <template is="dom-repeat" items="[[actionParams]]" as="item" index-as="paramIndex">
+                            <template is="dom-repeat" items="{{action.params}}" as="item" index-as="paramIndex">
                                 <div id="listeObjets">
                                     <paper-icon-button icon="check"></paper-icon-button>
                                     [[item.name]]
@@ -297,7 +298,7 @@
                                             </template>
                                         </paper-listbox>
                                     </paper-dropdown-menu>
-                                    <paper-button class="delete" on-tap="moveUpParam" data-args="">
+                                    <paper-button class="clear" on-tap="moveUpParam" data-args="">
                                         <paper-icon-button icon="arrow-upward"></paper-icon-button>
                                     </paper-button>
                                 </div>
@@ -455,7 +456,7 @@
         </paper-dialog>
         <paper-dialog modal id="loading">
             <p>
-                <paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
+                <paper-spinner-lite active></paper-spinner-lite> Detecting objects on the table</p>
         </paper-dialog>
     </template>
 
@@ -533,6 +534,10 @@
                 showing: Object,
                 actionDesc: String,
                 genActionDesc: String,
+                // showRobotModel: {
+                //     type: Boolean,
+                //     value: false,
+                // },
             },
 
             observers: [
@@ -543,8 +548,9 @@
                 '_checkClearEffect(newEffect.name)',
                 '_stepChanged(ros, action.*)',
                 // '_predicatesChanged(action.preconditions.*,action.effects.*)',
-                '_paramsChanged(action.params.*)',
-                '_aparamsChanged(actionParams.*)',
+                // '_paramsChanged(action.params.*)',
+                // '_aparamsChanged(actionParams.*)',
+                //'showRobot(button_show_robot)',
                 //'_effectsChanged(action.effects.*)'
 
             ],
@@ -566,21 +572,28 @@
                     this.$.menu_instance2_effect.disabled = false;
                 }
             },
-            _paramsChanged: function (params) {
-                // call generate params as soon as predicates change
-                if (this.actionParams.length == 0)
-                    this.actionParams = this.action.params.slice();
-
-                console.debug("_paramsChanged:");
-                console.debug("action.params changed to ", params.value);
-                console.debug("actionParams is ", this.actionParams);
-            },
-            _aparamsChanged: function (params) {
-                // call generate params as soon as predicates change
-                console.debug("_aparamsChanged:");
-                console.debug("action.Params is ", this.action.params);
-                console.debug("actionParams changed to ", params.value);
-            },
+            // _paramsChanged: function (params) {
+            //     // call generate params as soon as predicates change
+            //     // if (this.action.params.length == 0)
+            //     //     this.action.params = this.action.params.slice();
+            //     console.debug("_paramsChanged:");
+            //     console.debug("action.params changed to ", params.value);
+            //     console.debug("actionParams is ", this.action.params);
+            //     if (this.action.params.length == 0) {
+            //         this.action.params = this.action.params;//.slice();
+            //         //this.reevaluateArray('actionParams', this.action.params.slice());
+            //     }
+            // },
+            // _aparamsChanged: function (params) {
+            //     // call generate params as soon as predicates change
+            //     console.debug("_aparamsChanged:");
+            //     console.debug("action.Params is ", this.action.params);
+            //     console.debug("actionParams changed to ", params.value);
+            //     if (this.action.params.length == 0) {
+            //         this.action.params = this.action.params;//.slice();
+            //         //this.reevaluateArray('actionParams', this.action.params.slice());
+            //     }
+            // },
             _predicatesChanged: function (preCs, effs) {
                 // call generate params as soon as predicates change
                 this._generateParams();
@@ -604,7 +617,11 @@
                 if (!this.domain_id && currDomainId) {
                     console.log("set domain_id to: ", currDomainId);
                     this.domain_id = currDomainId;
-                    this.actionParams = this.action.params.slice();
+                    // console.log("set actionParams from : ", this.action.params);
+                    // for (var i = 0; i < this.action.params.length; ++i) {
+                    //     this.action.params.push(this.action.params[i]);
+                    // }
+                    console.log("to : ", this.action.params);
                 }
                 if (!this.params.robot) {
                     return;
@@ -651,7 +668,7 @@
                                 numCells: 20,
                             },
                         }, {
-                            isShown: false,
+                            isShown: true,
                             name: 'Program robot model',
                             type: 'markerArray',
                             options: {
@@ -694,14 +711,14 @@
                             options: {
                                 topic: '/rapid_pbd/runtime_segmentation',
                             },
-                        }, {
-                            isShown: false,
-                            name: 'Current depth cloud',
-                            type: 'depthCloud',
-                            options: {
-                                topic: 'depthcloud_encoded',
-                                frameId: depthCloudFrameId
-                            },
+                            // }, {
+                            //     isShown: false,
+                            //     name: 'Current depth cloud',
+                            //     type: 'depthCloud',
+                            //     options: {
+                            //         topic: 'depthcloud_encoded',
+                            //         frameId: depthCloudFrameId
+                            //     },
                         },
                     ],
                     sidebarOpened: false,
@@ -825,6 +842,9 @@
                 }
                 this._generateParams();
             },
+            // showRobot: function (button) {
+            //     this.showRobotModel = this.$.button_show_robot.checked;
+            // },
             deletePred: function (evt) {
                 var item = evt.model.item;
                 console.debug('deletePred', item);
@@ -861,9 +881,9 @@
                 if (this.actionName != this.action.name && !this._nameValid(this.actionName)) {
                     alert(this.actionName + ' already exists. Please choose a different name.');
                 } else {
-                    console.debug('Saving params ', this.actionParams);
-                    this.reevaluateArray('action.params', this.actionParams.slice());
-                    //this.action.params = this.actionParams.slice();
+                    console.debug('Saving params ', this.action.params);
+                    //this.reevaluateArray('action.params', this.action.params.slice());
+                    //this.action.params = this.action.params.slice();
                     var msg = {
                         type: 'update pddl action',
                         domain_id: this.domain_id,
@@ -931,10 +951,10 @@
                     }
                     //show if no objects have been detected
                     var i = 0;
-                    while (i < this.actionParams.length && this.actionParams[i].type.name == "position") {
+                    while (i < this.action.params.length && this.action.params[i].type.name == "position") {
                         i++;
                     }
-                    if (this.actionParams.length == 0) {
+                    if (this.action.params.length == 0) {
                         this.$.noObj.style.display = "none";
                     }
                 }
@@ -1014,8 +1034,8 @@
                 // returns action description with instantiated params:
                 var text = this.actionName + "(";
                 var paramList = "";
-                for (var i = 0; i < this.actionParams.length; ++i) {
-                    paramList += this.actionParams[i].name + ", ";
+                for (var i = 0; i < this.action.params.length; ++i) {
+                    paramList += this.action.params[i].name + ", ";
                 }
                 return text + paramList.slice(0, -2) + ")";
             },
@@ -1023,17 +1043,17 @@
                 // returns action operator description with types:
                 var text = this.actionName + "(";
                 var paramList = "";
-                for (var i = 0; i < Object.keys(this.actionParams).length; ++i) {
-                    paramList += this.actionParams[i].type.name.toUpperCase() + ", ";
+                for (var i = 0; i < Object.keys(this.action.params).length; ++i) {
+                    paramList += this.action.params[i].type.name.toUpperCase() + ", ";
                 }
                 return text + paramList.slice(0, -2) + ")";
             },
             _getParamTypeByName: function (obj) {
                 // console.debug('_getParamTypeByName: ', item);
 
-                for (var i = 0; i < this.actionParams.length; ++i) {
-                    if (this.actionParams[i].name == obj.name)
-                        return this.actionParams[i].type.name;
+                for (var i = 0; i < this.action.params.length; ++i) {
+                    if (this.action.params[i].name == obj.name)
+                        return this.action.params[i].type.name;
                 }
                 return "?";
 
@@ -1047,11 +1067,12 @@
                         names.push(this.domain.types[i].name);
                     }
                 }
+                console.debug('_getTypes: ', names);
                 return (names);
             },
 
             _updateType: function (evt) {
-                this.reevaluateArray('actionParams', this.actionParams);
+                this.reevaluateArray('action.params', this.action.params);
                 console.debug("_updateType: ", evt.target);
             },
 
@@ -1063,35 +1084,35 @@
                 var item = evt.model.item;
                 // get index of selected param
                 var index = -1;
-                // var parms = this.actionParams;
-                fromIndex = this.actionParams.indexOf(item);
-                console.debug('moveUpParam:', this.actionParams, " ", fromIndex);
+                // var parms = this.action.params;
+                fromIndex = this.action.params.indexOf(item);
+                console.debug('moveUpParam:', this.action.params, " ", fromIndex);
                 if (fromIndex > 0) {
-                    var element = this.actionParams[fromIndex];
-                    this.actionParams.splice(fromIndex, 1);
+                    var element = this.action.params[fromIndex];
+                    this.action.params.splice(fromIndex, 1);
                     console.debug("types of item vs element : ", typeof item, typeof element);
                     var toIndex = fromIndex - 1;
                     console.debug('moveUpParam:', "to index: ", toIndex);
-                    this.actionParams.splice(toIndex, 0, element);
+                    this.action.params.splice(toIndex, 0, element);
                     console.debug("splicing...");
-                    //console.debug(typeof parms, typeof this.actionParams);
-                    // this.actionParams = parms;
-                    this.reevaluateArray('actionParams', this.actionParams);
+                    //console.debug(typeof parms, typeof this.action.params);
+                    // this.action.params = parms;
+                    this.reevaluateArray('action.params', this.action.params);
                 }
-                console.debug('moveUpParam: final actionParams is', this.actionParams);
+                console.debug('moveUpParam: final action.params is', this.action.params);
             },
             _generateParams: function () {
                 var predList = this.action.preconditions.concat(this.action.effects)
                 var parms = this._getParams(predList);
-                console.debug(typeof parms, typeof this.actionParams);
+                console.debug(typeof parms, typeof this.action.params);
                 console.debug('parms:', parms);
-                this.actionParams = parms;
-                this.reevaluateArray('actionParams', parms);
+                this.action.params = parms;
+                this.reevaluateArray('action.params', parms);
             },
             _getParams: function (predList) {
                 // returns parameters from a list of predicates e.g. preconditions
                 var params = [];
-                if (this.actionParams) {
+                if (this.action.params) {
                     //params = [];
                     const nameList = new Set([]);
                     for (var i = 0; i < predList.length; ++i) {
@@ -1122,6 +1143,7 @@
                     //this._addNegations(this.action.preconditions, this.action.effects);
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
                     this.reevaluateArray('action.effects', this.action.effects);
+                    this._generateParams();
                 }
             },
             _getPredicateDiff: function (list1, list2) {
