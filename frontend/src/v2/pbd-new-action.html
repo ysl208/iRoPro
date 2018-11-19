@@ -218,13 +218,15 @@
                     <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
                 </paper-button>
                 <paper-button raised on-click="exiting">
-                    <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
+                    <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit">
+
+                    </paper-icon-button>
                 </paper-button>
 
             </div>
 
             <paper-dialog modal id="saving">
-                <h2>Save current action ?</h2>
+                <h2>Save current action '[[actionName]]'?</h2>
                 <p>If action name changed, action will be closed on save.</p>
                 <div>
                     <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
@@ -232,16 +234,21 @@
                 </div>
             </paper-dialog>
 
-            <!-- <paper-dialog modal id="saved">
-                <h2>Saved action: [[_getAction(action)]]</h2>
-                <p>Quit?</p>
+            <paper-dialog modal id="saved">
+                <h2>Saved generalised action: [[actionName]]</h2>
+                <p>derived from demonstrated action
+                    <br>
+                    <b>[[_getGeneralisedAction(action)]]</b>
+                    <br>
+                    <b>[[_getAction(action)]]</b>.
+                    <br> Make sure the generated parameters and their orders are correct. </p>
                 <div>
                     <paper-button dialog-dismiss raised class="cancel">Stay</paper-button>
                     <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
-                </div> -->
+                </div>
             </paper-dialog>
             <paper-dialog modal id="exiting">
-                <h2>Quit current action ?</h2>
+                <h2>Quit current action?</h2>
                 <p>All change not saved will be lost.</p>
                 <div>
                     <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
@@ -269,7 +276,7 @@
                             <!-- <p>Verify all objects have been detected before proceeding.</p> -->
                             <p id="noObj">No objects detected</p>
 
-                            <template is="dom-repeat" items="{{sortByName(action.params)}}" as="item" index-as="paramIndex">
+                            <template is="dom-repeat" items="[[actionParams]]" as="item" index-as="paramIndex">
                                 <div id="listeObjets">
                                     <paper-icon-button icon="check"></paper-icon-button>
                                     [[item.name]]
@@ -280,6 +287,9 @@
                                             </template>
                                         </paper-listbox>
                                     </paper-dropdown-menu>
+                                    <paper-button class="delete" on-tap="moveUpParam" data-args="">
+                                        <paper-icon-button icon="arrow-upward"></paper-icon-button>
+                                    </paper-button>
                                 </div>
                             </template>
 
@@ -402,7 +412,7 @@
                         </fieldset>
                     </div>
                 </div>
-                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
+                <!-- <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz> -->
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -454,6 +464,12 @@
                     type: Object,
                     value: function () {
                         return { data: false };
+                    }
+                },
+                actionParams: {
+                    type: Array,
+                    value: function () {
+                        return [];
                     }
                 },
                 params: Object,
@@ -514,6 +530,7 @@
                 '_checkClearPrecond(newPrecondition.name)',
                 '_checkClearEffect(newEffect.name)',
                 '_stepChanged(ros, action.*, currentStepNum)',
+                '_predicatesChanged(action.preconditions.*,action.effects.*)'
             ],
             _checkClearPrecond: function (nom_precond) {
                 if (nom_precond == "clear") {
@@ -533,21 +550,26 @@
                     this.$.menu_instance2_effect.disabled = false;
                 }
             },
+            _predicatesChanged: function (preCs, effs) {
+                // call generate params as soon as predicates change
+                this._generateParams();
+            },
             _actionUpdated: function (action) {
                 if (action && action.base && action.base.name != '') {
                     this.actionName = action.base.name;
                 }
             },
-            load: function (db_id, paramsChangeRecord, changedMsg) {
+            load: function (db_id, paramsChangeRecord, currDomainId) {
 
                 if (!this.program_id_set) {
                     this._startDemo();
                     this.navStep = "perception"
                     //return;
                 }
-                if (!this.domain_id && changedMsg) {
-                    console.log("set domain_id to: ", changedMsg);
-                    this.domain_id = changedMsg;
+                if (!this.domain_id && currDomainId) {
+                    console.log("set domain_id to: ", currDomainId);
+                    this.domain_id = currDomainId;
+                    this.actionParams = this.action.params;
                 }
                 if (!this.params.robot) {
                     return;
@@ -801,6 +823,9 @@
                 if (this.actionName != this.action.name && !this._nameValid(this.actionName)) {
                     alert(this.actionName + ' already exists. Please choose a different name.');
                 } else {
+                    console.debug('Saving params ', this.actionParams);
+                    this.action.params = this.actionParams;
+
                     var msg = {
                         type: 'update pddl action',
                         domain_id: this.domain_id,
@@ -814,7 +839,7 @@
                     if (this.actionName != this.action.name)
                         this.quit();
                 }
-                // this.$.saved.open();
+                //this.$.saved.open();
             },
 
             saving: function (evt) {
@@ -866,11 +891,11 @@
                     }
                     //show if no objects have been detected
                     var i = 0;
-                    while (i < this.action.params.length && this.action.params[i].type.name == "position") {
+                    while (i < this.actionParams.length && this.actionParams[i].type.name == "position") {
                         i++;
                     }
-                    if (i != this.action.params.length) {
-                        this.$.noObj.style.display = "none";
+                    if (this.actionParams.length == 0) {
+                        this.$.noObj.style.display = "inline";
                     }
                 }
             },
@@ -946,64 +971,102 @@
                 });
             },
             _getAction: function (a) {
-                // regenerate params:
-                this._generateParams();
+                // returns action description with instantiated params:
+                // this._generateParams();
+                var text = this.action.name + "(";
                 var params = "";
-                for (var i = 0; i < this.action.params.length; ++i) {
-                    //params += this.action.params[i].name + "("+ this.action.params[i].type.name + " ),";
-                    params += this.action.params[i].type.name + ", ";
+                for (var i = 0; i < this.actionParams.length; ++i) {
+                    //params += this.actionParams[i].name + "("+ this.actionParams[i].type.name + " ),";
+                    params += this.actionParams[i].name + ", ";
                 }
-                return this.action.name + ": " + params;
+                return text + params.slice(0, -2) + ")";
+            },
+            _getGeneralisedAction: function (a) {
+                // returns action operator description with types:
+                // this._generateParams();
+                var text = this.action.name + "(";
+                var params = "";
+                for (var i = 0; i < this.actionParams.length; ++i) {
+                    //params += this.actionParams[i].name + "("+ this.actionParams[i].type.name + " ),";
+                    params += this.actionParams[i].type.name.toUpperCase() + ", ";
+                }
+                return text + params.slice(0, -2) + ")";
             },
             _getParamTypeByName: function (obj) {
                 // console.debug('_getParamTypeByName: ', item);
 
-                for (var i = 0; i < this.action.params.length; ++i) {
-                    if (this.action.params[i].name == obj.name)
-                        return this.action.params[i].type.name;
+                for (var i = 0; i < this.actionParams.length; ++i) {
+                    if (this.actionParams[i].name == obj.name)
+                        return this.actionParams[i].type.name;
                 }
                 return "?";
 
-            },
-            _getObjects: function (item) {
-                var names = [];
-                console.debug('_getObjects: action params: ', this.action.params);
-                // for (var i = 0; i < this.action.landmarks.length; ++i) {
-                //     if (this.action.params.length > 0) {
-                //         let pddlObj = Object.assign({}, this.action.params[0]);
-                //         pddlObj.name = this.action.landmarks[i].name;
-                //         names.push(pddlObj);
-                //     }
-                // }
-                return (names);
             },
 
             _getTypes: function (item) {
                 var names = [];
                 // console.debug('_getTypes: ', item);
-
-                for (var i = 0; i < this.domain.types.length; ++i) {
-                    names.push(this.domain.types[i].name);
+                if (this.domain.types) {
+                    for (var i = 0; i < this.domain.types.length; ++i) {
+                        names.push(this.domain.types[i].name);
+                    }
                 }
                 return (names);
             },
 
             _updateType: function (evt) {
-                this.reevaluateArray('action.params', this.action.params);
+                this.reevaluateArray('actionParams', this.actionParams);
                 console.debug("_updateType: ", evt.target);
             },
 
             _printItem: function (evt) {
                 console.debug("_print: ", evt.target.name);
             },
-
+            moveUpParam: function (evt) {
+                //change order of params
+                var item = evt.model.item;
+                // get index of selected param
+                var index = -1;
+                // var parms = this.actionParams;
+                fromIndex = this.actionParams.indexOf(item);
+                console.debug('moveUpParam:', this.actionParams, " ", fromIndex);
+                if (fromIndex > 0) {
+                    var element = this.actionParams[fromIndex];
+                    this.actionParams.splice(fromIndex, 1);
+                    this.actionParams.splice(fromIndex - 1, 0, element);
+                    console.debug("splicing...");
+                    //console.debug(typeof parms, typeof this.actionParams);
+                    // this.actionParams = parms;
+                    this.reevaluateArray('actionParams', this.actionParams);
+                }
+                console.debug('moveUpParam: final actionParams is', this.actionParams);
+            },
             _generateParams: function () {
                 var predList = this.action.preconditions.concat(this.action.effects)
                 var parms = this._getParams(predList);
-                console.debug(typeof parms, typeof this.action.params);
+                console.debug(typeof parms, typeof this.actionParams);
                 console.debug('parms:', parms);
-                this.action.params = parms;
-                this.reevaluateArray('action.params', this.action.params);
+                this.actionParams = parms;
+                this.reevaluateArray('actionParams', this.actionParams);
+            },
+            _getParams: function (predList) {
+                // returns parameters from a list of predicates e.g. preconditions
+                var params = this.actionParams;
+                if (params) {
+                    params.length = 0;
+                    const nameList = new Set([]);
+                    for (var i = 0; i < predList.length; ++i) {
+                        if (predList[i].arg1.name != '' && !nameList.has(predList[i].arg1.name)) {
+                            params.push(predList[i].arg1);
+                            nameList.add(predList[i].arg1.name);
+                        }
+                        if (predList[i].arg2 && predList[i].arg2.name != '' && !nameList.has(predList[i].arg2.name)) {
+                            params.push(predList[i].arg2);
+                            nameList.add(predList[i].arg2.name);
+                        }
+                    }
+                }
+                return params;
             },
             _generateConditions: function () {
                 // check preconditions and effects are there
@@ -1090,22 +1153,6 @@
                     return false;
                 }
                 return true;
-            },
-            _getParams: function (predList) {
-                var params = this.action.params;
-                params.length = 0;
-                const nameList = new Set([]);
-                for (var i = 0; i < predList.length; ++i) {
-                    if (predList[i].arg1.name != '' && !nameList.has(predList[i].arg1.name)) {
-                        params.push(predList[i].arg1);
-                        nameList.add(predList[i].arg1.name);
-                    }
-                    if (predList[i].arg2 && predList[i].arg2.name != '' && !nameList.has(predList[i].arg2.name)) {
-                        params.push(predList[i].arg2);
-                        nameList.add(predList[i].arg2.name);
-                    }
-                }
-                return params;
             },
             sortByName: function (arr) {
                 arr.sort(function (a, b) {
