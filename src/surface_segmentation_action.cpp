@@ -203,6 +203,10 @@ void SurfaceSegmentationAction::Execute(
       msgs::Surface surface;
       surface.dimensions = surface_objects[i].surface.dimensions;
       surface.pose_stamped = surface_objects[i].surface.pose_stamped;
+      ROS_INFO("Surface detected at pose %.2f,%.2f,%.2f",
+               surface.pose_stamped.pose.position.x,
+               surface.pose_stamped.pose.position.y,
+               surface.pose_stamped.pose.position.z);
       result.surface = surface;
     }
 
@@ -228,10 +232,10 @@ void SurfaceSegmentationAction::Execute(
       ss << "obj" << obj_count;
       landmark.name = ss.str();
       landmark.pose_stamped = object.pose_stamped;
-      landmark.color.r = point.r / 255.0;
-      landmark.color.g = point.g / 255.0;
-      landmark.color.b = point.b / 255.0;
-      landmark.color.a = 1;
+      // landmark.color.r = point.r / 255.0;
+      landmark.color.g = 1.0;  // point.g / 255.0;
+      // landmark.color.b = point.b / 255.0;
+      landmark.color.a = 0.5;
       landmark.surface_box_dims = object.dimensions;
       result.landmarks.push_back(landmark);
     }
