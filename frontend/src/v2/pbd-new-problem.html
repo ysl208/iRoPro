@@ -182,8 +182,6 @@
     <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/domain/{{domain_id}}"
       ros="[[ros]]"></ros-topic>
     <ros-topic auto last-message="{{domain_msg}}" msg-type="std_msgs/String" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
-    ros="[[ros]]"></ros-topic>
-
 
     <header>
       <paper-input id="problemName" label="Problem name" value="{{problemName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
@@ -556,7 +554,10 @@
           }
         },
         problemName: String,
-        _stepsFound: true,
+        _stepsFound: {
+          type: Boolean,
+          value: true,
+        },
       },
 
       observers: [
@@ -1010,9 +1011,10 @@
       _getTypes: function (item) {
         var names = [];
         // console.debug('_getTypes: ', item);
-
-        for (var i = 0; i < this.domain.types.length; ++i) {
-          names.push(this.domain.types[i].name);
+        if (this.domain && this.domain.types) {
+          for (var i = 0; i < this.domain.types.length; ++i) {
+            names.push(this.domain.types[i].name);
+          }
         }
         return (names);
       },
