@@ -440,7 +440,7 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
   for (size_t i = 0; i < objects.size(); ++i) {
     scene_markers->markers[i].ns = "segmentation";
     scene_markers->markers[i].id = i;
-    scene_markers->markers[i].color = landmarks[i].color;
+    // scene_markers->markers[i].color = landmarks[i].color;
   }
   for (size_t i = 0; i < objects.size(); ++i) {
     Marker marker = scene_markers->markers[i];
