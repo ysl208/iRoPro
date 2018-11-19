@@ -480,7 +480,7 @@
     </paper-dialog>
     <paper-dialog modal id="loading">
       <p>
-        <paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
+        <paper-spinner-lite active></paper-spinner-lite> Detecting objects on the table</p>
     </paper-dialog>
   </template>
 
@@ -558,6 +558,10 @@
           type: Boolean,
           value: true,
         },
+        // showRobotModel: {
+        //   type: Boolean,
+        //   value: false,
+        // },
       },
 
       observers: [
@@ -689,7 +693,7 @@
                 topic: '/rapid_pbd/surface_segmentation/' + this.scene_id,
               },
             }, {
-              isShown: true,
+              isShown: false,
               name: 'Current robot model',
               type: 'urdf',
               options: {
@@ -762,11 +766,11 @@
           if (!newPredicate.negate) {
             // To comment when you want to test else it's impossible to test on simulation                            
             if (newPredicate.arg1.type.name == "position"
-              && (newPredicate.name == "on" || newPredicate.name == "stackable on")) {
+              && (newPredicate.name == "on" || newPredicate.name == "stackable")) {
               valide = false;
               msgErreur = "A position can never be stacked on something else"
             }
-            else if ((newPredicate.name == "on" || newPredicate.name == "stackable on")
+            else if ((newPredicate.name == "on" || newPredicate.name == "stackable")
               && newPredicate.arg1.name == newPredicate.arg2.name) {
               valide = false;
               msgErreur = "An object can never be stacked on itself";
@@ -1034,12 +1038,12 @@
       },
       _parseArgs: function (step) {
         // translates string array to "english"
-        var phrase = step.action.toLowerCase() + ": ";
+        var phrase = step.action.toLowerCase() + "(";
         console.debug("_parseArgs: ", step);
         for (var i = 0; i < step.args.length; ++i) {
           phrase += this.format(step.args[i]) + ", ";
         }
-        return phrase.substring(0, phrase.length - 1);
+        return phrase.slice(0, -2) + ")";
       },
       _displayNavStep: function (navStep, name) {
         return (navStep == name);
