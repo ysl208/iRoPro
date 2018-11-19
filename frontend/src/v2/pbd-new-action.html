@@ -227,6 +227,14 @@
 
             <paper-dialog modal id="saving">
                 <h2>Save current action '[[actionName]]'?</h2>
+                <p>demonstrated action had relative parameters:
+                    <br>
+                    <b>[[actionDesc]]</b>
+                    <br> robot learned generalised action with relative parameter types:
+                    <br>
+                    <b>[[genActionDesc]]</b>.
+                    <br>
+                    <br> Make sure the relative parameters and their types are correct. </p>
                 <p>If action name changed, action will be closed on save.</p>
                 <div>
                     <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
@@ -236,12 +244,14 @@
 
             <paper-dialog modal id="saved">
                 <h2>Saved generalised action: [[actionName]]</h2>
-                <p>derived from demonstrated action
+                <p>demonstrated action had relative parameters:
                     <br>
-                    <b>[[_getGeneralisedAction(action)]]</b>
+                    <b>[[_getAction(action)]]</b>
+                    <br> robot learned generalised action with relative parameter types:
                     <br>
-                    <b>[[_getAction(action)]]</b>.
-                    <br> Make sure the generated parameters and their orders are correct. </p>
+                    <b>[[_getGeneralisedAction(action)]]</b>.
+                    <br>
+                    <br> Make sure the relative parameters and their types are correct. </p>
                 <div>
                     <paper-button dialog-dismiss raised class="cancel">Stay</paper-button>
                     <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
@@ -412,7 +422,7 @@
                         </fieldset>
                     </div>
                 </div>
-                <!-- <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz> -->
+                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -521,6 +531,8 @@
                 },
                 actionName: String,
                 showing: Object,
+                actionDesc: String,
+                genActionDesc: String,
             },
 
             observers: [
@@ -529,8 +541,12 @@
                 '_actionUpdated(action.*)',
                 '_checkClearPrecond(newPrecondition.name)',
                 '_checkClearEffect(newEffect.name)',
-                '_stepChanged(ros, action.*, currentStepNum)',
-                '_predicatesChanged(action.preconditions.*,action.effects.*)'
+                '_stepChanged(ros, action.*)',
+                // '_predicatesChanged(action.preconditions.*,action.effects.*)',
+                '_paramsChanged(action.params.*)',
+                '_aparamsChanged(actionParams.*)',
+                //'_effectsChanged(action.effects.*)'
+
             ],
             _checkClearPrecond: function (nom_precond) {
                 if (nom_precond == "clear") {
@@ -550,9 +566,28 @@
                     this.$.menu_instance2_effect.disabled = false;
                 }
             },
+            _paramsChanged: function (params) {
+                // call generate params as soon as predicates change
+                if (this.actionParams.length == 0)
+                    this.actionParams = this.action.params.slice();
+
+                console.debug("_paramsChanged:");
+                console.debug("action.params changed to ", params.value);
+                console.debug("actionParams is ", this.actionParams);
+            },
+            _aparamsChanged: function (params) {
+                // call generate params as soon as predicates change
+                console.debug("_aparamsChanged:");
+                console.debug("action.Params is ", this.action.params);
+                console.debug("actionParams changed to ", params.value);
+            },
             _predicatesChanged: function (preCs, effs) {
                 // call generate params as soon as predicates change
                 this._generateParams();
+            },
+            _effectsChanged: function (effs) {
+                // call generate conditions as soon as effects change
+                this._generateConditions();
             },
             _actionUpdated: function (action) {
                 if (action && action.base && action.base.name != '') {
@@ -569,7 +604,7 @@
                 if (!this.domain_id && currDomainId) {
                     console.log("set domain_id to: ", currDomainId);
                     this.domain_id = currDomainId;
-                    this.actionParams = this.action.params;
+                    this.actionParams = this.action.params.slice();
                 }
                 if (!this.params.robot) {
                     return;
@@ -788,6 +823,7 @@
                         this.$.errorNewEffect.open();
                     }
                 }
+                this._generateParams();
             },
             deletePred: function (evt) {
                 var item = evt.model.item;
@@ -806,12 +842,14 @@
                         console.debug('deletePred from eff');
                     }
                 }
+                this._generateParams();
             },
 
             reevaluateArray: function (name, property) {
                 var conds = property;
                 this.set(name, []);
                 this.set(name, conds);
+                console.debug('reevaluateArray: ', name, ' to ', conds);
             },
             _nameValid: function (name) {
                 for (var i = 0; i < this.domain.actions.length; ++i) {
@@ -824,8 +862,8 @@
                     alert(this.actionName + ' already exists. Please choose a different name.');
                 } else {
                     console.debug('Saving params ', this.actionParams);
-                    this.action.params = this.actionParams;
-
+                    this.reevaluateArray('action.params', this.actionParams.slice());
+                    //this.action.params = this.actionParams.slice();
                     var msg = {
                         type: 'update pddl action',
                         domain_id: this.domain_id,
@@ -843,6 +881,8 @@
             },
 
             saving: function (evt) {
+                this.actionDesc = this._getAction(this.action);
+                this.genActionDesc = this._getGeneralisedAction(this.action);
                 this.$.saving.open();
             },
             exiting: function (evt) {
@@ -862,7 +902,7 @@
                 this.$.eventPub.publish(msg);
             },
 
-            _stepChanged(ros, action, currentStepNum) {
+            _stepChanged(ros, action) {
                 // Load robot visualization
                 // need this to start publishing program_id
                 if (!ros || !this.action.program_id) {
@@ -895,7 +935,7 @@
                         i++;
                     }
                     if (this.actionParams.length == 0) {
-                        this.$.noObj.style.display = "inline";
+                        this.$.noObj.style.display = "none";
                     }
                 }
             },
@@ -972,25 +1012,21 @@
             },
             _getAction: function (a) {
                 // returns action description with instantiated params:
-                // this._generateParams();
-                var text = this.action.name + "(";
-                var params = "";
+                var text = this.actionName + "(";
+                var paramList = "";
                 for (var i = 0; i < this.actionParams.length; ++i) {
-                    //params += this.actionParams[i].name + "("+ this.actionParams[i].type.name + " ),";
-                    params += this.actionParams[i].name + ", ";
+                    paramList += this.actionParams[i].name + ", ";
                 }
-                return text + params.slice(0, -2) + ")";
+                return text + paramList.slice(0, -2) + ")";
             },
             _getGeneralisedAction: function (a) {
                 // returns action operator description with types:
-                // this._generateParams();
-                var text = this.action.name + "(";
-                var params = "";
-                for (var i = 0; i < this.actionParams.length; ++i) {
-                    //params += this.actionParams[i].name + "("+ this.actionParams[i].type.name + " ),";
-                    params += this.actionParams[i].type.name.toUpperCase() + ", ";
+                var text = this.actionName + "(";
+                var paramList = "";
+                for (var i = 0; i < Object.keys(this.actionParams).length; ++i) {
+                    paramList += this.actionParams[i].type.name.toUpperCase() + ", ";
                 }
-                return text + params.slice(0, -2) + ")";
+                return text + paramList.slice(0, -2) + ")";
             },
             _getParamTypeByName: function (obj) {
                 // console.debug('_getParamTypeByName: ', item);
@@ -1033,7 +1069,10 @@
                 if (fromIndex > 0) {
                     var element = this.actionParams[fromIndex];
                     this.actionParams.splice(fromIndex, 1);
-                    this.actionParams.splice(fromIndex - 1, 0, element);
+                    console.debug("types of item vs element : ", typeof item, typeof element);
+                    var toIndex = fromIndex - 1;
+                    console.debug('moveUpParam:', "to index: ", toIndex);
+                    this.actionParams.splice(toIndex, 0, element);
                     console.debug("splicing...");
                     //console.debug(typeof parms, typeof this.actionParams);
                     // this.actionParams = parms;
@@ -1047,13 +1086,13 @@
                 console.debug(typeof parms, typeof this.actionParams);
                 console.debug('parms:', parms);
                 this.actionParams = parms;
-                this.reevaluateArray('actionParams', this.actionParams);
+                this.reevaluateArray('actionParams', parms);
             },
             _getParams: function (predList) {
                 // returns parameters from a list of predicates e.g. preconditions
-                var params = this.actionParams;
-                if (params) {
-                    params.length = 0;
+                var params = [];
+                if (this.actionParams) {
+                    //params = [];
                     const nameList = new Set([]);
                     for (var i = 0; i < predList.length; ++i) {
                         if (predList[i].arg1.name != '' && !nameList.has(predList[i].arg1.name)) {
@@ -1080,12 +1119,9 @@
                 // If they are there then you can generate the conditions
                 else {
                     this._getPredicateDiff(this.action.preconditions, this.action.effects);
-                    this._addNegations(this.action.preconditions, this.action.effects);
+                    //this._addNegations(this.action.preconditions, this.action.effects);
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
                     this.reevaluateArray('action.effects', this.action.effects);
-
-                    // regenerate params:
-                    //this._generateParams();
                 }
             },
             _getPredicateDiff: function (list1, list2) {
