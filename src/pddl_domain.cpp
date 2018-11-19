@@ -166,7 +166,7 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
       predicate = msgs::PDDLPredicate::IS_CLEAR;
       args.clear();
       args.push_back(obj);
-      AddPredicate(&world_state->predicates_, predicate, args, negate);
+      // AddPredicate(&world_state->predicates_, predicate, args, negate);
       if (GetObjectTablePosition(obj.type, world_state, variance, &position)) {
         negate = false;
         predicate = msgs::PDDLPredicate::IS_ON;
@@ -194,7 +194,7 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
       args.clear();
       args.push_back(pos_object);
       negate = false;
-      AddPredicate(&world_state->predicates_, predicate, args, negate);
+      // AddPredicate(&world_state->predicates_, predicate, args, negate);
     }
   }
   ROS_INFO("Number of Objects: %zd", world_state->objects_.size());
