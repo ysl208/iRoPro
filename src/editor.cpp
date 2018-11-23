@@ -1834,6 +1834,9 @@ void Editor::RunPDDLPlan(const std::string domain_id,
                          const msgs::PDDLProblem& problem) {
   ROS_INFO("Execute (%zu steps) plan for problem %s", problem.sequence.size(),
            problem.name.c_str());
+  if (problem.sequence.size() == 0) {
+    return;
+  }
   // look for pddl domain
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
@@ -1873,114 +1876,121 @@ void Editor::RunPDDLPlan(const std::string domain_id,
       msgs::Program new_program = main_program;
       msgs::Program alt_program = main_program;
 
-      // 3.1 replace the generic program params (object and table positions)
-      // 3.2 save 'move to cart pose' action&step no. in an array
-      // - only those that are relative to a landmark (not torso)
-      std::vector<std::pair<int, int> > cart_pose_actions;
-      new_program.steps.clear();
-      bool newProgramSuccess =
-          GetCartActions(&cart_pose_actions, alt_program, &new_program,
-                         msgs::Action::DETECT_TABLETOP_OBJECTS);
-      if (!newProgramSuccess) {
-        ROS_ERROR("No cartesian actions found in program \"%s\"",
-                  alt_program.name.c_str());
-        return;
-      }
-      // 3.3 update the cart action's relative landmark's dimensions according
-      // to the matching PDDLaction parameter dimension
-      for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
-        int s_id = cart_pose_actions[id].first;
-        int a_id = cart_pose_actions[id].second;
-        std::string lm_name =
-            new_program.steps[s_id].actions[a_id].landmark.name;
+      if (problem.name != "") {
+        // 3.1 replace the generic program params (object and table positions)
+        // 3.2 save 'move to cart pose' action&step no. in an array
+        // - only those that are relative to a landmark (not torso)
+        std::vector<std::pair<int, int> > cart_pose_actions;
+        new_program.steps.clear();
+        bool newProgramSuccess =
+            GetCartActions(&cart_pose_actions, alt_program, &new_program,
+                           msgs::Action::DETECT_TABLETOP_OBJECTS);
+        if (!newProgramSuccess) {
+          ROS_ERROR("No cartesian actions found in program \"%s\"",
+                    alt_program.name.c_str());
+          return;
+        }
+        // 3.3 update the cart action's relative landmark's dimensions according
+        // to the matching PDDLaction parameter dimension
+        for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
+          int s_id = cart_pose_actions[id].first;
+          int a_id = cart_pose_actions[id].second;
+          std::string lm_name =
+              new_program.steps[s_id].actions[a_id].landmark.name;
 
-        // find argument in action that corresponds to the relative lm name
-        for (size_t z = 0; z < action.params.size(); ++z) {
-          std::cout << action.params[z].name << "...";
+          // find argument in action that corresponds to the relative lm name
+          for (size_t z = 0; z < action.params.size(); ++z) {
+            std::cout << action.params[z].name << "...";
 
-          if (lm_name == action.params[z].name) {
-            // find landmark object in list of detected landmarks in problem
-            for (size_t l = 0; l < mental_lms.size(); ++l) {
-              msgs::Landmark match = mental_lms[l];
-              if (strcasecmp(match.name.c_str(), step.args[z].c_str()) == 0) {
-                // if the new object is larger, then need to adjust the
-                // gripper position relative to object (as it is relative to
-                // its center)
-                geometry_msgs::Vector3 default_dims =
-                    new_program.steps[s_id]
-                        .actions[a_id]
-                        .landmark.surface_box_dims;
-                if (default_dims.z < match.surface_box_dims.z) {
-                  ROS_INFO("Adjust gripper top space? Press y or n ");
-                  std::string n;
-                  // std::cin >> n;
-                  n = "y";
-                  if (n == "y") {
-                    // top_space = dist(gripper_pos, landmark_pos) -
-                    // landmark_dims/2
-                    ROS_INFO(
-                        "Adjust gripper pose top_space for %s with height: "
-                        "%f "
-                        "at %f from %f to ",
-                        match.name.c_str(), match.surface_box_dims.z,
-                        match.pose_stamped.pose.position.z,
-                        new_program.steps[s_id].actions[a_id].pose.position.z);
-                    float top_space = fabs(new_program.steps[s_id]
+            if (lm_name == action.params[z].name) {
+              // find landmark object in list of detected landmarks in problem
+              for (size_t l = 0; l < mental_lms.size(); ++l) {
+                msgs::Landmark match = mental_lms[l];
+                if (strcasecmp(match.name.c_str(), step.args[z].c_str()) == 0) {
+                  // if the new object is larger, then need to adjust the
+                  // gripper position relative to object (as it is relative to
+                  // its center)
+                  geometry_msgs::Vector3 default_dims =
+                      new_program.steps[s_id]
+                          .actions[a_id]
+                          .landmark.surface_box_dims;
+                  if (default_dims.z < match.surface_box_dims.z) {
+                    ROS_INFO("Adjust gripper top space? Press y or n ");
+                    std::string n;
+                    // std::cin >> n;
+                    n = "y";
+                    if (n == "y") {
+                      // top_space = dist(gripper_pos, landmark_pos) -
+                      // landmark_dims/2
+                      ROS_INFO(
+                          "Adjust gripper pose top_space for %s with height: "
+                          "%f "
+                          "at %f from %f to ",
+                          match.name.c_str(), match.surface_box_dims.z,
+                          match.pose_stamped.pose.position.z,
+                          new_program.steps[s_id]
+                              .actions[a_id]
+                              .pose.position.z);
+                      float top_space =
+                          fabs(new_program.steps[s_id]
+                                   .actions[a_id]
+                                   .pose.position.z -
+                               match.pose_stamped.pose.position.z) -
+                          default_dims.z;
+                      new_program.steps[s_id].actions[a_id].pose.position.z =
+                          match.pose_stamped.pose.position.z + top_space +
+                          match.surface_box_dims.z / 2;
+                      ROS_INFO(".... %f ", new_program.steps[s_id]
                                                .actions[a_id]
-                                               .pose.position.z -
-                                           match.pose_stamped.pose.position.z) -
-                                      default_dims.z;
-                    new_program.steps[s_id].actions[a_id].pose.position.z =
-                        match.pose_stamped.pose.position.z + top_space +
-                        match.surface_box_dims.z / 2;
-                    ROS_INFO(
-                        ".... %f ",
-                        new_program.steps[s_id].actions[a_id].pose.position.z);
+                                               .pose.position.z);
+                    }
                   }
+
+                  new_program.steps[s_id]
+                      .actions[a_id]
+                      .landmark.surface_box_dims.x = match.surface_box_dims.x;
+                  new_program.steps[s_id]
+                      .actions[a_id]
+                      .landmark.surface_box_dims.y = match.surface_box_dims.y;
+                  new_program.steps[s_id]
+                      .actions[a_id]
+                      .landmark.surface_box_dims.z = match.surface_box_dims.z;
+
+                  // set (try to find matching landmark) match to false
+                  new_program.steps[s_id].actions[a_id].landmark.match = true;
+                  // replace with already detected pose
+                  new_program.steps[s_id].actions[a_id].landmark.pose_stamped =
+                      match.pose_stamped;
+
+                  ROS_INFO(
+                      "Updated step/action %d/%d: \n landmark %s with dims "
+                      "(%.3f,%.3f,%.3f) and pose (%.3f,%.3f,%.3f)",
+                      s_id, a_id, lm_name.c_str(),
+                      new_program.steps[s_id]
+                          .actions[a_id]
+                          .landmark.surface_box_dims.x,
+                      new_program.steps[s_id]
+                          .actions[a_id]
+                          .landmark.surface_box_dims.y,
+                      new_program.steps[s_id]
+                          .actions[a_id]
+                          .landmark.surface_box_dims.z,
+                      new_program.steps[s_id]
+                          .actions[a_id]
+                          .landmark.pose_stamped.pose.position.x,
+                      new_program.steps[s_id]
+                          .actions[a_id]
+                          .landmark.pose_stamped.pose.position.y,
+                      new_program.steps[s_id]
+                          .actions[a_id]
+                          .landmark.pose_stamped.pose.position.z);
                 }
-
-                new_program.steps[s_id]
-                    .actions[a_id]
-                    .landmark.surface_box_dims.x = match.surface_box_dims.x;
-                new_program.steps[s_id]
-                    .actions[a_id]
-                    .landmark.surface_box_dims.y = match.surface_box_dims.y;
-                new_program.steps[s_id]
-                    .actions[a_id]
-                    .landmark.surface_box_dims.z = match.surface_box_dims.z;
-
-                // set (try to find matching landmark) match to false
-                new_program.steps[s_id].actions[a_id].landmark.match = true;
-                // replace with already detected pose
-                new_program.steps[s_id].actions[a_id].landmark.pose_stamped =
-                    match.pose_stamped;
-
-                ROS_INFO(
-                    "Updated step/action %d/%d: \n landmark %s with dims "
-                    "(%.3f,%.3f,%.3f) and pose (%.3f,%.3f,%.3f)",
-                    s_id, a_id, lm_name.c_str(),
-                    new_program.steps[s_id]
-                        .actions[a_id]
-                        .landmark.surface_box_dims.x,
-                    new_program.steps[s_id]
-                        .actions[a_id]
-                        .landmark.surface_box_dims.y,
-                    new_program.steps[s_id]
-                        .actions[a_id]
-                        .landmark.surface_box_dims.z,
-                    new_program.steps[s_id]
-                        .actions[a_id]
-                        .landmark.pose_stamped.pose.position.x,
-                    new_program.steps[s_id]
-                        .actions[a_id]
-                        .landmark.pose_stamped.pose.position.y,
-                    new_program.steps[s_id]
-                        .actions[a_id]
-                        .landmark.pose_stamped.pose.position.z);
               }
             }
           }
         }
+      } else {
+        ROS_INFO("Problem name was empty, so directly call program to run");
       }
 
     // run program
@@ -2009,7 +2019,8 @@ void Editor::RunPDDLPlan(const std::string domain_id,
         // Assume action succeeded, update mental model of landmarks in the
         // world
 
-        GetMentalModel(action, step, &mental_lms);
+        if (problem.sequence.size() > 1)
+          GetMentalModel(action, step, &mental_lms);
       }
 
       // 4. Check action effects after executing action
