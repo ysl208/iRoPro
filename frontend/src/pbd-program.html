@@ -378,19 +378,19 @@
           console.error('pbd-program: rviz not ready');
         }
       },
-      saveOnExit: function () {
-        this.program.name = this.$.programName.value;
-        var msg = {
-          type: 'save on exit program',
-          program_info: {
-            db_id: this.programId,
-            name: this.program.name,
-          },
-          program: this.program
-        };
-        console.debug('Saving on exit ', this.program);
-        this.$.eventPub.publish(msg);
-      },
+      // saveOnExit: function () {
+      //   this.program.name = this.$.programName.value;
+      //   var msg = {
+      //     type: 'save on exit program',
+      //     program_info: {
+      //       db_id: this.programId,
+      //       name: this.program.name,
+      //     },
+      //     program: this.program
+      //   };
+      //   console.debug('Saving on exit ', this.program);
+      //   this.$.eventPub.publish(msg);
+      // },
 
       save: function () {
         this.program.name = this.$.programName.value;
@@ -682,7 +682,7 @@
       },
       _isSenseStep: function (index) {
         return index < 3;
-      }
+      },
     });
   </script>
 </dom-module>
