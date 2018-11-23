@@ -112,7 +112,7 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     } else if (event.type == msgs::EditorEvent::SOLVE_PDDL_PROBLEM) {
       SolvePDDLProblem(event.domain_id, event.pddl_problem, event.planner);
     } else if (event.type == msgs::EditorEvent::RUN_PDDL_PLAN) {
-      RunPDDLPlan(event.domain_id, event.pddl_problem, event.planner);
+      RunPDDLPlan(event.domain_id, event.pddl_problem);
     } else if (event.type == msgs::EditorEvent::REFRESH_PROBLEM) {
       RefreshPDDLProblem(event.domain_id, event.pddl_problem);
     }
@@ -1212,17 +1212,24 @@ void Editor::SaveOnExit(const std::string& db_id,
     ROS_ERROR("Unable to delete program ID \"%s\"", db_id.c_str());
     return;
   }
-  if (program.steps.size() > 0) {
-    msgs::PDDLAction action;
-    int index = FindPDDLAction(action_name, pddl_domain_.domain_.actions);
-    if (index >= 0) {
-      action = pddl_domain_.domain_.actions[index];
-      ROS_INFO("Action found...");
-    } else {
-      ROS_ERROR("Could not save PDDL action named %s because it does not exist",
-                action_name.c_str());
-    }
-  }
+  // msgs::PDDLDomain domain;
+  // bool success = domain_db_.Get(domain_id, &domain);
+  // if (!success) {
+  //   ROS_ERROR("Unable to get domain for \"%s\"", domain_id.c_str());
+  //   return;
+  // }
+  // if (program.steps.size() > 0) {
+  //   msgs::PDDLAction action;
+  //   int index = FindPDDLAction(action_name, domain.actions);
+  //   if (index >= 0) {
+  //     action = domain.actions[index];
+  //     ROS_INFO("Action found...");
+  //   } else {
+  //     ROS_ERROR("Could not save PDDL action named %s because it does not
+  //     exist",
+  //               action_name.c_str());
+  //   }
+  // }
   Update(db_id, program);
 }
 
@@ -1824,10 +1831,9 @@ bool Editor::FindLandmarkByName(const std::string name,
 }
 
 void Editor::RunPDDLPlan(const std::string domain_id,
-                         const msgs::PDDLProblem& problem,
-                         const std::string planner) {
-  ROS_INFO("Execute (%zu steps) plan for problem %s with planner %s",
-           problem.sequence.size(), problem.name.c_str(), planner.c_str());
+                         const msgs::PDDLProblem& problem) {
+  ROS_INFO("Execute (%zu steps) plan for problem %s", problem.sequence.size(),
+           problem.name.c_str());
   // look for pddl domain
   msgs::PDDLDomain domain;
   bool success = domain_db_.Get(domain_id, &domain);
@@ -1845,13 +1851,13 @@ void Editor::RunPDDLPlan(const std::string domain_id,
     // Look for action in PDDL domain
     std::string action_name = step.action;
     msgs::PDDLAction action;
-    int index = FindPDDLAction(action_name, pddl_domain_.domain_.actions);
+    int index = FindPDDLAction(action_name, domain.actions);
     if (index < 0) {
       ROS_ERROR("Could not find PDDL action named %s because it does not exist",
                 action_name.c_str());
     } else {
       ROS_INFO("Action found...");
-      action = pddl_domain_.domain_.actions[index];
+      action = domain.actions[index];
       // 1. Look for associated program_id (db_id)
       std::string db_id;
       db_id = action.program_id;
