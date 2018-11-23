@@ -28,9 +28,25 @@
         margin: 15px;
       }
 
+      p.info {
+        /* background-color: lightgrey; */
+        /* width: 300px; */
+        border: 2px solid green;
+        /* padding: 25px; */
+        /* margin: 2px; */
+      }
+
       paper-button {
         flex: 1;
-        width: 100%;
+        width: 25px;
+      }
+
+      .petit {
+        /* font-size: 80%;
+        margin: 0;
+        margin-left: 5px; */
+        color: steelblue;
+        width: 35px;
       }
 
       a paper-button,
@@ -48,42 +64,95 @@
     <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
       ros="[[ros]]"></ros-topic>
 
-    <h1 class="style-scope canvas-view">Welcome to iRoPro, the interactive Robot Programming tool!</h1>
-    <p>
-      <b>iRoPro</b> allows you to program the robot by
-      <b>demonstrating</b> actions directly on the robot.
-      <br>The robot automatically learns
-      <b>conditions</b> for the actions and reuses them to solve more complex problems.
-    </p>
-    <p>
-      Using these actions you can create new
-      <b>problems</b> for the robot to solve by specifying a
-      <b>goal</b> for the robot to achieve.
-      <br> iRoPro is connected to a
-      <b>task planner</b> that will find a solution to achieve the goal using the taught actions.
-    </p>
-    <p>
-      Get started by choosing your domain!
-      <div class="listeDomain">
-        Choose domain:
-        <paper-dropdown-menu>
-          <paper-listbox slot="dropdown-content" attr-for-selected="name">
-            <template is="dom-repeat" items="{{sortByName(domainList.domains)}}" as="item" index-as="typeIndex" selected="[[domain_id]]">
-              <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item.domain_id]]">[[item.name]]</paper-item>
-            </template>
-          </paper-listbox>
-        </paper-dropdown-menu>
-        <br>
-        <paper-button id="createButton" class="important" raised on-tap="_handleCreate">
-          + Create new domain
-        </paper-button>
-        <br>
-        <paper-button id="deleteButton" class="clear" raised on-tap="_maybeDeleteDomain">
-          Delete domain
-        </paper-button>
-      </div>
-    </p>
-    <div>
+    <h1 class="style-scope canvas-view">Welcome to inteRoP, the interactive Robot Programming tool!</h1>
+    To program the robot, you have two main steps:
+    <center>
+      <table>
+        <tr valign="top">
+          <td>1. Actions</td>
+          <td></td>
+          <td>2. Problems</td>
+        </tr>
+        <tr valign="top">
+          <td>
+            <b>Demonstrate</b> new actions
+            <br> + assign the right
+            <b>conditions</b>!
+          </td>
+          <td></td>
+          <td>
+            Create a
+            <b>problem</b> for the robot to solve
+            <br> + specify a
+            <b>goal</b> for the robot to achieve
+            <br>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <!-- <br>The robot automatically learns
+      <b>conditions</b> for the actions and reuses them to solve more complex problems. -->
+            <img src="../../intro-graphic-actions.bmp" height="170">
+          </td>
+          <td valign="center">
+            <font color="green" size="10">&#8680;</font>
+          </td>
+          <td>
+            <img src="../../intro-graphic-problems.bmp" height="170">
+          </td>
+          <td>
+            <!-- <iron-icon icon="icons:lightbulb-outline"></iron-icon> -->
+
+            <p class="info" align="center">
+              <font color="green" size="5">✓</font> inteRoP is connected
+              <br> to a
+              <b> planner</b> that
+              <br> automatically finds
+              <br> a solution to your goal!
+            </p>
+          </td>
+
+        </tr>
+      </table>
+
+      <table>
+        <tr>
+          <td> Get started by choosing your user:</td>
+        </tr>
+        <tr>
+          <td>
+
+            <paper-dropdown-menu label="Selected User">
+              <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="[[domainName]]">
+                <template is="dom-repeat" items="{{sortByName(domainList.domains)}}" as="item" index-as="typeIndex" selected="{{domainName}}">
+                  <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item.domain_id]]">[[item.name]]</paper-item>
+                </template>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-button raised id="actionsMenu" class="clear" on-tap="update" data-args="Actions">NEXT</paper-button>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <p>
+              <paper-button id="createButton" raised class="petit" on-tap="_handleCreate">
+                +Create
+              </paper-button>
+
+              <paper-button id="deleteButton" raised class="petit" on-tap="_maybeDeleteDomain">
+                -Delete
+              </paper-button>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <br>
+        </tr>
+      </table>
+
+
+    </center>
+    <!-- <div>
       <a href="#/action-list">
         <paper-button raised id="actionsMenu" class="style-scope canvas-view" on-tap="update" data-args="Actions">Teach actions</paper-button>
       </a>
@@ -98,9 +167,9 @@
       <a href="#/help" id="help">
         <paper-button raised class="style-scope canvas-view" on-tap="update" data-args="Help">Help</paper-button>
       </a>
-    </div>
+    </div> -->
     <paper-dialog id="deleteDomainDialog" modal>
-      <h2>Are you sure you want to delete '[[pddlDomain.name]]'?</h2>
+      <h2>Are you sure you want to delete the selected user '[[domainName]]'?</h2>
       <div class="deleteButtons">
         <paper-button class="clear" dialog-dismiss>Cancel</paper-button>
         <paper-button dialog-confirm on-tap="_deleteDomain" class="delete">Delete</paper-button>
@@ -117,6 +186,7 @@
             return { domains: [] };
           }
         },
+        domainName: String,
       },
 
       update: function (e) {
@@ -135,11 +205,12 @@
 
       _handleCreate: function (evt) {
         var number = this.domainList.domains.length + 1;
-        var name = 'Domain' + number;
+        var name = 'User' + number;
         var request = {
           name: name,
         };
         this.$.createSrv.call(request);
+        this.domainName = name;
       },
       _handleServiceResponse(evt) {
         var id = evt.detail.domain_id;
@@ -149,7 +220,8 @@
         console.error(evt.detail);
       },
       _maybeDeleteDomain: function (evt) {
-        this.$.deleteDomainDialog.open();
+        if (this.domainName != "Domain1")
+          this.$.deleteDomainDialog.open();
         console.debug("maybeDelDomain", this.pddlDomain.name);
       },
       _deleteDomain: function (evt) {
@@ -164,7 +236,7 @@
       },
       _selectDomain: function (evt) {
         this.domain_id = evt.target.name.domain_id;
-        this.domain_name = evt.target.name.name;
+        this.domainName = evt.target.name.name;
         console.log('select domain: ', this.pddlDomain, this.domain_id);
         var msg = {
           type: 'select pddl domain',
