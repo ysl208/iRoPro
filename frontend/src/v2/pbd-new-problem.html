@@ -396,17 +396,17 @@
                         <b>Action {{displayIndex(stepIndex)}}:</b>
                       </td>
                       <td>[[_parseArgs(item)]]</td>
-                      <td>
+                      <!-- <td>
                         <paper-button class="delete" on-tap="deletePlanStep">
                           <paper-icon-button icon="delete"></paper-icon-button>
                         </paper-button>
-                      </td>
+                      </td> -->
                     </div>
                   </tr>
                 </template>
               </table>
               <!-- Add new action to plan manually -->
-              <div>
+              <!-- <div>
                 <paper-dropdown-menu id="menu_plan_step_action" label="Action">
                   <paper-listbox slot="dropdown-content" attr-for-selected="name">
                     <template is="dom-repeat" items="[[domain.actions]]">
@@ -416,8 +416,8 @@
                     </template>
                   </paper-listbox>
                 </paper-dropdown-menu>
-                <!-- Action parameters -->
-                <paper-dropdown-menu id="menu_plan_step_arg1" label="Arg 1">
+                 Action parameters -->
+              <!-- <paper-dropdown-menu id="menu_plan_step_arg1" label="Arg 1">
                   <paper-listbox slot="dropdown-content" attr-for-selected="name">
                     <template is="dom-repeat" items="[[problem.objects]]">
                       <paper-item name="[[item]]" on-tap="_updatePlanStep" data-args="arg1">
@@ -446,7 +446,7 @@
                 </paper-dropdown-menu>
               </div>
               <br>
-              <paper-button noink class="petit" on-click="addPlanStep" data-args="addPlanStep">+ add action step</paper-button>
+              <paper-button noink class="petit" on-click="addPlanStep" data-args="addPlanStep">+ add action step</paper-button> -->-->
 
               <paper-button id="execute" raised class="clear" on-tap="_execute">
                 Execute plan
@@ -962,15 +962,12 @@
         var msg = {
           type: 'run pddl plan',
           domain_id: this.domain_id,
-          planner: this.planner,
-          pddl_problem: this.problem,
-          state_name: ''
+          pddl_problem: this.problem
         };
         this.$.eventPub.publish(msg);
       },
 
       _refreshViz: function (evt) {
-        console.debug('_refreshViz: ', );
         var msg = {
           type: 'refresh problem',
           domain_id: this.domain_id,
