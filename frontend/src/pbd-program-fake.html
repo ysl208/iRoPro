@@ -1,0 +1,388 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/ros-action-client/ros-action-client.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../bower_components/ros-rviz/ros-rviz.html">
+<link rel="import" href="pbd-step.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="underscore.html">
+
+<dom-module id="pbd-program-fake">
+  <template>
+    <style include="shared-styles"></style>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style>
+      :host {
+        display: block;
+        height: 100%;
+      }
+
+      a {
+        color: #000;
+        text-decoration: none;
+      }
+
+      .add {
+        height: 25px;
+        padding: 5px 5px;
+        line-height: 14px;
+        margin-bottom: 5px;
+      }
+
+      paper-button.back {
+        height: 40px;
+      }
+
+      paper-button.back:hover {
+        background-color: transparent;
+      }
+
+      .condition {
+        background-color: var(--paper-purple-300);
+        padding: 5px 5px;
+        line-height: 14px;
+        margin-bottom: 5px;
+        min-width: 25px;
+      }
+
+      .condition:hover {
+        background-color: var(--paper-purple-400);
+      }
+
+      .step {
+        background-color: var(--paper-grey-300);
+        padding: 5px 5px;
+        line-height: 14px;
+        margin-bottom: 5px;
+        min-width: 25px;
+      }
+
+      .steps>span {
+        margin-right: 5px;
+      }
+
+      .step.iron-selected {
+        background-color: var(--paper-grey-400);
+      }
+
+      .step:hover {
+        background-color: var(--paper-grey-400);
+      }
+
+      .submit {
+        color: #fff;
+        background-color: var(--paper-blue-300);
+      }
+
+      .runstop {
+        color: #fff;
+        margin-left: 10px;
+        height: 40px;
+      }
+
+      .run {
+        background-color: var(--paper-green-500);
+      }
+
+      .stop {
+        background-color: var(--paper-red-500);
+      }
+
+      .stepDiv {
+        min-width: 350px;
+        margin-bottom: 10px;
+        /*overflow-y: auto;*/
+        padding-left: 2px;
+        padding-right: 2px;
+        padding-bottom: 2px;
+      }
+
+      #rviz {
+        display: block;
+        height: 500px;
+      }
+
+      fieldset>p {
+        display: inline-block;
+      }
+
+      fieldset iron-icon {
+        display: inline-block;
+        vertical-align: top;
+        margin-top: 5px;
+      }
+
+      @media (min-width: 768px) {
+        #layout {
+          height: 100%;
+        }
+        .content {
+          @apply(--layout-horizontal);
+          @apply(--layout-flex);
+        }
+        .stepDiv {
+          width: 350px;
+          max-height: 100%;
+          margin-bottom: 0px;
+          margin-right: 20px;
+        }
+        #rviz {
+          height: 100%;
+          width: 350px;
+          @apply(--layout-flex);
+        }
+      }
+    </style>
+    <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{programId}}"
+      ros="[[ros]]"></ros-topic>
+    <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
+    <ros-topic auto last-message="{{execution.result}}" msg-type="rapid_pbd_msgs/ExecuteProgramActionResult" topic="/rapid_pbd/execute_program_action/result"
+      ros="[[ros]]"></ros-topic>
+    <ros-topic auto last-message="{{execution.feedback}}" msg-type="rapid_pbd_msgs/ExecuteProgramActionFeedback" topic="/rapid_pbd/execute_program_action/feedback"
+      ros="[[ros]]"></ros-topic>
+
+    <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
+      on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>
+    <ros-topic auto last-message="{{isRunning}}" msg-type="std_msgs/Bool" topic="rapid_pbd/is_running" ros="[[ros]]"></ros-topic>
+    <div id="layout" class="layout vertical">
+      <div class="content">
+        <div id="stepContent" class="stepDiv">
+          <div class="stepDivInner">
+            <br> Choose object type:
+            <paper-dropdown-menu id="typeSelection">
+              <paper-listbox slot="dropdown-content" selected="-1">
+                <paper-item name="Base">
+                  Base
+                </paper-item>
+                <paper-item name="Cube">
+                  Cube
+                </paper-item>
+                <paper-item name="Roof">
+                  Roof
+                </paper-item>
+              </paper-listbox>
+            </paper-dropdown-menu>
+
+            <!-- Choose the gripper type:
+            <paper-dropdown-menu id="gripperSelection">
+              <paper-listbox slot="dropdown-content" selected="-1">
+                <paper-item name="Vacuum" on-tap="_chooseFakeProgram" data-args="Vacuum">
+                  Vacuum
+                </paper-item>
+                <paper-item name="Electric" on-tap="_chooseFakeProgram" data-args="Electric">
+                  Electric
+                </paper-item>
+              </paper-listbox>
+            </paper-dropdown-menu> -->
+          </div>
+          <paper-button class="runstop run" hidden$="[[isDemoing]]" raised on-tap="_toggleDemo" data-args="start">
+            <iron-icon icon="av:play-arrow"></iron-icon>
+            Start Demo
+          </paper-button>
+          <paper-button class="runstop stop" hidden$="[[!isDemoing]]" raised on-tap="_toggleDemo" data-args="stop">
+            <iron-icon icon="av:stop"></iron-icon>
+            Stop Demo
+          </paper-button>
+          <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
+            <iron-icon icon="av:play-arrow"></iron-icon>
+            Replay Action
+          </paper-button>
+          <paper-button class="runstop stop" hidden$="[[!isRunning.data]]" raised on-tap="stop">
+            <iron-icon icon="av:stop"></iron-icon>
+            Stop Replay
+          </paper-button>
+        </div>
+      </div>
+    </div>
+
+    <paper-dialog modal id="running">
+      <h2>Run program?</h2>
+      <p></p>
+      <div>
+        <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+        <paper-button dialog-confirm raised on-tap="run">Run</paper-button>
+      </div>
+    </paper-dialog>
+    <paper-dialog id="errorDialog" modal>
+      <h2>Error running the program</h2>
+      <p>[[error]]</p>
+      <div class="buttons">
+        <paper-button dialog-confirm class="clear">OK</paper-button>
+      </div>
+    </paper-dialog>
+    <paper-dialog modal id="playing">
+      <p>
+        <paper-spinner-lite active></paper-spinner-lite>
+        Replaying action: [[execDescrip]]
+      </p>
+    </paper-dialog>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'pbd-program-fake',
+
+      properties: {
+        currentStepNum: {
+          type: Number,
+          value: 0,
+        },
+        landmarks: Object,
+        params: Object,
+        problem: {
+          type: Object,
+          value: function () {
+            return { sequence: [] };
+          }
+        },
+        planStep: {
+          type: Object,
+          value: function () {
+            return {
+              action: String,
+              args: []
+            };
+          }
+        },
+        program: {
+          type: Object,
+
+        },
+        ros: Object,
+        programId: String,
+        execution: {
+          type: Object,
+          value: function () {
+            return {
+              status: Object,
+              feedback: Object,
+              result: Object
+            };
+          }
+        },
+        execDescrip: String,
+        isRunning: {
+          type: Object,
+          value: function () {
+            return { data: false };
+          }
+        },
+        isDemoing: {
+          type: Boolean,
+          value: false,
+        },
+        gripperType: String,
+      },
+
+      observers: [
+        'load(programId, params.*)',
+        '_programUpdated(program.*)',
+        '_isRunningChanged(isRunning.data)',
+        '_executionChanged(execution.result.*,execution.feedback.*)'
+      ],
+
+      load: function (db_id, paramsChangeRecord) {
+        if (!db_id) {
+          return;
+        }
+        if (!this.params.robot) {
+          return;
+        }
+        this.$.programSub.subscribe();
+
+      },
+      _executionChanged: function (res, feed) {
+        this.execDescrip = "";
+        if (feed.value) {
+          this.execDescrip = "Step " + feed.value.feedback.step_number;
+          console.debug("_executionChanged: feed", feed);
+        }
+        if (res.value) {
+          console.debug("_executionChanged: res ", res);
+          this.error = res.value.result.error;
+          this.$.playing.close();
+          if (this.error != "") {
+            //this.execDescrip = "" + res.value.result.error;
+            this.$.errorDialog.open();
+          }
+        }
+      },
+
+      run: function () {
+        var msg = {
+          type: 'run pddl plan',
+          domain_id: "5bf2ffcf6fbe3c20bafe55a9",
+          pddl_problem: this.problem
+        };
+
+        this.$.playing.open();
+        this.$.eventPub.publish(msg);
+      },
+
+      stop: function () {
+        this.$.programAction.cancel();
+      },
+
+      _handleFeedback: function (evt) {
+        this.currentStepNum = evt.detail.step_number;
+      },
+
+      _handleResult: function (evt) {
+        var error = evt.detail.error;
+        if (error) {
+          this.error = evt.detail.error;
+          this.$.errorDialog.open();
+        } else {
+
+        }
+      },
+
+      _handleProgram: function (evt) {
+        var program = evt.detail;
+        if (!this.program) {
+          this.set('program', program);
+          if (this.program.steps.length == 0) this.addSenseSteps();
+          return;
+        }
+        if (!_.isEqual(this.program, program)) {
+          this.set('program', program);
+          if (this.program.steps.length == 0) this.addSenseSteps();
+        }
+      },
+
+      _isRunningChanged: function (isRunning) {
+      },
+      running: function (evt) {
+        this.$.running.open();
+      },
+
+      _chooseFakeProgram: function (evt) {
+        var gripperType = evt.target.getAttribute('data-args');
+        console.debug("_chooseFakeProgram: ", evt.target);
+        var obj = this.$.typeSelection.value;
+        this.planStep.action = "move-" + obj.toLowerCase();
+
+        // this.problem.landmarks = this.landmarks;
+        this.problem.sequence.push(this.planStep);
+        console.debug("_chooseFakeProgram: ", this.problem);
+      },
+      _toggleDemo: function (evt) {
+        var args = evt.target.getAttribute('data-args');
+        if (args == "start")
+          this.isDemoing = true;
+        if (args == "stop")
+          this.isDemoing = false;
+
+      }
+    });
+  </script>
+</dom-module>

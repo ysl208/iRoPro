@@ -61,6 +61,20 @@
                 text-align: center;
             }
 
+            .runstop {
+                color: #fff;
+                margin-left: 10px;
+                height: 40px;
+            }
+
+            .run {
+                background-color: var(--paper-green-500);
+            }
+
+            .stop {
+                background-color: var(--paper-red-500);
+            }
+
             .stepDiv {
                 min-width: 450px;
                 margin-bottom: 10px;
@@ -220,10 +234,8 @@
                 </paper-button>
                 <paper-button raised on-click="exiting">
                     <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit">
-
                     </paper-icon-button>
                 </paper-button>
-
             </div>
 
             <paper-dialog modal id="saving">
@@ -243,21 +255,6 @@
                 </div>
             </paper-dialog>
 
-            <paper-dialog modal id="saved">
-                <h2>Saved generalised action: [[actionName]]</h2>
-                <p>demonstrated action had relative parameters:
-                    <br>
-                    <b>[[_getAction(action)]]</b>
-                    <br> robot learned generalised action with relative parameter types:
-                    <br>
-                    <b>[[_getGeneralisedAction(action)]]</b>.
-                    <br>
-                    <br> Make sure the relative parameters and their types are correct. </p>
-                <div>
-                    <paper-button dialog-dismiss raised class="cancel">Stay</paper-button>
-                    <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
-                </div>
-            </paper-dialog>
             <paper-dialog modal id="exiting">
                 <h2>Quit current action?</h2>
                 <p>All change not saved will be lost.</p>
@@ -271,10 +268,19 @@
 
         <div id="layout" class="layout vertical">
             <!-- ***** DEMONSTRATION **** 2/3 -->
-            <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
-                <template is="dom-if" if="[[_displayNavStep(navStep,'demonstration')]]">
-                    <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" program-id="[[action.program_id]]"></pbd-program>
-                </template>
+            <div class="content">
+                <div id="stepContent" class="stepDiv">
+                    <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
+                        <template is="dom-if" if="[[_displayNavStep(navStep,'demonstration')]]">
+                            <template is="dom-if" restamp if="[[!isAdminDomain(pddlDomain.name)]]">
+                                <pbd-program-fake data-page="program" params="[[params]]" ros="[[ros]]" program-id="[[action.program_id]]" landmarks="[[action.landmarks]]"></pbd-program-fake>
+                            </template>
+                            <template is="dom-if" restamp if="[[isAdminDomain(pddlDomain.name)]]">
+                                <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" program-id="[[action.program_id]]"></pbd-program-fake>
+                            </template>
+                        </template>
+                    </div>
+                </div>
             </div>
             <div class="content">
                 <div id="stepContent" class="stepDiv">
@@ -282,7 +288,7 @@
                     <div id="perception" hidden$="[[!_displayNavStep(navStep,'perception')]]">
                         <fieldset>
                             <legend>
-                                Detected World Instances
+                                Detected Entities
                             </legend>
                             <!-- <p>Verify all objects have been detected before proceeding.</p> -->
                             <p id="noObj">No objects detected</p>
@@ -305,7 +311,8 @@
                             </template>
 
                             <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
-                                Detect World Instances
+                                <iron-icon icon="icons:find-in-page"> </iron-icon>
+                                Detect Entities
                             </paper-button>
 
                             <!-- <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="demonstration">
@@ -316,14 +323,7 @@
 
                     <!-- ***** AFTER DEMO **** 3/3 -->
                     <div id="actionModel" hidden$="[[!_displayNavStep(navStep,'actionModel')]]">
-                        <fieldset>
-                            <paper-button id="detect2" raised class="petit" on-tap="_detect" data-args="Effect">
-                                Detect Effects
-                            </paper-button>
-                            <paper-button class="petit" raised on-tap="_generateConditions">
-                                Generate Conditions
-                            </paper-button>
-                        </fieldset>
+
                         <fieldset>
                             <legend>
                                 Preconditions
@@ -371,13 +371,17 @@
                             </div>
                             <br>
                             <paper-button noink class="petit" on-click="addPredicate" data-args="Precondition">+ add new condition</paper-button>
+
+                            <paper-button id="detect1" raised class="petit" on-tap="_detect" data-args="Precondition">
+                                <iron-icon icon="icons:find-in-page"> </iron-icon>
+                                Detect Preconditions
+                            </paper-button>
                         </fieldset>
 
                         <fieldset>
                             <legend>
                                 Effects
                             </legend>
-
                             <template is="dom-repeat" items="{{action.effects}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
                                     <p>
@@ -420,6 +424,16 @@
                             </div>
                             <br>
                             <paper-button noink class="petit" on-click="addPredicate" data-args="Effect">+ add new condition</paper-button>
+
+                            <paper-button id="detect2" raised class="clear" on-tap="_detect" data-args="Effect">
+                                <iron-icon icon="icons:find-in-page"> </iron-icon>
+                                Detect Effects
+                            </paper-button>
+                        </fieldset>
+                        <fieldset>
+                            <paper-button class="clear" raised on-tap="_generateConditions">
+                                Learn Conditions
+                            </paper-button>
                         </fieldset>
                     </div>
                 </div>
@@ -456,7 +470,9 @@
         </paper-dialog>
         <paper-dialog modal id="loading">
             <p>
-                <paper-spinner-lite active></paper-spinner-lite> Detecting objects on the table</p>
+                <paper-spinner-lite active></paper-spinner-lite>
+                Detecting objects on the table
+            </p>
         </paper-dialog>
     </template>
 
@@ -534,10 +550,6 @@
                 showing: Object,
                 actionDesc: String,
                 genActionDesc: String,
-                // showRobotModel: {
-                //     type: Boolean,
-                //     value: false,
-                // },
             },
 
             observers: [
@@ -897,7 +909,6 @@
                     if (this.actionName != this.action.name)
                         this.quit();
                 }
-                //this.$.saved.open();
             },
 
             saving: function (evt) {
@@ -964,9 +975,6 @@
                 var id = evt.detail.db_id;
                 this.action.program_id = id;
                 console.debug('_handleServResponse: action assigned program id: ', this.action.program_id);
-                /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
-                window.dispatchEvent(new CustomEvent("location-changed")); */
-
                 this._updateDomain();
             },
 
@@ -974,6 +982,10 @@
                 console.error(evt.detail);
             },
             _startDemo: function (evt) {
+                if (!isAdminDomain(pddlDomain.name)) {
+                    console.debug("_startDemo: fake program created, no program-id");
+                    return;
+                }
                 if (this.action.program_id && this.action.program_id.length > 0) {
                     console.debug('Program already exists ... ', this.action.program_id);
                     /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
@@ -1231,6 +1243,13 @@
             _negate: function (neg) {
                 if (neg) return 'not ';
                 else return '';
+            },
+            isAdminDomain: function (name) {
+
+                if (name == "Domain1")
+                    return true;
+                return false;
+
             }
         });
     </script>
