@@ -84,7 +84,7 @@ string MotionPlanning::AddPoseGoal(
     graph.Add("landmark", tg::RefFrame(base_link), st);
   } else if (landmark.type == msgs::Landmark::SURFACE_BOX) {
     msgs::Landmark match;
-    if (landmark.name.find("pos") != std::string::npos || landmark.match) {
+    if (landmark.name.find("p") != std::string::npos || landmark.match) {
       match = landmark;
     } else {
       double variance = 0.075;
