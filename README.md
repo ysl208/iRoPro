@@ -34,8 +34,8 @@ roslaunch rapid_pbd editor.launch robot:=baxter --screen`
 roslaunch kinect2_bridge kinect2_bridge.launch publish_tf:=true
 roslaunch freenect_launch freenect.launch`
 
-`cd ~/local/collada
-caddy`
+``cd ~/local/collada
+caddy``
 
 `cd ~/catkin_ws/src/rapid_pbd/frontend
 
