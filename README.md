@@ -22,9 +22,7 @@ For example, in one step, you can point the head down and move the robot's arms 
 roscore
 
 rosrun baxter_tools enable_robot.py -e
-rosrun baxter_interface gripper_action_server.py &
-rosrun baxter_interface joint_trajectory_action_server.py -l both &
-rosrun baxter_interface head_action_server.py
+`rosrun baxter_interface gripper_action_server.py & rosrun baxter_interface joint_trajectory_action_server.py -l both & rosrun baxter_interface head_action_server.py & rosrun baxter_examples gripper_cuff_control.py`
 
 roslaunch rapid_pbd baxter_moveit.launch right_electric_gripper:=false left_electric_gripper:=true
 roslaunch rapid_pbd web_prereqs.launch
