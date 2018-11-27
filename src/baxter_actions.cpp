@@ -54,7 +54,10 @@ void GripperAction::Execute(
              baxter_goal.command.position);
   } else {
     const float kMaxWidth = 0.1;
-    baxter_goal.command.position = goal->command.position / kMaxWidth * 100;
+    if (goal->command.position == 0)
+      baxter_goal.command.position = 0.01 / kMaxWidth * 100;
+    else
+      baxter_goal.command.position = goal->command.position / kMaxWidth * 100;
   }
   baxter_goal.command.max_effort = goal->command.max_effort;
   baxter_client_.sendGoal(
