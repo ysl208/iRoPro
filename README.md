@@ -33,7 +33,7 @@ roslaunch rapid_pbd baxter.launch sim:=false kinect:=true --screen
 roslaunch rapid_pbd editor.launch robot:=baxter --screen
 
 ### kinect + PDDL planner
-roslaunch pddl_planner_viewer pddl_planner_sample-pddl.launch
+roslaunch pddl_planner pddl_ff.launch
 roslaunch kinect2_bridge kinect2_bridge.launch publish_tf:=true
 roslaunch freenect_launch freenect.launch
 
