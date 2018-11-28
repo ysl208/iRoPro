@@ -180,8 +180,8 @@
             }
 
             .important {
-                width: 32px;
-                height: 32px;
+                width: 30px;
+                height: 30px;
             }
 
             .listeWorldState {
@@ -225,29 +225,23 @@
             <div id="buttonDiv">
 
                 <!-- <paper-radio-button class="button_not" id="button_show_robot">Show Robot</paper-radio-button> -->
-                <paper-button class="clear" on-tap="_assignSurfaceObjects">
-                    Refresh
+                <paper-button raised class="clear" on-tap="_assignSurfaceObjects">
+                    Refresh View
                 </paper-button>
                 <paper-button raised on-click="saving">
+                    <paper-icon-button id="save" class="clear" icon="icons:save" alt="save"></paper-icon-button>
                     Save
-                    <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
                 </paper-button>
                 <paper-button raised on-click="exiting">
-                    <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit">
+                    <paper-icon-button id="quit" class="important" icon="icons:close" alt="quit">
                     </paper-icon-button>
                 </paper-button>
             </div>
 
             <paper-dialog modal id="saving">
                 <h2>Save current action '[[actionName]]'?</h2>
-                <p>demonstrated action had relative parameters:
-                    <br>
-                    <b>[[actionDesc]]</b>
-                    <br> robot learned generalised action with relative parameter types:
-                    <br>
-                    <b>[[genActionDesc]]</b>.
-                    <br>
-                    <br> Make sure the relative parameters and their types are correct. </p>
+                <p id="description">
+                    Make sure the parameters and their types are correct. </p>
                 <p>If action name changed, action will be closed on save.</p>
                 <div>
                     <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
@@ -273,7 +267,7 @@
                     <div id="demo" hidden$="[[!_displayNavStep(navStep,'demonstration')]]">
                         <template is="dom-if" if="[[_displayNavStep(navStep,'demonstration')]]">
                             <template is="dom-if" restamp if="[[!isAdminDomain(pddlDomain.name)]]">
-                                <pbd-program-fake data-page="program" params="[[params]]" ros="[[ros]]" program-id="[[action.program_id]]" landmarks="[[action.landmarks]]"></pbd-program-fake>
+                                <pbd-program-fake data-page="program" ros="[[ros]]" action="[[action]]" domain-id="[[domain_id]]" landmarks="[[action.landmarks]]"></pbd-program-fake>
                             </template>
                             <template is="dom-if" restamp if="[[isAdminDomain(pddlDomain.name)]]">
                                 <pbd-program data-page="program" params="[[params]]" ros="[[ros]]" program-id="[[action.program_id]]"></pbd-program-fake>
@@ -291,7 +285,9 @@
                                 Detected Entities
                             </legend>
                             <!-- <p>Verify all objects have been detected before proceeding.</p> -->
-                            <p id="noObj">No objects detected</p>
+                            <p id="noObj">No objects detected
+                                <br>
+                            </p>
 
                             <template is="dom-repeat" items="{{action.params}}" as="item" index-as="paramIndex">
                                 <div id="listeObjets">
@@ -328,10 +324,17 @@
                             <legend>
                                 Preconditions
                             </legend>
+                            <paper-button id="detect1" raised class="clear" on-tap="_detect" data-args="Precondition">
+                                <iron-icon icon="icons:find-in-page"> </iron-icon>
+                                Detect Preconditions
+                            </paper-button>
+                            <br>
+
                             <template is="dom-repeat" items="{{action.preconditions}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
                                     <p>
-                                        [[item.arg1.name]] ([[_getParamTypeByName(item.arg1)]])
+                                        [[item.arg1.name]]
+                                        <!--([[_getParamTypeByName(item.arg1)]]) -->
                                     </p>
                                     <p>
                                         is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
@@ -370,22 +373,25 @@
                                 </paper-dropdown-menu>
                             </div>
                             <br>
-                            <paper-button noink class="petit" on-click="addPredicate" data-args="Precondition">+ add new condition</paper-button>
+                            <paper-button noink class="clear" raised on-click="addPredicate" data-args="Precondition">+ add new condition</paper-button>
 
-                            <paper-button id="detect1" raised class="petit" on-tap="_detect" data-args="Precondition">
-                                <iron-icon icon="icons:find-in-page"> </iron-icon>
-                                Detect Preconditions
-                            </paper-button>
                         </fieldset>
 
                         <fieldset>
                             <legend>
                                 Effects
                             </legend>
+
+                            <paper-button id="detect2" raised class="clear" on-tap="_detect" data-args="Effect">
+                                <iron-icon icon="icons:find-in-page"> </iron-icon>
+                                Detect Effects
+                            </paper-button>
+                            <br>
                             <template is="dom-repeat" items="{{action.effects}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
                                     <p>
-                                        [[item.arg1.name]] ([[_getParamTypeByName(item.arg1)]])
+                                        [[item.arg1.name]]
+                                        <!-- ([[_getParamTypeByName(item.arg1)]]) -->
                                     </p>
                                     <p>
                                         is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
@@ -423,21 +429,19 @@
                                 </paper-dropdown-menu>
                             </div>
                             <br>
-                            <paper-button noink class="petit" on-click="addPredicate" data-args="Effect">+ add new condition</paper-button>
+                            <paper-button noink class="clear" raised on-click="addPredicate" data-args="Effect">+ add new condition</paper-button>
 
-                            <paper-button id="detect2" raised class="clear" on-tap="_detect" data-args="Effect">
-                                <iron-icon icon="icons:find-in-page"> </iron-icon>
-                                Detect Effects
-                            </paper-button>
                         </fieldset>
-                        <fieldset>
+                        <center>
+                            <br>
                             <paper-button class="clear" raised on-tap="_generateConditions">
-                                Learn Conditions
+                                <iron-icon icon="icons:lightbulb-outline"></iron-icon>
+                                Confirm Conditions
                             </paper-button>
-                        </fieldset>
+                        </center>
                     </div>
                 </div>
-                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
+                <!-- <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz> -->
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -468,6 +472,14 @@
                 <paper-button dialog-confirm class="clear">OK</paper-button>
             </div>
         </paper-dialog>
+        <paper-dialog id="confirmConditions">
+            <h2>Confirm conditions</h2>
+            <p id="msgConfirmConditions" style="padding: 5px">Action has been learned...</p>
+            <div class="buttons">
+                <paper-button dialog-confirm class="clear">OK</paper-button>
+            </div>
+        </paper-dialog>
+
         <paper-dialog modal id="loading">
             <p>
                 <paper-spinner-lite active></paper-spinner-lite>
@@ -962,10 +974,11 @@
                     }
                     //show if no objects have been detected
                     var i = 0;
-                    while (i < this.action.params.length && this.action.params[i].type.name == "position") {
+                    while (i < this.action.params.length
+                        && this.action.params[i].type.name == "position") {
                         i++;
                     }
-                    if (this.action.params.length == 0) {
+                    if (i != this.action.params.length) {
                         this.$.noObj.style.display = "none";
                     }
                 }
@@ -977,7 +990,6 @@
                 console.debug('_handleServResponse: action assigned program id: ', this.action.program_id);
                 this._updateDomain();
             },
-
             _handleServiceError: function (evt) {
                 console.error(evt.detail);
             },
@@ -986,10 +998,9 @@
                     console.debug("_startDemo: fake program created, no program-id");
                     return;
                 }
+                console.debug("_startDemo: admin domain, create program and assign program-id");
                 if (this.action.program_id && this.action.program_id.length > 0) {
                     console.debug('Program already exists ... ', this.action.program_id);
-                    /* window.history.pushState({}, null, "#/program/" + this.action.program_id);
-                    window.dispatchEvent(new CustomEvent("location-changed")); */
                 } else {
                     this.program_id_set = true;
                     console.debug('New Program being created ... ');
@@ -1079,7 +1090,7 @@
                         names.push(this.domain.types[i].name);
                     }
                 }
-                console.debug('_getTypes: ', names);
+                // console.debug('_getTypes: ', names);
                 return (names);
             },
 
@@ -1143,10 +1154,10 @@
             _generateConditions: function () {
                 // check preconditions and effects are there
                 if (this.action.preconditions.length == 0) {
-                    this.$.msgErrorConditions.innerHTML = "No preconditions were specified";
+                    this.$.msgErrorConditions.innerHTML = "No preconditions were specified. Please add them.";
                     this.$.errorConditions.open();
                 } else if (this.action.effects.length == 0) {
-                    this.$.msgErrorConditions.innerHTML = "No effects were specified";
+                    this.$.msgErrorConditions.innerHTML = "No effects were specified. Please add them.";
                     this.$.errorConditions.open();
                 }
                 // If they are there then you can generate the conditions
@@ -1156,6 +1167,13 @@
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
                     this.reevaluateArray('action.effects', this.action.effects);
                     this._generateParams();
+                    this.actionDesc = this._getAction(this.action);
+                    this.genActionDesc = this._getGeneralisedAction(this.action);
+                    var text = "Demonstrated action: <br> <b>" + this.actionDesc;
+                    text += "</b> <br><br> Robot learned generalised action with types: <br><b>" + this.genActionDesc;
+                    console.log("_generateConditions: ", text);
+                    this.$.msgConfirmConditions.innerHTML = text;
+                    this.$.confirmConditions.open();
                 }
             },
             _getPredicateDiff: function (list1, list2) {

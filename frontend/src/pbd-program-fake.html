@@ -142,7 +142,7 @@
         }
       }
     </style>
-    <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{programId}}"
+    <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{action.program_id}}"
       ros="[[ros]]"></ros-topic>
     <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
     <ros-topic auto last-message="{{execution.result}}" msg-type="rapid_pbd_msgs/ExecuteProgramActionResult" topic="/rapid_pbd/execute_program_action/result"
@@ -156,7 +156,7 @@
     <div id="layout" class="layout vertical">
       <div class="content">
         <div id="stepContent" class="stepDiv">
-          <div class="stepDivInner">
+          <div class="stepDivInner" hidden$="[[!isDemoing]]">
             <br> Choose object type:
             <paper-dropdown-menu id="typeSelection">
               <paper-listbox slot="dropdown-content" selected="-1">
@@ -171,8 +171,7 @@
                 </paper-item>
               </paper-listbox>
             </paper-dropdown-menu>
-
-            <!-- Choose the gripper type:
+            <br> Choose the gripper type:
             <paper-dropdown-menu id="gripperSelection">
               <paper-listbox slot="dropdown-content" selected="-1">
                 <paper-item name="Vacuum" on-tap="_chooseFakeProgram" data-args="Vacuum">
@@ -182,7 +181,7 @@
                   Electric
                 </paper-item>
               </paper-listbox>
-            </paper-dropdown-menu> -->
+            </paper-dropdown-menu>
           </div>
           <paper-button class="runstop run" hidden$="[[isDemoing]]" raised on-tap="_toggleDemo" data-args="start">
             <iron-icon icon="av:play-arrow"></iron-icon>
@@ -192,14 +191,16 @@
             <iron-icon icon="av:stop"></iron-icon>
             Stop Demo
           </paper-button>
-          <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
-            <iron-icon icon="av:play-arrow"></iron-icon>
-            Replay Action
-          </paper-button>
-          <paper-button class="runstop stop" hidden$="[[!isRunning.data]]" raised on-tap="stop">
-            <iron-icon icon="av:stop"></iron-icon>
-            Stop Replay
-          </paper-button>
+          <div hidden$="[[_programExists(action.program_id)]]">
+            <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
+              <iron-icon icon="av:play-arrow"></iron-icon>
+              Replay Action
+            </paper-button>
+            <paper-button class="runstop stop" hidden$="[[!isRunning.data]]" raised on-tap="stop">
+              <iron-icon icon="av:stop"></iron-icon>
+              Stop Replay
+            </paper-button>
+          </div>
         </div>
       </div>
     </div>
@@ -232,12 +233,16 @@
       is: 'pbd-program-fake',
 
       properties: {
+        action: Object,
         currentStepNum: {
           type: Number,
           value: 0,
         },
+        domainId: {
+          type: String,
+          value: '',
+        },
         landmarks: Object,
-        params: Object,
         problem: {
           type: Object,
           value: function () {
@@ -281,20 +286,26 @@
           value: false,
         },
         gripperType: String,
+        mainDomain: {
+          type: String,
+          value: "5bf2ffcf6fbe3c20bafe55a9",
+        },
       },
 
       observers: [
         'load(programId, params.*)',
-        '_programUpdated(program.*)',
+        '_programUpdated(action.program_id)',
         '_isRunningChanged(isRunning.data)',
-        '_executionChanged(execution.result.*,execution.feedback.*)'
-      ],
+        '_executionChanged(execution.result.*,execution.feedback.*)',
 
+      ],
+      _programUpdated: function (pid) {
+        this.$.programSub.unsubscribe();
+        console.info('_programUpdated: ', pid);
+        this.$.programSub.subscribe();
+      },
       load: function (db_id, paramsChangeRecord) {
         if (!db_id) {
-          return;
-        }
-        if (!this.params.robot) {
           return;
         }
         this.$.programSub.subscribe();
@@ -318,14 +329,21 @@
       },
 
       run: function () {
-        var msg = {
-          type: 'run pddl plan',
-          domain_id: "5bf2ffcf6fbe3c20bafe55a9",
-          pddl_problem: this.problem
-        };
+
+        var goal = {
+          program: this.program
+        }
+        //goal.program.steps.splice(0, this.currentStepNum);
+        console.debug('*** send goal to run: ', goal);
+        this.$.programAction.send(goal);
+        // var msg = {
+        //   type: 'run pddl plan',
+        //   domain_id: this.mainDomain,
+        //   pddl_problem: this.problem
+        // };
 
         this.$.playing.open();
-        this.$.eventPub.publish(msg);
+        //this.$.eventPub.publish(msg);
       },
 
       stop: function () {
@@ -348,14 +366,13 @@
 
       _handleProgram: function (evt) {
         var program = evt.detail;
+        console.debug('_handleProgram : ', program);
         if (!this.program) {
           this.set('program', program);
-          if (this.program.steps.length == 0) this.addSenseSteps();
           return;
         }
         if (!_.isEqual(this.program, program)) {
           this.set('program', program);
-          if (this.program.steps.length == 0) this.addSenseSteps();
         }
       },
 
@@ -369,18 +386,37 @@
         var gripperType = evt.target.getAttribute('data-args');
         console.debug("_chooseFakeProgram: ", evt.target);
         var obj = this.$.typeSelection.value;
-        this.planStep.action = "move-" + obj.toLowerCase();
+        this.planStep.action = "move-" + gripperType.toLowerCase() + "-" + obj.toLowerCase();
 
         // this.problem.landmarks = this.landmarks;
         this.problem.sequence.push(this.planStep);
         console.debug("_chooseFakeProgram: ", this.problem);
       },
+      _programExists: function (pid) {
+        console.debug('_programExists: ', pid);
+
+        return pid == "";
+      },
       _toggleDemo: function (evt) {
         var args = evt.target.getAttribute('data-args');
         if (args == "start")
           this.isDemoing = true;
-        if (args == "stop")
+        if (args == "stop") {
+          console.debug('Saving programId ', this.action.program_id);
+          console.debug('Saving domainId ', this.domainId);
+          console.debug('Saving action: ', this.action);
           this.isDemoing = false;
+          //this.action.program_id = this.programId;
+          var msg = {
+            type: 'get preprogrammed action',
+            domain_id: this.domainId,
+            action_name: this.action.name,
+            planner: this.mainDomain, // using planner param for mainDomain id
+            state_name: this.planStep.action // using this as main action name
+          };
+
+          this.$.eventPub.publish(msg);
+        }
 
       }
     });
