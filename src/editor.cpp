@@ -173,11 +173,22 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
 }  // namespace pbd
 void Editor::writeToLogFile(const std::string& file_name,
                             const std::string& text) {
-  // std::time_t result = std::time(nullptr);
+  // get date and time
+  time_t now = time(0);
+  struct tm tstruct;
+  char buf[80];
+  tstruct = *localtime(&now);
+  strftime(buf, sizeof(buf), "%Y-%m-%d,%X", &tstruct);
 
-  std::ofstream log_file(file_name.c_str(),
-                         std::ios_base::out | std::ios_base::app);
-  // log_file << std::asctime(std::localtime(&result)) << ",";
+  // get file
+  std::ostringstream oss;
+  oss << "user-" << file_name << ".log";
+  const char* path = oss.str().c_str();
+  ROS_INFO("Writing to log file %s", path);
+  std::ofstream log_file(path, std::ios_base::out | std::ios_base::app);
+
+  // write to file
+  log_file << buf << ",";
   log_file << text << std::endl;
 }
 bool Editor::HandleCreatePDDLDomain(
