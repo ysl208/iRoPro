@@ -103,7 +103,7 @@ void AddType(std::vector<msgs::PDDLType>* types,
 }
 
 void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
-                   WorldState* world_state) {
+                   WorldState* world_state, bool full) {
   // Given: World_landmarks
   // Create World state of objects
   ROS_INFO("Getting World State with %zd landmarks...", world_landmarks.size());
@@ -166,7 +166,11 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
       predicate = msgs::PDDLPredicate::IS_CLEAR;
       args.clear();
       args.push_back(obj);
-      // AddPredicate(&world_state->predicates_, predicate, args, negate);
+      if (full) {
+        ROS_INFO("Adding all detected states: is_clear for objects");
+
+        AddPredicate(&world_state->predicates_, predicate, args, negate);
+      }
       if (GetObjectTablePosition(obj.type, world_state, variance, &position)) {
         negate = false;
         predicate = msgs::PDDLPredicate::IS_ON;
@@ -194,7 +198,10 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
       args.clear();
       args.push_back(pos_object);
       negate = false;
-      // AddPredicate(&world_state->predicates_, predicate, args, negate);
+      if (full) {
+        ROS_INFO("Adding all detected states: is_clear for positions");
+        AddPredicate(&world_state->predicates_, predicate, args, negate);
+      }
     }
   }
   ROS_INFO("Number of Objects: %zd", world_state->objects_.size());

@@ -39,7 +39,7 @@ class PDDLDomain {
 };
 
 void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
-                   WorldState* world_state);
+                   WorldState* world_state, bool full);
 void AddType(std::vector<msgs::PDDLType>* types,
              const msgs::PDDLType& new_type);
 void AddObject(std::vector<msgs::PDDLObject>* objects,
