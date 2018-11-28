@@ -1,6 +1,7 @@
  <?php
 	//line to change to your catkin workspace
-	chdir("~/catkin_ws");
+	chdir("~/catkin_ws/src/rapid_pbd/scripts");
+	
 	if (isset($_GET["untuckArm"])) {
 		tuckArms($_GET["untuckArm"]);
 	}
