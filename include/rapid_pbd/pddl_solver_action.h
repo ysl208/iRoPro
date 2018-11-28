@@ -20,6 +20,7 @@ class PDDLSolverAction {
                    const std::string& pddl_client_name);
   void Start();
   void Execute(const msgs::PDDLPlannerGoalConstPtr& goal);
+  void ActiveCallBack(const PDDLPlannerFeedback::ConstPtr& pddl_feedback);
   void HandleFeedback(const PDDLPlannerFeedback::ConstPtr& pddl_feedback);
 
  private:

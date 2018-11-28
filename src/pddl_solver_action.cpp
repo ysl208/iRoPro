@@ -33,7 +33,7 @@ void PDDLSolverAction::Start() {
 void PDDLSolverAction::Execute(const msgs::PDDLPlannerGoalConstPtr& pddl_goal) {
   msgs::PDDLPlannerGoal goal = *pddl_goal;
   ros::Time start = ros::Time::now();
-  ROS_INFO("PDDLSolverAction::Execute... ");
+  // ROS_INFO("PDDLSolverAction::Execute... ");
   pddl_client_.sendGoal(
       goal,
       boost::function<void(const SimpleClientGoalState&,
