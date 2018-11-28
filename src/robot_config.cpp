@@ -240,10 +240,10 @@ void BaxterRobotConfig::default_gripper_poses(
   poses->push_back(0.666);
   poses->push_back(-0.747);
   poses->push_back(0.180);
-  poses->push_back(0.302);
-  poses->push_back(0.953);
-  poses->push_back(0.000);
-  poses->push_back(0.016);
+  poses->push_back(0.300);
+  poses->push_back(0.954);
+  poses->push_back(-0.006);
+  poses->push_back(0.008);
 }
 void BaxterRobotConfig::joints_for_group(
     const std::string& actuator_group,
