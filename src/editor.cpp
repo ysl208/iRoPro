@@ -2,7 +2,11 @@
 
 #include <string.h>
 #include <cmath>
+#include <ctime>
 #include <exception>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -167,12 +171,23 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
               ex.what());
   }
 }  // namespace pbd
+void Editor::writeToLogFile(const std::string& file_name,
+                            const std::string& text) {
+  // std::time_t result = std::time(nullptr);
 
+  std::ofstream log_file(file_name.c_str(),
+                         std::ios_base::out | std::ios_base::app);
+  // log_file << std::asctime(std::localtime(&result)) << ",";
+  log_file << text << std::endl;
+}
 bool Editor::HandleCreatePDDLDomain(
     msgs::CreatePDDLDomain::Request& request,
     msgs::CreatePDDLDomain::Response& response) {
   ROS_INFO("Handle request to create PDDL domain '%s'", request.name.c_str());
   response.domain_id = CreatePDDLDomain(request.name);
+  std::ostringstream oss;
+  oss << "0,created user " << request.name;
+  writeToLogFile(response.domain_id, oss.str());
   return true;
 }
 
@@ -1329,7 +1344,7 @@ void Editor::DetectActionConditions(const std::string& domain_id,
     }
 
     WorldState world_state;
-    GetWorldState(program.steps[step_id].landmarks, &world_state);
+    GetWorldState(program.steps[step_id].landmarks, &world_state, false);
     new_action.params = world_state.objects_;
     if (state_name == "Precondition") {
       new_action.preconditions = world_state.predicates_;
@@ -1552,7 +1567,7 @@ void Editor::DetectWorldState(const std::string& domain_id,
     RefreshPDDLProblem(domain_id, new_problem);
 
     WorldState world_state;
-    GetWorldState(new_problem.landmarks, &world_state);
+    GetWorldState(new_problem.landmarks, &world_state, true);
     new_problem.objects = world_state.objects_;
     if (state_name == "initial") {
       new_problem.initial_states = world_state.predicates_;
