@@ -152,6 +152,10 @@ class Editor {
                       const std::string& action_name);
   void DeletePDDLAction(const std::string& domain_id,
                         const std::string& action_name);
+  void GetPreprogrammedAction(const std::string& domain_id,
+                              const std::string& action_name,
+                              const std::string& main_domain_id,
+                              const std::string& main_action_name);
   void UpdatePDDLAction(const std::string& domain_id,
                         const msgs::PDDLAction& action,
                         const std::string& action_name);

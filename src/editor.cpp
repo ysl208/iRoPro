@@ -97,6 +97,9 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       CopyPDDLAction(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::DELETE_PDDL_ACTION) {
       DeletePDDLAction(event.domain_id, event.action_name);
+    } else if (event.type == msgs::EditorEvent::GET_PREPROGRAMMED_ACTION) {
+      GetPreprogrammedAction(event.domain_id, event.action_name, event.planner,
+                             event.state_name);
     } else if (event.type == msgs::EditorEvent::UPDATE_PDDL_ACTION) {
       UpdatePDDLAction(event.domain_id, event.pddl_action, event.action_name);
       // PDDL problems
@@ -1393,6 +1396,53 @@ void Editor::AddPDDLAction(const std::string& domain_id,
   UpdatePDDLDomain(domain_id, domain);
 }
 
+void Editor::GetPreprogrammedAction(const std::string& domain_id,
+                                    const std::string& action_name,
+                                    const std::string& main_domain_id,
+                                    const std::string& main_action_name) {
+  // looks up program_id of main_action in main domain (Domain1) and assigns it
+  // to the given action
+  ROS_INFO(
+      "GetActionFromMainDomain... getting main action '%s' to assign to '%s'",
+      main_action_name.c_str(), action_name.c_str());
+  // get the program_id from the main action in main domain
+  msgs::PDDLDomain main_domain;
+  bool success = domain_db_.Get(main_domain_id, &main_domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", main_domain_id.c_str());
+    return;
+  }
+  int main_index = FindPDDLAction(main_action_name, main_domain.actions);
+  if (main_index < 0) {
+    ROS_INFO("Pddl action %s does not exist but will be added",
+             main_action_name.c_str());
+    return;
+  }
+
+  msgs::PDDLAction main_action = main_domain.actions[main_index];
+  std::string program_id = main_action.program_id;
+
+  // get action in domain and assign program_id
+  msgs::PDDLDomain domain;
+  success = domain_db_.Get(domain_id, &domain);
+  if (!success) {
+    ROS_ERROR("Unable to get domain from \"%s\"", domain_id.c_str());
+    return;
+  }
+
+  int index = FindPDDLAction(action_name, domain.actions);
+  if (index < 0) {
+    ROS_INFO("Pddl action %s does not exist but will be added",
+             action_name.c_str());
+  } else {
+    domain.actions[index].program_id = program_id;
+    ROS_INFO("Update action %s with program id %s",
+             domain.actions[index].name.c_str(),
+             domain.actions[index].program_id.c_str());
+  }
+
+  UpdatePDDLDomain(domain_id, domain);
+}
 void Editor::UpdatePDDLAction(const std::string& domain_id,
                               const msgs::PDDLAction& action,
                               const std::string& action_name) {
@@ -1995,7 +2045,8 @@ void Editor::RunPDDLPlan(const std::string domain_id,
 
     // run program
     RUN:
-      std::cout << "Running program for action ..." << action_name << "\n";
+      std::cout << "Running program '" << main_program.name << "' for action '"
+                << action_name << "'\n";
       msgs::ExecuteProgramGoal goal;
       goal.program = new_program;
       action_clients_->program_client.sendGoal(goal);
