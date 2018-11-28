@@ -51,11 +51,12 @@ int main(int argc, char** argv) {
     ROS_ERROR("Unsupported robot \"%s\"", robot.c_str());
     return 1;
   }
-
   pbd::ActionClients action_clients;
-  while (!action_clients.head_client.waitForServer(ros::Duration(5)) &&
-         ros::ok()) {
-    ROS_WARN("Waiting for head server.");
+  if (robot != "baxter") {
+    while (!action_clients.head_client.waitForServer(ros::Duration(5)) &&
+           ros::ok()) {
+      ROS_WARN("Waiting for head server.");
+    }
   }
   if (robot_config->num_arms() == 1) {
     while (!action_clients.gripper_client.waitForServer(ros::Duration(5)) &&
@@ -116,7 +117,6 @@ int main(int argc, char** argv) {
     scene.world.collision_objects.push_back(floor);
     scene.is_diff = true;
     planning_scene_pub.publish(scene);
-
   }
   pbd::JointStateReader js_reader(robot_config->joint_states_topic());
   js_reader.Start();
