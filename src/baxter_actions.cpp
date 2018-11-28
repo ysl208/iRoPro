@@ -100,9 +100,9 @@ HeadAction::HeadAction(const std::string& head_server_name,
       baxter_client_(head_client_name, true) {}
 
 void HeadAction::Start() {
-  while (!baxter_client_.waitForServer(ros::Duration(5))) {
-    ROS_WARN("Waiting for Baxter head server to come up.");
-  }
+  // while (!baxter_client_.waitForServer(ros::Duration(5))) {
+  //   ROS_WARN("Waiting for Baxter head server to come up.");
+  // }
   server_.start();
 }
 

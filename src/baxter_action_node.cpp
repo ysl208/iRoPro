@@ -27,12 +27,12 @@ int main(int argc, char** argv) {
                                            pbd::baxter::kRightGripperActionName,
                                            gripper_types[right_pos]);
 
-  pbd::baxter::HeadAction head_action(pbd::kHeadActionName,
-                                      pbd::baxter::kHeadActionName);
+  // pbd::baxter::HeadAction head_action(pbd::kHeadActionName,
+  //                                     pbd::baxter::kHeadActionName);
 
   left_gripper.Start();
   right_gripper.Start();
-  head_action.Start();
+  // head_action.Start();
   ros::spin();
   return 0;
 }
