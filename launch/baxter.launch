@@ -17,11 +17,11 @@
   <arg if="$(arg sim)" name="depth_topic" default="/camera/depth_registered/image_raw" />
   <arg if="$(arg sim)" name="color_topic" default="/camera/rgb/image_rect_color" />
 
-  <!-- start camera 
+  <!-- start camera -->
   <include file="$(find rapid_pbd)/launch/kinect2.launch" unless="$(arg sim)">
     <arg name="kinect" value="$(arg kinect)" />
     <arg name="kinect2" value="$(arg kinect2)" />
-  </include>-->
+  </include>
 
   <group ns="rapid_pbd"> 
     <param name="robot" value="baxter" />

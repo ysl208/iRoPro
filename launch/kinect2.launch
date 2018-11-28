@@ -3,7 +3,7 @@
 
   <arg name="kinect" default="false"/>
   <group if="$(arg kinect)">
-    <include file="$(find freenect_launch)/launch/freenect.launch" />
+    <!--<include file="$(find freenect_launch)/launch/freenect.launch" /> -->
     <node pkg="tf" type="static_transform_publisher" name="world_to_camera" args="0.04 0.025 -0.005 -1.57 -0.875 0.03 head_camera camera_link 100" />
   </group>
 
