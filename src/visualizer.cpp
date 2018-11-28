@@ -455,8 +455,8 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
                landmarks[i].name.c_str(), i);
     } else {
       marker.pose.position.z += 0.15;
-      ROS_INFO("Adding object %s as scene markers: %zu ",
-               landmarks[i].name.c_str(), i);
+      // ROS_INFO("Adding object %s as scene markers: %zu ",
+      //          landmarks[i].name.c_str(), i);
     }
     marker.scale.x = 0.1;
     marker.scale.y = 0.1;

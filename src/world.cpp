@@ -239,7 +239,7 @@ bool MatchLandmark(const World& world, const msgs::Landmark& landmark,
         }
       }
     }
-    ROS_INFO("Best Match is %f <= %f", best, kMaxDistance);
+    ROS_INFO("Best Match is %.5f <= %f", best, kMaxDistance);
     return (best <= kMaxDistance);
   } else {
     return false;

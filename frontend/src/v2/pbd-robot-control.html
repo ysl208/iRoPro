@@ -13,7 +13,7 @@
 <link rel="import" href="../shared-styles.html">
 
 <dom-module id="pbd-robot-control">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <template>
         <style include="../shared-styles"></style>
         <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
@@ -28,7 +28,7 @@
             }
 
             .container {
-                display:flex;
+                display: flex;
             }
 
             .item {
@@ -46,7 +46,6 @@
             #cameraButton {
                 float: right;
             }
-
         </style>
         <!-- <h1 align="center">Robot Control</h1> -->
         <div class="container">
@@ -54,10 +53,10 @@
                 <legend>Robot's state control</legend>
                 <paper-button class="style-scope canvas-view" raised on-tap="enable">Enable</paper-button>
                 <iron-ajax id="enable" method="GET" url="src/v2/control.php" params='{"changeState":"enable"}' handle-as="text" on-response="handleResponse"></iron-ajax>
-    
+
                 <paper-button class="style-scope canvas-view" raised on-tap="disable">Disable</paper-button>
                 <iron-ajax id="disable" method="GET" url="src/v2/control.php" params='{"changeState":"disable"}' handle-as="text" on-response="handleResponse"></iron-ajax>
-    
+
                 <paper-button class="style-scope canvas-view" raised on-tap="reset">Reset</paper-button>
                 <iron-ajax id="reset" method="GET" url="src/v2/control.php" params='{"changeState":"reset"}' handle-as="text" on-response="handleResponse"></iron-ajax>
             </fieldset>
@@ -65,12 +64,12 @@
                 <legend>Arms control</legend>
                 <paper-button class="style-scope canvas-view" raised on-tap="tuckArmRequest">Tuck arms</paper-button>
                 <iron-ajax id="tuckArm" method="GET" url="src/v2/control.php" params='{"untuckArm":"false"}' handle-as="text" on-response="handleResponse"></iron-ajax>
-    
+
                 <paper-button class="style-scope canvas-view" raised on-tap="untuckArmRequest">Untuck arms</paper-button>
                 <iron-ajax id="untuckArm" method="GET" url="src/v2/control.php" params='{"untuckArm":"true"}' handle-as="text" on-response="handleResponse"></iron-ajax>
             </fieldset>
         </div>
-        
+
         <fieldset>
             <legend>Display on robot screen</legend>
 
@@ -97,7 +96,8 @@
 
                 <paper-dialog modal id="errorOpeningCamera">
                     <h2>Cannot open camera</h2>
-                    <p>Baxter is unable to open more than two of its camera at the same time. Please change the camera you want to see.</p>
+                    <p>Baxter is unable to open more than two of its camera at the same time. Please change the camera you want
+                        to see.</p>
                     <div id="buttons">
                         <paper-button dialog-confirm on-tap="close">Close</paper-button>
                     </div>
@@ -110,41 +110,60 @@
                     </div>
                 </paper-dialog>
                 <paper-dialog modal id="errorProcess">
-                        <h2>Error during execution</h2>
-                        <p>One of the camera you requested is not available. Please check if it is powered.</p>
-                        <div id="buttons">
-                            <paper-button dialog-confirm on-tap="close">Close</paper-button>
-                        </div>
-                    </paper-dialog>
+                    <h2>Error during execution</h2>
+                    <p>One of the camera you requested is not available. Please check if it is powered.</p>
+                    <div id="buttons">
+                        <paper-button dialog-confirm on-tap="close">Close</paper-button>
+                    </div>
+                </paper-dialog>
             </fieldset>
         </fieldset>
 
         <paper-dialog modal id="loading">
-            <p><paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
+            <p>
+                <paper-spinner-lite active></paper-spinner-lite> Waiting for execution</p>
         </paper-dialog>
     </template>
     <script>
         Polymer({
             is: 'pbd-robot-control',
             ready: function () {
-                this.partOfScreen = [{part : "top_left",
-                                        camSelected : "none"},
-                                    {part : "bottom_left",
-                                        camSelected : "none"},
-                                    {part : "top_right",
-                                        camSelected : "none"},
-                                    {part : "bottom_right",
-                                        camSelected : "none"}];
-                this.camerasTopic = [{topic : "/cameras/left_hand_camera/image",
-                                        name : "left hand camera"},
-                                    {topic : "/cameras/right_hand_camera/image",
-                                        name : "right hand camera"},
-                                    {topic : "/cameras/head_camera/image",
-                                        name : "head camera"},
-                                    {topic : "/kinect2/hd/image_color",
-                                        name : "kinect rgb camera"},
-                                    {topic : "none",
-                                        name : "none"}];
+                this.partOfScreen = [{
+                    part: "top_left",
+                    camSelected: "none"
+                },
+                {
+                    part: "bottom_left",
+                    camSelected: "none"
+                },
+                {
+                    part: "top_right",
+                    camSelected: "none"
+                },
+                {
+                    part: "bottom_right",
+                    camSelected: "none"
+                }];
+                this.camerasTopic = [{
+                    topic: "/cameras/left_hand_camera/image",
+                    name: "left hand camera"
+                },
+                {
+                    topic: "/cameras/right_hand_camera/image",
+                    name: "right hand camera"
+                },
+                {
+                    topic: "/cameras/head_camera/image",
+                    name: "head camera"
+                },
+                {
+                    topic: "/kinect2/hd/image_color",
+                    name: "kinect rgb camera"
+                },
+                {
+                    topic: "none",
+                    name: "none"
+                }];
             },
             tuckArmRequest: function (event) {
                 this.$.loading.open();
@@ -192,18 +211,22 @@
                 var index = this.getIndex(evt.target.parentElement.id);
                 this.partOfScreen[index].camSelected = evt.target.name;
             },
-            getIndex: function(part) {
+            getIndex: function (part) {
                 var i = 0;
-                while (i<this.partOfScreen.length && this.partOfScreen[i].part != part) {
+                while (i < this.partOfScreen.length && this.partOfScreen[i].part != part) {
                     i++;
                 }
-                return (i==this.partOfScreen.length? -1: i);
+                return (i == this.partOfScreen.length ? -1 : i);
             },
-            handleResponse: function(event) {
+            close: function () {
+                console.log("close..");
+            },
+            handleResponse: function (event) {
                 this.$.loading.close();
                 console.log(event.detail.response);
                 if (event.detail.response != " success") {
-                    console.log(event.detail.response);
+                    console.error("response is not success");
+                    console.log(event.detail);
                     this.$$("#errorProcess p").innerHTML = event.detail.response;
                     this.$.errorProcess.open();
                 }
