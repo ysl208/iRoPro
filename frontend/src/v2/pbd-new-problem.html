@@ -112,11 +112,10 @@
           max-height: 100%;
           margin-bottom: 0px;
           margin-right: 10px;
-          /*padding: 2%;*/
         }
         #rviz {
           min-height: 350px;
-          max-width: 800px;
+          max-width: 500px;
           @apply(--layout-flex);
         }
         .button_not {
@@ -179,9 +178,11 @@
     <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
     <ros-topic auto id="eventPub" msg-type="rapid_pbd_msgs/EditorEvent" topic="rapid_pbd/editor_events" ros="[[ros]]"></ros-topic>
     <!-- PDDL -->
-    <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/domain/{{domain_id}}"
+    <ros-topic id="domainTopic" auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/domain/{{domain_id}}"
       ros="[[ros]]"></ros-topic>
     <ros-topic auto last-message="{{domain_msg}}" msg-type="std_msgs/String" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+    <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
+      on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>
 
     <header>
       <paper-input id="problemName" label="Problem name" value="{{problemName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
@@ -202,15 +203,15 @@
       </nav>
       <div id="buttonDiv">
 
-        <paper-button class="clear" on-tap="_refreshViz">
-          Refresh
+        <paper-button raised class="clear" on-tap="_refreshViz">
+          <iron-icon icon="icons:refresh"> </iron-icon>
         </paper-button>
-        <paper-button raised on-click="saving">
+        <paper-button raised class="clear" on-click="saving">
+          <iron-icon icon="icons:save"> </iron-icon>
           Save
-          <paper-icon-button id="save" raised class="important" icon="icons:save" alt="save"></paper-icon-button>
         </paper-button>
-        <paper-button raised on-click="exiting">
-          <paper-icon-button id="quit" raised class="important" icon="icons:close" alt="quit"></paper-icon-button>
+        <paper-button raised class="clear" on-click="exiting">
+          <iron-icon icon="icons:close"> </iron-icon>
         </paper-button>
 
       </div>
@@ -244,27 +245,26 @@
                 Detected World Objects
               </legend>
               <!-- <p>Verify all objects have been detected before proceeding.</p> -->
-              <p id="noObj">No objects detected</p>
+              <p id="noObj">No objects detected
+                <br>
+              </p>
               <template is="dom-repeat" items="{{sortByName(problem.objects)}}" as="item" index-as="paramIndex">
-                <tr>
-                  <div id="listeObjet" class="petit">
-                    <td>
-                      <paper-icon-button icon="check"></paper-icon-button>
-                    </td>
-                    <td>[[item.name]]</td>
-                    <td>
-                      <paper-dropdown-menu no-label-float>
-                        <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{item.type.name}}">
-                          <template is="dom-repeat" items="[[_getTypes(item)]]" as="item2" index-as="typeIndex">
-                            <paper-item name="[[item2]]" on-tap="_updateType" data-args="[[item]]">[[item2]]</paper-item>
-                          </template>
-                        </paper-listbox>
-                      </paper-dropdown-menu>
-                    </td>
-                  </div>
-                </tr>
+
+                <div id="listeObjet" class="petit">
+                  <paper-icon-button icon="check"></paper-icon-button>
+                  <paper-dropdown-menu no-label-float>
+                    <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{item.type.name}}">
+                      <template is="dom-repeat" items="[[_getTypes(item)]]" as="item2" index-as="typeIndex">
+                        <paper-item name="[[item2]]" on-tap="_updateType" data-args="[[item]]">[[item2]]</paper-item>
+                      </template>
+                    </paper-listbox>
+                  </paper-dropdown-menu>
+                  <font size="2pt" color="grey">([[item.name]])</font>
+                </div>
               </template>
+
               <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="initial">
+                <iron-icon icon="icons:find-in-page"> </iron-icon>
                 Detect World Objects
               </paper-button>
             </fieldset>
@@ -315,7 +315,7 @@
                 </paper-dropdown-menu>
               </div>
               <br>
-              <paper-button noink class="petit" on-click="addPredicate" data-args="InitialState">+ add new predicate</paper-button>
+              <paper-button noink class="clear" raised on-click="addPredicate" data-args="InitialState">+ add new predicate</paper-button>
 
               <!-- <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="problemModel">
                 Next
@@ -329,7 +329,9 @@
               <legend>
                 Goal States
               </legend>
+              <p id="noGoals" hidden$="[[_hasGoals]]">Defined goal states to achieve:
 
+              </p>
               <template is="dom-repeat" items="{{problem.goal_states}}" as="item" index-as="objectIndex">
                 <div class="listeWorldState">
                   <p>
@@ -371,11 +373,14 @@
                 </paper-dropdown-menu>
               </div>
               <br>
-              <paper-button noink class="petit" on-click="addPredicate" data-args="GoalState">+ add new predicate</paper-button>
-
-              <paper-button id="solve" raised class="clear" on-tap="_solve" data-args="">
-                Solve Problem
-              </paper-button>
+              <paper-button noink class="clear" raised on-click="addPredicate" data-args="GoalState">+ add new predicate</paper-button>
+              <br>
+              <center>
+                <paper-button id="solve" raised class="clear" on-tap="_solve" data-args="">
+                  <iron-icon icon="icons:lightbulb-outline"></iron-icon>
+                  Solve Problem
+                </paper-button>
+              </center>
             </fieldset>
 
           </div>
@@ -387,7 +392,7 @@
                 Generated steps to solve problem
               </legend>
               <!-- <p>Verify all sequence is correct before proceeding.</p> -->
-              <p id="noSteps" hidden$="[[!_stepsFound]]">No steps generated: [[problem.output]]</p>
+              <p id="noSteps" hidden$="[[!_stepsFound]]">No steps generated. Definitions are missing.</p>
               <table>
                 <template is="dom-repeat" items="{{problem.sequence}}" as="item" index-as="stepIndex">
                   <tr>
@@ -446,11 +451,58 @@
                 </paper-dropdown-menu>
               </div>
               <br>
-              <paper-button noink class="petit" on-click="addPlanStep" data-args="addPlanStep">+ add action step</paper-button> -->-->
+              <paper-button noink class="petit" on-click="addPlanStep" data-args="addPlanStep">+ add action step</paper-button> -->
 
-              <paper-button id="execute" raised class="clear" on-tap="_execute">
-                Execute plan
+              <center>
+                <paper-button id="execute" raised class="clear" on-tap="_execute">
+                  Execute plan
+                </paper-button>
+              </center>
+              <paper-button noink class="petit" on-click="showDebugging">
+                <iron-icon icon="icons:lightbulb-outline"></iron-icon>
+                Follow Hints
               </paper-button>
+              <div id="debugging" hidden$="[[!_showDebugging]]">
+                <p id="verifyInitialStates">
+                  <b>Hint 1: Review initial states:</b>
+                  <paper-button class="clear" on-tap="viewInitialStates">
+                    <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
+                  </paper-button>
+                  <p id="initalStatesSummary">
+                    <!-- <fieldset> -->
+                    <p id="msgInitalStatesSummary" style="padding: 5px"></p>
+                    <!-- </fieldset> -->
+                  </p>
+                </p>
+                <p id="verifyGoalStates">
+                  <b>Hint 2: Review goal states:</b>
+                  <paper-button class="clear" on-tap="viewGoalStates">
+                    <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
+                  </paper-button>
+                  <p id="goalStatesSummary">
+                    <!-- <fieldset> -->
+                    <p id="msgGoalStatesSummary" style="padding: 5px"></p>
+
+                    <!-- </fieldset> -->
+                  </p>
+                </p>
+                <p id="verifyActions">
+                  <h4>Hint 3: Make sure actions can achieve goal state:</h4>
+                  <template is="dom-repeat" items="[[domain.actions]]" as="action">
+                    <i> [[_getGeneralisedAction(action)]]</i>
+                    <!-- <paper-button class="clear" on-tap="viewActionSummary" data-args="[[action]]">
+                      <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
+                    </paper-button> -->
+                    <br>
+                  </template>
+                  <p id="actionSummary">
+                    <fieldset>
+                      <p id="msgActionSummary" style="padding: 5px"></p>
+
+                    </fieldset>
+                  </p>
+                </p>
+              </div>
             </fieldset>
           </div>
         </div>
@@ -554,10 +606,28 @@
           }
         },
         problemName: String,
+        newDetect: {
+          type: Boolean,
+          value: true,
+        },
         _stepsFound: {
           type: Boolean,
           value: true,
         },
+        _showDebugging: {
+          type: Boolean,
+          value: false,
+        },
+        _hasGoals: {
+          type: Boolean,
+          value: function () {
+            return false;
+          },
+        },
+        // lastDomainUpdated: {
+        //   type: CustomEvent,
+        //   observer: '_getAllStates',
+        // },
         // showRobotModel: {
         //   type: Boolean,
         //   value: false,
@@ -571,6 +641,7 @@
         // '_checkClearPos(newInitialState.arg1.type,newGoalState.arg1.type)',
         '_checkClearPrecond(newInitialState.name)',
         '_checkClearGoalState(newGoalState.name)',
+        // '_getAllStates(lastDomainUpdated)'
       ],
 
       _checkClearPos: function (type) {
@@ -586,7 +657,7 @@
         }
       },
       _checkClearPrecond: function (nom_precond) {
-        if (nom_precond == "clear") {
+        if (nom_precond == "clear" || nom_precond == "thin" || nom_precond == "flat") {
           this.$.menu_instance2_precond.disabled = true;
           this.$.menu_instance2_precond.value = undefined;
           this.newInitialState.arg2 = undefined;
@@ -595,7 +666,7 @@
         }
       },
       _checkClearGoalState: function (nom_goal_state) {
-        if (nom_goal_state == "clear") {
+        if (nom_goal_state == "clear" || nom_goal_state == "thin" || nom_goal_state == "flat") {
           this.$.menu_instance2_goal_state.disabled = true;
           this.$.menu_instance2_goal_state.value = undefined;
           this.newGoalState.arg2 = undefined;
@@ -700,7 +771,7 @@
                 param: 'robot_description',
                 tfPrefix: ''
               },
-            }, {
+              // }, {
               //   isShown: false,
               //   name: 'Current surface segmentation',
               //   type: 'markerArray',
@@ -744,7 +815,9 @@
           // Check if items are well selected
           if (this.$.menu_instance1_precond.value == undefined
             || this.$.menu_name_precond.value == undefined
-            || (this.$.menu_name_precond.value != "is clear"
+            || ((this.$.menu_name_precond.value != "is clear"
+              && this.$.menu_name_precond.value != "is thin"
+              && this.$.menu_name_precond.value != "is flat")
               && this.$.menu_instance2_precond.value == undefined)) {
             valide = false;
             msgErreur = "Complete your new predicate before adding it";
@@ -754,7 +827,9 @@
           // Check if items are well selected
           if (this.$.menu_instance1_goal_state.value == undefined
             || this.$.menu_name_goal_state.value == undefined
-            || (this.$.menu_name_goal_state.value != "is clear"
+            || ((this.$.menu_name_precond.value != "is clear"
+              && this.$.menu_name_precond.value != "is thin"
+              && this.$.menu_name_precond.value != "is flat")
               && this.$.menu_instance2_goal_state.value == undefined)) {
             valide = false;
             msgErreur = "Complete your new predicate before adding it";
@@ -777,8 +852,10 @@
             }
 
             while (valide && index < liste.length) {
-              if (newPredicate.name == "clear"
-                && liste[index].name == "clear"
+              if (newPredicate.name == liste[index].name
+                && (newPredicate.name == "clear"
+                  || newPredicate.name == "flat"
+                  || newPredicate.name == "thin")
                 && newPredicate.arg1.name == liste[index].arg1.name) {
                 valide = false;
                 msgErreur = "This " + mode + " exists already";
@@ -874,6 +951,7 @@
           if (check.valid) {
             this.problem.goal_states.push({ arg1: this.newGoalState.arg1, name: this.newGoalState.name, arg2: this.newGoalState.arg2, negate: this.newGoalState.negate });
             this.reevaluateArray('problem.goal_states', this.problem.goal_states);
+            this._hasGoals = true;
           } else {
             this.$.msgErrorNewGoalState.innerHTML = check.msg;
             this.$.errorNewGoalState.open();
@@ -894,11 +972,12 @@
           if (index != -1) {
             this.splice('problem.goal_states', index, 1);
             this.reevaluateArray('problem.goal_states', this.problem.goal_states);
+            if (this.problem.goal_states.length == 0)
+              this._hasGoals = false;
             console.debug('deletePred from eff');
           }
         }
       },
-
       reevaluateArray: function (name, property) {
         var conds = property;
         this.set(name, []);
@@ -992,6 +1071,7 @@
         console.debug(msg);
         this.$.loading.open();
         this.$.eventPub.publish(msg);
+        console.debug("domaintopic is", this.$.domainTopic);
       },
       removeDuplicates: function (a) {
         uniqueArray = a.filter(function (item, pos) {
@@ -1085,6 +1165,80 @@
           this._stepsFound = false;
         return index + 1;
 
+      },
+
+      _getGeneralisedAction: function (action) {
+        // returns action operator description with types:
+        var text = action.name + "(";
+        var paramList = "";
+        for (var i = 0; i < Object.keys(action.params).length; ++i) {
+          paramList += action.params[i].type.name.toUpperCase() + ", ";
+        }
+        return text + paramList.slice(0, -2) + ")";
+      },
+      viewActionSummary: function (evt) {
+        var action = evt.model.action;
+        var text = "<b>" + this._getGeneralisedAction(action) + "</b>";
+        var pre = "<b>Preconditions:</b> <br>";
+        for (var i = 0; i < action.preconditions.length; ++i) {
+          var pred = action.preconditions[i];
+          pre += pred.arg1.type.name.toUpperCase() + ' is ' + pred.name;
+          if (pred.arg2) {
+            pre += ' ' + pred.arg2.type.name.toUpperCase();
+          }
+          pre += '<br>';
+        }
+        var eff = "<b>Effects:</b> <br>";
+        for (var i = 0; i < action.effects.length; ++i) {
+          var pred = action.effects[i];
+          eff += this._getParamTypeByName(pred.arg1).toUpperCase() + ' is ' + pred.name;
+          if (pred.arg2 && pred.arg2.name != "") {
+            eff += ' ' + this._getParamTypeByName(pred.arg2).toUpperCase();
+          }
+          eff += '<br>';
+        }
+        text += '<br><br>' + pre + '<br>' + eff;
+        console.log("viewActionSummary: ", text);
+        this.$.msgActionSummary.innerHTML = text;
+        this.$.actionSummary.style.display = "inline";
+      },
+
+      viewInitialStates: function (evt) {
+        var problem = this.problem;
+        var text = "";
+        for (var i = 0; i < problem.initial_states.length; ++i) {
+          var pred = problem.initial_states[i];
+          text += ' (' + pred.arg1.name + ') ' + pred.arg1.type.name.toUpperCase() + ' is ' + pred.name;
+          if (pred.arg2 && pred.arg2.name != "") {
+            text += ' ' + pred.arg2.type.name.toUpperCase() + ' (' + pred.arg2.name + ')';
+          }
+          text += '<br>';
+        }
+        console.log("viewInitialStates: ", text);
+        this.$.msgInitalStatesSummary.innerHTML = text;
+        this.$.initalStatesSummary.style.display = "inline";
+      },
+
+      viewGoalStates: function (evt) {
+        var problem = this.problem;
+        var text = "";
+        for (var i = 0; i < problem.goal_states.length; ++i) {
+          var pred = problem.goal_states[i];
+          text += ' (' + pred.arg1.name + ') ' + this._getParamTypeByName(pred.arg1).toUpperCase() + ' is ' + pred.name;
+          if (pred.arg2 && pred.arg2.name != "") {
+            text += ' ' + this._getParamTypeByName(pred.arg2).toUpperCase() + ' (' + pred.arg2.name + ')';
+          }
+          text += '<br>';
+        }
+        console.log("viewGoalStates: ", text);
+        this.$.msgGoalStatesSummary.innerHTML = text;
+        this.$.goalStatesSummary.style.display = "inline";
+      },
+      showDebugging: function () {
+        if (this._showDebugging)
+          this._showDebugging = false;
+        else
+          this._showDebugging = true;
       }
     });
   </script>

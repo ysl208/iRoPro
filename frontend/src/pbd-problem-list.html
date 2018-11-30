@@ -59,7 +59,7 @@
 
         <div class="paper-material">
             <template is="dom-if" restamp if="[[!_showProblemProperties]]">
-                <p>Current domain: [[pddlDomain.name]]</p>
+                <p>Current user: [[pddlDomain.name]]</p>
                 <table>
                     <tr>
                         <th>Programmed problems</th>
@@ -248,6 +248,13 @@
                     domain_id: this.domain_id
                 };
                 this.$.eventPub.publish(msg);
+            },
+
+            logActivity: function (activity) {
+                var now = new Date();
+                var currentMenu = 'problem-list';
+                console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
+                    currentMenu, ',', activity);
             }
 
         });

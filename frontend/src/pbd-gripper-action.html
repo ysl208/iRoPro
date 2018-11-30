@@ -97,14 +97,14 @@
           this.set('action.gripper_command', {});
         }
       },
-      _lowerButtonPressed: function (right, left) {
-        if (right == 1) {
-          if (this._isOpen)
-            this._closeGripper();
-          else
-            this._openGripper();
-        }
-      },
+      // _lowerButtonPressed: function (right, left) {
+      //   if (right == 1) {
+      //     if (this._isOpen)
+      //       this._closeGripper();
+      //     else
+      //       this._openGripper();
+      //   }
+      // },
       _computeIsOpen: function (gripperCommand) {
         if (gripperCommand) {
           return gripperCommand.position > 0;

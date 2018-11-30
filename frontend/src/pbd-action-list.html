@@ -59,7 +59,7 @@
 
         <div class="paper-material">
             <template is="dom-if" restamp if="[[!_showActionProperties]]">
-                <p>Current domain: [[pddlDomain.name]]</p>
+                <p>Current user: [[pddlDomain.name]]</p>
                 <table>
                     <tr>
                         <th>Programmed actions</th>
@@ -77,7 +77,7 @@
                     <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
                         <tr>
                             <td on-tap="_openAction">
-                                <i> {{action.name}}</i>
+                                <i> [[_getGeneralisedAction(action)]]</i>
                             </td>
                             <td>
                                 <paper-button class="clear" on-tap="_openAction">
@@ -181,6 +181,7 @@
                     action_name: this._actionToDelete
                 };
                 this.$.eventPub.publish(msg);
+                this.logActivity('delete action ' + this._actionToDelete);
             },
 
             _copy: function (evt) {
@@ -191,6 +192,7 @@
                     action_name: action_name
                 };
                 this.$.eventPub.publish(msg);
+                this.logActivity('copy action ' + action_name);
             },
             _createNewAction: function (evt) {
                 var name = this.getActionName(this.actions);
@@ -201,6 +203,7 @@
                 };
                 this.$.eventPub.publish(msg);
                 console.debug('_createNewAction', name, ' in domain ', this.domain_id);
+                this.logActivity('create new action ' + name);
                 this.selectedActionName = name;
                 this._showActionProperties = true;
             },
@@ -226,14 +229,31 @@
                 return (this._showActionProperties && page !== 'program');
             },
             _openAction: function (evt) {
+
                 var name = evt.model.get('action.name');
                 this.selectedActionName = name;
                 this._showActionProperties = true;
+                this.logActivity('open action ' + name);
             },
             _displayAction: function (selected, actionname) {
                 return (selected && selected.length > 0 && selected == actionname);
             },
 
+            _getGeneralisedAction: function (action) {
+                // returns action operator description with types:
+                var text = action.name + "(";
+                var paramList = "";
+                for (var i = 0; i < Object.keys(action.params).length; ++i) {
+                    paramList += action.params[i].type.name.toUpperCase() + ", ";
+                }
+                return text + paramList.slice(0, -2) + ")";
+            },
+            logActivity: function (activity) {
+                var now = new Date();
+                var currentMenu = 'action-list';
+                console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
+                    currentMenu, ',', activity);
+            }
         });
     </script>
 </dom-module>

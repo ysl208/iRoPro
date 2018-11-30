@@ -183,24 +183,26 @@
               </paper-listbox>
             </paper-dropdown-menu>
           </div>
-          <paper-button class="runstop run" hidden$="[[isDemoing]]" raised on-tap="_toggleDemo" data-args="start">
-            <iron-icon icon="av:play-arrow"></iron-icon>
-            Start Demo
-          </paper-button>
-          <paper-button class="runstop stop" hidden$="[[!isDemoing]]" raised on-tap="_toggleDemo" data-args="stop">
-            <iron-icon icon="av:stop"></iron-icon>
-            Stop Demo
-          </paper-button>
-          <div hidden$="[[_programExists(action.program_id)]]">
-            <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
+          <p>
+            <paper-button class="runstop run" hidden$="[[isDemoing]]" raised on-tap="_toggleDemo" data-args="start">
               <iron-icon icon="av:play-arrow"></iron-icon>
-              Replay Action
+              Start Demo
             </paper-button>
-            <paper-button class="runstop stop" hidden$="[[!isRunning.data]]" raised on-tap="stop">
+            <paper-button class="runstop stop" hidden$="[[!isDemoing]]" raised on-tap="_toggleDemo" data-args="stop">
               <iron-icon icon="av:stop"></iron-icon>
-              Stop Replay
+              Stop Demo
             </paper-button>
-          </div>
+            <div hidden$="[[_programExists(action.program_id)]]">
+              <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
+                <iron-icon icon="av:play-arrow"></iron-icon>
+                Replay Action
+              </paper-button>
+              <paper-button class="runstop stop" hidden$="[[!isRunning.data]]" raised on-tap="stop">
+                <iron-icon icon="av:stop"></iron-icon>
+                Stop Replay
+              </paper-button>
+            </div>
+          </p>
         </div>
       </div>
     </div>
@@ -342,12 +344,14 @@
         //   pddl_problem: this.problem
         // };
 
+        this.logActivity('start replay:' + this.planStep.action);
         this.$.playing.open();
         //this.$.eventPub.publish(msg);
       },
 
       stop: function () {
         this.$.programAction.cancel();
+        this.logActivity('cancel replay:' + this.planStep.action);
       },
 
       _handleFeedback: function (evt) {
@@ -391,6 +395,7 @@
         // this.problem.landmarks = this.landmarks;
         this.problem.sequence.push(this.planStep);
         console.debug("_chooseFakeProgram: ", this.problem);
+        this.logActivity('choose demo gripper');
       },
       _programExists: function (pid) {
         console.debug('_programExists: ', pid);
@@ -399,12 +404,21 @@
       },
       _toggleDemo: function (evt) {
         var args = evt.target.getAttribute('data-args');
-        if (args == "start")
+        console.debug('_toggleDemo: ', this.planStep);
+        if (args == "start") {
           this.isDemoing = true;
+          var msg = {
+            type: 'save bag file',
+            domain_id: this.domainId,
+            action_name: this.action.name,
+            planner: this.mainDomain, // using planner param for mainDomain id
+            state_name: this.planStep.action // using this as main action name
+          };
+
+          this.$.eventPub.publish(msg);
+          this.logActivity('start demo');
+        }
         if (args == "stop") {
-          console.debug('Saving programId ', this.action.program_id);
-          console.debug('Saving domainId ', this.domainId);
-          console.debug('Saving action: ', this.action);
           this.isDemoing = false;
           //this.action.program_id = this.programId;
           var msg = {
@@ -416,8 +430,15 @@
           };
 
           this.$.eventPub.publish(msg);
+          this.logActivity('stop demo');
         }
+      },
 
+      logActivity: function (activity) {
+        var now = new Date();
+        var currentMenu = 'new-action:' + this.action.name;
+        console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
+          currentMenu, ',', activity);
       }
     });
   </script>
