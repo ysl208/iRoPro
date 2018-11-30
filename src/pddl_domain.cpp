@@ -69,6 +69,12 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   predicate.name = msgs::PDDLPredicate::IS_CLEAR;
   domain->predicates.push_back(predicate);
 
+  predicate.name = msgs::PDDLPredicate::IS_THIN;
+  domain->predicates.push_back(predicate);
+
+  predicate.name = msgs::PDDLPredicate::IS_FLAT;
+  domain->predicates.push_back(predicate);
+
   // Predicates with 2 args, 1st arg needs to be an object
   predicate.name = msgs::PDDLPredicate::IS_ON;
   predicate.arg2 = obj;
@@ -239,7 +245,10 @@ void AddPredicate(std::vector<msgs::PDDLPredicate>* predicates,
   if (name == msgs::PDDLPredicate::IS_ON && args.size() == 2) {
     new_pred.arg1 = args[0];
     new_pred.arg2 = args[1];
-  } else if (name == msgs::PDDLPredicate::IS_CLEAR && args.size() == 1) {
+  } else if ((name == msgs::PDDLPredicate::IS_CLEAR ||
+              name == msgs::PDDLPredicate::IS_THIN ||
+              name == msgs::PDDLPredicate::IS_FLAT) &&
+             args.size() == 1) {
     new_pred.arg1 = args[0];
   } else if (name == msgs::PDDLPredicate::IS_STACKABLE && args.size() == 2) {
     new_pred.arg1 = args[0];
