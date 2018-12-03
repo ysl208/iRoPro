@@ -46,6 +46,9 @@ class Editor {
                               msgs::CreatePDDLDomain::Response&);
 
  private:
+  void writeToLogFile(const std::string& domain_id,
+                      const std::string& domain_name, const std::string& menu,
+                      const std::string& text);
   std::string Create(const std::string& name);
   void Update(const std::string& db_id, const msgs::Program& program);
   void Delete(const std::string& db_id);
@@ -152,6 +155,9 @@ class Editor {
                       const std::string& action_name);
   void DeletePDDLAction(const std::string& domain_id,
                         const std::string& action_name);
+  void SaveBagFile(const std::string& domain_id, const std::string& action_name,
+                   const std::string& main_domain_id,
+                   const std::string& main_action_name);
   void GetPreprogrammedAction(const std::string& domain_id,
                               const std::string& action_name,
                               const std::string& main_domain_id,

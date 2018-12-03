@@ -80,7 +80,14 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       Update(event.program_info.db_id, event.program);
     } else if (event.type == msgs::EditorEvent::DELETE) {
       Delete(event.program_info.db_id);
+    } else if (event.type == msgs::EditorEvent::SAVE_BAG_FILE) {
+      SaveBagFile(event.domain_id, event.action_name, event.planner,
+                  event.state_name);
+    } else if (event.type == msgs::EditorEvent::LOG_ACTIVITY) {
+      writeToLogFile(event.domain_id, event.domain_name, event.action_name,
+                     event.state_name);
     }
+
     // PDDL events
     else if (event.type == msgs::EditorEvent::SAVE_ON_EXIT) {
       SaveOnExit(event.domain_id, event.action_name);
@@ -103,9 +110,6 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       CopyPDDLAction(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::DELETE_PDDL_ACTION) {
       DeletePDDLAction(event.domain_id, event.action_name);
-    } else if (event.type == msgs::EditorEvent::SAVE_BAG_FILE) {
-      SaveBagFile(event.domain_id, event.action_name, event.planner,
-                  event.state_name);
     } else if (event.type == msgs::EditorEvent::GET_PREPROGRAMMED_ACTION) {
       GetPreprogrammedAction(event.domain_id, event.action_name, event.planner,
                              event.state_name);
@@ -176,8 +180,9 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
               ex.what());
   }
 }  // namespace pbd
-void Editor::writeToLogFile(const std::string& file_name,
-                            const std::string& text) {
+void Editor::writeToLogFile(const std::string& domain_id,
+                            const std::string& domain_name,
+                            const std::string& menu, const std::string& text) {
   // get date and time
   time_t now = time(0);
   struct tm tstruct;
@@ -187,13 +192,14 @@ void Editor::writeToLogFile(const std::string& file_name,
 
   // get file
   std::ostringstream oss;
-  oss << "user-" << file_name << ".log";
+  oss << domain_id << "-interop.log";
   const char* path = oss.str().c_str();
   ROS_INFO("Writing to log file %s", path);
   std::ofstream log_file(path, std::ios_base::out | std::ios_base::app);
 
   // write to file
   log_file << buf << ",";
+  log_file << menu << ",";
   log_file << text << std::endl;
 }
 bool Editor::HandleCreatePDDLDomain(
@@ -202,8 +208,8 @@ bool Editor::HandleCreatePDDLDomain(
   ROS_INFO("Handle request to create PDDL domain '%s'", request.name.c_str());
   response.domain_id = CreatePDDLDomain(request.name);
   std::ostringstream oss;
-  oss << "0,created user " << request.name;
-  writeToLogFile(response.domain_id, oss.str());
+  oss << "0,created user " << response.domain_id;
+  // writeToLogFile(request.name, oss.str());
   return true;
 }
 
@@ -1306,7 +1312,7 @@ void Editor::DeletePDDLDomain(const std::string& domain_id) {
 void Editor::DetectActionConditions(const std::string& domain_id,
                                     const std::string& action_name,
                                     const std::string& state_name) {
-  writeToLogFile(domain_id, "1.1,detect action-start");
+  // writeToLogFile(domain_id, "1.1,detect action-start");
   ROS_INFO("DetectActionConditions... '%s'", action_name.c_str());
   // look for pddl domain
   msgs::PDDLDomain domain;
@@ -1378,7 +1384,7 @@ void Editor::DetectActionConditions(const std::string& domain_id,
 
     ViewStep(new_action.program_id, step_id);
   }
-  writeToLogFile(domain_id, "1.1,detect action-end");
+  // writeToLogFile(domain_id, domain.name, "1.1,detect action-end");
 }
 
 void Editor::AssignSurfaceObjects(const std::string& db_id,
@@ -1409,7 +1415,7 @@ void Editor::AssignSurfaceObjects(const std::string& db_id,
 void Editor::AddPDDLAction(const std::string& domain_id,
                            const std::string& action_name) {
   std::ostringstream oss;
-  writeToLogFile(domain_id, "1.0,add new action");
+  // writeToLogFile(domain_id, "1.0,add new action");
 
   ROS_INFO("Adding pddl action: %s", action_name.c_str());
 
@@ -1820,7 +1826,7 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
         obj.type.name == msgs::PDDLType::CUBE_OBJECT) {
       for (size_t j = 0; j < problem.objects.size(); ++j) {
         msgs::PDDLObject obj2 = problem.objects[j];
-        if (obj1.name != obj2.name &&
+        if (obj.name != obj2.name &&
             obj2.type.name != msgs::PDDLType::ROOF_OBJECT) {
           oss.clear();
           oss << "(stackable " << obj.name << " " << obj2.name << ")";
@@ -1832,7 +1838,7 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
     if (obj.type.name == msgs::PDDLType::BASE_OBJECT) {
       for (size_t j = 0; j < problem.objects.size(); ++j) {
         msgs::PDDLObject obj2 = problem.objects[j];
-        if (obj1.name != obj2.name &&
+        if (obj.name != obj2.name &&
             obj2.type.name != msgs::PDDLType::ROOF_OBJECT &&
             obj2.type.name != msgs::PDDLType::CUBE_OBJECT) {
           oss.clear();
