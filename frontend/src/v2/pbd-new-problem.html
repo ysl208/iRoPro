@@ -60,6 +60,20 @@
         text-align: center;
       }
 
+      .runstop {
+        color: #fff;
+        margin-left: 10px;
+        height: 40px;
+      }
+
+      .run {
+        background-color: var(--paper-green-500);
+      }
+
+      .stop {
+        background-color: var(--paper-red-500);
+      }
+
       .stepDiv {
         min-width: 550px;
         margin-bottom: 10px;
@@ -77,6 +91,7 @@
 
       fieldset>p {
         display: inline-block;
+        margin-top: 5px;
       }
 
       fieldset iron-icon {
@@ -89,7 +104,8 @@
         font-size: 80%;
         padding: 0;
         width: 5px;
-        color: black;
+        color: red;
+        flex: 1;
       }
 
       .petit {
@@ -118,12 +134,14 @@
           max-width: 500px;
           @apply(--layout-flex);
         }
+
         .button_not {
           vertical-align: bottom;
           padding-bottom: 9px;
           padding-left: 6px;
         }
       }
+
 
       header {
         display: flex;
@@ -161,8 +179,8 @@
       }
 
       .important {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
       }
 
       .listeWorldState {
@@ -172,7 +190,7 @@
 
       .listeWorldState p {
         flex: 2;
-        margin: 2px;
+        margin: 1px;
       }
     </style>
     <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
@@ -251,7 +269,6 @@
               <template is="dom-repeat" items="{{sortByName(problem.objects)}}" as="item" index-as="paramIndex">
 
                 <div id="listeObjet" class="petit">
-                  <paper-icon-button icon="check"></paper-icon-button>
                   <paper-dropdown-menu no-label-float>
                     <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{item.type.name}}">
                       <template is="dom-repeat" items="[[_getTypes(item)]]" as="item2" index-as="typeIndex">
@@ -281,14 +298,13 @@
                   <p>
                     is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
                   </p>
-                  <paper-button class="delete" on-tap="deletePred" data-args="InitialState">
-                    <paper-icon-button icon="delete"></paper-icon-button>
-                  </paper-button>
+                  <!-- <paper-icon-button on-tap="" icon="create"></paper-icon-button> -->
+                  <paper-icon-button class="delete" on-tap="deletePred" data-args="InitialState" icon="delete"></paper-icon-button>
                 </div>
               </template>
 
               <div>
-                <paper-dropdown-menu id="menu_instance1_precond" label="Instance 1">
+                <paper-dropdown-menu id="menu_instance1_precond" label="Element 1">
                   <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInitialState.arg1}}">
                     <template is="dom-repeat" items="[[problem.objects]]">
                       <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newInitialState.arg1">
@@ -305,7 +321,7 @@
                     </template>
                   </paper-listbox>
                 </paper-dropdown-menu>
-                <paper-dropdown-menu id="menu_instance2_precond" label="Instance 2">
+                <paper-dropdown-menu id="menu_instance2_precond" label="Element 2">
                   <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInitialState.arg2}}">
                     <template is="dom-repeat" items="[[problem.objects]]">
                       <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newInitialState.arg2">
@@ -313,14 +329,43 @@
                     </template>
                   </paper-listbox>
                 </paper-dropdown-menu>
+                <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="InitialState"></paper-icon-button>
               </div>
-              <br>
-              <paper-button noink class="clear" raised on-click="addPredicate" data-args="InitialState">+ add new predicate</paper-button>
 
               <!-- <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="problemModel">
                 Next
               </paper-button> -->
             </fieldset>
+            <div>
+              <paper-dropdown-menu id="menu_type1" label="Type 1">
+                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInitialState.arg1}}">
+                  <template is="dom-repeat" items="[[domain.types]]">
+                    <paper-item name="[[item]]" on-tap="" data-args="newInitialState.arg1">
+                      [[item.name]]
+                    </paper-item>
+                  </template>
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-radio-button class="button_not" id="button_not_type">not</paper-radio-button>
+              <paper-dropdown-menu id="menu_type_pred" label="Predicate">
+                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInitialState.name}}">
+                  <template is="dom-repeat" items="[[domain.predicates]]">
+                    <paper-item name="[[item.name]]" on-tap="" data-args="newInitialState.predicate.name">is [[item.name]]</paper-item>
+                  </template>
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-dropdown-menu id="menu_type2" label="Type 2">
+                <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInitialState.arg2}}">
+                  <template is="dom-repeat" items="[[domain.types]]">
+                    <paper-item name="[[item]]" on-tap="" data-args="newInitialState.arg2">
+                      [[item.name]]</paper-item>
+                  </template>
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="InitialState"></paper-icon-button>
+            </div>
+
+            <paper-button on-tap="[[_addStackable('object','position','stackable')]]">Objects on Positions</paper-button>
           </div>
 
           <!-- ***** Goal States **** 2/3 -->
@@ -340,14 +385,13 @@
                   <p>
                     is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
                   </p>
-                  <paper-button class="delete" on-tap="deletePred" data-args="InitialState">
-                    <paper-icon-button icon="delete"></paper-icon-button>
-                  </paper-button>
+                  <!-- <paper-icon-button on-tap="" icon="create"></paper-icon-button> -->
+                  <paper-icon-button class="delete" on-tap="deletePred" data-args="InitialState" icon="delete"></paper-icon-button>
                 </div>
               </template>
 
               <div>
-                <paper-dropdown-menu id="menu_instance1_goal_state" label="Instance 1">
+                <paper-dropdown-menu id="menu_instance1_goal_state" label="Element 1">
                   <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newGoalState.arg1}}">
                     <template is="dom-repeat" items="[[problem.objects]]">
                       <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newGoalState.arg1">
@@ -363,7 +407,7 @@
                     </template>
                   </paper-listbox>
                 </paper-dropdown-menu>
-                <paper-dropdown-menu id="menu_instance2_goal_state" label="Instance 2">
+                <paper-dropdown-menu id="menu_instance2_goal_state" label="Element 2">
                   <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newGoalState.arg2}}">
                     <template is="dom-repeat" items="[[problem.objects]]">
                       <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newGoalState.arg2">
@@ -371,9 +415,9 @@
                     </template>
                   </paper-listbox>
                 </paper-dropdown-menu>
+                <paper-icon-button raised icon="icons:add-circle-outline" on-tap="addPredicate" data-args="GoalState"></paper-icon-button>
+
               </div>
-              <br>
-              <paper-button noink class="clear" raised on-click="addPredicate" data-args="GoalState">+ add new predicate</paper-button>
               <br>
               <center>
                 <paper-button id="solve" raised class="clear" on-tap="_solve" data-args="">
@@ -402,6 +446,7 @@
                       </td>
                       <td>[[_parseArgs(item)]]</td>
                       <!-- <td>
+                        
                         <paper-button class="delete" on-tap="deletePlanStep">
                           <paper-icon-button icon="delete"></paper-icon-button>
                         </paper-button>
@@ -476,29 +521,33 @@
                 </p>
                 <p id="verifyGoalStates">
                   <b>Hint 2: Review goal states:</b>
-                  <paper-button class="clear" on-tap="viewGoalStates">
+                  <!-- <paper-button class="clear" on-tap="viewGoalStates">
                     <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
-                  </paper-button>
+                  </paper-button> -->
+                  <template is="dom-repeat" items="[[problem.goal_states]]" as="goal">
+                    <i> [[viewGoalStates(goal)]]</i>
+                    <paper-button class="clear" on-tap="_viewRelevantActions" data-args="[[goal]]">
+                      <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
+                    </paper-button>
+                    <br>
+                  </template>
                   <p id="goalStatesSummary">
-                    <!-- <fieldset> -->
                     <p id="msgGoalStatesSummary" style="padding: 5px"></p>
 
-                    <!-- </fieldset> -->
                   </p>
                 </p>
                 <p id="verifyActions">
                   <h4>Hint 3: Make sure actions can achieve goal state:</h4>
-                  <template is="dom-repeat" items="[[domain.actions]]" as="action">
+                  <template is="dom-repeat" items="[[goalRelevantActions]]" as="action">
                     <i> [[_getGeneralisedAction(action)]]</i>
-                    <!-- <paper-button class="clear" on-tap="viewActionSummary" data-args="[[action]]">
+                    <paper-button class="clear" on-tap="viewActionSummary" data-args="[[action]]">
                       <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
-                    </paper-button> -->
+                    </paper-button>
                     <br>
                   </template>
                   <p id="actionSummary">
                     <fieldset>
                       <p id="msgActionSummary" style="padding: 5px"></p>
-
                     </fieldset>
                   </p>
                 </p>
@@ -624,6 +673,12 @@
             return false;
           },
         },
+        goalRelevantActions: {
+          type: Array,
+          value: function () {
+            return [];
+          }
+        }
         // lastDomainUpdated: {
         //   type: CustomEvent,
         //   observer: '_getAllStates',
@@ -726,15 +781,15 @@
           },
           displays: [
             {
-              isShown: true,
-              name: 'Grid',
-              type: 'grid',
-              options: {
-                cellSize: 1,
-                color: '#cccccc',
-                numCells: 20,
-              },
-            }, {
+              //   isShown: false,
+              //   name: 'Grid',
+              //   type: 'grid',
+              //   options: {
+              //     cellSize: 1,
+              //     color: '#cccccc',
+              //     numCells: 20,
+              //   },
+              // }, {
               //   isShown: false,
               //   name: 'Program robot model',
               //   type: 'markerArray',
@@ -743,11 +798,10 @@
               //   },
               // }, {
               isShown: true,
-              name: 'Scene',
-              type: 'pointCloud2',
+              name: 'Surface segmentation',
+              type: 'markerArray',
               options: {
-                size: 0.01,
-                topic: '/rapid_pbd/scene/' + this.scene_id,
+                topic: '/rapid_pbd/surface_segmentation/' + this.scene_id,
               },
               // }, {
               //   isShown: true,
@@ -758,19 +812,20 @@
               //   },
             }, {
               isShown: true,
-              name: 'Surface segmentation',
-              type: 'markerArray',
+              name: 'Scene',
+              type: 'pointCloud2',
               options: {
-                topic: '/rapid_pbd/surface_segmentation/' + this.scene_id,
+                size: 0.01,
+                topic: '/rapid_pbd/scene/' + this.scene_id,
               },
-            }, {
-              isShown: false,
-              name: 'Current robot model',
-              type: 'urdf',
-              options: {
-                param: 'robot_description',
-                tfPrefix: ''
-              },
+              // }, {
+              //   isShown: false,
+              //   name: 'Current robot model',
+              //   type: 'urdf',
+              //   options: {
+              //     param: 'robot_description',
+              //     tfPrefix: ''
+              //   },
               // }, {
               //   isShown: false,
               //   name: 'Current surface segmentation',
@@ -797,7 +852,32 @@
         }
 
       },
+      _addStackable: function () {
 
+      },
+      _addForAllPredicates: function (type1, type2, predicate) {
+        // loops through objects and adds predicates that are consistent with the given types
+        // so far only for is stackable
+        console.debug("_addForAllPredicates: objs", this.problem.objects);
+        for (var i = 0; i < this.problem.objects.length; ++i) {
+          var param1 = this.problem.objects[i];
+          console.debug("_addForAllPredicates: param1", param1);
+          if (param1.type.name == type1) {
+            for (var j = 0; j < this.problem.objects.length; ++j) {
+              var param2 = this.problem.objects[j];
+              console.debug("_addForAllPredicates: param2", param2);
+              if (param2.type.name == type2) {
+                this.problem.initial_states.push({
+                  arg1: param1,
+                  name: predicate,
+                  arg2: param2,
+                  negate: false
+                });
+              }
+            }
+          }
+        }
+      },
       _updatePredicate: function (evt) {
         var args = evt.target.getAttribute('data-args');
         this.set(args, evt.target.name);
@@ -1099,7 +1179,37 @@
         }
         return (names);
       },
+      _relevantAction: function (goal, action) {
+        // returns a list of actions that achieve the goal states
 
+        // for (var i = 0; i < this.problem.goal_states.length; ++i) {
+        //   var goal = this.problem.goal_states[i];
+        //   for (var j = 0; j < this.domain.actions.length; ++j) {
+        //     var action = this.domain.actions[j];
+        console.debug("_relevantAction: ", goal, action);
+        for (var k = 0; k < action.effects.length; ++k) {
+          var effect = action.effects[k];
+          if (goal.name == effect.name &&
+            (this._getTypeByName(effect.arg1.name, action.params).name == 'element' ||
+              goal.arg1.type.name == this._getTypeByName(effect.arg1.name, action.params).name
+              || goal.arg1.type.parent.type.name == this._getTypeByName(effect.arg1.name, action.params).name)
+            && goal.arg2 && effect.arg2
+            && (this._getTypeByName(effect.arg2.name, action.params).name == 'element' ||
+              goal.arg2.type.name == this._getTypeByName(effect.arg2.name, action.params).name
+              || goal.arg2.type.parent.type.name == this._getTypeByName(effect.arg2.name, action.params).name))
+            return true;
+        }
+        return false;
+        //   }
+        // }
+      },
+
+      _updateType: function (evt) {
+        // this.reevaluateArray('action.params', this.action.params);
+        console.debug("_updateType: ", evt.target);
+
+        // this.logActivity('change type to: ' + evt.target.name);
+      },
       sortByName: function (arr) {
         arr.sort(function (a, b) {
           if (a.name < b.name) return -1;
@@ -1116,7 +1226,7 @@
       _parseArgs: function (step) {
         // translates string array to "english"
         var phrase = step.action.toLowerCase() + "(";
-        console.debug("_parseArgs: ", step);
+        // console.debug("_parseArgs: ", step);
         for (var i = 0; i < step.args.length; ++i) {
           phrase += this.format(step.args[i]) + ", ";
         }
@@ -1127,6 +1237,7 @@
       },
       _selectNavStep: function (evt) {
         this.navStep = evt.target.getAttribute('data-args');
+        this.save();
       },
       _negate: function (neg) {
         if (neg) return 'not ';
@@ -1176,24 +1287,32 @@
         }
         return text + paramList.slice(0, -2) + ")";
       },
+      _getTypeByName: function (name, list) {
+        for (var i = 0; i < list.length; ++i) {
+          var elem = list[i];
+          if (elem.name == name)
+            return elem.type;
+        }
+        return { name: "" };
+      },
       viewActionSummary: function (evt) {
         var action = evt.model.action;
         var text = "<b>" + this._getGeneralisedAction(action) + "</b>";
         var pre = "<b>Preconditions:</b> <br>";
         for (var i = 0; i < action.preconditions.length; ++i) {
           var pred = action.preconditions[i];
-          pre += pred.arg1.type.name.toUpperCase() + ' is ' + pred.name;
-          if (pred.arg2) {
-            pre += ' ' + pred.arg2.type.name.toUpperCase();
+          pre += this._getTypeByName(pred.arg1.name, action.params).name.toUpperCase() + ' is ' + pred.name;
+          if (pred.arg2 && pred.arg2.name != "") {
+            pre += ' ' + this._getTypeByName(pred.arg2.name, action.params).name.toUpperCase();
           }
           pre += '<br>';
         }
         var eff = "<b>Effects:</b> <br>";
         for (var i = 0; i < action.effects.length; ++i) {
           var pred = action.effects[i];
-          eff += this._getParamTypeByName(pred.arg1).toUpperCase() + ' is ' + pred.name;
+          eff += this._getTypeByName(pred.arg1.name, action.params).name.toUpperCase() + ' is ' + pred.name;
           if (pred.arg2 && pred.arg2.name != "") {
-            eff += ' ' + this._getParamTypeByName(pred.arg2).toUpperCase();
+            eff += ' ' + this._getTypeByName(pred.arg2.name, action.params).name.toUpperCase();
           }
           eff += '<br>';
         }
@@ -1218,21 +1337,33 @@
         this.$.msgInitalStatesSummary.innerHTML = text;
         this.$.initalStatesSummary.style.display = "inline";
       },
+      _viewRelevantActions: function (evt) {
+        console.log("viewRelevantActions: ", goal);
+        var goal = evt.model.goal;
 
-      viewGoalStates: function (evt) {
+        this.goalRelevantActions = [];
+        for (var j = 0; j < this.domain.actions.length; ++j) {
+          var action = this.domain.actions[j];
+          if (this._relevantAction(goal, action)) {
+            this.goalRelevantActions.push(action);
+          }
+        }
+      },
+      viewGoalStates: function (pred) {
         var problem = this.problem;
         var text = "";
-        for (var i = 0; i < problem.goal_states.length; ++i) {
-          var pred = problem.goal_states[i];
-          text += ' (' + pred.arg1.name + ') ' + this._getParamTypeByName(pred.arg1).toUpperCase() + ' is ' + pred.name;
-          if (pred.arg2 && pred.arg2.name != "") {
-            text += ' ' + this._getParamTypeByName(pred.arg2).toUpperCase() + ' (' + pred.arg2.name + ')';
-          }
-          text += '<br>';
+        // for (var i = 0; i < problem.goal_states.length; ++i) {
+        //   var pred = problem.goal_states[i];
+        text += ' (' + pred.arg1.name + ') ' + this._getParamTypeByName(pred.arg1).toUpperCase() + ' is ' + pred.name;
+        if (pred.arg2 && pred.arg2.name != "") {
+          text += ' ' + this._getParamTypeByName(pred.arg2).toUpperCase() + ' (' + pred.arg2.name + ')';
         }
+        // text += '<br>';
+        // }
         console.log("viewGoalStates: ", text);
-        this.$.msgGoalStatesSummary.innerHTML = text;
+        // this.$.msgGoalStatesSummary.innerHTML = text;
         this.$.goalStatesSummary.style.display = "inline";
+        return text;
       },
       showDebugging: function () {
         if (this._showDebugging)
