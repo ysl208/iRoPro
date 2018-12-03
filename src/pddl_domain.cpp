@@ -62,7 +62,7 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
   // Predicate has at least 1 arg of type table_entity
   msgs::PDDLObject obj;
   obj.name = "obj1";
-  type.name = msgs::PDDLType::ENTITY;
+  type.name = msgs::PDDLType::ELEMENT;
   obj.type = type;
   predicate.arg1 = obj;
 
@@ -143,10 +143,10 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
     } else if (world_landmark.name.find("p") != std::string::npos ||
                world_landmark.match) {
       obj_type.name = msgs::PDDLType::POSITION;
-      obj_type.parent = msgs::PDDLType::ENTITY;
+      obj_type.parent = msgs::PDDLType::ELEMENT;
     }
     if (obj_type.name == "") {
-      obj_type.name = msgs::PDDLType::ENTITY;
+      obj_type.name = msgs::PDDLType::ELEMENT;
     }
 
     obj_type.pose = world_landmark.pose_stamped.pose;
@@ -172,11 +172,10 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
       predicate = msgs::PDDLPredicate::IS_CLEAR;
       args.clear();
       args.push_back(obj);
-      if (full) {
-        ROS_INFO("Adding all detected states: is_clear for objects");
-
-        AddPredicate(&world_state->predicates_, predicate, args, negate);
-      }
+      // if (full) {
+      ROS_INFO("Adding all detected states: is_clear for objects");
+      AddPredicate(&world_state->predicates_, predicate, args, negate);
+      // }
       if (GetObjectTablePosition(obj.type, world_state, variance, &position)) {
         negate = false;
         predicate = msgs::PDDLPredicate::IS_ON;
@@ -384,7 +383,7 @@ void GetTypeFromDims(const geometry_msgs::Vector3& init_dims,
     obj_type->dimensions.x = 0.001;
     obj_type->dimensions.y = 0.001;
     obj_type->dimensions.z = 0.001;
-    obj_type->parent = msgs::PDDLType::ENTITY;
+    obj_type->parent = msgs::PDDLType::ELEMENT;
   }
   // ROS_INFO("Assigned type '%s'", obj_type->name.c_str());
   //  with dims (%f,%f,%f)",
