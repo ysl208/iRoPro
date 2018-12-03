@@ -1,5 +1,7 @@
 #include "rapid_pbd/editor.h"
 
+#include <rosbag/bag.h>
+#include <signal.h>
 #include <string.h>
 #include <cmath>
 #include <ctime>
@@ -101,6 +103,9 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
       CopyPDDLAction(event.domain_id, event.action_name);
     } else if (event.type == msgs::EditorEvent::DELETE_PDDL_ACTION) {
       DeletePDDLAction(event.domain_id, event.action_name);
+    } else if (event.type == msgs::EditorEvent::SAVE_BAG_FILE) {
+      SaveBagFile(event.domain_id, event.action_name, event.planner,
+                  event.state_name);
     } else if (event.type == msgs::EditorEvent::GET_PREPROGRAMMED_ACTION) {
       GetPreprogrammedAction(event.domain_id, event.action_name, event.planner,
                              event.state_name);
@@ -1196,7 +1201,7 @@ void Editor::DetectSurfaceObjects(const std::string& db_id, size_t step_id) {
   goal.save_cloud = true;
   action_clients_->surface_segmentation_client.sendGoal(goal);
   bool success = action_clients_->surface_segmentation_client.waitForResult(
-      ros::Duration(50));
+      ros::Duration(30));
   if (!success) {
     ROS_ERROR("Failed to segment surface.");
     return;
@@ -1301,6 +1306,7 @@ void Editor::DeletePDDLDomain(const std::string& domain_id) {
 void Editor::DetectActionConditions(const std::string& domain_id,
                                     const std::string& action_name,
                                     const std::string& state_name) {
+  writeToLogFile(domain_id, "1.1,detect action-start");
   ROS_INFO("DetectActionConditions... '%s'", action_name.c_str());
   // look for pddl domain
   msgs::PDDLDomain domain;
@@ -1372,6 +1378,7 @@ void Editor::DetectActionConditions(const std::string& domain_id,
 
     ViewStep(new_action.program_id, step_id);
   }
+  writeToLogFile(domain_id, "1.1,detect action-end");
 }
 
 void Editor::AssignSurfaceObjects(const std::string& db_id,
@@ -1401,6 +1408,9 @@ void Editor::AssignSurfaceObjects(const std::string& db_id,
 // PDDL Action functions
 void Editor::AddPDDLAction(const std::string& domain_id,
                            const std::string& action_name) {
+  std::ostringstream oss;
+  writeToLogFile(domain_id, "1.0,add new action");
+
   ROS_INFO("Adding pddl action: %s", action_name.c_str());
 
   ROS_INFO("Trying to get domain id '%s' from db", domain_id.c_str());
@@ -1422,6 +1432,38 @@ void Editor::AddPDDLAction(const std::string& domain_id,
   UpdatePDDLDomain(domain_id, domain);
 }
 
+void Editor::SaveBagFile(const std::string& domain_id,
+                         const std::string& action_name,
+                         const std::string& main_domain_id,
+                         const std::string& main_action_name) {
+  ROS_INFO("SaveBagFile... for action '%s' or main action '%s'",
+           action_name.c_str(), main_action_name.c_str());
+  // get EE pose from topic /robot/limb/<side>/endpoint_state
+  // msg-type: baxter_core_msgs/EndpointState
+  // rosbag::Bag bag;
+  std::ostringstream ss;
+  ss << "rosrun baxter_examples joint_recorder.py -f "
+        "~/catkin_ws/src/rapid_pbd/bags/user-"
+     << domain_id << "-" << action_name << "-main-" << main_domain_id << "-"
+     << main_action_name << ".bag";
+  // bag.open(ss, rosbag::bagmode::Write);
+
+  // subscribe to topic
+
+  const char* cmd = ss.str().c_str();
+
+  int i;
+  i = system(cmd);
+  // on callback, write to bag file
+  // std_msgs::String str;
+  // str.data = std::string("/robot/limb/right/endpoint_state");
+  // bag.write("/robot/limb/right/endpoint_state", ros::Time::now(), str);
+  // bag.close();
+}
+void siginthandler(int param) {
+  printf("User pressed Ctrl+C\n");
+  exit(1);
+}
 void Editor::GetPreprogrammedAction(const std::string& domain_id,
                                     const std::string& action_name,
                                     const std::string& main_domain_id,
@@ -1431,6 +1473,8 @@ void Editor::GetPreprogrammedAction(const std::string& domain_id,
   ROS_INFO(
       "GetActionFromMainDomain... getting main action '%s' to assign to '%s'",
       main_action_name.c_str(), action_name.c_str());
+  signal(SIGINT, siginthandler);
+
   // get the program_id from the main action in main domain
   msgs::PDDLDomain main_domain;
   bool success = domain_db_.Get(main_domain_id, &main_domain);
@@ -1512,7 +1556,8 @@ void Editor::DeletePDDLAction(const std::string& domain_id,
               action_name.c_str(), domain_id.c_str());
   } else {
     // deleting the program linked to the action
-    Delete(domain.actions[index].program_id);
+    if (action_name.find("User") != std::string::npos)
+      Delete(domain.actions[index].program_id);
     domain.actions.erase(domain.actions.begin() + index);
     UpdatePDDLDomain(domain_id, domain);
   }
@@ -1573,10 +1618,6 @@ void Editor::DetectWorldState(const std::string& domain_id,
       new_problem.landmarks.push_back(landmark);
     }
 
-    ROS_INFO("detected %zu landmarks, now publishScene",
-             new_problem.landmarks.size());
-    RefreshPDDLProblem(domain_id, new_problem);
-
     WorldState world_state;
     GetWorldState(new_problem.landmarks, &world_state, true);
     new_problem.objects = world_state.objects_;
@@ -1592,6 +1633,10 @@ void Editor::DetectWorldState(const std::string& domain_id,
 
     PrintAllPredicates(world_state.predicates_, "");
     UpdatePDDLProblem(domain_id, new_problem, "");
+
+    ROS_INFO("detected %zu landmarks, now publishScene",
+             new_problem.landmarks.size());
+    RefreshPDDLProblem(domain_id, new_problem);
   }
 }
 
@@ -1765,6 +1810,54 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
         PrintPDDLPredicate(problem.initial_states[i], "init"));
     ROS_INFO("added initial state: %s", planner_problem.initial[i].c_str());
   }
+  // adding default initial states for stackable, thin/flat
+  std::ostringstream oss;
+  std::string var;
+  for (size_t i = 0; i < problem.objects.size(); ++i) {
+    msgs::PDDLObject obj = problem.objects[i];
+    // cube & roof is stackable on anything that is not a roof
+    if (obj.type.name == msgs::PDDLType::ROOF_OBJECT ||
+        obj.type.name == msgs::PDDLType::CUBE_OBJECT) {
+      for (size_t j = 0; j < problem.objects.size(); ++j) {
+        msgs::PDDLObject obj2 = problem.objects[j];
+        if (obj1.name != obj2.name &&
+            obj2.type.name != msgs::PDDLType::ROOF_OBJECT) {
+          oss.clear();
+          oss << "(stackable " << obj.name << " " << obj2.name << ")";
+          planner_problem.initial.push_back(oss.str());
+        }
+      }
+    }
+    // base is stackable on anything that is not a roof or a cube
+    if (obj.type.name == msgs::PDDLType::BASE_OBJECT) {
+      for (size_t j = 0; j < problem.objects.size(); ++j) {
+        msgs::PDDLObject obj2 = problem.objects[j];
+        if (obj1.name != obj2.name &&
+            obj2.type.name != msgs::PDDLType::ROOF_OBJECT &&
+            obj2.type.name != msgs::PDDLType::CUBE_OBJECT) {
+          oss.clear();
+          oss << "(stackable " << (obj.name) << " " << (obj2.name) << ")";
+          planner_problem.initial.push_back(oss.str());
+        }
+      }
+    }
+    // cube and roof are thin
+    if (obj.type.name == msgs::PDDLType::ROOF_OBJECT ||
+        obj.type.name == msgs::PDDLType::CUBE_OBJECT) {
+      oss.clear();
+      oss << "(thin " << obj.name << ")";
+      planner_problem.initial.push_back(oss.str());
+    }
+    // base and cube are flat
+    if (obj.type.name == msgs::PDDLType::BASE_OBJECT ||
+        obj.type.name == msgs::PDDLType::CUBE_OBJECT) {
+      oss.clear();
+      oss << "(flat " << obj.name << ")";
+      planner_problem.initial.push_back(oss.str());
+    }
+    ROS_INFO("added initial states for: %s", obj.name.c_str());
+  }
+
   planner_problem.goal = PrintAllPredicates(problem.goal_states, "goal");
 
   ROS_INFO("added goal: %s", planner_problem.goal.c_str());
@@ -1821,7 +1914,8 @@ void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
         if (action_op.params[j].name == pred.arg1.name) {
           obj_name = action.args[j];
           ROS_INFO(
-              "found instantiated obj %s at param index %zu of the operator",
+              "found instantiated obj %s at param index %zu of the "
+              "operator",
               obj_name.c_str(), j);
         } else if (action_op.params[j].name == pred.arg2.name) {
           pos_name = action.args[j];
@@ -1829,9 +1923,8 @@ void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
                    pos_name.c_str(), j);
         }
       }
-      // TO DO: if more objects change positions, then need to keep a stack of
-      // objects that have been treated
-      // std::string stack = [];
+      // TO DO: if more objects change positions, then need to keep a stack
+      // of objects that have been treated std::string stack = [];
 
       // if (obj_name.find("OBJ") != std::string::npos) {
       //   // only update if it is an *object* that is_on something else
@@ -1852,10 +1945,12 @@ void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
       //     // both on stack
       //     if (stack_pos != stack_obj + 1) {
       //       ROS_ERROR(
-      //           "GetMentalModel: wrong as %s (index %zu) is not on %s (index
+      //           "GetMentalModel: wrong as %s (index %zu) is not on %s
+      //           (index
       //           "
       //           "%zu)",
-      //           obj_name.c_str(), stack_obj, pos_name.c_str(), stack_pos);
+      //           obj_name.c_str(), stack_obj, pos_name.c_str(),
+      //           stack_pos);
       //     }
       //   }
       msgs::Landmark mental_obj, mental_pos;
@@ -1891,7 +1986,8 @@ void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
 bool Editor::FindLandmarkByName(const std::string name,
                                 const std::vector<msgs::Landmark>& lms,
                                 msgs::Landmark* match, size_t* index) {
-  // ROS_INFO("FindLandmarkByName: checking %s out of %zu lms", name.c_str(),
+  // ROS_INFO("FindLandmarkByName: checking %s out of %zu lms",
+  // name.c_str(),
   //          lms.size());
   for (size_t j = 0; j < lms.size(); ++j) {
     // ROS_INFO("%s == %s ?", name.c_str(), lms[j].name.c_str());
@@ -1953,8 +2049,9 @@ void Editor::RunPDDLPlan(const std::string domain_id,
       msgs::Program alt_program = main_program;
 
       if (problem.name != "") {
-        // 3.1 replace the generic program params (object and table positions)
-        // 3.2 save 'move to cart pose' action&step no. in an array
+        // 3.1 replace the generic program params (object and table
+        // positions) 3.2 save 'move to cart pose' action&step no. in an
+        // array
         // - only those that are relative to a landmark (not torso)
         std::vector<std::pair<int, int> > cart_pose_actions;
         new_program.steps.clear();
@@ -1966,26 +2063,28 @@ void Editor::RunPDDLPlan(const std::string domain_id,
                     alt_program.name.c_str());
           return;
         }
-        // 3.3 update the cart action's relative landmark's dimensions according
-        // to the matching PDDLaction parameter dimension
+        // 3.3 update the cart action's relative landmark's dimensions
+        // according to the matching PDDLaction parameter dimension
         for (size_t id = 0; id < cart_pose_actions.size(); ++id) {
           int s_id = cart_pose_actions[id].first;
           int a_id = cart_pose_actions[id].second;
           std::string lm_name =
               new_program.steps[s_id].actions[a_id].landmark.name;
 
-          // find argument in action that corresponds to the relative lm name
+          // find argument in action that corresponds to the relative lm
+          // name
           for (size_t z = 0; z < action.params.size(); ++z) {
             std::cout << action.params[z].name << "...";
 
             if (lm_name == action.params[z].name) {
-              // find landmark object in list of detected landmarks in problem
+              // find landmark object in list of detected landmarks in
+              // problem
               for (size_t l = 0; l < mental_lms.size(); ++l) {
                 msgs::Landmark match = mental_lms[l];
                 if (strcasecmp(match.name.c_str(), step.args[z].c_str()) == 0) {
                   // if the new object is larger, then need to adjust the
-                  // gripper position relative to object (as it is relative to
-                  // its center)
+                  // gripper position relative to object (as it is relative
+                  // to its center)
                   geometry_msgs::Vector3 default_dims =
                       new_program.steps[s_id]
                           .actions[a_id]
@@ -1999,7 +2098,8 @@ void Editor::RunPDDLPlan(const std::string domain_id,
                       // top_space = dist(gripper_pos, landmark_pos) -
                       // landmark_dims/2
                       ROS_INFO(
-                          "Adjust gripper pose top_space for %s with height: "
+                          "Adjust gripper pose top_space for %s with "
+                          "height "
                           "%f "
                           "at %f from %f to ",
                           match.name.c_str(), match.surface_box_dims.z,
@@ -2013,12 +2113,18 @@ void Editor::RunPDDLPlan(const std::string domain_id,
                                    .pose.position.z -
                                match.pose_stamped.pose.position.z) -
                           default_dims.z;
+
                       new_program.steps[s_id].actions[a_id].pose.position.z =
                           match.pose_stamped.pose.position.z + top_space +
                           match.surface_box_dims.z / 2;
+                      new_program.steps[s_id].actions[a_id].pose.position.z =
+                          match.pose_stamped.pose.position.z + top_space +
+                          0.04;  // fix at +3cm
+
                       ROS_INFO(".... %f ", new_program.steps[s_id]
                                                .actions[a_id]
                                                .pose.position.z);
+                      ROS_INFO("topspace: %f,  ", top_space);
                     }
                   }
 
@@ -2085,13 +2191,14 @@ void Editor::RunPDDLPlan(const std::string domain_id,
           action_clients_->program_client.getResult();
 
       ROS_INFO(
-          "%s done with: %s \n Press enter to r to try again or c to "
-          "continue.",
+          "%s done with: %s \n Press enter to r to try again, c to "
+          "continue, or x to exit execution.",
           action_name.c_str(), result->error.c_str());
       std::string n;
       std::cin >> n;
-      if (n == "r")
-        goto RUN;
+      if (n == "r") goto RUN;
+      if (n == "x")
+        return;
       else {
         // Assume action succeeded, update mental model of landmarks in the
         // world
@@ -2104,6 +2211,7 @@ void Editor::RunPDDLPlan(const std::string domain_id,
       // TO DO: if effects are not satisfied stop action execution
     }
   }
+  ROS_INFO("Program ended.");
 }
 
 // *** adding check conditions action after table top detection
@@ -2112,7 +2220,8 @@ void Editor::RunPDDLPlan(const std::string domain_id,
 // int step_id = 0;
 // for (size_t k = 0; k < program.steps.size(); ++k) {
 //   msgs::Step step = program.steps[step_id];
-//   for (size_t action_id = 0; action_id < step.actions.size(); ++action_id)
+//   for (size_t action_id = 0; action_id < step.actions.size();
+//   ++action_id)
 //   {
 //     msgs::Action action = step.actions[action_id];
 
@@ -2167,7 +2276,8 @@ void Editor::GetJointValues(const std::string& db_id, size_t step_id,
   msgs::Step* step = &program.steps[step_id];
   if (action_id >= step->actions.size()) {
     ROS_ERROR(
-        "Unable to update action %ld from step %ld of program \"%s\", which "
+        "Unable to update action %ld from step %ld of program \"%s\", "
+        "which "
         "has %ld actions",
         action_id, step_id, db_id.c_str(), step->actions.size());
     return;
@@ -2238,10 +2348,9 @@ void Editor::GetPose(const std::string& db_id, size_t step_id, size_t action_id,
   msgs::Action* action = &step->actions[action_id];
   action->actuator_group = actuator_group;
 
-  // If the landmark is empty or the same as before, then update the action's
-  // pose.
-  // If the landmark has changed, then reinterpret the action's pose in the
-  // new landmark frame.
+  // If the landmark is empty or the same as before, then update the
+  // action's pose. If the landmark has changed, then reinterpret the
+  // action's pose in the new landmark frame.
 
   ROS_INFO(
       "Saved landmark is: %s (%.3f, %.3f, %.3f) vs new landmark %s (%.3f, "
