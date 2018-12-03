@@ -117,14 +117,14 @@
 
       <table>
         <tr>
-          <td> Your user: {{pddlDomain.name}}</td>
+          <td> Your user:</td>
         </tr>
         <tr>
           <td>
 
             <paper-dropdown-menu label="Selected User">
-              <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="[[domainName]]">
-                <template is="dom-repeat" items="{{sortByName(domainList.domains)}}" as="item" index-as="typeIndex" selected="{{domainName}}">
+              <paper-listbox slot="dropdown-content" attr-for-selected="name">
+                <template is="dom-repeat" items="{{sortByName(domainList.domains)}}" as="item" index-as="typeIndex">
                   <paper-item name="[[item]]" on-tap="_selectDomain" data-args="[[item.domain_id]]">[[item.name]]</paper-item>
                 </template>
               </paper-listbox>
@@ -146,7 +146,7 @@
           </td>
         </tr>
         <tr>
-          <br>
+          <br>User id: [[domain_id]]
         </tr>
       </table>
 
@@ -211,10 +211,12 @@
         };
         this.$.createSrv.call(request);
         this.domainName = name;
+        this.fire('updatebtn', { button: "Actions" });
       },
       _handleServiceResponse(evt) {
         var id = evt.detail.domain_id;
         this.domain_id = id;
+        this.logActivity('0,create user ' + this.domainName);
       },
       _handleServiceError: function (evt) {
         console.error(evt.detail);
@@ -222,10 +224,11 @@
       _maybeDeleteDomain: function (evt) {
         if (this.domainName != "Domain1")
           this.$.deleteDomainDialog.open();
-        console.debug("maybeDelDomain", this.pddlDomain.name);
+        console.debug("maybeDelDomain", this.domainName);
       },
+
       _deleteDomain: function (evt) {
-        console.log('delete domain: ', this.pddlDomain, this.domain_id);
+        console.log('delete domain: ', this.domain_id);
         var msg = {
           type: 'delete pddl domain',
           domain_id: this.domain_id
@@ -237,13 +240,27 @@
       _selectDomain: function (evt) {
         this.domain_id = evt.target.name.domain_id;
         this.domainName = evt.target.name.name;
-        console.log('select domain: ', this.pddlDomain, this.domain_id);
+        console.log('select domain: ', this.domainName, this.domain_id);
         var msg = {
           type: 'select pddl domain',
           domain_id: this.domain_id
         };
         this.$.eventPub.publish(msg);
       },
+      logActivity: function (activity) {
+        var now = new Date();
+        var currentMenu = 'home';
+        console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
+          currentMenu, ',', activity);
+        var msg = {
+          type: 'log activity',
+          domain_id: this.domain_id,
+          domain_name: this.domainName,
+          action_name: currentMenu,
+          state_name: activity // use state_name as log description text
+        };
+        this.$.eventPub.publish(msg);
+      }
     });
   </script>
 </dom-module>

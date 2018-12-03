@@ -105,7 +105,7 @@
                 font-size: 80%;
                 padding: 0;
                 width: 5px;
-                color: black;
+                color: red;
                 flex: 1;
             }
 
@@ -191,7 +191,7 @@
 
             .listeWorldState p {
                 flex: 2;
-                margin: 2px;
+                margin: 1px;
             }
         </style>
         <app-route route="{{route}}" pattern="/:id" data="{{routeData}}"></app-route>
@@ -225,7 +225,7 @@
             <div id="buttonDiv">
 
                 <!-- <paper-radio-button class="button_not" id="button_show_robot">Show Robot</paper-radio-button> -->
-                <paper-button raised class="clear" on-tap="_assignSurfaceObjects">
+                <paper-button raised class="clear" on-tap="_refreshViz">
 
                     <iron-icon icon="icons:refresh"> </iron-icon>
                 </paper-button>
@@ -283,7 +283,7 @@
                     <div id="perception" hidden$="[[!_displayNavStep(navStep,'perception')]]">
                         <fieldset>
                             <legend>
-                                Detected Entities
+                                Detected Elements
                             </legend>
                             <!-- <p>Verify all objects have been detected before proceeding.</p> -->
                             <p id="noObj">No objects detected
@@ -292,7 +292,6 @@
 
                             <template is="dom-repeat" items="{{action.params}}" as="item" index-as="paramIndex">
                                 <div id="listeObjets">
-                                    <paper-icon-button icon="check"></paper-icon-button>
                                     <paper-dropdown-menu no-label-float>
                                         <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{item.type.name}}">
                                             <template is="dom-repeat" items="[[_getTypes(item)]]" as="item2" index-as="typeIndex">
@@ -302,52 +301,53 @@
                                     </paper-dropdown-menu>
 
                                     <font size="2pt" color="grey">([[item.name]])</font>
-                                    <paper-button class="clear" on-tap="moveUpParam" data-args="">
-                                        <paper-icon-button icon="arrow-upward"></paper-icon-button>
-                                    </paper-button>
+                                    <!-- <paper-icon-button class="clear" on-tap="moveUpParam" icon="arrow-upward"></paper-icon-button> -->
                                 </div>
                             </template>
 
-                            <paper-button id="detect" raised class="clear" on-tap="_detect" data-args="Precondition">
+                            <paper-button id="detect" raised class="clear" on-tap="_maybeDetect" data-args="Precondition">
                                 <iron-icon icon="icons:find-in-page"> </iron-icon>
-                                Detect Entities
+                                Detect Elements
                             </paper-button>
 
                             <!-- <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="demonstration">
-                                Next
-                            </paper-button> -->
+                Next
+              </paper-button> -->
                         </fieldset>
                     </div>
 
                     <!-- ***** AFTER DEMO **** 3/3 -->
                     <div id="actionModel" hidden$="[[!_displayNavStep(navStep,'actionModel')]]">
-
                         <fieldset>
                             <legend>
                                 Preconditions
                             </legend>
-                            <paper-button id="detect1" raised class="clear" on-tap="_detect" data-args="Precondition">
+
+                            <paper-button id="detect1" raised class="clear" on-tap="_maybeDetect" data-args="Precondition">
                                 <iron-icon icon="icons:find-in-page"> </iron-icon>
                                 Detect Preconditions
                             </paper-button>
                             <br>
+                            <br>
+
                             <template is="dom-repeat" items="{{action.preconditions}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
                                     <p>
-                                        [[item.arg1.name]]
-                                        <!--([[_getParamTypeByName(item.arg1)]]) -->
+                                        [[_getParamTypeByName(item.arg1)]]
+                                        <font size="2pt" color="grey">([[item.arg1.name]])</font>
                                     </p>
                                     <p>
-                                        is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                                        is [[_negate(item.negate)]] [[item.name]] [[_getParamTypeByName(item.arg2)]]
+                                        <font size="2pt" color="grey">([[item.arg2.name]])</font>
+
                                     </p>
-                                    <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
-                                        <paper-icon-button icon="delete"></paper-icon-button>
-                                    </paper-button>
+                                    <!-- <paper-icon-button icon="create" on-tap=""></paper-icon-button> -->
+                                    <paper-icon-button class="delete" on-tap="deletePred" data-args="Precondition" icon="delete"></paper-icon-button>
                                 </div>
                             </template>
 
                             <div>
-                                <paper-dropdown-menu id="menu_instance1_precond" label="Instance 1">
+                                <paper-dropdown-menu id="menu_instance1_precond" label="Element 1">
                                     <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg1}}">
                                         <template is="dom-repeat" items="[[action.params]]">
                                             <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg1">
@@ -364,7 +364,7 @@
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
-                                <paper-dropdown-menu id="menu_instance2_precond" label="Instance 2">
+                                <paper-dropdown-menu id="menu_instance2_precond" label="Element 2">
                                     <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
                                         <template is="dom-repeat" items="[[action.params]]">
                                             <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
@@ -372,10 +372,10 @@
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
-                            </div>
-                            <br>
-                            <paper-button noink class="clear" raised on-click="addPredicate" data-args="Precondition">+ add new condition</paper-button>
+                                <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="Precondition">
 
+                                </paper-icon-button>
+                            </div>
                         </fieldset>
 
                         <fieldset>
@@ -388,23 +388,27 @@
                                 Detect Effects
                             </paper-button>
                             <br>
+                            <br>
                             <template is="dom-repeat" items="{{action.effects}}" as="item" index-as="paramIndex">
                                 <div class="listeWorldState">
                                     <p>
-                                        [[item.arg1.name]]
-                                        <!-- ([[_getParamTypeByName(item.arg1)]]) -->
+                                        [[_getParamTypeByName(item.arg1)]]
+                                        <font size="2pt" color="grey">([[item.arg1.name]])</font>
+
                                     </p>
                                     <p>
-                                        is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                                        is [[_negate(item.negate)]] [[item.name]] [[_getParamTypeByName(item.arg2)]]
+                                        <font size="2pt" color="grey">([[item.arg2.name]])</font>
+
                                     </p>
-                                    <paper-button class="delete" on-tap="deletePred" data-args="Precondition">
-                                        <paper-icon-button icon="delete"></paper-icon-button>
-                                    </paper-button>
+                                    <!-- <paper-icon-button class="clear" on-tap="" icon="create"></paper-icon-button> -->
+                                    <paper-icon-button class="delete" on-tap="deletePred" data-args="Precondition" icon="delete"></paper-icon-button>
+
                                 </div>
                             </template>
 
                             <div>
-                                <paper-dropdown-menu id="menu_instance1_effect" label="Instance 1">
+                                <paper-dropdown-menu id="menu_instance1_effect" label="Element 1">
                                     <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg1}}">
                                         <template is="dom-repeat" items="[[action.params]]">
                                             <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg1">
@@ -420,7 +424,7 @@
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
-                                <paper-dropdown-menu id="menu_instance2_effect" label="Instance 2">
+                                <paper-dropdown-menu id="menu_instance2_effect" label="Element 2">
                                     <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
                                         <template is="dom-repeat" items="[[action.params]]">
                                             <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
@@ -428,9 +432,8 @@
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
+                                <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="Effect"></paper-icon-button>
                             </div>
-                            <br>
-                            <paper-button noink class="clear" raised on-click="addPredicate" data-args="Effect">+ add new condition</paper-button>
 
                         </fieldset>
                         <center>
@@ -478,6 +481,13 @@
             <p id="msgConfirmConditions" style="padding: 5px">Action has been learned...</p>
             <div class="buttons">
                 <paper-button dialog-confirm class="clear">OK</paper-button>
+            </div>
+        </paper-dialog>
+        <paper-dialog id="detectDialog" modal>
+            <h2>Redetect elements? This will override existing objects.</h2>
+            <div class="detectButtons">
+                <paper-button class="clear" dialog-dismiss>Cancel</paper-button>
+                <paper-button dialog-confirm on-tap="_detect" class="delete" data-args="Precondition">Detect</paper-button>
             </div>
         </paper-dialog>
 
@@ -598,26 +608,26 @@
                 }
             },
             // _paramsChanged: function (params) {
-            //     // call generate params as soon as predicates change
-            //     // if (this.action.params.length == 0)
-            //     //     this.action.params = this.action.params.slice();
-            //     console.debug("_paramsChanged:");
-            //     console.debug("action.params changed to ", params.value);
-            //     console.debug("actionParams is ", this.action.params);
-            //     if (this.action.params.length == 0) {
-            //         this.action.params = this.action.params;//.slice();
-            //         //this.reevaluateArray('actionParams', this.action.params.slice());
-            //     }
+            //   // call generate params as soon as predicates change
+            //   // if (this.action.params.length == 0)
+            //   //   this.action.params = this.action.params.slice();
+            //   console.debug("_paramsChanged:");
+            //   console.debug("action.params changed to ", params.value);
+            //   console.debug("actionParams is ", this.action.params);
+            //   if (this.action.params.length == 0) {
+            //     this.action.params = this.action.params;//.slice();
+            //     //this.reevaluateArray('actionParams', this.action.params.slice());
+            //   }
             // },
             // _aparamsChanged: function (params) {
-            //     // call generate params as soon as predicates change
-            //     console.debug("_aparamsChanged:");
-            //     console.debug("action.Params is ", this.action.params);
-            //     console.debug("actionParams changed to ", params.value);
-            //     if (this.action.params.length == 0) {
-            //         this.action.params = this.action.params;//.slice();
-            //         //this.reevaluateArray('actionParams', this.action.params.slice());
-            //     }
+            //   // call generate params as soon as predicates change
+            //   console.debug("_aparamsChanged:");
+            //   console.debug("action.Params is ", this.action.params);
+            //   console.debug("actionParams changed to ", params.value);
+            //   if (this.action.params.length == 0) {
+            //     this.action.params = this.action.params;//.slice();
+            //     //this.reevaluateArray('actionParams', this.action.params.slice());
+            //   }
             // },
             _predicatesChanged: function (preCs, effs) {
                 // call generate params as soon as predicates change
@@ -644,7 +654,7 @@
                     this.domain_id = currDomainId;
                     // console.log("set actionParams from : ", this.action.params);
                     // for (var i = 0; i < this.action.params.length; ++i) {
-                    //     this.action.params.push(this.action.params[i]);
+                    //   this.action.params.push(this.action.params[i]);
                     // }
                     console.log("to : ", this.action.params);
                 }
@@ -684,37 +694,22 @@
                     },
                     displays: [
                         {
-                            isShown: true,
-                            name: 'Grid',
-                            type: 'grid',
-                            options: {
-                                cellSize: 1,
-                                color: '#cccccc',
-                                numCells: 20,
-                            },
-                        }, {
-                            //     isShown: false,
-                            //     name: 'Program robot model',
-                            //     type: 'markerArray',
-                            //     options: {
-                            //         topic: '/rapid_pbd/robot/' + this.action.program_id,
-                            //     },
+                            //   isShown: false,
+                            //   name: 'Grid',
+                            //   type: 'grid',
+                            //   options: {
+                            //     cellSize: 1,
+                            //     color: '#cccccc',
+                            //     numCells: 20,
+                            //   },
                             // }, {
-                            isShown: true,
-                            name: 'Scene',
-                            type: 'pointCloud2',
-                            options: {
-                                size: 0.01,
-                                topic: '/rapid_pbd/scene/' + this.action.program_id,
-                            },
-                        }, {
-                            //     isShown: true,
-                            //     name: 'Surface segmentation',
-                            //     type: 'markers',
-                            //     options: {
-                            //         topic: '/rapid_pbd/surface_seg/visualization/'// + db_id,
-                            //     },
-                            // }, { 
+                            //   isShown: false,
+                            //   name: 'Program robot model',
+                            //   type: 'markerArray',
+                            //   options: {
+                            //     topic: '/rapid_pbd/robot/' + this.action.program_id,
+                            //   },
+                            // }, {
                             isShown: true,
                             name: 'Surface segmentation',
                             type: 'markerArray',
@@ -722,28 +717,44 @@
                                 topic: '/rapid_pbd/surface_segmentation/' + this.action.program_id,
                             },
                         }, {
-                            isShown: false,
-                            name: 'Current robot model',
-                            type: 'urdf',
+                            //   isShown: true,
+                            //   name: 'Surface segmentation',
+                            //   type: 'markers',
+                            //   options: {
+                            //     topic: '/rapid_pbd/surface_seg/visualization/'// + db_id,
+                            //   },
+                            // }, { 
+
+                            isShown: true,
+                            name: 'Scene',
+                            type: 'pointCloud2',
                             options: {
-                                param: 'robot_description',
-                                tfPrefix: ''
+                                size: 0.01,
+                                topic: '/rapid_pbd/scene/' + this.action.program_id,
                             },
-                        }, {
+                            // }, {
+                            //   isShown: false,
+                            //   name: 'Current robot model',
+                            //   type: 'urdf',
+                            //   options: {
+                            //     param: 'robot_description',
+                            //     tfPrefix: ''
+                            //   },
+                            // }, {
                             // isShown: false,
                             // name: 'Current surface segmentation',
                             // type: 'markerArray',
                             // options: {
-                            //     topic: '/rapid_pbd/runtime_segmentation',
+                            //   topic: '/rapid_pbd/runtime_segmentation',
                             // },
                             // }, {
-                            //     isShown: false,
-                            //     name: 'Current depth cloud',
-                            //     type: 'depthCloud',
-                            //     options: {
-                            //         topic: 'depthcloud_encoded',
-                            //         frameId: depthCloudFrameId
-                            //     },
+                            //   isShown: false,
+                            //   name: 'Current depth cloud',
+                            //   type: 'depthCloud',
+                            //   options: {
+                            //     topic: 'depthcloud_encoded',
+                            //     frameId: depthCloudFrameId
+                            //   },
                         },
                     ],
                     sidebarOpened: false,
@@ -858,7 +869,7 @@
                         // We recreate the this.newPrecondition object, else it's passed by reference and it causes problems
                         this.action.preconditions.push({ arg1: this.newPrecondition.arg1, name: this.newPrecondition.name, arg2: this.newPrecondition.arg2, negate: this.newPrecondition.negate });
                         this.reevaluateArray('action.preconditions', this.action.preconditions);
-                        this.logActivity('add precondition:' + this.newPrecondition.arg1.name + ' ' + this.newPrecondition.name);
+                        this.logActivity('2.3.2,add precondition:' + this.newPrecondition.arg1.name + ' ' + this.newPrecondition.name);
                     } else {
                         this.$.msgErrorNewPrecond.innerHTML = check.msg;
                         this.$.errorNewPrecond.open();
@@ -872,8 +883,7 @@
                     if (check.valid) {
                         this.action.effects.push({ arg1: this.newEffect.arg1, name: this.newEffect.name, arg2: this.newEffect.arg2, negate: this.newEffect.negate });
                         this.reevaluateArray('action.effects', this.action.effects);
-                        this.logActivity('add effect:' + this.newEffect.arg1.name + ' ' + this.newEffect.name);
-
+                        this.logActivity('2.3.2,add effect:' + this.newEffect.arg1.name + ' ' + this.newEffect.name);
                     } else {
                         this.$.msgErrorNewEffect.innerHTML = check.msg;
                         this.$.errorNewEffect.open();
@@ -882,7 +892,7 @@
                 // this._generateParams();
             },
             // showRobot: function (button) {
-            //     this.showRobotModel = this.$.button_show_robot.checked;
+            //   this.showRobotModel = this.$.button_show_robot.checked;
             // },
             deletePred: function (evt) {
                 var item = evt.model.item;
@@ -893,7 +903,7 @@
                     this.splice('action.preconditions', index, 1);
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
 
-                    this.logActivity('delete precondition:' + item.arg1.name + ' ' + item.name);
+                    this.logActivity('2.3.1,delete precondition:' + item.arg1.name + ' ' + item.name);
 
                 } else {
                     index = this.action.effects.indexOf(item);
@@ -901,7 +911,7 @@
                         this.splice('action.effects', index, 1);
                         this.reevaluateArray('action.effects', this.action.effects);
 
-                        this.logActivity('delete effect:' + item.arg1.name + ' ' + item.name);
+                        this.logActivity('2.3.1,delete effect:' + item.arg1.name + ' ' + item.name);
 
                     }
                 }
@@ -937,9 +947,9 @@
                     console.debug('Saving ', this.domain, " with name ", this.domain_id);
                     console.debug('Saving ', this.action, " with name ", this.actionName);
                     this.$.eventPub.publish(msg);
-                    this.logActivity('save action:' + this.action.name);
+                    this.logActivity('2.0.2,save action: ' + this.action.name);
                     if (this.actionName != this.action.name) {
-                        this.logActivity('renamed action to ' + this.actionName);
+                        this.logActivity('2.0.4,renamed action to ' + this.actionName);
                         this.quit();
                     }
                 }
@@ -954,7 +964,7 @@
                 this.$.exiting.open();
             },
             quit: function (evt) {
-                this.logActivity('quit action:' + this.action.name);
+                this.logActivity('2.0.3,quit action: ' + this.action.name);
                 this.fire('quit');
             },
 
@@ -1034,9 +1044,9 @@
                     this.$.createSrv.call(request);
                 }
             },
-            _assignSurfaceObjects: function (evt) {
+            _refreshViz: function (evt) {
                 state = this.navStep == "actionModel" ? "Effect" : "Precondition";
-                console.debug('_assignSurfaceObjects: state: ', state);
+                console.debug('  _refreshViz: state: ', state);
                 var msg = {
                     type: 'assign surface objects',
                     program_info: {
@@ -1047,17 +1057,22 @@
                     state_name: state
                 };
 
-                console.debug('_assignSurfaceObjects: ', this.action);
-                this.logActivity('refresh view');
+                console.debug('  _refreshViz: ', this.action);
+                this.logActivity('2.0.1,refresh view');
                 this.$.eventPub.publish(msg);
                 this.load();
+            },
+            _maybeDetect: function (evt) {
+                if (this.action.params.length > 0)
+                    this.$.detectDialog.open();
+                else
+                    this._detect(evt);
             },
             _detect: function (evt) {
                 if (!this.ros) {
                     console.error('Unable to call detection right now.');
                     return;
                 }
-
                 var state = evt.target.getAttribute('data-args');
                 console.log("_detect for domain: ", this.domain_id);
                 var msg = {
@@ -1069,7 +1084,7 @@
                 this.$.loading.open();
                 this.$.eventPub.publish(msg);
 
-                this.logActivity('detect action conditions:' + state);
+                this.logActivity('2.1.1,detect action conditions: ' + state);
 
             },
             removeDuplicates: function (a) {
@@ -1099,10 +1114,10 @@
                 // console.debug('_getParamTypeByName: ', item);
 
                 for (var i = 0; i < this.action.params.length; ++i) {
-                    if (this.action.params[i].name == obj.name)
+                    if (this.action.params[i] && obj && this.action.params[i].name == obj.name)
                         return this.action.params[i].type.name;
                 }
-                return "?";
+                return "";
 
             },
 
@@ -1121,8 +1136,7 @@
             _updateType: function (evt) {
                 this.reevaluateArray('action.params', this.action.params);
                 console.debug("_updateType: ", evt.target);
-
-                this.logActivity('change type to: ' + evt.target.name);
+                this.logActivity('2.1.2, change type to: ' + evt.target.name);
             },
             moveUpParam: function (evt) {
                 //change order of params
@@ -1143,7 +1157,7 @@
                     //console.debug(typeof parms, typeof this.action.params);
                     // this.action.params = parms;
                     this.reevaluateArray('action.params', this.action.params);
-                    this.logActivity('move up parameter: ' + item.name + ' to ', toIndex);
+                    this.logActivity('2.1.3,move up parameter: ' + item.name + ' to ', toIndex);
                 }
                 console.debug('moveUpParam: final action.params is', this.action.params);
             },
@@ -1155,6 +1169,12 @@
                 this.action.params = parms;
                 this.reevaluateArray('action.params', parms);
             },
+            _findByName: function (name, list) {
+                for (var i = 0; i < list.length; ++i) {
+                    if (list[i].name == name)
+                        return list[i];
+                }
+            },
             _getParams: function (predList) {
                 // returns parameters from a list of predicates e.g. preconditions
                 var params = [];
@@ -1162,12 +1182,13 @@
                     //params = [];
                     const nameList = new Set([]);
                     for (var i = 0; i < predList.length; ++i) {
-                        if (predList[i].arg1.name != '' && !nameList.has(predList[i].arg1.name)) {
-                            params.push(predList[i].arg1);
-                            nameList.add(predList[i].arg1.name);
+                        var arg1name = predList[i].arg1.name;
+                        if (arg1name != '' && !nameList.has(arg1name)) {
+                            params.push(this._findByName(arg1name, this.action.params));
+                            nameList.add(arg1name);
                         }
                         if (predList[i].arg2 && predList[i].arg2.name != '' && !nameList.has(predList[i].arg2.name)) {
-                            params.push(predList[i].arg2);
+                            params.push(this._findByName(predList[i].arg2.name, this.action.params));
                             nameList.add(predList[i].arg2.name);
                         }
                     }
@@ -1198,7 +1219,7 @@
                     console.log("_generateConditions: ", text);
                     this.$.msgConfirmConditions.innerHTML = text;
                     this.$.confirmConditions.open();
-                    this.logActivity('confirm conditions');
+                    this.logActivity('2.3.3,confirm conditions');
 
                 }
             },
@@ -1214,7 +1235,7 @@
                         }
                     }
                 }
-                //this._addNegations(list1, list2);
+                this._addNegations(list1, list2);
                 return [list1, list2];
             },
             _addNegations: function (pre, eff) {
@@ -1227,7 +1248,15 @@
                             if (pre[p].name == "on") {
                                 let notOnPred = Object.assign({}, pre[p]);
                                 notOnPred.negate = true;
-                                eff.push(notOnPred);
+
+                                // check if the clear predicate already exists, if yes then dont add
+                                // var notOnExists = false;
+                                // for (var k = 0; k < eff.length; ++k) {
+                                //     if (this._samePredicate(clearPred, eff[j]))
+                                //         notOnExists = true;
+                                // }
+                                // if (!notOnExists)
+                                // eff.push(notOnPred);
                             }
                         }
                         // add a predicate that the target position is not clear
@@ -1281,6 +1310,7 @@
             },
             _selectNavStep: function (evt) {
                 this.navStep = evt.target.getAttribute('data-args');
+                this.save();
                 this.logActivity('switch to: ' + this.navStep);
             },
             _negate: function (neg) {
@@ -1295,9 +1325,17 @@
 
             logActivity: function (activity) {
                 var now = new Date();
-                var currentMenu = 'new-action:' + this.action.name;
+                var currentMenu = 'new-action/' + this.navStep + ':' + this.action.name;
                 console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
                     currentMenu, ',', activity);
+                var msg = {
+                    type: 'log activity',
+                    domain_id: this.domain_id,
+                    domain_name: '',
+                    action_name: currentMenu,
+                    state_name: activity // use state_name as log description text
+                };
+                this.$.eventPub.publish(msg);
             }
         });
     </script>

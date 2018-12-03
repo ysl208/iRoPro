@@ -60,6 +60,9 @@
         <div class="paper-material">
             <template is="dom-if" restamp if="[[!_showActionProperties]]">
                 <p>Current user: [[pddlDomain.name]]</p>
+                <!-- <p>
+                    <a href="chrome://restart">Task finished</a>
+                </p> -->
                 <table>
                     <tr>
                         <th>Programmed actions</th>
@@ -76,7 +79,7 @@
                     </template>
                     <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
                         <tr>
-                            <td on-tap="_openAction">
+                            <td>
                                 <i> [[_getGeneralisedAction(action)]]</i>
                             </td>
                             <td>
@@ -181,7 +184,7 @@
                     action_name: this._actionToDelete
                 };
                 this.$.eventPub.publish(msg);
-                this.logActivity('delete action ' + this._actionToDelete);
+                this.logActivity('1.3,delete action: ' + this._actionToDelete);
             },
 
             _copy: function (evt) {
@@ -192,7 +195,7 @@
                     action_name: action_name
                 };
                 this.$.eventPub.publish(msg);
-                this.logActivity('copy action ' + action_name);
+                this.logActivity('1.4,copy action: ' + action_name);
             },
             _createNewAction: function (evt) {
                 var name = this.getActionName(this.actions);
@@ -203,7 +206,7 @@
                 };
                 this.$.eventPub.publish(msg);
                 console.debug('_createNewAction', name, ' in domain ', this.domain_id);
-                this.logActivity('create new action ' + name);
+                this.logActivity('1.1,add new action: ' + name);
                 this.selectedActionName = name;
                 this._showActionProperties = true;
             },
@@ -233,7 +236,7 @@
                 var name = evt.model.get('action.name');
                 this.selectedActionName = name;
                 this._showActionProperties = true;
-                this.logActivity('open action ' + name);
+                this.logActivity('1.2,open action: ' + name);
             },
             _displayAction: function (selected, actionname) {
                 return (selected && selected.length > 0 && selected == actionname);
@@ -250,10 +253,19 @@
             },
             logActivity: function (activity) {
                 var now = new Date();
-                var currentMenu = 'action-list';
+                var currentMenu = 'action-list:' + this.action.name;
                 console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
                     currentMenu, ',', activity);
+                var msg = {
+                    type: 'log activity',
+                    domain_id: this.domain_id,
+                    domain_name: '',
+                    action_name: currentMenu,
+                    state_name: activity // use state_name as log description text
+                };
+                this.$.eventPub.publish(msg);
             }
+
         });
     </script>
 </dom-module>

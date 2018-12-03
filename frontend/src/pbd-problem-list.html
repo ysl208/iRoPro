@@ -78,7 +78,7 @@
                     </template>
                     <template is="dom-repeat" items="[[pddlDomain.problems]]" as="problem">
                         <tr>
-                            <td on-tap="_openProblem">
+                            <td>
                                 <i> {{problem.name}}</i>
                             </td>
                             <td>
@@ -182,6 +182,7 @@
                     problem_name: this._problemToDelete
                 };
                 this.$.eventPub.publish(msg);
+                this.logActivity('3.3,delete problem: ' + this._problemToDelete);
             },
 
             _createNewProblem: function (evt) {
@@ -197,6 +198,7 @@
                 this.selectedProblemName = name;
                 this._showProblemProperties = true;
                 console.debug('createNewProblem: params is ', this.params);
+                this.logActivity('3.1,add new problem: ' + name);
             },
 
             getProblemName: function (problems) {
@@ -224,6 +226,7 @@
                 var name = evt.model.get('problem.name');
                 this.selectedProblemName = name;
                 this._showProblemProperties = true;
+                this.logActivity('3.2,open problem: ' + name);
             },
             _displayProblem: function (selected, problemname) {
                 return (selected && selected.length > 0 && selected == problemname);
@@ -252,9 +255,17 @@
 
             logActivity: function (activity) {
                 var now = new Date();
-                var currentMenu = 'problem-list';
+                var currentMenu = 'problem-list:' + this.action.name;
                 console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
                     currentMenu, ',', activity);
+                var msg = {
+                    type: 'log activity',
+                    domain_id: this.domain_id,
+                    domain_name: '',
+                    action_name: currentMenu,
+                    state_name: activity // use state_name as log description text
+                };
+                this.$.eventPub.publish(msg);
             }
 
         });

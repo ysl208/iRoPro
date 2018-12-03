@@ -1008,6 +1008,8 @@
             // We recreate the this.newInitialState object, else it's passed by reference and it causes problems
             this.problem.initial_states.push({ arg1: this.newInitialState.arg1, name: this.newInitialState.name, arg2: this.newInitialState.arg2, negate: this.newInitialState.negate });
             this.reevaluateArray('problem.initial_states', this.problem.initial_states);
+            this.logActivity('4.1.4,add initial state:' + this.newInitialState.arg1.name + ' ' + this.newInitialState.name);
+
           } else {
             this.$.msgErrorNewPrecond.innerHTML = check.msg;
             this.$.errorNewPrecond.open();
@@ -1022,6 +1024,7 @@
             this.problem.goal_states.push({ arg1: this.newGoalState.arg1, name: this.newGoalState.name, arg2: this.newGoalState.arg2, negate: this.newGoalState.negate });
             this.reevaluateArray('problem.goal_states', this.problem.goal_states);
             this._hasGoals = true;
+            this.logActivity('4.2.1,add goal state:' + this.newGoalState.arg1.name + ' ' + this.newEffect.name);
           } else {
             this.$.msgErrorNewGoalState.innerHTML = check.msg;
             this.$.errorNewGoalState.open();
@@ -1037,6 +1040,8 @@
           this.splice('problem.initial_states', index, 1);
           this.reevaluateArray('problem.initial_states', this.problem.initial_states);
           console.debug('deletePred from pre');
+          this.logActivity('4.1.3,delete initial state:' + item.arg1.name + ' ' + item.name);
+
         } else {
           index = this.problem.goal_states.indexOf(item);
           if (index != -1) {
@@ -1045,6 +1050,8 @@
             if (this.problem.goal_states.length == 0)
               this._hasGoals = false;
             console.debug('deletePred from eff');
+            this.logActivity('4.2.2,delete goal state:' + item.arg1.name + ' ' + item.name);
+
           }
         }
       },
@@ -1104,6 +1111,8 @@
         };
         this.$.eventPub.publish(msg);
         this.navStep = 'generatedPlan';
+        this.logActivity('4.2.3,solve problem');
+
       },
       _execute: function (evt) {
         console.debug("Execute plan..", this.problem.generated_plan);
@@ -1114,6 +1123,8 @@
           pddl_problem: this.problem
         };
         this.$.eventPub.publish(msg);
+
+        this.logActivity('4.3.2,execute plan');
       },
 
       _refreshViz: function (evt) {
@@ -1123,6 +1134,7 @@
           pddl_problem: this.problem
         };
         console.debug('_refreshViz: ', this.problem);
+        this.logActivity('4.0.1,refresh view');
         this.$.eventPub.publish(msg);
         this.load();
       },
@@ -1142,6 +1154,8 @@
         this.$.loading.open();
         this.$.eventPub.publish(msg);
         console.debug("domaintopic is", this.$.domainTopic);
+        this.logActivity('4.1.1,detect initial states: ' + state);
+
       },
       removeDuplicates: function (a) {
         uniqueArray = a.filter(function (item, pos) {
@@ -1174,7 +1188,7 @@
       _updateType: function (evt) {
         // this.reevaluateArray('action.params', this.action.params);
         console.debug("_updateType: ", evt.target);
-        // this.logActivity('change type to: ' + evt.target.name);
+        this.logActivity('4.1.2, change type to: ' + evt.target.name);
       },
       sortByName: function (arr) {
         arr.sort(function (a, b) {
@@ -1223,12 +1237,16 @@
           console.debug('Saving ', this.domain, " with name ", this.domain_id);
           console.debug('Saving ', this.problem, " with name ", this.problemName);
           this.$.eventPub.publish(msg);
-          if (this.problemName != this.problem.name)
+          this.logActivity('4.0.2,save problem: ' + this.problem.name);
+          if (this.problemName != this.problem.name) {
+            this.logActivity('4.0.4,renamed problem to ' + this.problemName);
             this.quit();
+          }
         }
 
       },
       quit: function (evt) {
+        this.logActivity('4.0.3,quit problem: ' + this.problem.name);
         this.fire('quit');
       },
       saving: function (evt) {
@@ -1322,8 +1340,25 @@
       showDebugging: function () {
         if (this._showDebugging)
           this._showDebugging = false;
-        else
+        else {
           this._showDebugging = true;
+          this.logActivity('4.3.1,show hints');
+        }
+      },
+
+      logActivity: function (activity) {
+        var now = new Date();
+        var currentMenu = 'new-problem:' + this.problem.name;
+        console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
+          currentMenu, ',', activity);
+        var msg = {
+          type: 'log activity',
+          domain_id: this.domain_id,
+          domain_name: '',
+          action_name: currentMenu,
+          state_name: activity // use state_name as log description text
+        };
+        this.$.eventPub.publish(msg);
       }
     });
   </script>

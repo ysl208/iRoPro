@@ -156,7 +156,7 @@
     <div id="layout" class="layout vertical">
       <div class="content">
         <div id="stepContent" class="stepDiv">
-          <div class="stepDivInner" hidden$="[[!isDemoing]]">
+          <div class="stepDivInner">
             <br> Choose object type:
             <paper-dropdown-menu id="typeSelection">
               <paper-listbox slot="dropdown-content" selected="-1">
@@ -178,7 +178,7 @@
                   Vacuum
                 </paper-item>
                 <paper-item name="Electric" on-tap="_chooseFakeProgram" data-args="Electric">
-                  Electric
+                  Grip
                 </paper-item>
               </paper-listbox>
             </paper-dropdown-menu>
@@ -191,6 +191,10 @@
             <paper-button class="runstop stop" hidden$="[[!isDemoing]]" raised on-tap="_toggleDemo" data-args="stop">
               <iron-icon icon="av:stop"></iron-icon>
               Stop Demo
+            </paper-button>
+            <paper-button class="clear" hidden$="[[!isDemoing]]" raised on-tap="_toggleDemo" data-args="stop">
+              <iron-icon icon="icons:clear"></iron-icon>
+              Cancel Demo
             </paper-button>
             <div hidden$="[[_programExists(action.program_id)]]">
               <paper-button class="runstop run" hidden$="[[isRunning.data]]" raised on-tap="run">
@@ -344,7 +348,7 @@
         //   pddl_problem: this.problem
         // };
 
-        this.logActivity('start replay:' + this.planStep.action);
+        this.logActivity('2.2.4,start replay:' + this.planStep.action);
         this.$.playing.open();
         //this.$.eventPub.publish(msg);
       },
@@ -416,7 +420,7 @@
           };
 
           this.$.eventPub.publish(msg);
-          this.logActivity('start demo');
+          this.logActivity('2.2.1,start demo');
         }
         if (args == "stop") {
           this.isDemoing = false;
@@ -430,15 +434,24 @@
           };
 
           this.$.eventPub.publish(msg);
-          this.logActivity('stop demo');
+          this.logActivity('2.2.2,stop demo');
         }
       },
 
+
       logActivity: function (activity) {
         var now = new Date();
-        var currentMenu = 'new-action:' + this.action.name;
+        var currentMenu = 'new-action/demonstration:' + this.action.name;
         console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
           currentMenu, ',', activity);
+        var msg = {
+          type: 'log activity',
+          domain_id: this.domainId,
+          domain_name: '',
+          action_name: currentMenu,
+          state_name: activity // use state_name as log description text
+        };
+        this.$.eventPub.publish(msg);
       }
     });
   </script>
