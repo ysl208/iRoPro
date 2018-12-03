@@ -521,24 +521,19 @@
                 </p>
                 <p id="verifyGoalStates">
                   <b>Hint 2: Review goal states:</b>
-                  <!-- <paper-button class="clear" on-tap="viewGoalStates">
+                  <paper-button class="clear" on-tap="viewGoalStates">
                     <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
-                  </paper-button> -->
-                  <template is="dom-repeat" items="[[problem.goal_states]]" as="goal">
-                    <i> [[viewGoalStates(goal)]]</i>
-                    <paper-button class="clear" on-tap="_viewRelevantActions" data-args="[[goal]]">
-                      <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
-                    </paper-button>
-                    <br>
-                  </template>
+                  </paper-button>
                   <p id="goalStatesSummary">
+                    <!-- <fieldset> -->
                     <p id="msgGoalStatesSummary" style="padding: 5px"></p>
 
+                    <!-- </fieldset> -->
                   </p>
                 </p>
                 <p id="verifyActions">
                   <h4>Hint 3: Make sure actions can achieve goal state:</h4>
-                  <template is="dom-repeat" items="[[goalRelevantActions]]" as="action">
+                  <template is="dom-repeat" items="[[domain.actions]]" as="action">
                     <i> [[_getGeneralisedAction(action)]]</i>
                     <paper-button class="clear" on-tap="viewActionSummary" data-args="[[action]]">
                       <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
@@ -548,6 +543,7 @@
                   <p id="actionSummary">
                     <fieldset>
                       <p id="msgActionSummary" style="padding: 5px"></p>
+
                     </fieldset>
                   </p>
                 </p>
@@ -673,12 +669,6 @@
             return false;
           },
         },
-        goalRelevantActions: {
-          type: Array,
-          value: function () {
-            return [];
-          }
-        }
         // lastDomainUpdated: {
         //   type: CustomEvent,
         //   observer: '_getAllStates',
@@ -1179,35 +1169,11 @@
         }
         return (names);
       },
-      _relevantAction: function (goal, action) {
-        // returns a list of actions that achieve the goal states
 
-        // for (var i = 0; i < this.problem.goal_states.length; ++i) {
-        //   var goal = this.problem.goal_states[i];
-        //   for (var j = 0; j < this.domain.actions.length; ++j) {
-        //     var action = this.domain.actions[j];
-        console.debug("_relevantAction: ", goal, action);
-        for (var k = 0; k < action.effects.length; ++k) {
-          var effect = action.effects[k];
-          if (goal.name == effect.name &&
-            (this._getTypeByName(effect.arg1.name, action.params).name == 'element' ||
-              goal.arg1.type.name == this._getTypeByName(effect.arg1.name, action.params).name
-              || goal.arg1.type.parent.type.name == this._getTypeByName(effect.arg1.name, action.params).name)
-            && goal.arg2 && effect.arg2
-            && (this._getTypeByName(effect.arg2.name, action.params).name == 'element' ||
-              goal.arg2.type.name == this._getTypeByName(effect.arg2.name, action.params).name
-              || goal.arg2.type.parent.type.name == this._getTypeByName(effect.arg2.name, action.params).name))
-            return true;
-        }
-        return false;
-        //   }
-        // }
-      },
 
       _updateType: function (evt) {
         // this.reevaluateArray('action.params', this.action.params);
         console.debug("_updateType: ", evt.target);
-
         // this.logActivity('change type to: ' + evt.target.name);
       },
       sortByName: function (arr) {
@@ -1337,33 +1303,21 @@
         this.$.msgInitalStatesSummary.innerHTML = text;
         this.$.initalStatesSummary.style.display = "inline";
       },
-      _viewRelevantActions: function (evt) {
-        console.log("viewRelevantActions: ", goal);
-        var goal = evt.model.goal;
 
-        this.goalRelevantActions = [];
-        for (var j = 0; j < this.domain.actions.length; ++j) {
-          var action = this.domain.actions[j];
-          if (this._relevantAction(goal, action)) {
-            this.goalRelevantActions.push(action);
-          }
-        }
-      },
-      viewGoalStates: function (pred) {
+      viewGoalStates: function (evt) {
         var problem = this.problem;
         var text = "";
-        // for (var i = 0; i < problem.goal_states.length; ++i) {
-        //   var pred = problem.goal_states[i];
-        text += ' (' + pred.arg1.name + ') ' + this._getParamTypeByName(pred.arg1).toUpperCase() + ' is ' + pred.name;
-        if (pred.arg2 && pred.arg2.name != "") {
-          text += ' ' + this._getParamTypeByName(pred.arg2).toUpperCase() + ' (' + pred.arg2.name + ')';
+        for (var i = 0; i < problem.goal_states.length; ++i) {
+          var pred = problem.goal_states[i];
+          text += ' (' + pred.arg1.name + ') ' + this._getParamTypeByName(pred.arg1).toUpperCase() + ' is ' + pred.name;
+          if (pred.arg2 && pred.arg2.name != "") {
+            text += ' ' + this._getParamTypeByName(pred.arg2).toUpperCase() + ' (' + pred.arg2.name + ')';
+          }
+          text += '<br>';
         }
-        // text += '<br>';
-        // }
         console.log("viewGoalStates: ", text);
-        // this.$.msgGoalStatesSummary.innerHTML = text;
+        this.$.msgGoalStatesSummary.innerHTML = text;
         this.$.goalStatesSummary.style.display = "inline";
-        return text;
       },
       showDebugging: function () {
         if (this._showDebugging)
