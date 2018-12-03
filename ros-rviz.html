@@ -1,0 +1,469 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-collapse/iron-collapse.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../neon-animation/web-animations.html">
+<link rel="import" href="../app-layout/app-layout.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../paper-fab/paper-fab.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+<link rel="import" href="../paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../paper-styles/color.html">
+<link rel="import" href="../paper-styles/typography.html">
+<link rel="import" href="../paper-tooltip/paper-tooltip.html">
+<link rel="import" href="imports.html">
+<link rel="import" href="ros-rviz-display.html">
+
+<!--
+A ROS visualization interface for the web.
+See the [user guide](https://github.com/jstnhuang/ros-rviz/wiki/User-guide) for authoritative documentation.
+
+Example:
+
+    <ros-websocket auto ros="{{ros}}" url="{{url}}"></ros-websocket>
+    <ros-rviz ros="{{ros}}" websocket-url="{{url}}"></ros-rviz>
+
+@demo demo/index.html
+-->
+
+<dom-module id="ros-rviz">
+  <template>
+    <style include="iron-flex iron-flex-alignment">
+    <style>
+      :host {
+        display: block;
+        height: 100%;
+        @apply(--paper-font-common-base);
+      }
+      #displays {
+        background-color: var(--paper-grey-50);
+        color: rgba(0, 0, 0, 0.87)
+      }
+      #displayHeader {
+        background-color: var(--paper-grey-300);
+        color: rgba(0, 0, 0, 0.87);
+      }
+      #addButton {
+        color: rgba(0, 0, 0, 0.87);
+        background-color: #ffc107;
+        position: relative;
+        top: 28px;
+        z-index: 2;
+      }
+      #container {
+        height: 100%;
+      }
+      #sidebar {
+        height: 100%;
+      }
+      #displays {
+        width: 300px;
+        height: 100%;
+      }
+      #viewer {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+      }
+      #openDisplays {
+        position: absolute;
+        margin: 10px;
+        color: rgba(255, 255, 255, 0.87);
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+      #openDisplays:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+      paper-item {
+        --paper-item: {
+          cursor: pointer;
+        };
+      }
+      [hidden] {
+        display: none;
+      }
+      paper-button {
+        @apply(--paper-font-button);
+      }
+      paper-dialog {
+        max-width: 900px;
+        width: 90%;
+        height: 90%;
+        padding: 0px 24px;
+        margin-top: 0;
+      }
+      span[main-title] {
+        @apply(--paper-font-title);
+      }
+      #displayPaperMenu {
+        min-width: 200px;
+      }
+    </style>
+    <div id="container" class="layout horizontal">
+      <iron-collapse id="sidebar" opened="{{config.sidebarOpened}}" horizontal>
+        <app-header-layout id="displays" has-scrolling-region>
+          <app-header slot="header" fixed id="displayHeader">
+            <app-toolbar>
+              <paper-icon-button id="closeDisplays" icon="arrow-back"
+                on-tap="_toggleDisplayList"></paper-icon-button>
+              <paper-tooltip position="right" animation-delay="0"
+                for="closeDisplays">Hide displays panel</paper-tooltip>
+              <span main-title>Displays</span>
+              <paper-tooltip position="bottom" animation-delay="0"
+                for="addButton">Add a display</paper-tooltip>
+              <paper-menu-button id="displayMenu">
+                <paper-fab icon="add" id="addButton" slot="dropdown-trigger"></paper-fab>
+                <paper-listbox id="displayPaperMenu" slot="dropdown-content"
+                    on-tap="_onDisplaySelected">
+                  <paper-item on-tap="addDepthCloud">Depth cloud</paper-item>
+                  <paper-item on-tap="addGrid">Grid</paper-item>
+                  <paper-item on-tap="addImage">Image</paper-item>
+                  <paper-item on-tap="addInteractiveMarkers">Interactive markers</paper-item>
+                  <paper-item on-tap="addMarkers">Markers</paper-item>
+                  <paper-item on-tap="addMarkerArray">Marker array</paper-item>
+                  <paper-item on-tap="addOccupancyGrid">Occupancy grid</paper-item>
+                  <!--paper-item on-tap="addPointCloud">Point cloud</paper-item-->
+                  <paper-item on-tap="addPointCloud2">Point cloud 2</paper-item>
+                  <paper-item on-tap="addTf">TF</paper-item>
+                  <paper-item on-tap="addUrdf">Robot model</paper-item>
+                </paper-listbox>
+              </paper-menu-button>
+            </app-toolbar>
+          </app-header>
+          <paper-button on-tap="_showConfig">Load config</paper-button>
+          <div id="displayList">
+            <ros-rviz-display
+              id="options"
+              global-options="{{config.globalOptions}}"
+              name="Global options"
+              permanent
+              type="globalOptions"
+            ></ros-rviz-display>
+            <template is="dom-repeat" items="{{config.displays}}" as="display">
+              <ros-rviz-display
+                global-options="{{config.globalOptions}}"
+                index="{{index}}"
+                is-shown="{{display.isShown}}"
+                on-delete-display="_deleteDisplay"
+                viewer="{{_viewer}}"
+                ros="{{ros}}"
+                tf-client="{{_tfClient}}"
+                name="{{display.name}}"
+                options="{{display.options}}"
+                type="{{display.type}}"
+              ></ros-rviz-display>
+            </template>
+          </div>
+        </app-header-layout>
+      </iron-collapse>
+      <paper-fab icon="menu" id="openDisplays"
+        hidden$="{{config.sidebarOpened}}" on-tap="_toggleDisplayList"></paper-fab>
+      <paper-tooltip position="right" animation-delay="0"
+        for="openDisplays">Open displays</paper-tooltip>
+      <div id="viewer" class="flex">
+      </div>
+      <paper-dialog id="configDialog" modal class="layout vertical">
+        <textarea id="configText" class="flex"></textarea>
+        <div class="buttons">
+          <paper-button dialog-dismiss>Cancel</paper-button>
+          <paper-button dialog-confirm autofocus on-tap="_applyConfigText">Apply</paper-button>
+        </div>
+      </paper-dialog>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'ros-rviz',
+
+      properties: {
+        /**
+         * A JSON object that specifies the configuration of the visualization.
+         * See the user guide for more details.
+         */
+        config: {
+          notify: true,
+          type: Object,
+          value: function() {
+            return {
+              globalOptions: {},
+              sidebarOpened: true,
+              displays: [],
+            };
+          }
+        },
+
+        /**
+         * A ROS connection object taken from the `ros` property of the `<ros-websocket>` element.
+         */
+        ros: {
+          type: Object,
+          observer: '_rosChanged',
+        },
+
+        /**
+         * The websocket URL to connect to. This mirrors `config.globalOptions.url`.
+         */
+        websocketUrl: {
+          notify: true,
+          type: String,
+          observer: '_websocketUrlChanged'
+        },
+        _tfClient: Object, // The ROSLIB.TFClient
+        _viewer: Object, // The ROS3D viewer
+      },
+
+      behaviors: [Polymer.IronResizableBehavior],
+
+      observers: [
+        '_fixedFrameChanged(config.globalOptions.fixedFrame)',
+        '_backgroundChanged(config.globalOptions.background)',
+        '_globalWebsocketUrlChanged(config.globalOptions.url)',
+      ],
+
+      // The websocketUrl property is intended to be bound to the url property of a
+      // <ros-websocket> element. We mirror its value to config.globalOptions.url. If the user edits
+      // the websocket URL, the change eventually propagates to the websocketUrl property through
+      // the two-way binding we manually add here.
+
+      // If the property changes, mirror to config.
+      _websocketUrlChanged: function(url) {
+        this.set('config.globalOptions.url', url);
+      },
+      // If the config changes, mirror to property.
+      _globalWebsocketUrlChanged: function(url) {
+        this.websocketUrl = url;
+      },
+
+      _backgroundChanged: function(background) {
+        if (background && this._viewer) {
+          this._viewer.renderer.setClearColor(parseInt(background.replace('#', '0x'), 16), 1);
+        }
+      },
+
+      _fixedFrameChanged: function(fixedFrame) {
+        if (this._tfClient) {
+          this._tfClient.fixedFrame = fixedFrame;
+          this._tfClient.updateGoal();
+        }
+      },
+
+      attached: function() {
+        Polymer.RenderStatus.beforeNextRender(this, function() {
+          if (this._attached) {
+            return;
+          }
+          var width = this.$.viewer.offsetWidth;
+          var height = this.$.viewer.offsetHeight;
+          var background = this.config.globalOptions.background;
+          // Hack - Viewer appends to the divID using document.getElementById.
+          // This does not work in the context of Polymer, so we alias document
+          // to the shadow root temporarily.
+          var backupFunc = document.getElementById;
+          var that = this;
+          document.getElementById = function(id) {
+            return that.shadowRoot.getElementById(id);
+          }
+          this._viewer = new ROS3D.Viewer({
+            background: background,
+            divID: 'viewer',
+            width: width,
+            height: height,
+            antialias: true
+          });
+          document.getElementById = backupFunc;
+          this._attached = true;
+        });
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          var that = this;
+          window.setTimeout(function() {
+            that.resize()
+          }, 100);
+          this.addEventListener('iron-resize', function() {
+            that.resize();
+          });
+        });
+      },
+
+      addGrid: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'Grid',
+          options: {
+            cellSize: 1,
+            color: '#cccccc',
+            numCells: 10,
+          },
+          type: 'grid',
+        });
+      },
+
+      addImage: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'Image',
+          options: {
+            topic: '/camera/image',
+          },
+          type: 'image',
+        });
+      },
+
+      addInteractiveMarkers: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'Interactive Markers',
+          options: {
+            topic: '/basic_controls',
+          },
+          type: 'interactiveMarkers',
+        });
+      },
+
+      addMarkers: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'Markers',
+          options: {
+            topic: '/visualization_marker',
+          },
+          type: 'markers',
+        });
+      },
+
+      addMarkerArray: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'Marker array',
+          options: {
+            topic: '/visualization_marker_array',
+          },
+          type: 'markerArray',
+        });
+      },
+
+      addOccupancyGrid: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'Map',
+          options: {
+            color: {
+              r: 255,
+              g: 255,
+              b: 255
+            },
+            continuous: true,
+            opacity: 1.0,
+            topic: '/map',
+          },
+          type: 'occupancyGrid',
+        });
+      },
+
+      addDepthCloud: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'Depth cloud',
+          options: {
+            topic: 'depthcloud_encoded',
+            frameId: '/camera_rgb_optical_frame',
+          },
+          type: 'depthCloud',
+        });
+      },
+
+      addPointCloud: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'Point cloud',
+          options: {
+            topic: '',
+          },
+          type: 'pointCloud',
+        });
+      },
+
+      addPointCloud2: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'Point cloud 2',
+          options: {
+            topic: '',
+            size: 0.01,
+          },
+          type: 'pointCloud2',
+        });
+      },
+
+      addTf: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'TF',
+          options: {
+          },
+          type: 'tf',
+        });
+      },
+
+      addUrdf: function() {
+        this.push('config.displays', {
+          isShown: true,
+          name: 'Robot model',
+          options: {
+            param: 'robot_description',
+          },
+          type: 'urdf',
+        });
+      },
+
+      /*
+       * This method should be called to update the viewer whenever the element is resized.
+       */
+      resize: function() {
+        if (this._viewer) {
+          var width = this.$.viewer.offsetWidth;
+          var height = this.$.viewer.offsetHeight;
+          this._viewer.resize(width, height);
+        }
+      },
+
+      _deleteDisplay: function(evt) {
+        var index = evt.detail.index;
+        this.splice('config.displays', index, 1);
+      },
+
+      _onDisplaySelected: function() {
+        this.$.displayPaperMenu.selected = undefined;
+      },
+
+      _rosChanged: function() {
+        this._tfClient = new ROSLIB.TFClient({
+          ros: this.ros,
+          angularThres: 0.01,
+          fixedFrame: this.config.globalOptions.fixedFrame,
+          transThres: 0.01,
+          rate: 10.0
+        });
+      },
+
+      _toggleDisplayList: function() {
+        this.$.sidebar.toggle();
+      },
+
+      _showConfig: function() {
+        this.$.configText.value = JSON.stringify(this.config, null, 2);
+        this.$.configDialog.open();
+      },
+
+      _applyConfigText: function() {
+        var configText = this.$.configText.value;
+        var config = JSON.parse(configText);
+        this.config = config;
+      },
+    });
+  </script>
+</dom-module>

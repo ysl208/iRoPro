@@ -1,0 +1,18 @@
+language: node_js
+dist: trusty
+sudo: required
+node_js: stable
+notifications:
+  email: false
+addons:
+  firefox: latest
+  apt:
+    sources:
+      - google-chrome
+    packages:
+      - google-chrome-stable
+before_script:
+  - npm install -g polymer-cli
+  - polymer install
+script:
+  - xvfb-run polymer test
