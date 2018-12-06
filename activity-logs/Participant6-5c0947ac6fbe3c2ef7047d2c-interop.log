@@ -1,0 +1,251 @@
+2018-12-06,17:00:44,home,0,create user User6
+2018-12-06,17:02:08,action-list,1.1,add new action: action1
+2018-12-06,17:03:17,new-action/perception:action1,2.1.1,detect action conditions: Precondition
+2018-12-06,17:03:26,new-action/perception:action1,2.0.1,refresh view
+2018-12-06,17:03:53,new-action/perception:action1,2.1.2,change type to: base
+2018-12-06,17:04:00,new-action/perception:action1,2.0.1,refresh view
+2018-12-06,17:04:03,new-action/demonstration:action1,2.0.2,save action: action1
+2018-12-06,17:04:03,new-action/demonstration:action1,2.0.5,switch to: demonstration
+2018-12-06,17:04:16,new-action/demonstration:action1,2.2.1,start demo: move-vacuum-base
+2018-12-06,17:05:02,new-action/demonstration:action1,2.2.2,stop demo
+2018-12-06,17:05:09,new-action/demonstration:action1,2.2.4,start replay:move-vacuum-base
+2018-12-06,17:05:23,new-action/demonstration:action1,2.2.4,start replay:move-vacuum-base
+2018-12-06,17:06:13,new-action/demonstration:action1,2.2.4,start replay:move-vacuum-base
+2018-12-06,17:06:54,new-action/actionModel:action1,2.0.2,save action: action1
+2018-12-06,17:06:54,new-action/actionModel:action1,2.0.5,switch to: actionModel
+2018-12-06,17:07:22,new-action/actionModel:action1,2.1.1,detect action conditions: Effect
+2018-12-06,17:07:57,new-action/actionModel:action1,2.3.3,generate complete action
+2018-12-06,17:07:57,new-action/actionModel:action1,2.0.2,save action: action1
+2018-12-06,17:08:15,new-action/perception:action1,2.0.2,save action: action1
+2018-12-06,17:08:15,new-action/perception:action1,2.0.5,switch to: perception
+2018-12-06,17:08:20,new-action/perception:action1,2.1.2,change type to: base
+2018-12-06,17:08:57,new-action/perception:action1,2.0.2,save action: action1
+2018-12-06,17:08:57,new-action/perception:action1,2.0.4,renamed action to Gripper1
+2018-12-06,17:08:57,new-action/perception:action1,2.0.3,quit action: action1
+2018-12-06,17:09:53,problem-list,3.1,add new problem: problem1
+2018-12-06,17:10:22,problem-list,3.2,open problem: problem1
+2018-12-06,17:10:45,new-problem/perception:problem1,4.1.1,detect initial states: initial
+2018-12-06,17:10:54,new-problem/perception:problem1,4.1.2,change type to: base
+2018-12-06,17:11:13,new-problem/perception:problem1,4.1.1,detect initial states: initial
+2018-12-06,17:11:18,new-problem/perception:problem1,4.1.2,change type to: base
+2018-12-06,17:11:20,new-problem/perception:problem1,4.0.1,refresh view
+2018-12-06,17:12:02,new-problem/perception:problem1,4.0.2,save problem: problem1
+2018-12-06,17:12:11,new-problem/problemModel:problem1,4.0.2,save problem: problem1
+2018-12-06,17:12:11,new-problem/problemModel:problem1,4.0.5,switch to: problemModel
+2018-12-06,17:12:47,new-problem/generatedPlan:problem1,4.2.3,solve problem
+2018-12-06,17:12:54,new-problem/generatedPlan:problem1,4.3.1,show hints
+2018-12-06,17:13:50,new-problem/perception:problem1,4.0.2,save problem: problem1
+2018-12-06,17:13:50,new-problem/perception:problem1,4.0.5,switch to: perception
+2018-12-06,17:14:02,problem-list,3.2,open problem: problem1
+2018-12-06,17:14:07,new-problem/problemModel:problem1,4.0.2,save problem: problem1
+2018-12-06,17:14:07,new-problem/problemModel:problem1,4.0.5,switch to: problemModel
+2018-12-06,17:14:28,new-problem/problemModel:problem1,4.2.2,delete goal state:obj1 on
+2018-12-06,17:14:47,new-problem/generatedPlan:problem1,4.2.3,solve problem
+2018-12-06,17:14:55,new-problem/generatedPlan:problem1,4.3.1,show hints
+2018-12-06,17:15:34,new-problem/problemModel:problem1,4.0.2,save problem: problem1
+2018-12-06,17:15:34,new-problem/problemModel:problem1,4.0.5,switch to: problemModel
+2018-12-06,17:16:04,new-problem/problemModel:problem1,4.2.2,delete goal state:obj1 on
+2018-12-06,17:16:08,new-problem/generatedPlan:problem1,4.2.3,solve problem
+2018-12-06,17:16:08,new-problem/generatedPlan:problem1,4.3.0,no steps generated
+2018-12-06,17:17:22,new-problem/generatedPlan:problem1,4.3.2,execute plan
+2018-12-06,17:17:22,new-problem/problemModel:problem1,4.0.2,save problem: problem1
+2018-12-06,17:17:22,new-problem/problemModel:problem1,4.0.5,switch to: problemModel
+2018-12-06,17:17:22,new-problem/problemModel:problem1,4.0.3,quit problem: problem1
+2018-12-06,17:17:22,problem-list,3.1,add new problem: problem2
+2018-12-06,17:17:36,problem-list,3.2,open problem: problem2
+2018-12-06,17:17:54,new-problem/perception:problem2,4.1.1,detect initial states: initial
+2018-12-06,17:18:05,new-problem/perception:problem2,4.1.2,change type to: base
+2018-12-06,17:18:07,new-problem/perception:problem2,4.1.2,change type to: base
+2018-12-06,17:18:12,new-problem/perception:problem2,4.0.2,save problem: problem2
+2018-12-06,17:18:49,new-problem/perception:problem2,4.0.1,refresh view
+2018-12-06,17:19:03,new-problem/problemModel:problem2,4.0.2,save problem: problem2
+2018-12-06,17:19:03,new-problem/problemModel:problem2,4.0.5,switch to: problemModel
+2018-12-06,17:19:56,new-problem/generatedPlan:problem2,4.2.3,solve problem
+2018-12-06,17:19:57,new-problem/generatedPlan:problem2,4.3.0,no steps generated
+2018-12-06,17:20:49,new-problem/generatedPlan:problem2,4.3.2,execute plan
+2018-12-06,17:21:17,new-problem/problemModel:problem2,4.0.2,save problem: problem2
+2018-12-06,17:21:17,new-problem/problemModel:problem2,4.0.5,switch to: problemModel
+2018-12-06,17:21:20,new-problem/problemModel:problem2,4.2.2,delete goal state:obj2 on
+2018-12-06,17:21:39,new-problem/generatedPlan:problem2,4.2.3,solve problem
+2018-12-06,17:21:44,new-problem/generatedPlan:problem2,4.3.1,show hints
+2018-12-06,17:23:20,action-list,1.2,open action: Gripper1
+2018-12-06,17:23:51,new-action/demonstration:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:23:51,new-action/demonstration:Gripper1,2.0.5,switch to: demonstration
+2018-12-06,17:23:52,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:23:52,new-action/actionModel:Gripper1,2.0.5,switch to: actionModel
+2018-12-06,17:24:24,new-action/actionModel:Gripper1,2.3.2,add precondition:posM clear
+2018-12-06,17:24:40,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:24:52,problem-list,3.2,open problem: problem2
+2018-12-06,17:24:52,new-problem/perception:problem2,4.3.0,no steps generated
+2018-12-06,17:24:55,new-problem/problemModel:problem2,4.0.2,save problem: problem2
+2018-12-06,17:24:55,new-problem/problemModel:problem2,4.0.5,switch to: problemModel
+2018-12-06,17:24:58,new-problem/generatedPlan:problem2,4.0.2,save problem: problem2
+2018-12-06,17:24:58,new-problem/generatedPlan:problem2,4.0.5,switch to: generatedPlan
+2018-12-06,17:25:02,new-problem/generatedPlan:problem2,4.3.1,show hints
+2018-12-06,17:27:01,action-list,1.2,open action: Gripper1
+2018-12-06,17:27:06,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:27:06,new-action/actionModel:Gripper1,2.0.5,switch to: actionModel
+2018-12-06,17:27:24,new-action/actionModel:Gripper1,2.3.2,add effect:posB clear
+2018-12-06,17:27:28,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:27:38,problem-list,3.2,open problem: problem2
+2018-12-06,17:27:38,new-problem/perception:problem2,4.3.0,no steps generated
+2018-12-06,17:27:44,new-problem/generatedPlan:problem2,4.0.2,save problem: problem2
+2018-12-06,17:27:44,new-problem/generatedPlan:problem2,4.0.5,switch to: generatedPlan
+2018-12-06,17:27:47,new-problem/generatedPlan:problem2,4.3.1,show hints
+2018-12-06,17:27:52,new-problem/problemModel:problem2,4.0.2,save problem: problem2
+2018-12-06,17:27:52,new-problem/problemModel:problem2,4.0.5,switch to: problemModel
+2018-12-06,17:27:54,new-problem/generatedPlan:problem2,4.2.3,solve problem
+2018-12-06,17:28:40,new-problem/generatedPlan:problem2,4.0.3,quit problem: problem2
+2018-12-06,17:28:42,problem-list,3.1,add new problem: problem3
+2018-12-06,17:28:49,problem-list,3.2,open problem: problem3
+2018-12-06,17:29:27,new-problem/perception:problem3,4.1.1,detect initial states: initial
+2018-12-06,17:29:40,new-problem/perception:problem3,4.0.1,refresh view
+2018-12-06,17:29:59,new-problem/perception:problem3,4.1.2,change type to: base
+2018-12-06,17:30:03,new-problem/perception:problem3,4.1.2,change type to: cube
+2018-12-06,17:30:08,new-problem/perception:problem3,4.0.2,save problem: problem3
+2018-12-06,17:30:25,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-06,17:30:25,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-06,17:30:51,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-06,17:31:09,new-problem/generatedPlan:problem3,4.3.1,show hints
+2018-12-06,17:32:18,new-problem/generatedPlan:problem3,4.0.2,save problem: problem3
+2018-12-06,17:32:23,action-list,1.2,open action: Gripper1
+2018-12-06,17:32:33,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:32:33,new-action/actionModel:Gripper1,2.0.5,switch to: actionModel
+2018-12-06,17:34:28,new-action/perception:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:34:28,new-action/perception:Gripper1,2.0.5,switch to: perception
+2018-12-06,17:34:41,new-action/perception:Gripper1,2.1.2,change type to: cube
+2018-12-06,17:35:08,new-action/perception:Gripper1,2.1.2,change type to: object
+2018-12-06,17:35:18,new-action/perception:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:35:23,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:35:23,new-action/actionModel:Gripper1,2.0.5,switch to: actionModel
+2018-12-06,17:37:43,new-action/perception:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:37:43,new-action/perception:Gripper1,2.0.5,switch to: perception
+2018-12-06,17:37:57,new-action/perception:Gripper1,2.1.2,change type to: object
+2018-12-06,17:38:10,new-action/perception:Gripper1,2.1.2,change type to: element
+2018-12-06,17:38:18,new-action/perception:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:38:28,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:38:28,new-action/actionModel:Gripper1,2.0.5,switch to: actionModel
+2018-12-06,17:39:10,new-action/perception:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:39:10,new-action/perception:Gripper1,2.0.5,switch to: perception
+2018-12-06,17:39:20,new-action/perception:Gripper1,2.1.2,change type to: element
+2018-12-06,17:39:27,new-action/perception:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:39:29,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:39:29,new-action/actionModel:Gripper1,2.0.5,switch to: actionModel
+2018-12-06,17:39:49,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:39:53,new-action/actionModel:Gripper1,2.0.3,quit action: Gripper1
+2018-12-06,17:40:21,problem-list,3.2,open problem: problem3
+2018-12-06,17:40:26,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-06,17:40:26,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-06,17:40:29,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-06,17:40:29,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-06,17:40:41,new-problem/generatedPlan:problem3,4.3.1,show hints
+2018-12-06,17:41:13,new-problem/generatedPlan:problem3,4.3.2,execute plan
+2018-12-06,17:41:53,new-problem/generatedPlan:problem3,4.0.3,quit problem: problem3
+2018-12-06,17:41:58,action-list,1.2,open action: Gripper1
+2018-12-06,17:42:03,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:42:03,new-action/actionModel:Gripper1,2.0.5,switch to: actionModel
+2018-12-06,17:42:53,new-action/actionModel:Gripper1,2.3.2,add precondition:obj1 stackable
+2018-12-06,17:43:01,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:43:15,problem-list,3.2,open problem: problem3
+2018-12-06,17:43:15,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-06,17:43:37,new-problem/perception:problem3,4.1.1,detect initial states: initial
+2018-12-06,17:43:47,new-problem/perception:problem3,4.1.2,change type to: roof
+2018-12-06,17:43:52,new-problem/perception:problem3,4.1.2,change type to: base
+2018-12-06,17:43:56,new-problem/perception:problem3,4.1.2,change type to: cube
+2018-12-06,17:44:08,new-problem/perception:problem3,4.0.1,refresh view
+2018-12-06,17:44:35,new-problem/perception:problem3,4.0.2,save problem: problem3
+2018-12-06,17:44:37,new-problem/generatedPlan:problem3,4.0.2,save problem: problem3
+2018-12-06,17:44:37,new-problem/generatedPlan:problem3,4.0.5,switch to: generatedPlan
+2018-12-06,17:44:38,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-06,17:44:38,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-06,17:44:41,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-06,17:44:46,new-problem/generatedPlan:problem3,4.3.1,show hints
+2018-12-06,17:46:07,action-list,1.1,add new action: action2
+2018-12-06,17:46:39,new-action/perception:action2,2.0.2,save action: action2
+2018-12-06,17:46:39,new-action/perception:action2,2.0.4,renamed action to Gripper2
+2018-12-06,17:46:39,new-action/perception:action2,2.0.3,quit action: action2
+2018-12-06,17:46:42,action-list,1.2,open action: Gripper2
+2018-12-06,17:47:09,new-action/perception:Gripper2,2.1.1,detect action conditions: Precondition
+2018-12-06,17:47:33,new-action/perception:Gripper2,2.0.1,refresh view
+2018-12-06,17:47:54,new-action/demonstration:Gripper2,2.0.2,save action: Gripper2
+2018-12-06,17:47:54,new-action/demonstration:Gripper2,2.0.5,switch to: demonstration
+2018-12-06,17:48:25,new-action/demonstration:Gripper2,2.2.1,start demo: move-electric-roof
+2018-12-06,17:49:16,new-action/demonstration:Gripper2,2.2.2,stop demo
+2018-12-06,17:49:25,new-action/demonstration:Gripper2,2.2.4,start replay:move-electric-roof
+2018-12-06,17:50:13,new-action/actionModel:Gripper2,2.0.2,save action: Gripper2
+2018-12-06,17:50:13,new-action/actionModel:Gripper2,2.0.5,switch to: actionModel
+2018-12-06,17:50:45,new-action/actionModel:Gripper2,2.1.1,detect action conditions: Effect
+2018-12-06,17:51:07,new-action/actionModel:Gripper2,2.3.3,generate complete action
+2018-12-06,17:51:07,new-action/actionModel:Gripper2,2.0.2,save action: Gripper2
+2018-12-06,17:51:18,new-action/actionModel:Gripper2,2.0.2,save action: Gripper2
+2018-12-06,17:52:21,problem-list,3.1,add new problem: problem4
+2018-12-06,17:52:42,new-problem/perception:problem4,4.1.1,detect initial states: initial
+2018-12-06,17:52:55,new-problem/perception:problem4,4.0.1,refresh view
+2018-12-06,17:53:22,new-problem/perception:problem4,4.1.2,change type to: cube
+2018-12-06,17:53:32,new-problem/perception:problem4,4.0.2,save problem: problem4
+2018-12-06,17:53:39,new-problem/problemModel:problem4,4.0.2,save problem: problem4
+2018-12-06,17:53:39,new-problem/problemModel:problem4,4.0.5,switch to: problemModel
+2018-12-06,17:53:58,new-problem/generatedPlan:problem4,4.2.3,solve problem
+2018-12-06,17:53:58,new-problem/generatedPlan:problem4,4.3.0,no steps generated
+2018-12-06,17:54:02,new-problem/generatedPlan:problem4,4.3.1,show hints
+2018-12-06,17:55:21,action-list,1.2,open action: Gripper1
+2018-12-06,17:55:31,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:55:31,new-action/actionModel:Gripper1,2.0.5,switch to: actionModel
+2018-12-06,17:56:01,new-action/actionModel:Gripper1,2.3.2,add precondition:obj1 flat
+2018-12-06,17:56:10,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,17:56:20,problem-list,3.2,open problem: problem4
+2018-12-06,17:56:20,new-problem/perception:problem4,4.3.0,no steps generated
+2018-12-06,17:56:26,new-problem/problemModel:problem4,4.0.2,save problem: problem4
+2018-12-06,17:56:26,new-problem/problemModel:problem4,4.0.5,switch to: problemModel
+2018-12-06,17:56:29,new-problem/generatedPlan:problem4,4.2.3,solve problem
+2018-12-06,17:56:32,new-problem/generatedPlan:problem4,4.3.1,show hints
+2018-12-06,17:57:47,action-list,1.2,open action: Gripper2
+2018-12-06,17:57:57,new-action/perception:Gripper2,2.1.2,change type to: element
+2018-12-06,17:58:05,new-action/perception:Gripper2,2.1.2,change type to: element
+2018-12-06,17:58:15,new-action/perception:Gripper2,2.0.2,save action: Gripper2
+2018-12-06,17:58:24,new-action/perception:Gripper2,2.0.3,quit action: Gripper2
+2018-12-06,17:58:40,problem-list,3.2,open problem: problem4
+2018-12-06,17:58:51,problem-list,3.2,open problem: problem4
+2018-12-06,17:58:58,new-problem/problemModel:problem4,4.0.2,save problem: problem4
+2018-12-06,17:58:58,new-problem/problemModel:problem4,4.0.5,switch to: problemModel
+2018-12-06,17:59:00,new-problem/generatedPlan:problem4,4.2.3,solve problem
+2018-12-06,17:59:00,new-problem/generatedPlan:problem4,4.3.0,no steps generated
+2018-12-06,17:59:25,new-problem/generatedPlan:problem4,4.3.2,execute plan
+2018-12-06,17:59:51,new-problem/perception:problem4,4.0.2,save problem: problem4
+2018-12-06,17:59:51,new-problem/perception:problem4,4.0.5,switch to: perception
+2018-12-06,18:00:09,new-problem/perception:problem4,4.1.1,detect initial states: initial
+2018-12-06,18:00:26,new-problem/perception:problem4,4.0.1,refresh view
+2018-12-06,18:00:32,new-problem/perception:problem4,4.0.3,quit problem: problem4
+2018-12-06,18:00:34,problem-list,3.2,open problem: problem4
+2018-12-06,18:00:34,new-problem/perception:problem4,4.3.0,no steps generated
+2018-12-06,18:00:55,problem-list,3.2,open problem: problem4
+2018-12-06,18:00:55,new-problem/perception:problem4,4.3.0,no steps generated
+2018-12-06,18:01:14,new-problem/perception:problem4,4.1.2,change type to: base
+2018-12-06,18:01:19,new-problem/perception:problem4,4.0.2,save problem: problem4
+2018-12-06,18:01:24,new-problem/problemModel:problem4,4.0.2,save problem: problem4
+2018-12-06,18:01:24,new-problem/problemModel:problem4,4.0.5,switch to: problemModel
+2018-12-06,18:02:16,new-problem/generatedPlan:problem4,4.2.3,solve problem
+2018-12-06,18:02:46,new-problem/problemModel:problem4,4.0.2,save problem: problem4
+2018-12-06,18:02:46,new-problem/problemModel:problem4,4.0.5,switch to: problemModel
+2018-12-06,18:03:12,action-list,1.2,open action: Gripper1
+2018-12-06,18:03:16,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,18:03:16,new-action/actionModel:Gripper1,2.0.5,switch to: actionModel
+2018-12-06,18:05:08,new-action/actionModel:Gripper1,2.3.2,add precondition:obj1 clear
+2018-12-06,18:05:13,new-action/actionModel:Gripper1,2.0.2,save action: Gripper1
+2018-12-06,18:05:24,new-action/actionModel:Gripper1,2.0.3,quit action: Gripper1
+2018-12-06,18:05:25,action-list,1.2,open action: Gripper2
+2018-12-06,18:05:38,action-list,1.2,open action: Gripper2
+2018-12-06,18:05:40,new-action/actionModel:Gripper2,2.0.2,save action: Gripper2
+2018-12-06,18:05:40,new-action/actionModel:Gripper2,2.0.5,switch to: actionModel
+2018-12-06,18:06:01,problem-list,3.2,open problem: problem4
+2018-12-06,18:06:01,new-problem/perception:problem4,4.3.0,no steps generated
+2018-12-06,18:06:05,new-problem/problemModel:problem4,4.0.2,save problem: problem4
+2018-12-06,18:06:05,new-problem/problemModel:problem4,4.0.5,switch to: problemModel
+2018-12-06,18:06:07,new-problem/generatedPlan:problem4,4.2.3,solve problem
+2018-12-06,18:07:20,new-problem/generatedPlan:problem4,4.3.2,execute plan
+2018-12-06,18:30:06,problem-list,3.2,open problem: problem4
+2018-12-06,18:30:07,new-problem/perception:problem4,4.3.0,no steps generated
+2018-12-06,18:30:26,new-problem/problemModel:problem4,4.0.2,save problem: problem4
+2018-12-06,18:30:26,new-problem/problemModel:problem4,4.0.5,switch to: problemModel
+2018-12-06,18:30:27,new-problem/generatedPlan:problem4,4.0.2,save problem: problem4
+2018-12-06,18:30:27,new-problem/generatedPlan:problem4,4.0.5,switch to: generatedPlan
