@@ -4,7 +4,7 @@
   <arg name="kinect" default="false"/>
   <group if="$(arg kinect)">
     <!--<include file="$(find freenect_launch)/launch/freenect.launch" /> -->
-    <node pkg="tf" type="static_transform_publisher" name="world_to_camera" args="0.04 0.025 -0.005 -1.57 -0.875 0.03 head_camera camera_link 100" />
+    <node pkg="tf" type="static_transform_publisher" name="world_to_camera" args="0.189 0.04 0.775 -0.014 0.876 -0.014 base camera_link 100" />
   </group>
 
   <arg name="kinect2" default="false"/>
@@ -22,6 +22,10 @@ new ones:
 0.04 0.02 0.00 -1.57 -0.875 0.0300
 maybe: 
 0.04 0.02 0.03 -1.57 -0.875 0.030
+
+latest: as of 05/12/2018
+base to camera_link
+0.189 0.03 0.775 -0.014 0.876 -0.014
 
 from robot's base point of view:
 x (right) z (up) y (forward)
