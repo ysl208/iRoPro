@@ -51,7 +51,7 @@ void SurfaceSegmentationAction::Start() { as_.start(); }
 void SurfaceSegmentationAction::Execute(
     const msgs::SegmentSurfacesGoalConstPtr& goal) {
   ros::Time start = ros::Time::now();
-  ROS_INFO("SurfaceSegmentationAction::Execute... ");
+  // ROS_INFO("SurfaceSegmentationAction::Execute... ");
   boost::shared_ptr<const sensor_msgs::PointCloud2> cloud_in;
   for (size_t i = 0; i < 10; ++i) {
     cloud_in = ros::topic::waitForMessage<sensor_msgs::PointCloud2>(
@@ -79,11 +79,11 @@ void SurfaceSegmentationAction::Execute(
 
   // Transform into base frame.
 
-  ROS_INFO("Surf Seg Action: Transform into base frame... ");
+  // ROS_INFO("Surf Seg Action: Transform into base frame... ");
   tf::TransformListener tf_listener;
   std::string base_link(robot_config_.base_link());
 
-  ROS_INFO("cloud_in frame_id is %s", cloud_in->header.frame_id.c_str());
+  // ROS_INFO("cloud_in frame_id is %s", cloud_in->header.frame_id.c_str());
 
   tf_listener.waitForTransform(base_link, cloud_in->header.frame_id,
                                ros::Time(0), ros::Duration(5.0));
@@ -103,7 +103,7 @@ void SurfaceSegmentationAction::Execute(
                                cloud_msg);
   cloud_msg.header.frame_id = "base";
   // Start processing cloud with PCL
-  ROS_INFO("Start processing cloud with PCL... ");
+  // ROS_INFO("Start processing cloud with PCL... ");
   msgs::SegmentSurfacesResult result;
   PointCloudC::Ptr cloud(new PointCloudC);
   pcl::fromROSMsg(cloud_msg, *cloud);
@@ -132,7 +132,7 @@ void SurfaceSegmentationAction::Execute(
   crop.filter(point_indices->indices);
 
   // Save cloud if requested
-  ROS_INFO("Save cloud if requested... ");
+  // ROS_INFO("Save cloud if requested... ");
   if (goal->save_cloud) {
     PointCloudC::Ptr downsampled_cloud(new PointCloudC());
     pcl::VoxelGrid<PointC> vox;
@@ -276,7 +276,7 @@ void SurfaceSegmentationAction::Execute(
       result.landmarks.push_back(landmark);
     }
 
-    ROS_INFO("Added %d positions", obj_count);
+    // ROS_INFO("Added %d positions", obj_count);
     ROS_INFO("Detected %ld objects, smallest: %ld points, largest: %ld points",
              num_objects, min_size, max_size);
 
@@ -311,7 +311,7 @@ void SurfaceSegmentationAction::GetRGB(
   int blue[] = {0, 0, 255};
   std::vector<int> rgb_blue(blue, blue + sizeof(blue) / sizeof(int));
 
-  ROS_INFO("Colours for %zu points are: ", indices->indices.size());
+  // ROS_INFO("Colours for %zu points are: ", indices->indices.size());
   for (std::vector<int>::const_iterator i = indices->indices.begin();
        i != indices->indices.end(); ++i) {
     std::vector<int> p;
@@ -354,8 +354,8 @@ void SurfaceSegmentationAction::GetRGB(
   point->r = *(colour + 0);
   point->g = *(colour + 1);
   point->b = *(colour + 2);
-  ROS_INFO("distribution r: %d g: %d b: %d", count_r, count_g, count_b);
-  ROS_INFO("color is r: %d g: %d b: %d", point->r, point->g, point->b);
+  // ROS_INFO("distribution r: %d g: %d b: %d", count_r, count_g, count_b);
+  // ROS_INFO("color is r: %d g: %d b: %d", point->r, point->g, point->b);
 }
 
 }  // namespace pbd

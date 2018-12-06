@@ -53,7 +53,7 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
     type.dimensions.y = obj_dims[1];
     type.dimensions.z = obj_dims[2];
 
-    // ROS_INFO("Added type %s with parent %s", type.name.c_str(),
+    //// ROS_INFO("Added type %s with parent %s", type.name.c_str(),
     //          type.parent.c_str());
     AddType(&domain->types, type);
   }
@@ -88,11 +88,11 @@ void PDDLDomain::Init(msgs::PDDLDomain* domain, const std::string& name) {
 
   predicate.name = msgs::PDDLPredicate::IS_STACKABLE;
   domain->predicates.push_back(predicate);
-  ROS_INFO("# Predicates now: %zd", domain->predicates.size());
+  // ROS_INFO("# Predicates now: %zd", domain->predicates.size());
 }
 
 void PDDLDomain::PublishPDDLDomain(const std::string domain_id) {
-  // ROS_INFO("Publish PDDL Domain..%s", domain_id.c_str());
+  //// ROS_INFO("Publish PDDL Domain..%s", domain_id.c_str());
   std_msgs::String msg;
 
   msg.data = domain_id.c_str();
@@ -102,9 +102,9 @@ void AddType(std::vector<msgs::PDDLType>* types,
              const msgs::PDDLType& new_type) {
   // if (find(types->begin(), types->end(), new_type) != types->end()) {
   types->push_back(new_type);
-  // ROS_INFO("Added type #%zd: %s", types->size(), new_type.name.c_str());
+  //// ROS_INFO("Added type #%zd: %s", types->size(), new_type.name.c_str());
   // } else {
-  //  ROS_INFO("%s already exists", new_type.name.c_str());
+  // // ROS_INFO("%s already exists", new_type.name.c_str());
   //}
 }
 
@@ -112,7 +112,8 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
                    WorldState* world_state, bool full) {
   // Given: World_landmarks
   // Create World state of objects
-  ROS_INFO("Getting World State with %zd landmarks...", world_landmarks.size());
+  // ROS_INFO("Getting World State with %zd landmarks...",
+  // world_landmarks.size());
   if (world_landmarks.size() == 0) return;
   world_state->objects_.clear();
   world_state->predicates_.clear();
@@ -172,10 +173,10 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
       predicate = msgs::PDDLPredicate::IS_CLEAR;
       args.clear();
       args.push_back(obj);
-      // if (full) {
-      ROS_INFO("Adding all detected states: is_clear for objects");
-      AddPredicate(&world_state->predicates_, predicate, args, negate);
-      // }
+      if (full) {
+        //// ROS_INFO("Adding all detected states: is_clear for objects");
+        AddPredicate(&world_state->predicates_, predicate, args, negate);
+      }
       if (GetObjectTablePosition(obj.type, world_state, variance, &position)) {
         negate = false;
         predicate = msgs::PDDLPredicate::IS_ON;
@@ -199,28 +200,38 @@ void GetWorldState(const std::vector<msgs::Landmark>& world_landmarks,
     args.push_back(pos_object);
     if (!PredicateExists(&world_state->predicates_, msgs::PDDLPredicate::IS_ON,
                          args)) {
+      // if there exists no predicate IS_ON for the given position, then add
+      // IS_CLEAR for that position
       predicate = msgs::PDDLPredicate::IS_CLEAR;
       args.clear();
       args.push_back(pos_object);
       negate = false;
       if (full) {
-        ROS_INFO("Adding all detected states: is_clear for positions");
+        // ROS_INFO("Adding all detected states: is_clear for positions");
         AddPredicate(&world_state->predicates_, predicate, args, negate);
       }
+    } else {
+      // if it exists, then add NOT IS_CLEAR
+      predicate = msgs::PDDLPredicate::IS_CLEAR;
+      args.clear();
+      args.push_back(pos_object);
+      negate = true;
+      AddPredicate(&world_state->predicates_, predicate, args, negate);
     }
   }
-  ROS_INFO("Number of Objects: %zd", world_state->objects_.size());
-  ROS_INFO("Number of Positions: %zd", world_state->positions_.size());
-  ROS_INFO("Number of Predicates: %zd", world_state->predicates_.size());
+  // ROS_INFO("Number of Objects: %zd", world_state->objects_.size());
+  // ROS_INFO("Number of Positions: %zd", world_state->positions_.size());
+  // ROS_INFO("Number of Predicates: %zd", world_state->predicates_.size());
 }
 
 void AddObject(std::vector<msgs::PDDLObject>* objects,
                const msgs::PDDLObject& new_obj) {
   if (!ObjectExists(objects, new_obj.name)) {
     objects->push_back(new_obj);
-    // ROS_INFO("Added object #%zd: %s", objects->size(), new_obj.name.c_str());
+    //// ROS_INFO("Added object #%zd: %s", objects->size(),
+    /// new_obj.name.c_str());
   } else {
-    ROS_INFO("%s already exists", new_obj.name.c_str());
+    // ROS_INFO("%s already exists", new_obj.name.c_str());
   }
 }
 
@@ -258,12 +269,12 @@ void AddPredicate(std::vector<msgs::PDDLPredicate>* predicates,
   }
   if (!PredicateExists(predicates, name, args)) {
     predicates->push_back(new_pred);
-    // ROS_INFO("Added predicate #%zd: %s(%s)", predicates->size(),
+    //// ROS_INFO("Added predicate #%zd: %s(%s)", predicates->size(),
     // name.c_str(),
     //          args[0].name.c_str());
   } else {
-    ROS_INFO("Predicate %s(%s) already exists", name.c_str(),
-             args[0].name.c_str());
+    // ROS_INFO("Predicate %s(%s) already exists", name.c_str(),
+    // args[0].name.c_str());
   }
 }
 
@@ -283,12 +294,12 @@ bool PredicateExists(std::vector<msgs::PDDLPredicate>* predicates,
           ROS_ERROR("Predicate IS_ON does not have 2 arguments");
         }
         if (pred.arg1.name == args[0].name || pred.arg2.name == args[1].name) {
-          ROS_INFO(
-              "PredicateExists: Trying to add %s(%s, %s), but %s(%s, %s) "
-              "already exists ",
-              predicate.c_str(), args[0].name.c_str(), args[1].name.c_str(),
-              predicate.c_str(), pred.arg1.name.c_str(),
-              pred.arg2.name.c_str());
+          // ROS_INFO(
+          // "PredicateExists: Trying to add %s(%s, %s), but %s(%s, %s) "
+          // "already exists ",
+          // predicate.c_str(), args[0].name.c_str(), args[1].name.c_str(),
+          // predicate.c_str(), pred.arg1.name.c_str(),
+          // pred.arg2.name.c_str());
           return true;
         }
       }
@@ -318,7 +329,7 @@ bool GetObjectTablePosition(const msgs::PDDLType& obj, WorldState* world_state,
         double dz = pose.z - obj.pose.position.z;
         double squared_distance = dx * dx + dy * dy;  // + dz * dz;
 
-        // ROS_INFO("%s : Dist = %f < cutoff %f", pos_object.name.c_str(),
+        //// ROS_INFO("%s : Dist = %f < cutoff %f", pos_object.name.c_str(),
         //          squared_distance, squ_dist_cutoff);
         if (squared_distance < closest_distance &&
             squared_distance <= squ_dist_cutoff) {
@@ -343,7 +354,7 @@ void GetTypeFromDims(const geometry_msgs::Vector3& init_dims,
   s.push_back(init_dims.y);
   s.push_back(init_dims.z);
   std::sort(s.begin(), s.end(), wayToSort);
-  // ROS_INFO("GetTypeFromDims: Obj with dims (%f,%f,%f)", s[0], s[1], s[2]);
+  //// ROS_INFO("GetTypeFromDims: Obj with dims (%f,%f,%f)", s[0], s[1], s[2]);
   // get names of different objects, then iterate through them to get their
   // dimensions and compare to given dims
   std::vector<std::string> name_list;
@@ -367,7 +378,7 @@ void GetTypeFromDims(const geometry_msgs::Vector3& init_dims,
     double dz = obj_dims[2] - s[2];
     double squared_distance = dx * dx + dy * dy + dz * dz;
     // std::cout << ss.str();
-    // ROS_INFO("squared distance to sum(%f,%f,%f) = %f", dx, dy, dz,
+    //// ROS_INFO("squared distance to sum(%f,%f,%f) = %f", dx, dy, dz,
     //          squared_distance);
     if (obj_dims[2] > 0.005 && squared_distance < closest_distance) {
       closest_distance = squared_distance;
@@ -385,7 +396,7 @@ void GetTypeFromDims(const geometry_msgs::Vector3& init_dims,
     obj_type->dimensions.z = 0.001;
     obj_type->parent = msgs::PDDLType::ELEMENT;
   }
-  // ROS_INFO("Assigned type '%s'", obj_type->name.c_str());
+  //// ROS_INFO("Assigned type '%s'", obj_type->name.c_str());
   //  with dims (%f,%f,%f)",
   //          obj_type->dimensions.x, obj_type->dimensions.y,
   //          obj_type->dimensions.z);

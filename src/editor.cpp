@@ -81,8 +81,8 @@ void Editor::HandleEvent(const msgs::EditorEvent& event) {
     } else if (event.type == msgs::EditorEvent::DELETE) {
       Delete(event.program_info.db_id);
     } else if (event.type == msgs::EditorEvent::SAVE_BAG_FILE) {
-      SaveBagFile(event.domain_id, event.action_name, event.planner,
-                  event.state_name);
+      // SaveBagFile(event.domain_id, event.action_name, event.planner,
+      //             event.state_name);
     } else if (event.type == msgs::EditorEvent::LOG_ACTIVITY) {
       writeToLogFile(event.domain_id, event.domain_name, event.action_name,
                      event.state_name);
@@ -194,7 +194,7 @@ void Editor::writeToLogFile(const std::string& domain_id,
   std::ostringstream oss;
   oss << domain_id << "-interop.log";
   const char* path = oss.str().c_str();
-  ROS_INFO("Writing to log file %s", path);
+  // ROS_INFO("Writing to log file %s", path);
   std::ofstream log_file(path, std::ios_base::out | std::ios_base::app);
 
   // write to file
@@ -1448,7 +1448,9 @@ void Editor::SaveBagFile(const std::string& domain_id,
   // msg-type: baxter_core_msgs/EndpointState
   // rosbag::Bag bag;
   std::ostringstream ss;
-  ss << "rosrun baxter_examples joint_recorder.py -f "
+  ss << "source //devel/setup.bash & "
+        "/opt/ros/indigo/bin/rosrun "
+        "baxter_examples joint_recorder.py -f "
         "~/catkin_ws/src/rapid_pbd/bags/user-"
      << domain_id << "-" << action_name << "-main-" << main_domain_id << "-"
      << main_action_name << ".bag";
@@ -1614,6 +1616,9 @@ void Editor::DetectWorldState(const std::string& domain_id,
     msgs::SegmentSurfacesResult::ConstPtr result =
         action_clients_->surface_segmentation_client.getResult();
 
+    // delete old scene_id:
+    DeleteScene(new_problem.scene_id);
+    ROS_INFO("deleted old scene object");
     // save scene_id and surface for later
     new_problem.scene_id = result->cloud_db_id;
     new_problem.surface = result->surface;
@@ -1763,7 +1768,7 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
   for (size_t i = 0; i < domain.predicates.size(); ++i) {
     planner_domain.predicates.push_back(
         PrintPDDLPredicate(domain.predicates[i], "predicate"));
-    ROS_INFO("Added predicate: %s", planner_domain.predicates[i].c_str());
+    // ROS_INFO("Added predicate: %s", planner_domain.predicates[i].c_str());
   }
   // get actions
   for (size_t i = 0; i < domain.actions.size(); ++i) {
@@ -1771,7 +1776,7 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
 
     pddl_msgs::PDDLAction planner_action;
     planner_action.name = action.name;
-    ROS_INFO("Adding action: %s", planner_action.name.c_str());
+    // ROS_INFO("Adding action: %s", planner_action.name.c_str());
     // get parameters as single string
     std::stringstream param_ss;
     for (size_t j = 0; j < action.params.size(); ++j) {
@@ -1780,15 +1785,15 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
     }
     planner_action.parameters = "(" + param_ss.str() + ")";
 
-    ROS_INFO("action params: %s", planner_action.parameters.c_str());
+    // ROS_INFO("action params: %s", planner_action.parameters.c_str());
     // get preconditions as single string
     planner_action.precondition =
         PrintAllPredicates(action.preconditions, "precondition");
 
-    ROS_INFO("action pre: %s", planner_action.precondition.c_str());
+    // ROS_INFO("action pre: %s", planner_action.precondition.c_str());
     planner_action.effect = PrintAllPredicates(action.effects, "effect");
 
-    ROS_INFO("action eff: %s", planner_action.effect.c_str());
+    // ROS_INFO("action eff: %s", planner_action.effect.c_str());
     planner_domain.actions.push_back(planner_action);
   }
 
@@ -1808,13 +1813,13 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
     planner_object.type = problem.objects[i].type.name;
     planner_problem.objects.push_back(planner_object);
 
-    ROS_INFO("added object: %s", str.c_str());
+    // ROS_INFO("added object: %s", str.c_str());
   }
   // get initial states
   for (size_t i = 0; i < problem.initial_states.size(); ++i) {
     planner_problem.initial.push_back(
         PrintPDDLPredicate(problem.initial_states[i], "init"));
-    ROS_INFO("added initial state: %s", planner_problem.initial[i].c_str());
+    // ROS_INFO("added initial state: %s", planner_problem.initial[i].c_str());
   }
   // adding default initial states for stackable, thin/flat
   std::ostringstream oss;
@@ -1848,20 +1853,20 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
       }
     }
     // cube and roof are thin
-    if (obj.type.name == msgs::PDDLType::ROOF_OBJECT ||
-        obj.type.name == msgs::PDDLType::CUBE_OBJECT) {
+    if (obj.type.name == msgs::PDDLType::ROOF_OBJECT) {
       oss.clear();
       oss << "(thin " << obj.name << ")";
       planner_problem.initial.push_back(oss.str());
     }
     // base and cube are flat
     if (obj.type.name == msgs::PDDLType::BASE_OBJECT ||
-        obj.type.name == msgs::PDDLType::CUBE_OBJECT) {
+        obj.type.name == msgs::PDDLType::CUBE_OBJECT ||
+        obj.type.name == msgs::PDDLType::POSITION) {
       oss.clear();
       oss << "(flat " << obj.name << ")";
       planner_problem.initial.push_back(oss.str());
     }
-    ROS_INFO("added initial states for: %s", obj.name.c_str());
+    // ROS_INFO("added initial states for: %s", obj.name.c_str());
   }
 
   planner_problem.goal = PrintAllPredicates(problem.goal_states, "goal");
@@ -1932,33 +1937,6 @@ void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
       // TO DO: if more objects change positions, then need to keep a stack
       // of objects that have been treated std::string stack = [];
 
-      // if (obj_name.find("OBJ") != std::string::npos) {
-      //   // only update if it is an *object* that is_on something else
-      //   // check if it is already in the stack
-      //   size_t stack_obj =
-      //       distance(stack, find(stack, stack + stack.size(), obj_name));
-      //   size_t stack_pos =
-      //       distance(stack, find(stack, stack + stack.size(), pos_name));
-      //   if (stack_pos < 0 && stack_obj < 0) {
-      //     // both are not on the stack
-      //     stack.append(obj_name);
-      //     stack.append(pos_name);
-      //   } else if (stack_pos < 0 && stack_obj >= 0) {
-      //     // obj is on stack, pos not on stack
-      //   } else if (stack_pos < 0 && stack_obj >= 0) {
-      //     // obj not on stack, pos on stack
-      //   } else {
-      //     // both on stack
-      //     if (stack_pos != stack_obj + 1) {
-      //       ROS_ERROR(
-      //           "GetMentalModel: wrong as %s (index %zu) is not on %s
-      //           (index
-      //           "
-      //           "%zu)",
-      //           obj_name.c_str(), stack_obj, pos_name.c_str(),
-      //           stack_pos);
-      //     }
-      //   }
       msgs::Landmark mental_obj, mental_pos;
       // ROS_INFO("...is object ");
       // find object to place and target position
@@ -1976,8 +1954,12 @@ void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
         if (mental_obj.surface_box_dims.z <= 0)
           ROS_ERROR("dimensions are negative! %.3f",
                     mental_obj.surface_box_dims.z);
-        mental_obj.pose_stamped.pose.position.z +=
-            fabs(mental_obj.surface_box_dims.z * 0.75);
+        // if target position is an object, then add 0.06, otherwise 0.03
+        mental_obj.pose_stamped.pose.position.z += 0.04;
+        if (pos_name.find("obj") != std::string::npos)
+          mental_obj.pose_stamped.pose.position.z +=
+              0.04;  // adding half of obj fixed height 6cm
+        // fabs(mental_obj.surface_box_dims.z * 0.75);
         mental_lms->at(obj_index) = mental_obj;
         ROS_INFO("New pose is (%.3f,%.3f,%.3f) ",
                  mental_lms->at(obj_index).pose_stamped.pose.position.x,
@@ -2095,44 +2077,53 @@ void Editor::RunPDDLPlan(const std::string domain_id,
                       new_program.steps[s_id]
                           .actions[a_id]
                           .landmark.surface_box_dims;
-                  if (default_dims.z < match.surface_box_dims.z) {
-                    ROS_INFO("Adjust gripper top space? Press y or n ");
-                    std::string n;
-                    // std::cin >> n;
-                    n = "y";
-                    if (n == "y") {
-                      // top_space = dist(gripper_pos, landmark_pos) -
-                      // landmark_dims/2
-                      ROS_INFO(
-                          "Adjust gripper pose top_space for %s with "
-                          "height "
-                          "%f "
-                          "at %f from %f to ",
-                          match.name.c_str(), match.surface_box_dims.z,
-                          match.pose_stamped.pose.position.z,
-                          new_program.steps[s_id]
-                              .actions[a_id]
-                              .pose.position.z);
-                      float top_space =
-                          fabs(new_program.steps[s_id]
-                                   .actions[a_id]
-                                   .pose.position.z -
-                               match.pose_stamped.pose.position.z) -
-                          default_dims.z;
+                  // if (default_dims.z < match.surface_box_dims.z) {
+                  // ROS_INFO("Adjust gripper top space? Press y or n ");
+                  std::string n;
+                  // std::cin >> n;
+                  n = "y";
+                  // if (n == "y") {
+                  // top_space = dist(gripper_pos, landmark_pos) -
+                  // landmark_dims/2
+                  ROS_INFO(
+                      "Comparing previous '%s' at demo with target now '%s', ",
+                      lm_name.c_str(), match.name.c_str());
 
-                      new_program.steps[s_id].actions[a_id].pose.position.z =
-                          match.pose_stamped.pose.position.z + top_space +
-                          match.surface_box_dims.z / 2;
-                      new_program.steps[s_id].actions[a_id].pose.position.z =
-                          match.pose_stamped.pose.position.z + top_space +
-                          0.04;  // fix at +3cm
-
-                      ROS_INFO(".... %f ", new_program.steps[s_id]
+                  if (lm_name.find("pos") != std::string::npos &&
+                      match.name.find("pos") ==
+                          std::string::npos) {  // if it was a position at demo
+                                                // but now it is not a position
+                    ROS_INFO(
+                        "was position '%s' at demo but is now '%s', "
+                        "bump pose up "
+                        "by z+=0.06 + half of obj height %f /2"
+                        "(at %f) from %f to ",
+                        lm_name.c_str(), match.name.c_str(),
+                        match.surface_box_dims.z,
+                        match.pose_stamped.pose.position.z,
+                        new_program.steps[s_id].actions[a_id].pose.position.z);
+                    float top_space = fabs(new_program.steps[s_id]
                                                .actions[a_id]
-                                               .pose.position.z);
-                      ROS_INFO("topspace: %f,  ", top_space);
-                    }
+                                               .pose.position.z -
+                                           match.pose_stamped.pose.position.z) -
+                                      default_dims.z;
+                    // bump pose up by  z+=0.06 plus half of obj height
+                    new_program.steps[s_id].actions[a_id].pose.position.z +=
+                        0.03;  //+ match.surface_box_dims.z / 2;
+                    // new_program.steps[s_id].actions[a_id].pose.position.z
+                    // =
+                    //     match.pose_stamped.pose.position.z + top_space +
+                    //     match.surface_box_dims.z / 2;
+                    // new_program.steps[s_id].actions[a_id].pose.position.z
+                    // =
+                    //     match.pose_stamped.pose.position.z + top_space +
+                    //     0.06;  // fix at +3cm
+
+                    ROS_INFO(
+                        ".... %f ",
+                        new_program.steps[s_id].actions[a_id].pose.position.z);
                   }
+                  // }
 
                   new_program.steps[s_id]
                       .actions[a_id]
@@ -2209,7 +2200,7 @@ void Editor::RunPDDLPlan(const std::string domain_id,
         // Assume action succeeded, update mental model of landmarks in the
         // world
 
-        if (problem.sequence.size() > 1)
+        if (problem.sequence.size() >= 1)
           GetMentalModel(action, step, &mental_lms);
       }
 

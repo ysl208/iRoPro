@@ -131,14 +131,14 @@ void Visualizer::PublishScene(
     scene.header.frame_id = base_link;
     step_vizs_[scene_id].scene_pub.publish(scene);
   }
-  ROS_INFO("PublishScene: %s", scene_id.c_str());
+  // ROS_INFO("PublishScene: %s", scene_id.c_str());
   // Publish landmark markers
   MarkerArray scene_markers;
   GetSegmentationMarker(surface_box_landmarks, robot_config_, &scene_markers);
-  ROS_INFO("got %zu scene markers:", scene_markers.markers.size());
+  // ROS_INFO("got %zu scene markers:", scene_markers.markers.size());
   if (scene_markers.markers.size() > 0) {
     step_vizs_[scene_id].surface_seg_pub.publish(scene_markers);
-    ROS_INFO("Publishing scene markers:  ..");
+    // ROS_INFO("Publishing scene markers:  ..");
   } else {
     for (size_t i = 0; i < 100; ++i) {
       Marker blank;
@@ -171,7 +171,7 @@ void Visualizer::PublishConditionMarkers(const std::string& program_id,
     step_vizs_[program_id].surface_seg_pub.publish(scene_markers);
   } else {
     StopPublishing(program_id);
-    ROS_INFO("No condition markers to publish");
+    // ROS_INFO("No condition markers to publish");
   }
 }
 
@@ -197,7 +197,7 @@ void Visualizer::PublishSpecMarkers(
 void Visualizer::CreateStepVizIfNotExists(const std::string& program_id) {
   // Create the publisher if it doesn't exist.
   if (step_vizs_.find(program_id) == step_vizs_.end()) {
-    ROS_INFO("CreateStepVizIfNotExists: creating new step viz");
+    // ROS_INFO("CreateStepVizIfNotExists: creating new step viz");
     step_vizs_[program_id].robot_pub =
         nh_.advertise<MarkerArray>("robot/" + program_id, 10, true);
     step_vizs_[program_id].scene_pub =
@@ -451,16 +451,16 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
     if (landmarks[i].name.find("p") != std::string::npos ||
         landmarks[i].match) {
       marker.pose.position.z -= 0.1;
-      ROS_INFO("Adding position %s as scene markers: %zu ",
-               landmarks[i].name.c_str(), i);
+      // ROS_INFO("Adding position %s as scene markers: %zu ",
+      //          landmarks[i].name.c_str(), i);
     } else {
       marker.pose.position.z += 0.15;
       // ROS_INFO("Adding object %s as scene markers: %zu ",
       //          landmarks[i].name.c_str(), i);
     }
-    marker.scale.x = 0.1;
-    marker.scale.y = 0.1;
-    marker.scale.z = 0.1;
+    marker.scale.x = 0.125;
+    marker.scale.y = 0.125;
+    marker.scale.z = 0.125;
     marker.color.r = 1;
     marker.color.g = 0;
     marker.color.b = 0;
