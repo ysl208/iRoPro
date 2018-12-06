@@ -1,11 +1,11 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../../bower_components/app-route/app-route.html">
-<link rel="import" href="../../bower_components/app-route/app-location.html">
-<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
-<link rel="import" href="../../bower_components/ros-service/ros-service.html">
-<link rel="import" href="./pbd-help.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../bower_components/ros-service/ros-service.html">
+<link rel="import" href="v2/pbd-help.html">
 <!-- <base href="https://polygit.org/polymer+:master/webcomponents+:master/shadycss+webcomponents+:master/paper*+polymerelements+:master/iron*+polymerelements+:master/app*+polymerelements+:master/neon*+polymerelements+:master/components/">
 <script src="webcomponentsjs/webcomponents-loader.js"></script> -->
 
@@ -64,11 +64,12 @@
     <ros-topic auto last-message="{{domainList}}" msg-type="rapid_pbd_msgs/PDDLDomainInfoList" topic="rapid_pbd/domain_list"
       ros="[[ros]]"></ros-topic>
 
-    <h1 class="style-scope canvas-view">Welcome to inteRoP, the interactive Robot Programming tool!</h1>
-    To program the robot, you have two main steps:
+    <h1 class="style-scope canvas-view">Welcome to Baxter's Programming Interface!
+    </h1>
+
     <center>
       <table>
-        <tr valign="top">
+        <!-- <tr valign="top">
           <td>1. Actions</td>
           <td></td>
           <td>2. Problems</td>
@@ -79,7 +80,6 @@
             <br> + assign the right
             <b>conditions</b>!
           </td>
-          <td></td>
           <td>
             Create a
             <b>problem</b> for the robot to solve
@@ -87,30 +87,46 @@
             <b>goal</b> for the robot to achieve
             <br>
           </td>
-        </tr>
-        <tr>
+        </tr> -->
+        <tr valign="top">
+          <tr>
+
+            <td>
+              <h2>1. Teach actions</h2>
+              <h3>+ Conditions</h3>
+            </td>
+            <td></td>
+            <td>
+              <h2>2. Solve Problems</h2>
+              <h3>+ Initial State</h3>
+              <h3>+ Goal State</h3>
+            </td>
+
+            <td>
+              <!-- <iron-icon icon="icons:lightbulb-outline"></iron-icon> 
+  
+                <font color="green" size="5">✓</font>-->
+
+              <p class="info" align="center">
+                <img src="../images/baxter-neutral.png" height="30">
+                <br>Baxter can automatically find
+                <br> solutions to your goal!
+              </p>
+            </td>
+          </tr>
           <td>
-            <!-- <br>The robot automatically learns
-      <b>conditions</b> for the actions and reuses them to solve more complex problems. -->
-            <img src="../../intro-graphic-actions.bmp" height="170">
+            <img src="../images/intro-graphic-actions.bmp" width="350">
           </td>
+          <!-- <br>The robot automatically learns
+      <b>conditions</b> for the actions and reuses them to solve more complex problems. -->
+
           <td valign="center">
             <font color="green" size="10">&#8680;</font>
           </td>
           <td>
-            <img src="../../intro-graphic-problems.bmp" height="170">
+            <img src="../images/intro-graphic-problems.bmp" width="350">
           </td>
-          <td>
-            <!-- <iron-icon icon="icons:lightbulb-outline"></iron-icon> -->
-
-            <p class="info" align="center">
-              <font color="green" size="5">✓</font> inteRoP is connected
-              <br> to a
-              <b> planner</b> that
-              <br> automatically finds
-              <br> a solution to your goal!
-            </p>
-          </td>
+          <td></td>
 
         </tr>
       </table>
@@ -146,7 +162,8 @@
           </td>
         </tr>
         <tr>
-          <br>User id: [[domain_id]]
+          <br>
+          <font color="white">User id: [[domain_id]]</font>
         </tr>
       </table>
 
@@ -228,7 +245,7 @@
       },
 
       _deleteDomain: function (evt) {
-        console.log('delete domain: ', this.domain_id);
+        // console.log('delete domain: ', this.domain_id);
         var msg = {
           type: 'delete pddl domain',
           domain_id: this.domain_id
@@ -240,7 +257,7 @@
       _selectDomain: function (evt) {
         this.domain_id = evt.target.name.domain_id;
         this.domainName = evt.target.name.name;
-        console.log('select domain: ', this.domainName, this.domain_id);
+        // console.log('select domain: ', this.domainName, this.domain_id);
         var msg = {
           type: 'select pddl domain',
           domain_id: this.domain_id

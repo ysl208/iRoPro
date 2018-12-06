@@ -5,7 +5,7 @@
 <link rel="import" href="../bower_components/ros-topic/ros-topic.html">
 <link rel="import" href="../bower_components/ros-service/ros-service.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="v2/pbd-new-action.html">
+<link rel="import" href="pbd-new-action.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="pbd-action-list">
@@ -65,7 +65,7 @@
                 </p> -->
                 <table>
                     <tr>
-                        <th>Programmed actions</th>
+                        <th>Baxter's actions</th>
                         <th>
                             <paper-button id="createButton" class="important" on-tap="_createNewAction">
                                 + new action
@@ -74,7 +74,8 @@
                     </tr>
                     <template is="dom-if" if="[[!pddlDomain.actions.length]]">
                         <tr>
-                            <td colspan="2">No actions have been created yet.</td>
+                            <td colspan="2">
+                                <img src="../images/sad-baxter.png" height="40"> Baxter hasn't learned any actions yet</td>
                         </tr>
                     </template>
                     <template is="dom-repeat" items="[[pddlDomain.actions]]" as="action">
@@ -151,15 +152,15 @@
                 '_domainIDchanged(domain_id)',
             ],
             _domainIDchanged(newID) {
-                console.log("domain id changed to ", newID);
+                // console.log("domain id changed to ", newID);
             },
             quitNewAction: function (e) {
                 this._showActionProperties = false;
             },
             load: function (changedDomain, changedMsg) {
-                console.log("load: ", changedMsg);
+                // console.log("load: ", changedMsg);
                 if (!this.domain_id && changedMsg) {
-                    console.log("set domain_id to: ", changedMsg);
+                    // console.log("set domain_id to: ", changedMsg);
                     this.domain_id = changedMsg;
                 }
             },
@@ -173,7 +174,7 @@
                 var action_name = evt.model.get('action.name');
                 this._actionToDelete = action_name;
                 this.$.deleteDialog.open();
-                console.debug("maybeDel", this._actionToDelete);
+                //console.debug("maybeDel", this._actionToDelete);
             },
 
             _handleDelete: function (evt) {
@@ -205,7 +206,7 @@
                     action_name: name
                 };
                 this.$.eventPub.publish(msg);
-                console.debug('_createNewAction', name, ' in domain ', this.domain_id);
+                //console.debug('_createNewAction', name, ' in domain ', this.domain_id);
                 this.logActivity('1.1,add new action: ' + name);
                 this.selectedActionName = name;
                 this._showActionProperties = true;
@@ -253,9 +254,9 @@
             },
             logActivity: function (activity) {
                 var now = new Date();
-                var currentMenu = 'action-list:' + this.action.name;
-                console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
-                    currentMenu, ',', activity);
+                var currentMenu = 'action-list';
+                //console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
+                // currentMenu, ',', activity);
                 var msg = {
                     type: 'log activity',
                     domain_id: this.domain_id,

@@ -174,10 +174,10 @@
             <br> Choose the gripper type:
             <paper-dropdown-menu id="gripperSelection">
               <paper-listbox slot="dropdown-content" selected="-1">
-                <paper-item name="Vacuum" on-tap="_chooseFakeProgram" data-args="Vacuum">
+                <paper-item name="Vacuum" on-tap="_chooseFakeProgram" data-args="vacuum">
                   Vacuum
                 </paper-item>
-                <paper-item name="Electric" on-tap="_chooseFakeProgram" data-args="Electric">
+                <paper-item name="Electric" on-tap="_chooseFakeProgram" data-args="electric">
                   Grip
                 </paper-item>
               </paper-listbox>
@@ -321,15 +321,15 @@
         this.execDescrip = "";
         if (feed.value) {
           this.execDescrip = "Step " + feed.value.feedback.step_number;
-          console.debug("_executionChanged: feed", feed);
+          //console.debug("_executionChanged: feed", feed);
         }
         if (res.value) {
-          console.debug("_executionChanged: res ", res);
+          //console.debug("_executionChanged: res ", res);
           this.error = res.value.result.error;
           this.$.playing.close();
           if (this.error != "") {
             //this.execDescrip = "" + res.value.result.error;
-            this.$.errorDialog.open();
+            // this.$.errorDialog.open();
           }
         }
       },
@@ -340,7 +340,7 @@
           program: this.program
         }
         //goal.program.steps.splice(0, this.currentStepNum);
-        console.debug('*** send goal to run: ', goal);
+        //console.debug('*** send goal to run: ', goal);
         this.$.programAction.send(goal);
         // var msg = {
         //   type: 'run pddl plan',
@@ -374,7 +374,7 @@
 
       _handleProgram: function (evt) {
         var program = evt.detail;
-        console.debug('_handleProgram : ', program);
+        //console.debug('_handleProgram : ', program);
         if (!this.program) {
           this.set('program', program);
           return;
@@ -392,23 +392,22 @@
 
       _chooseFakeProgram: function (evt) {
         var gripperType = evt.target.getAttribute('data-args');
-        console.debug("_chooseFakeProgram: ", evt.target);
+        //console.debug("_chooseFakeProgram: ", evt.target);
         var obj = this.$.typeSelection.value;
         this.planStep.action = "move-" + gripperType.toLowerCase() + "-" + obj.toLowerCase();
 
         // this.problem.landmarks = this.landmarks;
         this.problem.sequence.push(this.planStep);
-        console.debug("_chooseFakeProgram: ", this.problem);
-        this.logActivity('choose demo gripper');
+        //console.debug("_chooseFakeProgram: ", this.problem);
       },
       _programExists: function (pid) {
-        console.debug('_programExists: ', pid);
+        //console.debug('_programExists: ', pid);
 
         return pid == "";
       },
       _toggleDemo: function (evt) {
         var args = evt.target.getAttribute('data-args');
-        console.debug('_toggleDemo: ', this.planStep);
+        //console.debug('_toggleDemo: ', this.planStep);
         if (args == "start") {
           this.isDemoing = true;
           var msg = {
@@ -420,7 +419,7 @@
           };
 
           this.$.eventPub.publish(msg);
-          this.logActivity('2.2.1,start demo');
+          this.logActivity('2.2.1,start demo: ' + this.planStep.action);
         }
         if (args == "stop") {
           this.isDemoing = false;
@@ -442,8 +441,8 @@
       logActivity: function (activity) {
         var now = new Date();
         var currentMenu = 'new-action/demonstration:' + this.action.name;
-        console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
-          currentMenu, ',', activity);
+        //console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
+        // currentMenu, ',', activity);
         var msg = {
           type: 'log activity',
           domain_id: this.domainId,

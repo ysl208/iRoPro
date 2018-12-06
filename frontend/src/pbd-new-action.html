@@ -1,27 +1,27 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
-<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
-<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../../bower_components/iron-icons/av-icons.html">
-<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
-<link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
-<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
-<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
-<link rel="import" href="../../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
 
-<link rel="import" href="../../bower_components/paper-styles/color.html">
-<link rel="import" href="../../bower_components/ros-action-client/ros-action-client.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/ros-action-client/ros-action-client.html">
 
-<link rel="import" href="../../bower_components/app-route/app-route.html">
-<link rel="import" href="../../bower_components/ros-service/ros-service.html">
-<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
-<link rel="import" href="../../bower_components/ros-rviz/ros-rviz.html">
-<link rel="import" href="../shared-styles.html">
-<link rel="import" href="../underscore.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/ros-service/ros-service.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../bower_components/ros-rviz/ros-rviz.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="underscore.html">
 
 <dom-module id="pbd-new-action">
     <template>
@@ -87,7 +87,7 @@
 
             #rviz {
                 display: block;
-                min-height: 500px;
+                min-height: 1000px;
             }
 
             fieldset>p {
@@ -131,8 +131,8 @@
                     margin-right: 10px;
                 }
                 #rviz {
-                    min-height: 350px;
-                    max-width: 500px;
+                    min-height: 750px;
+                    max-width: 750px;
                     @apply(--layout-flex);
                 }
 
@@ -286,7 +286,8 @@
                                 Detected Elements
                             </legend>
                             <!-- <p>Verify all objects have been detected before proceeding.</p> -->
-                            <p id="noObj">No objects detected
+                            <p id="noObj">
+                                <img src="../images/sad-baxter.png" height="40"> No objects detected
                                 <br>
                             </p>
 
@@ -300,7 +301,7 @@
                                         </paper-listbox>
                                     </paper-dropdown-menu>
 
-                                    <font size="2pt" color="grey">([[item.name]])</font>
+                                    <font size="2pt" color="grey">[[_displayAlias(item.name)]]</font>
                                     <!-- <paper-icon-button class="clear" on-tap="moveUpParam" icon="arrow-upward"></paper-icon-button> -->
                                 </div>
                             </template>
@@ -309,10 +310,6 @@
                                 <iron-icon icon="icons:find-in-page"> </iron-icon>
                                 Detect Elements
                             </paper-button>
-
-                            <!-- <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="demonstration">
-                Next
-              </paper-button> -->
                         </fieldset>
                     </div>
 
@@ -334,11 +331,11 @@
                                 <div class="listeWorldState">
                                     <p>
                                         [[_getParamTypeByName(item.arg1)]]
-                                        <font size="2pt" color="grey">([[item.arg1.name]])</font>
+                                        <font size="2pt" color="grey">[[_displayAlias(item.arg1.name)]]</font>
                                     </p>
                                     <p>
                                         is [[_negate(item.negate)]] [[item.name]] [[_getParamTypeByName(item.arg2)]]
-                                        <font size="2pt" color="grey">([[item.arg2.name]])</font>
+                                        <font size="2pt" color="grey">[[_displayAlias(item.arg2.name)]]</font>
 
                                     </p>
                                     <!-- <paper-icon-button icon="create" on-tap=""></paper-icon-button> -->
@@ -351,7 +348,7 @@
                                     <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg1}}">
                                         <template is="dom-repeat" items="[[action.params]]">
                                             <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg1">
-                                                [[item.name]]
+                                                [[_displayAlias(item.name)]]
                                             </paper-item>
                                         </template>
                                     </paper-listbox>
@@ -368,13 +365,13 @@
                                     <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newPrecondition.arg2}}">
                                         <template is="dom-repeat" items="[[action.params]]">
                                             <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newPrecondition.arg2">
-                                                [[item.name]]</paper-item>
+                                                [[_displayAlias(item.name)]]</paper-item>
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
-                                <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="Precondition">
-
-                                </paper-icon-button>
+                                <!-- <paper-icon-button raised icon="icons:add-circle-outline" on-tap="addPredicate" data-args="Precondition"> -->
+                                <paper-button raised class="petit" on-tap="addPredicate" data-args="Precondition">Add</paper-icon-button>
+                                    </paper-icon-button>
                             </div>
                         </fieldset>
 
@@ -393,12 +390,12 @@
                                 <div class="listeWorldState">
                                     <p>
                                         [[_getParamTypeByName(item.arg1)]]
-                                        <font size="2pt" color="grey">([[item.arg1.name]])</font>
+                                        <font size="2pt" color="grey">[[_displayAlias(item.arg1.name)]]</font>
 
                                     </p>
                                     <p>
                                         is [[_negate(item.negate)]] [[item.name]] [[_getParamTypeByName(item.arg2)]]
-                                        <font size="2pt" color="grey">([[item.arg2.name]])</font>
+                                        <font size="2pt" color="grey">[[_displayAlias(item.arg2.name)]]</font>
 
                                     </p>
                                     <!-- <paper-icon-button class="clear" on-tap="" icon="create"></paper-icon-button> -->
@@ -412,7 +409,7 @@
                                     <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg1}}">
                                         <template is="dom-repeat" items="[[action.params]]">
                                             <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg1">
-                                                [[item.name]]</paper-item>
+                                                [[_displayAlias(item.name)]]</paper-item>
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
@@ -428,19 +425,20 @@
                                     <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newEffect.arg2}}">
                                         <template is="dom-repeat" items="[[action.params]]">
                                             <paper-item name="[[item]]" on-tap="_updatePredicate" data-args="newEffect.arg2">
-                                                [[item.name]]</paper-item>
+                                                [[_displayAlias(item.name)]]</paper-item>
                                         </template>
                                     </paper-listbox>
                                 </paper-dropdown-menu>
-                                <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="Effect"></paper-icon-button>
+                                <!-- <paper-icon-button raised icon="icons:add-circle-outline" on-tap="addPredicate" data-args="Effect"></paper-icon-button> -->
+                                <paper-button raised class="petit" on-tap="addPredicate" data-args="Effect">Add</paper-icon-button>
                             </div>
 
                         </fieldset>
                         <center>
                             <br>
-                            <paper-button class="clear" raised on-tap="_generateConditions">
+                            <paper-button class="clear" raised on-tap="_generateConditions" hidden$="[[_actionGenerated(action)]]">
                                 <iron-icon icon="icons:lightbulb-outline"></iron-icon>
-                                Confirm Conditions
+                                Generate complete action
                             </paper-button>
                         </center>
                     </div>
@@ -487,7 +485,7 @@
             <h2>Redetect elements? This will override existing objects.</h2>
             <div class="detectButtons">
                 <paper-button class="clear" dialog-dismiss>Cancel</paper-button>
-                <paper-button dialog-confirm on-tap="_detect" class="delete" data-args="Precondition">Detect</paper-button>
+                <paper-button dialog-confirm on-tap="_detect" class="clear" data-args="Precondition">Detect</paper-button>
             </div>
         </paper-dialog>
 
@@ -589,6 +587,9 @@
                 //'_effectsChanged(action.effects.*)'
 
             ],
+            _actionGenerated: function (params) {
+                return this.action.params.length == 3;
+            },
             _checkClearPrecond: function (nom_precond) {
                 if (nom_precond == "clear" || nom_precond == "thin" || nom_precond == "flat") {
                     this.$.menu_instance2_precond.disabled = true;
@@ -611,9 +612,9 @@
             //   // call generate params as soon as predicates change
             //   // if (this.action.params.length == 0)
             //   //   this.action.params = this.action.params.slice();
-            //   console.debug("_paramsChanged:");
-            //   console.debug("action.params changed to ", params.value);
-            //   console.debug("actionParams is ", this.action.params);
+            //   //console.debug("_paramsChanged:");
+            //   //console.debug("action.params changed to ", params.value);
+            //   //console.debug("actionParams is ", this.action.params);
             //   if (this.action.params.length == 0) {
             //     this.action.params = this.action.params;//.slice();
             //     //this.reevaluateArray('actionParams', this.action.params.slice());
@@ -621,9 +622,9 @@
             // },
             // _aparamsChanged: function (params) {
             //   // call generate params as soon as predicates change
-            //   console.debug("_aparamsChanged:");
-            //   console.debug("action.Params is ", this.action.params);
-            //   console.debug("actionParams changed to ", params.value);
+            //   //console.debug("_aparamsChanged:");
+            //   //console.debug("action.Params is ", this.action.params);
+            //   //console.debug("actionParams changed to ", params.value);
             //   if (this.action.params.length == 0) {
             //     this.action.params = this.action.params;//.slice();
             //     //this.reevaluateArray('actionParams', this.action.params.slice());
@@ -635,7 +636,7 @@
             },
             _effectsChanged: function (effs) {
                 // call generate conditions as soon as effects change
-                this._generateConditions();
+                //this._generateConditions();
             },
             _actionUpdated: function (action) {
                 if (action && action.base && action.base.name != '') {
@@ -650,13 +651,13 @@
                     //return;
                 }
                 if (!this.domain_id && currDomainId) {
-                    console.log("set domain_id to: ", currDomainId);
+                    // console.log("set domain_id to: ", currDomainId);
                     this.domain_id = currDomainId;
                     // console.log("set actionParams from : ", this.action.params);
                     // for (var i = 0; i < this.action.params.length; ++i) {
                     //   this.action.params.push(this.action.params[i]);
                     // }
-                    console.log("to : ", this.action.params);
+                    // console.log("to : ", this.action.params);
                 }
                 if (!this.params.robot) {
                     return;
@@ -769,7 +770,7 @@
             _updatePredicate: function (evt) {
                 var args = evt.target.getAttribute('data-args');
                 this.set(args, evt.target.name);
-                console.debug(args, ' is ', this.newPrecondition);
+                //console.debug(args, ' is ', this.newPrecondition);
             },
             checkPredicate: function (mode, _new) {
                 var newPredicate = _new;
@@ -806,8 +807,8 @@
                     // Without negation
                     if (!newPredicate.negate) {
                         // To comment when you want to test, else it's impossible to test on simulation
-                        console.debug('test valide ' + newPredicate.arg1.type.name);
-                        console.debug('test valide ' + newPredicate.name);
+                        //console.debug('test valide ' + newPredicate.arg1.type.name);
+                        //console.debug('test valide ' + newPredicate.name);
 
                         if (newPredicate.arg1.type.name == "position" && newPredicate.name == "on") {
                             valide = false;
@@ -896,7 +897,7 @@
             // },
             deletePred: function (evt) {
                 var item = evt.model.item;
-                console.debug('deletePred', item);
+                //console.debug('deletePred', item);
                 var index = -1;
                 index = this.action.preconditions.indexOf(item);
                 if (index != -1) {
@@ -910,7 +911,6 @@
                     if (index != -1) {
                         this.splice('action.effects', index, 1);
                         this.reevaluateArray('action.effects', this.action.effects);
-
                         this.logActivity('2.3.1,delete effect:' + item.arg1.name + ' ' + item.name);
 
                     }
@@ -922,7 +922,7 @@
                 var conds = property;
                 this.set(name, []);
                 this.set(name, conds);
-                console.debug('reevaluateArray: ', name, ' to ', conds);
+                //console.debug('reevaluateArray: ', name, ' to ', conds);
             },
             _nameValid: function (name) {
                 for (var i = 0; i < this.domain.actions.length; ++i) {
@@ -934,7 +934,7 @@
                 if (this.actionName != this.action.name && !this._nameValid(this.actionName)) {
                     alert(this.actionName + ' already exists. Please choose a different name.');
                 } else {
-                    console.debug('Saving params ', this.action.params);
+                    //console.debug('Saving params ', this.action.params);
                     //this.reevaluateArray('action.params', this.action.params.slice());
                     //this.action.params = this.action.params.slice();
                     var msg = {
@@ -944,8 +944,8 @@
                         pddl_action: this.action
                     };
 
-                    console.debug('Saving ', this.domain, " with name ", this.domain_id);
-                    console.debug('Saving ', this.action, " with name ", this.actionName);
+                    //console.debug('Saving ', this.domain, " with name ", this.domain_id);
+                    //console.debug('Saving ', this.action, " with name ", this.actionName);
                     this.$.eventPub.publish(msg);
                     this.logActivity('2.0.2,save action: ' + this.action.name);
                     if (this.actionName != this.action.name) {
@@ -974,7 +974,7 @@
                     domain_id: this.domain_id,
                     pddl_domain: this.domain
                 };
-                console.debug('updateDomain: ', this.domain);
+                //console.debug('updateDomain: ', this.domain);
                 this.$.eventPub.publish(msg);
             },
 
@@ -1020,7 +1020,7 @@
             _handleServiceResponse(evt) {
                 var id = evt.detail.db_id;
                 this.action.program_id = id;
-                console.debug('_handleServResponse: action assigned program id: ', this.action.program_id);
+                //console.debug('_handleServResponse: action assigned program id: ', this.action.program_id);
                 this._updateDomain();
             },
             _handleServiceError: function (evt) {
@@ -1028,15 +1028,15 @@
             },
             _startDemo: function (evt) {
                 if (!isAdminDomain(pddlDomain.name)) {
-                    console.debug("_startDemo: fake program created, no program-id");
+                    //console.debug("_startDemo: fake program created, no program-id");
                     return;
                 }
-                console.debug("_startDemo: admin domain, create program and assign program-id");
+                //console.debug("_startDemo: admin domain, create program and assign program-id");
                 if (this.action.program_id && this.action.program_id.length > 0) {
-                    console.debug('Program already exists ... ', this.action.program_id);
+                    //console.debug('Program already exists ... ', this.action.program_id);
                 } else {
                     this.program_id_set = true;
-                    console.debug('New Program being created ... ');
+                    //console.debug('New Program being created ... ');
                     var name = 'Program for: ' + this.actionName;
                     var request = {
                         name: name,
@@ -1046,7 +1046,7 @@
             },
             _refreshViz: function (evt) {
                 state = this.navStep == "actionModel" ? "Effect" : "Precondition";
-                console.debug('  _refreshViz: state: ', state);
+                //console.debug('  _refreshViz: state: ', state);
                 var msg = {
                     type: 'assign surface objects',
                     program_info: {
@@ -1057,7 +1057,7 @@
                     state_name: state
                 };
 
-                console.debug('  _refreshViz: ', this.action);
+                //console.debug('  _refreshViz: ', this.action);
                 this.logActivity('2.0.1,refresh view');
                 this.$.eventPub.publish(msg);
                 this.load();
@@ -1074,7 +1074,7 @@
                     return;
                 }
                 var state = evt.target.getAttribute('data-args');
-                console.log("_detect for domain: ", this.domain_id);
+                // console.log("_detect for domain: ", this.domain_id);
                 var msg = {
                     type: 'detect action conditions',
                     domain_id: this.domain_id,
@@ -1111,7 +1111,7 @@
                 return text + paramList.slice(0, -2) + ")";
             },
             _getParamTypeByName: function (obj) {
-                // console.debug('_getParamTypeByName: ', item);
+                // //console.debug('_getParamTypeByName: ', item);
 
                 for (var i = 0; i < this.action.params.length; ++i) {
                     if (this.action.params[i] && obj && this.action.params[i].name == obj.name)
@@ -1123,20 +1123,20 @@
 
             _getTypes: function (item) {
                 var names = [];
-                // console.debug('_getTypes: ', item);
+                // //console.debug('_getTypes: ', item);
                 if (this.domain.types) {
                     for (var i = 0; i < this.domain.types.length; ++i) {
                         names.push(this.domain.types[i].name);
                     }
                 }
-                // console.debug('_getTypes: ', names);
+                // //console.debug('_getTypes: ', names);
                 return (names);
             },
 
             _updateType: function (evt) {
                 this.reevaluateArray('action.params', this.action.params);
-                console.debug("_updateType: ", evt.target);
-                this.logActivity('2.1.2, change type to: ' + evt.target.name);
+                //console.debug("_updateType: ", evt.target);
+                this.logActivity('2.1.2,change type to: ' + evt.target.name);
             },
             moveUpParam: function (evt) {
                 //change order of params
@@ -1145,27 +1145,27 @@
                 var index = -1;
                 // var parms = this.action.params;
                 fromIndex = this.action.params.indexOf(item);
-                console.debug('moveUpParam:', this.action.params, " ", fromIndex);
+                //console.debug('moveUpParam:', this.action.params, " ", fromIndex);
                 if (fromIndex > 0) {
                     var element = this.action.params[fromIndex];
                     this.action.params.splice(fromIndex, 1);
-                    console.debug("types of item vs element : ", typeof item, typeof element);
+                    //console.debug("types of item vs element : ", typeof item, typeof element);
                     var toIndex = fromIndex - 1;
-                    console.debug('moveUpParam:', "to index: ", toIndex);
+                    //console.debug('moveUpParam:', "to index: ", toIndex);
                     this.action.params.splice(toIndex, 0, element);
-                    console.debug("splicing...");
+                    //console.debug("splicing...");
                     //console.debug(typeof parms, typeof this.action.params);
                     // this.action.params = parms;
                     this.reevaluateArray('action.params', this.action.params);
                     this.logActivity('2.1.3,move up parameter: ' + item.name + ' to ', toIndex);
                 }
-                console.debug('moveUpParam: final action.params is', this.action.params);
+                //console.debug('moveUpParam: final action.params is', this.action.params);
             },
             _generateParams: function () {
                 var predList = this.action.preconditions.concat(this.action.effects)
                 var parms = this._getParams(predList);
-                console.debug(typeof parms, typeof this.action.params);
-                console.debug('parms:', parms);
+                //console.debug(typeof parms, typeof this.action.params);
+                //console.debug('parms:', parms);
                 this.action.params = parms;
                 this.reevaluateArray('action.params', parms);
             },
@@ -1211,15 +1211,69 @@
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
                     this.reevaluateArray('action.effects', this.action.effects);
                     this._generateParams();
+
+                    // this._renameParameters();
                     this.actionDesc = this._getAction(this.action);
                     this.genActionDesc = this._getGeneralisedAction(this.action);
-
                     var text = "Robot learned generalised action with types: <br><b>" + this.genActionDesc;
-                    text += "</b> <br><br> Demonstrated action: <br> <b>" + this.actionDesc;
-                    console.log("_generateConditions: ", text);
+                    text += "</b> <br><br> Removed conditions that stayed the same and renamed position names. <br> <b>";
+                    //text += "</b> <br><br> Demonstrated action: <br> <b>" + this.actionDesc;
+                    // console.log("_generateConditions: ", text);
                     this.$.msgConfirmConditions.innerHTML = text;
                     this.$.confirmConditions.open();
-                    this.logActivity('2.3.3,confirm conditions');
+                    this.logActivity('2.3.3,generate complete action');
+                    this.save();
+                }
+            },
+            _displayAlias: function (argname) {
+                if (this.action.params.length == 3) {
+                    var posFrom = this.action.params[1];
+                    var posTo = this.action.params[2];
+                    var fromName = 'fromPos';
+                    var toName = 'toPos';
+                    if (argname == posFrom.name)
+                        argname = fromName;
+                    if (argname == posTo.name)
+                        argname = toName;
+                }
+                if (argname || argname != '')
+                    return '(' + argname + ')';
+                return '';
+            },
+            _renameParameters: function () {
+                // console.log("_renameParameters: ", this.action.params);
+                if (this.action.params.length == 3) {
+                    var posFrom = this.action.params[1];
+                    var posTo = this.action.params[2];
+                    var fromName = 'from';
+                    var toName = 'to';
+                    for (var i = 0; i < this.action.preconditions.length; ++i) {
+                        if (this.action.preconditions[i].arg1.name == posFrom.name)
+                            this.action.preconditions[i].arg1.name = fromName;
+                        else if (this.action.preconditions[i].arg1.name == posTo.name)
+                            this.action.preconditions[i].arg1.name = toName;
+                        if (this.action.preconditions[i].arg2 && this.action.preconditions[i].arg2.name == posFrom.name)
+                            this.action.preconditions[i].arg2.name = fromName;
+                        else if (this.action.preconditions[i].arg2 && this.action.preconditions[i].arg2.name == posTo.name)
+                            this.action.preconditions[i].arg2.name = toName;
+                    }
+                    this.reevaluateArray('action.preconditions', this.action.preconditions);
+
+                    for (var i = 0; i < this.action.effects.length; ++i) {
+                        if (this.action.effects[i].arg1.name == posFrom.name)
+                            this.action.effects[i].arg1.name = fromName;
+                        else if (this.action.effects[i].arg1.name == posTo.name)
+                            this.action.effects[i].arg1.name = toName;
+                        if (this.action.effects[i].arg2 && this.action.effects[i].arg2.name == posFrom.name)
+                            this.action.effects[i].arg2.name = fromName;
+                        else if (this.action.effects[i].arg2 && this.action.effects[i].arg2.name == posTo.name)
+                            this.action.effects[i].arg2.name = toName;
+                    }
+                    this.reevaluateArray('action.effects', this.action.effects);
+
+                    this.action.params[1].name = fromName;
+                    this.action.params[2].name = toName;
+                    this.reevaluateArray('action.params', this.action.params);
 
                 }
             },
@@ -1311,7 +1365,7 @@
             _selectNavStep: function (evt) {
                 this.navStep = evt.target.getAttribute('data-args');
                 this.save();
-                this.logActivity('switch to: ' + this.navStep);
+                this.logActivity('2.0.5,switch to: ' + this.navStep);
             },
             _negate: function (neg) {
                 if (neg) return 'not ';
@@ -1326,8 +1380,8 @@
             logActivity: function (activity) {
                 var now = new Date();
                 var currentMenu = 'new-action/' + this.navStep + ':' + this.action.name;
-                console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
-                    currentMenu, ',', activity);
+                //console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
+                // currentMenu, ',', activity);
                 var msg = {
                     type: 'log activity',
                     domain_id: this.domain_id,

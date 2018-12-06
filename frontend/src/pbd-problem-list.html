@@ -5,7 +5,7 @@
 <link rel="import" href="../bower_components/ros-topic/ros-topic.html">
 <link rel="import" href="../bower_components/ros-service/ros-service.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="v2/pbd-new-problem.html">
+<link rel="import" href="pbd-new-problem.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="pbd-problem-list">
@@ -62,7 +62,8 @@
                 <p>Current user: [[pddlDomain.name]]</p>
                 <table>
                     <tr>
-                        <th>Programmed problems</th>
+                        <th>
+                            Baxter's problems</th>
                         <th>
                             <!-- <a href="#/[[domain_id]]"> -->
                             <paper-button id="createButton" class="important" on-tap="_createNewProblem">
@@ -73,7 +74,8 @@
                     </tr>
                     <template is="dom-if" if="[[!pddlDomain.problems.length]]">
                         <tr>
-                            <td colspan="2">No problems have been created yet.</td>
+                            <td colspan="2">
+                                <img src="../images/sad-baxter.png" height="40"> No problems have been created for Baxter to solve.</td>
                         </tr>
                     </template>
                     <template is="dom-repeat" items="[[pddlDomain.problems]]" as="problem">
@@ -152,12 +154,12 @@
                 '_domainIDchanged(domain_id)',
             ],
             _domainIDchanged(newID) {
-                console.log("domain id changed to ", newID);
+                // console.log("domain id changed to ", newID);
             },
             load: function (changedDomain, changedMsg) {
-                console.log("load: ", changedMsg);
+                // console.log("load: ", changedMsg);
                 if (!this.domain_id && changedMsg) {
-                    console.log("set domain_id to: ", changedMsg);
+                    // console.log("set domain_id to: ", changedMsg);
                     this.domain_id = changedMsg;
                 }
             },
@@ -171,7 +173,7 @@
                 var problem_name = evt.model.get('problem.name');
                 this._problemToDelete = problem_name;
                 this.$.deleteDialog.open();
-                console.debug("maybeDel", this._problemToDelete);
+                //console.debug("maybeDel", this._problemToDelete);
             },
 
             _handleDelete: function (evt) {
@@ -187,17 +189,17 @@
 
             _createNewProblem: function (evt) {
                 var name = this.getProblemName(this.problems);
-                console.debug('createNewProblem', name, this.pddlDomain);
+                //console.debug('createNewProblem', name, this.pddlDomain);
                 var msg = {
                     type: 'add pddl problem',
                     domain_id: this.domain_id,
                     problem_name: name
                 };
                 this.$.eventPub.publish(msg);
-                console.debug('createNewProblem', name, this.domain_id);
+                //console.debug('createNewProblem', name, this.domain_id);
                 this.selectedProblemName = name;
                 this._showProblemProperties = true;
-                console.debug('createNewProblem: params is ', this.params);
+                //console.debug('createNewProblem: params is ', this.params);
                 this.logActivity('3.1,add new problem: ' + name);
             },
 
@@ -245,7 +247,7 @@
             },
             _selectDomain: function (evt) {
                 this.domain_id = evt.target.name.domain_id;
-                console.log('select domain: ', this.domain_id);
+                // console.log('select domain: ', this.domain_id);
                 var msg = {
                     type: 'select pddl domain',
                     domain_id: this.domain_id
@@ -255,9 +257,9 @@
 
             logActivity: function (activity) {
                 var now = new Date();
-                var currentMenu = 'problem-list:' + this.action.name;
-                console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
-                    currentMenu, ',', activity);
+                var currentMenu = 'problem-list';
+                //console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
+                // currentMenu, ',', activity);
                 var msg = {
                     type: 'log activity',
                     domain_id: this.domain_id,

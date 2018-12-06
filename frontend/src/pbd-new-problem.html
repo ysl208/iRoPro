@@ -1,26 +1,26 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
-<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
-<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../../bower_components/iron-icons/av-icons.html">
-<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
-<link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
-<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
-<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
-<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
 
-<link rel="import" href="../../bower_components/paper-styles/color.html">
-<link rel="import" href="../../bower_components/ros-action-client/ros-action-client.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/ros-action-client/ros-action-client.html">
 
-<link rel="import" href="../../bower_components/app-route/app-route.html">
-<link rel="import" href="../../bower_components/ros-service/ros-service.html">
-<link rel="import" href="../../bower_components/ros-topic/ros-topic.html">
-<link rel="import" href="../../bower_components/ros-rviz/ros-rviz.html">
-<link rel="import" href="../shared-styles.html">
-<link rel="import" href="../underscore.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/ros-service/ros-service.html">
+<link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../bower_components/ros-rviz/ros-rviz.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="underscore.html">
 
 <dom-module id="pbd-new-problem">
   <template>
@@ -130,8 +130,8 @@
           margin-right: 10px;
         }
         #rviz {
-          min-height: 350px;
-          max-width: 500px;
+          min-height: 750px;
+          max-width: 750px;
           @apply(--layout-flex);
         }
 
@@ -201,6 +201,10 @@
     <ros-topic auto last-message="{{domain_msg}}" msg-type="std_msgs/String" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
     <ros-action-client id="programAction" ros="[[ros]]" server="/rapid_pbd/execute_program_action" action-type="rapid_pbd_msgs/ExecuteProgramAction"
       on-feedback="_handleFeedback" on-result="_handleResult"></ros-action-client>
+    <ros-topic auto last-message="{{execution.result}}" msg-type="rapid_pbd_msgs/ExecuteProgramActionResult" topic="/rapid_pbd/execute_program_action/result"
+      ros="[[ros]]"></ros-topic>
+    <ros-topic auto last-message="{{execution.feedback}}" msg-type="rapid_pbd_msgs/ExecuteProgramActionFeedback" topic="/rapid_pbd/execute_program_action/feedback"
+      ros="[[ros]]"></ros-topic>
 
     <header>
       <paper-input id="problemName" label="Problem name" value="{{problemName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
@@ -263,7 +267,8 @@
                 Detected World Objects
               </legend>
               <!-- <p>Verify all objects have been detected before proceeding.</p> -->
-              <p id="noObj">No objects detected
+              <p id="noObj">
+                <img src="../images/sad-baxter.png" height="30">No objects detected
                 <br>
               </p>
               <template is="dom-repeat" items="{{sortByName(problem.objects)}}" as="item" index-as="paramIndex">
@@ -329,7 +334,9 @@
                     </template>
                   </paper-listbox>
                 </paper-dropdown-menu>
-                <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="InitialState"></paper-icon-button>
+                <!-- <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="InitialState"></paper-icon-button> -->
+                <paper-button class="petit" raised on-tap="addPredicate" data-args="InitialState">Add</paper-icon-button>
+
               </div>
 
               <!-- <paper-button id="next" raised class="clear" on-tap="_selectNavStep" data-args="problemModel">
@@ -362,10 +369,11 @@
                   </template>
                 </paper-listbox>
               </paper-dropdown-menu>
-              <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="InitialState"></paper-icon-button>
+              <!-- <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="InitialState"></paper-icon-button> -->
+              <paper-button class="petit" on-tap="addPredicate" data-args="InitialState">Add</paper-icon-button>
             </div>
 
-            <paper-button on-tap="[[_addStackable('object','position','stackable')]]">Objects on Positions</paper-button>
+            <!-- <paper-button on-tap="[[_addStackable('object','position','stackable')]]">Objects on Positions</paper-button> -->
           </div>
 
           <!-- ***** Goal States **** 2/3 -->
@@ -383,7 +391,7 @@
                     [[item.arg1.name]] ([[_getParamTypeByName(item.arg1)]])
                   </p>
                   <p>
-                    is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]]
+                    is [[_negate(item.negate)]] [[item.name]] [[item.arg2.name]] ([[_getParamTypeByName(item.arg2)]])
                   </p>
                   <!-- <paper-icon-button on-tap="" icon="create"></paper-icon-button> -->
                   <paper-icon-button class="delete" on-tap="deletePred" data-args="InitialState" icon="delete"></paper-icon-button>
@@ -415,7 +423,8 @@
                     </template>
                   </paper-listbox>
                 </paper-dropdown-menu>
-                <paper-icon-button raised icon="icons:add-circle-outline" on-tap="addPredicate" data-args="GoalState"></paper-icon-button>
+                <!-- <paper-icon-button raised icon="icons:add-circle-outline" on-tap="addPredicate" data-args="GoalState"></paper-icon-button> -->
+                <paper-button raised class="petit" on-tap="addPredicate" data-args="GoalState">Add</paper-icon-button>
 
               </div>
               <br>
@@ -436,8 +445,15 @@
                 Generated steps to solve problem
               </legend>
               <!-- <p>Verify all sequence is correct before proceeding.</p> -->
-              <p id="noSteps" hidden$="[[!_stepsFound]]">No steps generated. Definitions are missing.</p>
+              <p id="noSteps" hidden$="[[!_stepsFound]]">
+                <img src="../../images/baxter-confused.png" height="30">
+                <br> Baxter couldn't find a way to achieve the goal with the existing actions and their conditions.</p>
               <table>
+                <!-- <template is="dom-if" if="[[_stepsFound]]"> -->
+                <p id="hasSteps" hidden$="[[_stepsFound]]">
+                  <img src="../../images/baxter-neutral.png" height="30"> Baxter has found the following plan to reach your goal:
+                  <br>
+                </p>
                 <template is="dom-repeat" items="{{problem.sequence}}" as="item" index-as="stepIndex">
                   <tr>
                     <div id="listSteps">
@@ -454,6 +470,7 @@
                     </div>
                   </tr>
                 </template>
+                <!-- </template> -->
               </table>
               <!-- Add new action to plan manually -->
               <!-- <div>
@@ -499,40 +516,25 @@
               <paper-button noink class="petit" on-click="addPlanStep" data-args="addPlanStep">+ add action step</paper-button> -->
 
               <center>
-                <paper-button id="execute" raised class="clear" on-tap="_execute">
-                  Execute plan
+                <p hidden$="[[_stepsFound]]">
+                  Make sure the steps are correct!
+                  <paper-button id="execute" raised class="clear" on-tap="_execute">
+                    Execute
+                  </paper-button>
+                </p>
+                <paper-button class="runstop stop" hidden$="[[!isRunning.data]]" raised on-tap="stop">
+                  <iron-icon icon="av:stop"></iron-icon>
+                  Stop Replay
                 </paper-button>
               </center>
-              <paper-button noink class="petit" on-click="showDebugging">
-                <iron-icon icon="icons:lightbulb-outline"></iron-icon>
-                Follow Hints
-              </paper-button>
-              <div id="debugging" hidden$="[[!_showDebugging]]">
-                <p id="verifyInitialStates">
-                  <b>Hint 1: Review initial states:</b>
-                  <paper-button class="clear" on-tap="viewInitialStates">
-                    <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
-                  </paper-button>
-                  <p id="initalStatesSummary">
-                    <!-- <fieldset> -->
-                    <p id="msgInitalStatesSummary" style="padding: 5px"></p>
-                    <!-- </fieldset> -->
-                  </p>
-                </p>
-                <p id="verifyGoalStates">
-                  <b>Hint 2: Review goal states:</b>
-                  <paper-button class="clear" on-tap="viewGoalStates">
-                    <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
-                  </paper-button>
-                  <p id="goalStatesSummary">
-                    <!-- <fieldset> -->
-                    <p id="msgGoalStatesSummary" style="padding: 5px"></p>
+              <paper-button noink class="petit" on-click="showDebugging" raised>
 
-                    <!-- </fieldset> -->
-                  </p>
-                </p>
+                <iron-icon icon="icons:lightbulb-outline"></iron-icon>Review Baxter's actions
+              </paper-button>
+
+              <div id="debugging" hidden$="[[!_showDebugging]]">
                 <p id="verifyActions">
-                  <h4>Hint 3: Make sure actions can achieve goal state:</h4>
+                  <!-- <h4>Review Baxter's actions:</h4> -->
                   <template is="dom-repeat" items="[[domain.actions]]" as="action">
                     <i> [[_getGeneralisedAction(action)]]</i>
                     <paper-button class="clear" on-tap="viewActionSummary" data-args="[[action]]">
@@ -543,8 +545,32 @@
                   <p id="actionSummary">
                     <fieldset>
                       <p id="msgActionSummary" style="padding: 5px"></p>
-
                     </fieldset>
+                  </p>
+                </p>
+                <p id="verifyGoalStates">
+                  <b>
+                    <iron-icon icon="icons:lightbulb-outline"></iron-icon>
+                    Hint 1: Make sure my action effects can achieve the goal states:</b>
+                  <paper-button class="clear" on-tap="viewGoalStates">
+                    <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
+                  </paper-button>
+                  <p id="goalStatesSummary">
+                    <p id="msgGoalStatesSummary" style="padding: 5px"></p>
+                  </p>
+                </p>
+
+                <p id="verifyInitialStates">
+                  <b>
+                    <iron-icon icon="icons:lightbulb-outline"></iron-icon>
+                    Hint 2: Make sure the correct actions can be executed given all the initial states:</b>
+                  <paper-button class="clear" on-tap="viewInitialStates">
+                    <paper-icon-button icon="icons:find-in-page"></paper-icon-button>
+                  </paper-button>
+                  <p id="initalStatesSummary">
+                    <!-- <fieldset> -->
+                    <p id="msgInitalStatesSummary" style="padding: 5px"></p>
+                    <!-- </fieldset> -->
                   </p>
                 </p>
               </div>
@@ -578,6 +604,20 @@
     <paper-dialog modal id="loading">
       <p>
         <paper-spinner-lite active></paper-spinner-lite> Detecting objects on the table</p>
+    </paper-dialog>
+
+    <paper-dialog id="errorDialog" modal>
+      <h2>Error running the program</h2>
+      <p>[[error]]</p>
+      <div class="buttons">
+        <paper-button dialog-confirm class="clear">OK</paper-button>
+      </div>
+    </paper-dialog>
+    <paper-dialog modal id="playing">
+      <p>
+        <paper-spinner-lite active></paper-spinner-lite>
+        Replaying action: [[execDescrip]]
+      </p>
     </paper-dialog>
   </template>
 
@@ -663,6 +703,18 @@
           type: Boolean,
           value: false,
         },
+
+        execution: {
+          type: Object,
+          value: function () {
+            return {
+              status: Object,
+              feedback: Object,
+              result: Object
+            };
+          }
+        },
+        execDescrip: String,
         _hasGoals: {
           type: Boolean,
           value: function () {
@@ -687,6 +739,8 @@
         '_checkClearPrecond(newInitialState.name)',
         '_checkClearGoalState(newGoalState.name)',
         // '_getAllStates(lastDomainUpdated)'
+        '_executionChanged(execution.result.*,execution.feedback.*)',
+
       ],
 
       _checkClearPos: function (type) {
@@ -725,6 +779,42 @@
         }
       },
 
+
+      stop: function () {
+        this.$.programAction.cancel();
+        this.logActivity('cancel replay:' + this.planStep.action);
+      },
+
+      _handleFeedback: function (evt) {
+        // this.currentStepNum = evt.detail.step_number;
+      },
+
+      _handleResult: function (evt) {
+        var error = evt.detail.error;
+        if (error) {
+          this.error = evt.detail.error;
+          this.$.errorDialog.open();
+        } else {
+
+        }
+      },
+      _executionChanged: function (res, feed) {
+        this.execDescrip = "";
+        if (feed.value) {
+          this.execDescrip = "Step " + feed.value.feedback.step_number;
+          //console.debug("_executionChanged: feed", feed);
+        }
+        if (res.value) {
+          //console.debug("_executionChanged: res ", res);
+          this.error = res.value.result.error;
+          this.$.playing.close();
+          if (this.error != "") {
+            //this.execDescrip = "" + res.value.result.error;
+            // this.$.errorDialog.open();
+          }
+        }
+      },
+
       load: function (db_id, paramsChangeRecord) {
         if (this.problem.scene_id) {
           this.scene_id = this.problem.scene_id;
@@ -732,7 +822,7 @@
           this.scene_id = "";
         }
         if (!this.domain_id && changedMsg) {
-          console.log("set domain_id to: ", changedMsg);
+          // console.log("set domain_id to: ", changedMsg);
           this.domain_id = changedMsg;
         }
         if (!this.params.robot) {
@@ -848,14 +938,14 @@
       _addForAllPredicates: function (type1, type2, predicate) {
         // loops through objects and adds predicates that are consistent with the given types
         // so far only for is stackable
-        console.debug("_addForAllPredicates: objs", this.problem.objects);
+        //console.debug("_addForAllPredicates: objs", this.problem.objects);
         for (var i = 0; i < this.problem.objects.length; ++i) {
           var param1 = this.problem.objects[i];
-          console.debug("_addForAllPredicates: param1", param1);
+          //console.debug("_addForAllPredicates: param1", param1);
           if (param1.type.name == type1) {
             for (var j = 0; j < this.problem.objects.length; ++j) {
               var param2 = this.problem.objects[j];
-              console.debug("_addForAllPredicates: param2", param2);
+              //console.debug("_addForAllPredicates: param2", param2);
               if (param2.type.name == type2) {
                 this.problem.initial_states.push({
                   arg1: param1,
@@ -871,7 +961,7 @@
       _updatePredicate: function (evt) {
         var args = evt.target.getAttribute('data-args');
         this.set(args, evt.target.name);
-        console.debug(args, ' is ', this.newInitialState);
+        //console.debug(args, ' is ', this.newInitialState);
       },
       checkPredicate: function (mode, _new) {
         var newPredicate = _new;
@@ -969,13 +1059,13 @@
 
       deletePlanStep: function (evt) {
         var item = evt.model.item;
-        console.debug('deletePlanStep', item);
+        //console.debug('deletePlanStep', item);
         var index = -1;
         index = this.problem.sequence.indexOf(item);
         if (index != -1) {
           this.splice('problem.sequence', index, 1);
           this.reevaluateArray('problem.sequence', this.problem.sequence);
-          console.debug('deleted action ', index, ' from solution sequence');
+          //console.debug('deleted action ', index, ' from solution sequence');
         }
       },
       _updatePlanStep: function (evt) {
@@ -988,12 +1078,12 @@
           this.newPlanStep.args[1] = evt.target.name.name;
         if (args == "arg3")
           this.newPlanStep.args[2] = evt.target.name.name;
-        console.debug(args, ' is ', this.newPlanStep);
+        //console.debug(args, ' is ', this.newPlanStep);
       },
       addPlanStep: function (evt) {
         this.problem.sequence.push(this.newPlanStep);
         this.reevaluateArray('problem.sequence', this.problem.sequence);
-        console.debug('added action to solution sequence:', this.problem.sequence);
+        //console.debug('added action to solution sequence:', this.problem.sequence);
 
       },
       addPredicate: function (evt) {
@@ -1033,13 +1123,13 @@
       },
       deletePred: function (evt) {
         var item = evt.model.item;
-        console.debug('deletePred', item);
+        //console.debug('deletePred', item);
         var index = -1;
         index = this.problem.initial_states.indexOf(item);
         if (index != -1) {
           this.splice('problem.initial_states', index, 1);
           this.reevaluateArray('problem.initial_states', this.problem.initial_states);
-          console.debug('deletePred from pre');
+          //console.debug('deletePred from pre');
           this.logActivity('4.1.3,delete initial state:' + item.arg1.name + ' ' + item.name);
 
         } else {
@@ -1049,7 +1139,7 @@
             this.reevaluateArray('problem.goal_states', this.problem.goal_states);
             if (this.problem.goal_states.length == 0)
               this._hasGoals = false;
-            console.debug('deletePred from eff');
+            //console.debug('deletePred from eff');
             this.logActivity('4.2.2,delete goal state:' + item.arg1.name + ' ' + item.name);
 
           }
@@ -1102,7 +1192,7 @@
 
 
       _solve: function (evt) {
-        console.debug("Solve problem ", this.problem);
+        //console.debug("Solve problem ", this.problem);
         var msg = {
           type: 'solve pddl problem',
           domain_id: this.domain_id,
@@ -1115,7 +1205,7 @@
 
       },
       _execute: function (evt) {
-        console.debug("Execute plan..", this.problem.generated_plan);
+        //console.debug("Execute plan..", this.problem.generated_plan);
 
         var msg = {
           type: 'run pddl plan',
@@ -1123,8 +1213,9 @@
           pddl_problem: this.problem
         };
         this.$.eventPub.publish(msg);
-
         this.logActivity('4.3.2,execute plan');
+
+        this.$.playing.open();
       },
 
       _refreshViz: function (evt) {
@@ -1133,7 +1224,7 @@
           domain_id: this.domain_id,
           pddl_problem: this.problem
         };
-        console.debug('_refreshViz: ', this.problem);
+        //console.debug('_refreshViz: ', this.problem);
         this.logActivity('4.0.1,refresh view');
         this.$.eventPub.publish(msg);
         this.load();
@@ -1150,10 +1241,10 @@
           problem_name: this.problem.name,
           state_name: state
         };
-        console.debug(msg);
+        //console.debug(msg);
         this.$.loading.open();
         this.$.eventPub.publish(msg);
-        console.debug("domaintopic is", this.$.domainTopic);
+        //console.debug("domaintopic is", this.$.domainTopic);
         this.logActivity('4.1.1,detect initial states: ' + state);
 
       },
@@ -1164,7 +1255,7 @@
       },
 
       _getParamTypeByName: function (obj) {
-        // console.debug('_getParamTypeByName: ', item);
+        // //console.debug('_getParamTypeByName: ', item);
 
         for (var i = 0; i < this.problem.objects.length; ++i) {
           if (this.problem.objects[i].name == obj.name)
@@ -1175,7 +1266,7 @@
 
       _getTypes: function (item) {
         var names = [];
-        // console.debug('_getTypes: ', item);
+        // //console.debug('_getTypes: ', item);
         if (this.domain && this.domain.types) {
           for (var i = 0; i < this.domain.types.length; ++i) {
             names.push(this.domain.types[i].name);
@@ -1187,8 +1278,8 @@
 
       _updateType: function (evt) {
         // this.reevaluateArray('action.params', this.action.params);
-        console.debug("_updateType: ", evt.target);
-        this.logActivity('4.1.2, change type to: ' + evt.target.name);
+        //console.debug("_updateType: ", evt.target);
+        this.logActivity('4.1.2,change type to: ' + evt.target.name);
       },
       sortByName: function (arr) {
         arr.sort(function (a, b) {
@@ -1206,7 +1297,7 @@
       _parseArgs: function (step) {
         // translates string array to "english"
         var phrase = step.action.toLowerCase() + "(";
-        // console.debug("_parseArgs: ", step);
+        // //console.debug("_parseArgs: ", step);
         for (var i = 0; i < step.args.length; ++i) {
           phrase += this.format(step.args[i]) + ", ";
         }
@@ -1217,7 +1308,9 @@
       },
       _selectNavStep: function (evt) {
         this.navStep = evt.target.getAttribute('data-args');
+        console.log('selectNavStep: ', this.navStep);
         this.save();
+        this.logActivity('4.0.5,switch to: ' + this.navStep);
       },
       _negate: function (neg) {
         if (neg) return 'not ';
@@ -1234,8 +1327,8 @@
             pddl_problem: this.problem
           };
 
-          console.debug('Saving ', this.domain, " with name ", this.domain_id);
-          console.debug('Saving ', this.problem, " with name ", this.problemName);
+          //console.debug('Saving ', this.domain, " with name ", this.domain_id);
+          //console.debug('Saving ', this.problem, " with name ", this.problemName);
           this.$.eventPub.publish(msg);
           this.logActivity('4.0.2,save problem: ' + this.problem.name);
           if (this.problemName != this.problem.name) {
@@ -1256,8 +1349,10 @@
         this.$.exiting.open();
       },
       displayIndex: function (index) {
-        if (index < 1)
+        if (index < 1) {
           this._stepsFound = false;
+          this.logActivity('4.3.0,no steps generated');
+        }
         return index + 1;
 
       },
@@ -1279,29 +1374,50 @@
         }
         return { name: "" };
       },
+      _displayAlias: function (action, argname) {
+        if (action.params.length == 3) {
+          var obj = action.params[0];
+          var posFrom = action.params[1];
+          var posTo = action.params[2];
+          var objName = 'obj';
+          var fromName = 'fromPos';
+          var toName = 'toPos';
+          if (argname == posFrom.name)
+            argname = fromName;
+          if (argname == posTo.name)
+            argname = toName;
+          if (argname == obj.name)
+            argname = objName;
+        }
+        if (argname != '')
+          return ' (' + argname + ') ';
+        return '';
+      },
       viewActionSummary: function (evt) {
         var action = evt.model.action;
         var text = "<b>" + this._getGeneralisedAction(action) + "</b>";
         var pre = "<b>Preconditions:</b> <br>";
         for (var i = 0; i < action.preconditions.length; ++i) {
           var pred = action.preconditions[i];
-          pre += this._getTypeByName(pred.arg1.name, action.params).name.toUpperCase() + ' is ' + pred.name;
+          pre += this._displayAlias(action, pred.arg1.name);
+          pre += this._getTypeByName(pred.arg1.name, action.params).name.toUpperCase() + ' is ' + this._negate(pred.negate) + pred.name;
           if (pred.arg2 && pred.arg2.name != "") {
-            pre += ' ' + this._getTypeByName(pred.arg2.name, action.params).name.toUpperCase();
+            pre += ' ' + this._getTypeByName(pred.arg2.name, action.params).name.toUpperCase() + this._displayAlias(action, pred.arg2.name);
           }
           pre += '<br>';
         }
         var eff = "<b>Effects:</b> <br>";
         for (var i = 0; i < action.effects.length; ++i) {
           var pred = action.effects[i];
-          eff += this._getTypeByName(pred.arg1.name, action.params).name.toUpperCase() + ' is ' + pred.name;
+          eff += this._displayAlias(action, pred.arg1.name);
+          eff += this._getTypeByName(pred.arg1.name, action.params).name.toUpperCase() + ' is ' + this._negate(pred.negate) + pred.name;
           if (pred.arg2 && pred.arg2.name != "") {
-            eff += ' ' + this._getTypeByName(pred.arg2.name, action.params).name.toUpperCase();
+            eff += ' ' + this._getTypeByName(pred.arg2.name, action.params).name.toUpperCase() + this._displayAlias(action, pred.arg2.name);
           }
           eff += '<br>';
         }
         text += '<br><br>' + pre + '<br>' + eff;
-        console.log("viewActionSummary: ", text);
+        // console.log("viewActionSummary: ", text);
         this.$.msgActionSummary.innerHTML = text;
         this.$.actionSummary.style.display = "inline";
       },
@@ -1311,13 +1427,13 @@
         var text = "";
         for (var i = 0; i < problem.initial_states.length; ++i) {
           var pred = problem.initial_states[i];
-          text += ' (' + pred.arg1.name + ') ' + pred.arg1.type.name.toUpperCase() + ' is ' + pred.name;
+          text += ' (' + pred.arg1.name + ') ' + this._getParamTypeByName(pred.arg1).toUpperCase() + ' is ' + this._negate(pred.negate) + pred.name;
           if (pred.arg2 && pred.arg2.name != "") {
-            text += ' ' + pred.arg2.type.name.toUpperCase() + ' (' + pred.arg2.name + ')';
+            text += ' ' + this._getParamTypeByName(pred.arg2).toUpperCase() + ' (' + pred.arg2.name + ')';
           }
           text += '<br>';
         }
-        console.log("viewInitialStates: ", text);
+        // console.log("viewInitialStates: ", text);
         this.$.msgInitalStatesSummary.innerHTML = text;
         this.$.initalStatesSummary.style.display = "inline";
       },
@@ -1327,13 +1443,13 @@
         var text = "";
         for (var i = 0; i < problem.goal_states.length; ++i) {
           var pred = problem.goal_states[i];
-          text += ' (' + pred.arg1.name + ') ' + this._getParamTypeByName(pred.arg1).toUpperCase() + ' is ' + pred.name;
+          text += ' (' + pred.arg1.name + ') ' + this._getParamTypeByName(pred.arg1).toUpperCase() + ' is ' + this._negate(pred.negate) + pred.name;
           if (pred.arg2 && pred.arg2.name != "") {
             text += ' ' + this._getParamTypeByName(pred.arg2).toUpperCase() + ' (' + pred.arg2.name + ')';
           }
           text += '<br>';
         }
-        console.log("viewGoalStates: ", text);
+        // console.log("viewGoalStates: ", text);
         this.$.msgGoalStatesSummary.innerHTML = text;
         this.$.goalStatesSummary.style.display = "inline";
       },
@@ -1348,9 +1464,9 @@
 
       logActivity: function (activity) {
         var now = new Date();
-        var currentMenu = 'new-problem:' + this.problem.name;
-        console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
-          currentMenu, ',', activity);
+        var currentMenu = 'new-problem/' + this.navStep + ':' + this.problem.name;
+        //console.debug('[ACTIVITY-LOG]', now.toLocaleString(), ',',
+        // currentMenu, ',', activity);
         var msg = {
           type: 'log activity',
           domain_id: this.domain_id,
