@@ -1,7 +1,7 @@
 world_positions: # measurements in meters
   names: ['C', 'M', 'A', 'B'] #, 'C1'] # F is on second row
-  pos_x: [0.63, 0.63, 0.63, 0.757]
-  pos_y: [0.21, -0.05, -0.31, -0.05] # 0.57 and 0.01 is the midpoint that works for both grippers!
+  pos_x: [0.656, 0.656, 0.656, 0.76]
+  pos_y: [0.25, -0.02, -0.33, -0.01] # 0.57 and 0.01 is the midpoint that works for both grippers!
   pos_z: [-0.05, -0.05, -0.05, -0.05, -0.05, -0.05]
   
 world_objects: # measurements in meters
@@ -10,8 +10,8 @@ world_objects: # measurements in meters
   element: [0.001, 0.001, 0.001]
   position: [0.05, 0.05, 0.005]
   object: [0.001, 0.001, 0.001]
-  base: [0.1, 0.1, 0.03]
-  cube: [0.04, 0.04, 0.03]
-  roof: [0.04, 0.067, 0.03]
+  base: [0.11, 0.11, 0.04]
+  cube: [0.066, 0.066, 0.04]
+  roof: [0.04, 0.067, 0.05]
   #pillar: [0.035, 0.035, 0.07]
-  variance: 0.075
+  variance: 0.07
