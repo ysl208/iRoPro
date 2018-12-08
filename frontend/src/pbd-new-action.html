@@ -167,6 +167,11 @@
                 border-radius: 5px;
             }
 
+
+            paper-button[toggles][active] {
+                background: lightcyan;
+            }
+
             paper-button.cancel {
                 color: rgb(255, 68, 68);
             }
@@ -207,18 +212,18 @@
             <paper-input id="actionName" label="Action name" value="{{actionName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
             <nav>
                 <!-- Action navigation buttons -->
-                <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]"
-                    data-args="perception">
+                <paper-button toggles class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]"
+                    active$="[[_displayNavStep(navStep,'perception')]]" data-args="perception">
                     1. Perception
                 </paper-button>
                 <!-- <a href="#/program/{{action.program_id}}"> -->
-                <paper-button name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]"
-                    data-args="demonstration">
+                <paper-button toggles name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]"
+                    active$="[[_displayNavStep(navStep,'demonstration')]]" data-args="demonstration">
                     2. Demonstration
                 </paper-button>
                 <!-- </a> -->
-                <paper-button class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]"
-                    data-args="actionModel">
+                <paper-button toggles class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]"
+                    active$="[[_displayNavStep(navStep,'actionModel')]]" data-args="actionModel">
                     3. Conditions
                 </paper-button>
             </nav>
@@ -246,7 +251,7 @@
                 <p>If action name changed, action will be closed on save.</p>
                 <div>
                     <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
-                    <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
+                    <paper-button dialog-confirm raised on-tap="saveQuit">Save and quit</paper-button>
                 </div>
             </paper-dialog>
 
@@ -930,6 +935,10 @@
                 }
                 return true;
             },
+            saveQuit: function () {
+                this.save();
+                this.quit();
+            },
             save: function () {
                 if (this.actionName != this.action.name && !this._nameValid(this.actionName)) {
                     alert(this.actionName + ' already exists. Please choose a different name.');
@@ -965,6 +974,8 @@
             },
             quit: function (evt) {
                 this.logActivity('2.0.3,quit action: ' + this.action.name);
+                this.remove();
+                location.reload();
                 this.fire('quit');
             },
 
@@ -1207,7 +1218,7 @@
                 // If they are there then you can generate the conditions
                 else {
                     this._getPredicateDiff(this.action.preconditions, this.action.effects);
-                    //this._addNegations(this.action.preconditions, this.action.effects);
+                    this._addNegations(this.action.preconditions, this.action.effects);
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
                     this.reevaluateArray('action.effects', this.action.effects);
                     this._generateParams();
@@ -1229,8 +1240,8 @@
                 if (this.action.params.length == 3) {
                     var posFrom = this.action.params[1];
                     var posTo = this.action.params[2];
-                    var fromName = 'fromPos';
-                    var toName = 'toPos';
+                    var fromName = 'from';
+                    var toName = 'to';
                     if (argname == posFrom.name)
                         argname = fromName;
                     if (argname == posTo.name)
@@ -1364,6 +1375,7 @@
             },
             _selectNavStep: function (evt) {
                 this.navStep = evt.target.getAttribute('data-args');
+                console.log('selectNavStep: ', this.navStep);
                 this.save();
                 this.logActivity('2.0.5,switch to: ' + this.navStep);
             },

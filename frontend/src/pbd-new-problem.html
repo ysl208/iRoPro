@@ -11,7 +11,7 @@
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
-
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner-lite.html">
 <link rel="import" href="../bower_components/paper-styles/color.html">
 <link rel="import" href="../bower_components/ros-action-client/ros-action-client.html">
 
@@ -166,6 +166,12 @@
         border-radius: 5px;
       }
 
+
+
+      paper-button[toggles][active] {
+        background: lightcyan;
+      }
+
       paper-button.cancel {
         color: rgb(255, 68, 68);
       }
@@ -210,16 +216,16 @@
       <paper-input id="problemName" label="Problem name" value="{{problemName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
       <nav>
         <!-- Action navigation buttons -->
-        <paper-button class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]"
-          data-args="perception">
+        <paper-button toggles class="petit" name="perception" on-tap="_selectNavStep" selected$="[[_displayNavStep(navStep,'perception')]]"
+          active$="[[_displayNavStep(navStep,'perception')]]" data-args="perception">
           1. Initial State
         </paper-button>
-        <paper-button name="problemModel" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'problemModel')]]"
-          data-args="problemModel">
+        <paper-button toggles name="problemModel" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'problemModel')]]"
+          active$="[[_displayNavStep(navStep,'problemModel')]]" data-args="problemModel">
           2. Goal State
         </paper-button>
         <paper-button class="petit" name="generatedPlan" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'generatedPlan')]]"
-          data-args="generatedPlan">
+          active$="[[_displayNavStep(navStep,'generatedPlan')]]" data-args="generatedPlan">
           3. Generated Plan
         </paper-button>
       </nav>
@@ -243,7 +249,7 @@
         <p>If problem name changed, please reopen problem after save.</p>
         <div>
           <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
-          <paper-button dialog-confirm raised on-tap="save">Save</paper-button>
+          <paper-button dialog-confirm raised on-tap="saveQuit">Save and quit</paper-button>
         </div>
       </paper-dialog>
       <paper-dialog modal id="exiting">
@@ -344,7 +350,7 @@
               </paper-button> -->
             </fieldset>
             <div>
-              <paper-dropdown-menu id="menu_type1" label="Type 1">
+              <!-- <paper-dropdown-menu id="menu_type1" label="Type 1">
                 <paper-listbox slot="dropdown-content" attr-for-selected="name" selected="{{newInitialState.arg1}}">
                   <template is="dom-repeat" items="[[domain.types]]">
                     <paper-item name="[[item]]" on-tap="" data-args="newInitialState.arg1">
@@ -369,8 +375,7 @@
                   </template>
                 </paper-listbox>
               </paper-dropdown-menu>
-              <!-- <paper-icon-button icon="icons:add-circle-outline" on-tap="addPredicate" data-args="InitialState"></paper-icon-button> -->
-              <paper-button class="petit" on-tap="addPredicate" data-args="InitialState">Add</paper-icon-button>
+            <paper-button class="petit" on-tap="addPredicate" data-args="InitialState">Add</paper-icon-button> -->
             </div>
 
             <!-- <paper-button on-tap="[[_addStackable('object','position','stackable')]]">Objects on Positions</paper-button> -->
@@ -1316,6 +1321,10 @@
         if (neg) return 'not ';
         else return '';
       },
+      saveQuit: function () {
+        this.save();
+        this.quit();
+      },
       save: function () {
         if (this.problemName != this.problem.name && !this._nameValid(this.problemName)) {
           alert(this.problemName + ' already exists. Please choose a different name.');
@@ -1336,10 +1345,10 @@
             this.quit();
           }
         }
-
       },
       quit: function (evt) {
         this.logActivity('4.0.3,quit problem: ' + this.problem.name);
+        this.remove();
         this.fire('quit');
       },
       saving: function (evt) {
@@ -1380,8 +1389,8 @@
           var posFrom = action.params[1];
           var posTo = action.params[2];
           var objName = 'obj';
-          var fromName = 'fromPos';
-          var toName = 'toPos';
+          var fromName = 'from';
+          var toName = 'to';
           if (argname == posFrom.name)
             argname = fromName;
           if (argname == posTo.name)

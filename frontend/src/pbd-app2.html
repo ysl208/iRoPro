@@ -158,6 +158,7 @@
     <template is="dom-if" restamp if="[[isSelected(selected,'Problems')]]">
       <pbd-problem-list name="problem-list" data-page="problem-list" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-problem-list>
     </template>
+    <!-- <ros-rviz id="rviz" ros="[[ros]]" hidden></ros-rviz> -->
     <!-- <template is="dom-if" restamp if="[[isSelected(selected,'Robot Control')]]">
       <pbd-robot-control data-page="robot-control" name="robot-control"></pbd-robot-control>
     </template>
@@ -257,6 +258,7 @@
       },
 
       isSelected: function (selected, page) {
+
         return this.selected === page;
       },
       _robotChanged: function (robot) {

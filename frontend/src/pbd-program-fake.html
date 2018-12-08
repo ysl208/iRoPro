@@ -11,7 +11,7 @@
 <link rel="import" href="../bower_components/paper-styles/color.html">
 <link rel="import" href="../bower_components/ros-action-client/ros-action-client.html">
 <link rel="import" href="../bower_components/ros-topic/ros-topic.html">
-<link rel="import" href="../bower_components/ros-rviz/ros-rviz.html">
+<!-- <link rel="import" href="../bower_components/ros-rviz/ros-rviz.html"> -->
 <link rel="import" href="pbd-step.html">
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="underscore.html">
@@ -106,11 +106,6 @@
         padding-bottom: 2px;
       }
 
-      #rviz {
-        display: block;
-        height: 500px;
-      }
-
       fieldset>p {
         display: inline-block;
       }
@@ -119,27 +114,6 @@
         display: inline-block;
         vertical-align: top;
         margin-top: 5px;
-      }
-
-      @media (min-width: 768px) {
-        #layout {
-          height: 100%;
-        }
-        .content {
-          @apply(--layout-horizontal);
-          @apply(--layout-flex);
-        }
-        .stepDiv {
-          width: 350px;
-          max-height: 100%;
-          margin-bottom: 0px;
-          margin-right: 20px;
-        }
-        #rviz {
-          height: 100%;
-          width: 350px;
-          @apply(--layout-flex);
-        }
       }
     </style>
     <ros-topic id="programSub" on-message="_handleProgram" msg-type="rapid_pbd_msgs/Program" topic="rapid_pbd/program/{{action.program_id}}"
