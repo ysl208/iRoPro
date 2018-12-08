@@ -1819,42 +1819,52 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
   for (size_t i = 0; i < problem.initial_states.size(); ++i) {
     planner_problem.initial.push_back(
         PrintPDDLPredicate(problem.initial_states[i], "init"));
-    // ROS_INFO("added initial state: %s", planner_problem.initial[i].c_str());
   }
+  ROS_INFO("added %zu initial states", planner_problem.initial.size());
   // adding default initial states for stackable, thin/flat
   std::ostringstream oss;
   std::string var;
   for (size_t i = 0; i < problem.objects.size(); ++i) {
+    oss.str("");
+    oss.clear();
     msgs::PDDLObject obj = problem.objects[i];
     // cube & roof is stackable on anything that is not a roof
     if (obj.type.name == msgs::PDDLType::ROOF_OBJECT ||
         obj.type.name == msgs::PDDLType::CUBE_OBJECT) {
       for (size_t j = 0; j < problem.objects.size(); ++j) {
         msgs::PDDLObject obj2 = problem.objects[j];
+        oss.str("");
+        oss.clear();
         if (obj.name != obj2.name &&
             obj2.type.name != msgs::PDDLType::ROOF_OBJECT) {
+          oss.str("");
           oss.clear();
           oss << "(stackable " << obj.name << " " << obj2.name << ")";
           planner_problem.initial.push_back(oss.str());
         }
       }
     }
+    oss.str("");
+    oss.clear();
     // base is stackable on anything that is not a roof or a cube
     if (obj.type.name == msgs::PDDLType::BASE_OBJECT) {
       for (size_t j = 0; j < problem.objects.size(); ++j) {
         msgs::PDDLObject obj2 = problem.objects[j];
+        oss.str("");
+        oss.clear();
         if (obj.name != obj2.name &&
             obj2.type.name != msgs::PDDLType::ROOF_OBJECT &&
             obj2.type.name != msgs::PDDLType::CUBE_OBJECT) {
-          oss.clear();
           oss << "(stackable " << (obj.name) << " " << (obj2.name) << ")";
           planner_problem.initial.push_back(oss.str());
         }
       }
     }
+
+    oss.str("");
+    oss.clear();
     // cube and roof are thin
     if (obj.type.name == msgs::PDDLType::ROOF_OBJECT) {
-      oss.clear();
       oss << "(thin " << obj.name << ")";
       planner_problem.initial.push_back(oss.str());
     }
@@ -1862,11 +1872,13 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
     if (obj.type.name == msgs::PDDLType::BASE_OBJECT ||
         obj.type.name == msgs::PDDLType::CUBE_OBJECT ||
         obj.type.name == msgs::PDDLType::POSITION) {
-      oss.clear();
       oss << "(flat " << obj.name << ")";
       planner_problem.initial.push_back(oss.str());
     }
     // ROS_INFO("added initial states for: %s", obj.name.c_str());
+
+    ROS_INFO("No. of initial states: %zu after %s",
+             planner_problem.initial.size(), obj.name.c_str());
   }
 
   planner_problem.goal = PrintAllPredicates(problem.goal_states, "goal");
@@ -1876,6 +1888,8 @@ void Editor::SolvePDDLProblem(const std::string domain_id,
   goal.domain = planner_domain;
   goal.problem = planner_problem;
 
+  ROS_INFO("No. of initial states: %zu before sending to solver",
+           goal.problem.initial.size());
   ROS_INFO("sending goal to solver: %s", planner_problem.goal.c_str());
   action_clients_->pddl_solver_client.sendGoal(goal);
   success =
@@ -1955,10 +1969,10 @@ void Editor::GetMentalModel(const msgs::PDDLAction& action_op,
           ROS_ERROR("dimensions are negative! %.3f",
                     mental_obj.surface_box_dims.z);
         // if target position is an object, then add 0.06, otherwise 0.03
-        mental_obj.pose_stamped.pose.position.z += 0.04;
+        mental_obj.pose_stamped.pose.position.z += 0.045;
         if (pos_name.find("obj") != std::string::npos)
           mental_obj.pose_stamped.pose.position.z +=
-              0.04;  // adding half of obj fixed height 6cm
+              0.045;  // adding half of obj fixed height 6cm
         // fabs(mental_obj.surface_box_dims.z * 0.75);
         mental_lms->at(obj_index) = mental_obj;
         ROS_INFO("New pose is (%.3f,%.3f,%.3f) ",
