@@ -1,0 +1,222 @@
+2018-12-07,13:07:10,home,0,create user User8
+2018-12-07,14:20:17,action-list,1.1,add new action: action1
+2018-12-07,14:20:53,new-action/perception:action1,2.1.1,detect action conditions: Precondition
+2018-12-07,14:21:04,new-action/perception:action1,2.0.1,refresh view
+2018-12-07,14:21:34,new-action/demonstration:action1,2.0.2,save action: action1
+2018-12-07,14:21:34,new-action/demonstration:action1,2.0.5,switch to: demonstration
+2018-12-07,14:21:54,new-action/demonstration:action1,2.2.1,start demo: move-vacuum-base
+2018-12-07,14:22:55,new-action/demonstration:action1,2.2.2,stop demo
+2018-12-07,14:23:00,new-action/demonstration:action1,2.2.1,start demo: move-vacuum-base
+2018-12-07,14:23:07,new-action/demonstration:action1,2.2.2,stop demo
+2018-12-07,14:23:08,new-action/demonstration:action1,2.2.1,start demo: move-vacuum-base
+2018-12-07,14:23:10,new-action/demonstration:action1,2.2.2,stop demo
+2018-12-07,14:23:14,new-action/demonstration:action1,2.2.1,start demo: move-vacuum-base
+2018-12-07,14:24:05,new-action/demonstration:action1,2.2.2,stop demo
+2018-12-07,14:24:14,new-action/demonstration:action1,2.2.4,start replay:move-vacuum-base
+2018-12-07,14:25:11,new-action/actionModel:action1,2.0.2,save action: action1
+2018-12-07,14:25:11,new-action/actionModel:action1,2.0.5,switch to: actionModel
+2018-12-07,14:25:36,new-action/actionModel:action1,2.1.1,detect action conditions: Effect
+2018-12-07,14:26:14,new-action/actionModel:action1,2.3.2,add precondition:posC flat
+2018-12-07,14:26:59,new-action/actionModel:action1,2.3.1,delete precondition:posC flat
+2018-12-07,14:27:14,new-action/actionModel:action1,2.3.3,generate complete action
+2018-12-07,14:27:14,new-action/actionModel:action1,2.0.2,save action: action1
+2018-12-07,14:28:22,new-action/actionModel:action1,2.0.2,save action: action1
+2018-12-07,14:28:22,new-action/actionModel:action1,2.0.4,renamed action to move-vacuum
+2018-12-07,14:28:22,new-action/actionModel:action1,2.0.3,quit action: action1
+2018-12-07,14:28:22,new-action/actionModel:action1,2.0.3,quit action: action1
+2018-12-07,14:29:49,problem-list,3.1,add new problem: problem1
+2018-12-07,14:30:11,new-problem/perception:problem1,4.1.1,detect initial states: initial
+2018-12-07,14:30:19,new-problem/perception:problem1,4.0.1,refresh view
+2018-12-07,14:30:52,new-problem/problemModel:problem1,4.0.2,save problem: problem1
+2018-12-07,14:30:52,new-problem/problemModel:problem1,4.0.5,switch to: problemModel
+2018-12-07,14:32:02,new-problem/generatedPlan:problem1,4.2.3,solve problem
+2018-12-07,14:32:02,new-problem/generatedPlan:problem1,4.3.0,no steps generated
+2018-12-07,14:32:27,new-problem/generatedPlan:problem1,4.3.2,execute plan
+2018-12-07,14:34:35,new-problem/generatedPlan:problem1,4.0.3,quit problem: problem1
+2018-12-07,14:34:39,problem-list,3.1,add new problem: problem2
+2018-12-07,14:35:24,problem-list,3.2,open problem: problem2
+2018-12-07,14:35:52,new-problem/perception:problem2,4.1.1,detect initial states: initial
+2018-12-07,14:36:04,new-problem/perception:problem2,4.0.1,refresh view
+2018-12-07,14:36:30,new-problem/problemModel:problem2,4.0.2,save problem: problem2
+2018-12-07,14:36:30,new-problem/problemModel:problem2,4.0.5,switch to: problemModel
+2018-12-07,14:37:42,new-problem/generatedPlan:problem2,4.2.3,solve problem
+2018-12-07,14:37:42,new-problem/generatedPlan:problem2,4.3.0,no steps generated
+2018-12-07,14:38:26,new-problem/generatedPlan:problem2,4.3.1,show hints
+2018-12-07,14:41:40,new-problem/generatedPlan:problem2,4.0.3,quit problem: problem2
+2018-12-07,14:42:44,action-list,1.2,open action: move-vacuum
+2018-12-07,14:42:54,new-action/demonstration:move-vacuum,2.0.2,save action: move-vacuum
+2018-12-07,14:42:54,new-action/demonstration:move-vacuum,2.0.5,switch to: demonstration
+2018-12-07,14:43:10,new-action/actionModel:move-vacuum,2.0.2,save action: move-vacuum
+2018-12-07,14:43:10,new-action/actionModel:move-vacuum,2.0.5,switch to: actionModel
+2018-12-07,14:47:57,new-action/actionModel:move-vacuum,2.3.2,add precondition:posM clear
+2018-12-07,14:49:14,new-action/actionModel:move-vacuum,2.0.2,save action: move-vacuum
+2018-12-07,14:49:14,new-action/actionModel:move-vacuum,2.0.3,quit action: move-vacuum
+2018-12-07,14:49:23,problem-list,3.2,open problem: problem2
+2018-12-07,14:49:23,new-problem/perception:problem2,4.3.0,no steps generated
+2018-12-07,14:49:28,new-problem/problemModel:problem2,4.0.2,save problem: problem2
+2018-12-07,14:49:28,new-problem/problemModel:problem2,4.0.5,switch to: problemModel
+2018-12-07,14:49:31,new-problem/generatedPlan:problem2,4.2.3,solve problem
+2018-12-07,14:49:42,new-problem/generatedPlan:problem2,4.3.1,show hints
+2018-12-07,14:51:48,new-problem/generatedPlan:problem2,4.0.3,quit problem: problem2
+2018-12-07,14:52:04,action-list,1.2,open action: move-vacuum
+2018-12-07,14:52:28,new-action/actionModel:move-vacuum,2.0.2,save action: move-vacuum
+2018-12-07,14:52:28,new-action/actionModel:move-vacuum,2.0.5,switch to: actionModel
+2018-12-07,14:54:05,new-action/actionModel:move-vacuum,2.3.2,add effect:posB clear
+2018-12-07,14:54:24,new-action/actionModel:move-vacuum,2.0.2,save action: move-vacuum
+2018-12-07,14:54:24,new-action/actionModel:move-vacuum,2.0.3,quit action: move-vacuum
+2018-12-07,14:54:35,problem-list,3.2,open problem: problem2
+2018-12-07,14:54:41,new-problem/problemModel:problem2,4.0.2,save problem: problem2
+2018-12-07,14:54:41,new-problem/problemModel:problem2,4.0.5,switch to: problemModel
+2018-12-07,14:54:43,new-problem/generatedPlan:problem2,4.2.3,solve problem
+2018-12-07,14:54:44,new-problem/generatedPlan:problem2,4.3.0,no steps generated
+2018-12-07,14:55:22,new-problem/generatedPlan:problem2,4.0.3,quit problem: problem2
+2018-12-07,14:55:24,problem-list,3.1,add new problem: problem3
+2018-12-07,14:55:38,problem-list,3.2,open problem: problem3
+2018-12-07,14:55:59,new-problem/perception:problem3,4.1.1,detect initial states: initial
+2018-12-07,14:56:11,new-problem/perception:problem3,4.0.1,refresh view
+2018-12-07,14:57:43,new-problem/perception:problem3,4.1.4,add initial state:obj2 stackable
+2018-12-07,14:57:49,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-07,14:57:49,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-07,14:58:23,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-07,14:58:31,new-problem/perception:problem3,4.0.2,save problem: problem3
+2018-12-07,14:58:31,new-problem/perception:problem3,4.0.5,switch to: perception
+2018-12-07,14:58:36,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-07,14:58:36,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-07,14:58:38,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-07,14:58:40,new-problem/generatedPlan:problem3,4.3.1,show hints
+2018-12-07,14:59:38,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-07,14:59:38,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-07,14:59:40,new-problem/perception:problem3,4.0.2,save problem: problem3
+2018-12-07,14:59:40,new-problem/perception:problem3,4.0.5,switch to: perception
+2018-12-07,15:01:10,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-07,15:01:10,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-07,15:01:22,new-problem/problemModel:problem3,4.2.2,delete goal state:obj2 on
+2018-12-07,15:01:32,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-07,15:01:49,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-07,15:01:49,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-07,15:01:53,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-07,15:03:28,action-list,1.2,open action: move-vacuum
+2018-12-07,15:03:37,new-action/perception:move-vacuum,2.1.2,change type to: base
+2018-12-07,15:03:47,new-action/perception:move-vacuum,2.1.2,change type to: object
+2018-12-07,15:04:03,new-action/perception:move-vacuum,2.1.2,change type to: cube
+2018-12-07,15:04:11,new-action/perception:move-vacuum,2.1.2,change type to: object
+2018-12-07,15:04:18,new-action/perception:move-vacuum,2.1.2,change type to: element
+2018-12-07,15:04:23,new-action/perception:move-vacuum,2.1.2,change type to: object
+2018-12-07,15:04:41,new-action/perception:move-vacuum,2.1.2,change type to: position
+2018-12-07,15:05:30,new-action/perception:move-vacuum,2.1.2,change type to: object
+2018-12-07,15:05:40,new-action/perception:move-vacuum,2.1.2,change type to: element
+2018-12-07,15:05:54,new-action/perception:move-vacuum,2.0.2,save action: move-vacuum
+2018-12-07,15:05:54,new-action/perception:move-vacuum,2.0.3,quit action: move-vacuum
+2018-12-07,15:06:01,problem-list,3.2,open problem: problem3
+2018-12-07,15:06:08,new-problem/generatedPlan:problem3,4.0.2,save problem: problem3
+2018-12-07,15:06:08,new-problem/generatedPlan:problem3,4.0.5,switch to: generatedPlan
+2018-12-07,15:06:09,new-problem/generatedPlan:problem3,4.3.1,show hints
+2018-12-07,15:06:11,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-07,15:06:11,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-07,15:06:18,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-07,15:06:18,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-07,15:06:40,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-07,15:06:40,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-07,15:07:03,new-problem/problemModel:problem3,4.2.2,delete goal state:obj2 on
+2018-12-07,15:07:08,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-07,15:07:27,new-problem/generatedPlan:problem3,4.0.3,quit problem: problem3
+2018-12-07,15:07:31,problem-list,3.1,add new problem: problem4
+2018-12-07,15:08:35,new-problem/perception:problem4,4.1.1,detect initial states: initial
+2018-12-07,15:09:08,new-problem/perception:problem4,4.0.1,refresh view
+2018-12-07,15:10:15,new-problem/problemModel:problem4,4.0.2,save problem: problem4
+2018-12-07,15:10:15,new-problem/problemModel:problem4,4.0.5,switch to: problemModel
+2018-12-07,15:10:22,new-problem/problemModel:problem4,4.0.3,quit problem: problem4
+2018-12-07,15:10:52,action-list,1.2,open action: move-vacuum
+2018-12-07,15:10:58,new-action/perception:move-vacuum,2.1.2,change type to: element
+2018-12-07,15:11:04,new-action/actionModel:move-vacuum,2.0.2,save action: move-vacuum
+2018-12-07,15:11:04,new-action/actionModel:move-vacuum,2.0.5,switch to: actionModel
+2018-12-07,15:12:14,new-action/actionModel:move-vacuum,2.3.2,add precondition:obj1 flat
+2018-12-07,15:12:26,new-action/actionModel:move-vacuum,2.0.2,save action: move-vacuum
+2018-12-07,15:12:26,new-action/actionModel:move-vacuum,2.0.3,quit action: move-vacuum
+2018-12-07,15:13:14,action-list,1.1,add new action: action2
+2018-12-07,15:13:49,new-action/perception:action2,2.1.1,detect action conditions: Precondition
+2018-12-07,15:14:02,new-action/perception:action2,2.0.1,refresh view
+2018-12-07,15:14:36,new-action/perception:action2,2.1.2,change type to: position
+2018-12-07,15:14:46,new-action/demonstration:action2,2.0.2,save action: action2
+2018-12-07,15:14:46,new-action/demonstration:action2,2.0.5,switch to: demonstration
+2018-12-07,15:15:02,new-action/demonstration:action2,2.2.1,start demo: move-electric-roof
+2018-12-07,15:15:58,new-action/demonstration:action2,2.2.2,stop demo
+2018-12-07,15:16:03,new-action/demonstration:action2,2.2.4,start replay:move-electric-roof
+2018-12-07,15:16:51,new-action/actionModel:action2,2.0.2,save action: action2
+2018-12-07,15:16:51,new-action/actionModel:action2,2.0.5,switch to: actionModel
+2018-12-07,15:17:18,new-action/actionModel:action2,2.1.1,detect action conditions: Effect
+2018-12-07,15:17:37,new-action/actionModel:action2,2.3.3,generate complete action
+2018-12-07,15:17:38,new-action/actionModel:action2,2.0.2,save action: action2
+2018-12-07,15:17:53,new-action/actionModel:action2,2.0.2,save action: action2
+2018-12-07,15:17:53,new-action/actionModel:action2,2.0.3,quit action: action2
+2018-12-07,15:18:56,problem-list,3.1,add new problem: problem5
+2018-12-07,15:19:18,new-problem/perception:problem5,4.1.1,detect initial states: initial
+2018-12-07,15:19:31,new-problem/perception:problem5,4.0.1,refresh view
+2018-12-07,15:20:41,new-problem/problemModel:problem5,4.0.2,save problem: problem5
+2018-12-07,15:20:41,new-problem/problemModel:problem5,4.0.5,switch to: problemModel
+2018-12-07,15:21:20,new-problem/generatedPlan:problem5,4.2.3,solve problem
+2018-12-07,15:21:20,new-problem/generatedPlan:problem5,4.3.0,no steps generated
+2018-12-07,15:21:33,new-problem/problemModel:problem5,4.0.2,save problem: problem5
+2018-12-07,15:21:33,new-problem/problemModel:problem5,4.0.5,switch to: problemModel
+2018-12-07,15:21:35,new-problem/perception:problem5,4.0.2,save problem: problem5
+2018-12-07,15:21:35,new-problem/perception:problem5,4.0.5,switch to: perception
+2018-12-07,15:21:45,new-problem/generatedPlan:problem5,4.0.2,save problem: problem5
+2018-12-07,15:21:45,new-problem/generatedPlan:problem5,4.0.5,switch to: generatedPlan
+2018-12-07,15:21:47,new-problem/generatedPlan:problem5,4.3.1,show hints
+2018-12-07,15:22:39,new-problem/generatedPlan:problem5,4.0.3,quit problem: problem5
+2018-12-07,15:22:57,action-list,1.2,open action: move-vacuum
+2018-12-07,15:23:04,new-action/perception:move-vacuum,2.1.2,change type to: element
+2018-12-07,15:23:07,new-action/perception:move-vacuum,2.1.2,change type to: object
+2018-12-07,15:23:11,new-action/actionModel:move-vacuum,2.0.2,save action: move-vacuum
+2018-12-07,15:23:11,new-action/actionModel:move-vacuum,2.0.5,switch to: actionModel
+2018-12-07,15:24:16,new-action/actionModel:move-vacuum,2.3.1,delete precondition:obj1 flat
+2018-12-07,15:24:48,new-action/actionModel:move-vacuum,2.3.2,add precondition:obj1 flat
+2018-12-07,15:24:56,new-action/actionModel:move-vacuum,2.0.2,save action: move-vacuum
+2018-12-07,15:24:56,new-action/actionModel:move-vacuum,2.0.3,quit action: move-vacuum
+2018-12-07,15:25:01,action-list,1.2,open action: action2
+2018-12-07,15:25:09,new-action/perception:action2,2.0.3,quit action: action2
+2018-12-07,15:25:16,problem-list,3.2,open problem: problem5
+2018-12-07,15:25:16,new-problem/perception:problem5,4.3.0,no steps generated
+2018-12-07,15:25:21,new-problem/problemModel:problem5,4.0.2,save problem: problem5
+2018-12-07,15:25:21,new-problem/problemModel:problem5,4.0.5,switch to: problemModel
+2018-12-07,15:25:26,new-problem/generatedPlan:problem5,4.2.3,solve problem
+2018-12-07,15:25:34,new-problem/generatedPlan:problem5,4.3.1,show hints
+2018-12-07,15:27:11,new-problem/generatedPlan:problem5,4.0.3,quit problem: problem5
+2018-12-07,15:27:36,action-list,1.2,open action: action2
+2018-12-07,15:27:41,new-action/perception:action2,2.0.1,refresh view
+2018-12-07,15:27:59,new-action/perception:action2,2.1.2,change type to: object
+2018-12-07,15:28:14,new-action/perception:action2,2.1.2,change type to: element
+2018-12-07,15:28:19,new-action/perception:action2,2.0.2,save action: action2
+2018-12-07,15:28:19,new-action/perception:action2,2.0.3,quit action: action2
+2018-12-07,15:28:25,problem-list,3.2,open problem: problem5
+2018-12-07,15:28:30,new-problem/problemModel:problem5,4.0.2,save problem: problem5
+2018-12-07,15:28:30,new-problem/problemModel:problem5,4.0.5,switch to: problemModel
+2018-12-07,15:28:33,new-problem/generatedPlan:problem5,4.2.3,solve problem
+2018-12-07,15:28:34,new-problem/generatedPlan:problem5,4.3.0,no steps generated
+2018-12-07,15:28:41,new-problem/generatedPlan:problem5,4.3.1,show hints
+2018-12-07,15:29:40,new-problem/generatedPlan:problem5,4.0.3,quit problem: problem5
+2018-12-07,15:29:41,problem-list,3.1,add new problem: problem6
+2018-12-07,15:29:59,problem-list,3.2,open problem: problem6
+2018-12-07,15:30:18,new-problem/perception:problem6,4.1.1,detect initial states: initial
+2018-12-07,15:30:31,new-problem/perception:problem6,4.0.1,refresh view
+2018-12-07,15:31:41,new-problem/problemModel:problem6,4.0.2,save problem: problem6
+2018-12-07,15:31:41,new-problem/problemModel:problem6,4.0.5,switch to: problemModel
+2018-12-07,15:32:27,new-problem/generatedPlan:problem6,4.2.3,solve problem
+2018-12-07,15:32:27,new-problem/generatedPlan:problem6,4.3.0,no steps generated
+2018-12-07,15:32:39,new-problem/generatedPlan:problem6,4.3.1,show hints
+2018-12-07,15:33:16,new-problem/generatedPlan:problem6,4.3.2,execute plan
+2018-12-07,15:53:42,action-list,1.2,open action: action2
+2018-12-07,15:53:49,new-action/perception:action2,2.0.3,quit action: action2
+2018-12-07,15:54:07,action-list,1.2,open action: action2
+2018-12-07,15:58:29,problem-list,3.2,open problem: problem6
+2018-12-07,15:58:29,new-problem/perception:problem6,4.3.0,no steps generated
+2018-12-07,15:58:31,new-problem/problemModel:problem6,4.0.2,save problem: problem6
+2018-12-07,15:58:31,new-problem/problemModel:problem6,4.0.5,switch to: problemModel
+2018-12-07,15:58:32,new-problem/generatedPlan:problem6,4.0.2,save problem: problem6
+2018-12-07,15:58:32,new-problem/generatedPlan:problem6,4.0.5,switch to: generatedPlan
+2018-12-07,15:59:09,new-problem/generatedPlan:problem6,4.3.2,execute plan
+2018-12-07,16:00:22,problem-list,3.2,open problem: problem6
+2018-12-07,16:00:22,new-problem/perception:problem6,4.3.0,no steps generated
+2018-12-07,16:00:24,new-problem/generatedPlan:problem6,4.0.2,save problem: problem6
+2018-12-07,16:00:24,new-problem/generatedPlan:problem6,4.0.5,switch to: generatedPlan
+2018-12-07,16:01:18,new-problem/generatedPlan:problem6,4.3.2,execute plan
