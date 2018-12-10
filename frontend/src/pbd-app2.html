@@ -21,7 +21,10 @@
 
 <link rel="import" href="../bower_components/ros-param/ros-param.html">
 <link rel="import" href="../bower_components/ros-topic/ros-topic.html">
+<link rel="import" href="../bower_components/ros-rviz/ros-rviz.html">
+<link rel="import" href="../bower_components/ros-service/ros-service.html">
 <link rel="import" href="../bower_components/ros-websocket/ros-websocket.html">
+<link rel="import" href="../bower_components/ros-action-client/ros-action-client.html">
 <link rel="import" href="pbd-action-list.html">
 <link rel="import" href="pbd-program.html">
 <link rel="import" href="pbd-program-fake.html">
@@ -53,6 +56,12 @@
         padding: 2%;
       }
 
+
+      #rviz {
+        display: block;
+        min-height: 350px;
+      }
+
       a paper-button,
       a:active paper-button,
       a:visited paper-button {
@@ -81,6 +90,36 @@
       [hidden] {
         display: none !important;
       }
+
+      @media (min-width: 768px) {
+        #layout {
+          height: 100%;
+        }
+        .content {
+
+          @apply(--layout-horizontal);
+          @apply(--layout-flex);
+        }
+        .stepDiv {
+          width: 900px;
+          max-height: 100%;
+          margin-bottom: 0px;
+          margin-right: 20px;
+        }
+        .vizDiv {
+          width: 400px;
+          max-height: 100%;
+          margin-bottom: 0px;
+          margin-right: 20px;
+        }
+
+        #rviz {
+          padding-top: 10px;
+          height: 900px;
+          width: 500px;
+          /* @apply(--layout-flex); */
+        }
+      }
     </style>
     <!-- ROS connection -->
 
@@ -92,6 +131,7 @@
     <ros-topic auto on-message="_handleRosout" msg-type="rosgraph_msgs/Log" topic="rosout" ros="[[ros]]"></ros-topic>
     <ros-param id="param" name="rapid_pbd/robot" string-val="{{_robot}}" ros="[[ros]]"></ros-param>
     <ros-topic auto last-message="{{domain_msg}}" msg-type="std_msgs/String" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+    <ros-topic auto last-message="{{scene_id}}" msg-type="std_msgs/String" topic="rapid_pbd/gui_scene_id" ros="[[ros]]"></ros-topic>
 
     <paper-dialog modal id="dialog">
       <h2>Disconnected from server</h2>
@@ -128,12 +168,6 @@
       </app-drawer>
       <app-header-layout>
         <app-header class="main-header" slot="header">
-
-          <!-- <app-toolbar>
-            <!- drawer toggle button ->
-          <paper-icon-button class="menu-button" icon="menu" drawer-toggle hidden$="{{wideLayout}}"></paper-icon-button>
-          </app-toolbar> -->
-
           <app-toolbar class="tabs-bar" hidden$="{{!wideLayout}}">
             <!-- Nav on desktop: tabs -->
             <paper-tabs selected="{{selected}}" attr-for-selected="name" bottom-item>
@@ -152,13 +186,33 @@
     <template is="dom-if" restamp if="[[isSelected(selected,'Home')]]">
       <pbd-home on-updatebtn="updateBtn" data-page="program" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-home>
     </template>
-    <template is="dom-if" restamp if="[[isSelected(selected,'Actions')]]">
-      <pbd-action-list name="action-list" data-page="action-list" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-action-list>
-    </template>
-    <template is="dom-if" restamp if="[[isSelected(selected,'Problems')]]">
-      <pbd-problem-list name="problem-list" data-page="problem-list" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-problem-list>
-    </template>
-    <!-- <ros-rviz id="rviz" ros="[[ros]]" hidden></ros-rviz> -->
+    <div id="layout" class="layout vertical">
+      <div class="layout horizontal center">
+
+      </div>
+      <div class="content">
+
+        <div id="stepContent" class="stepDiv" hidden$="[[!_hasSteps(program.steps)]]">
+          <div class="stepDivInner">
+            <template is="dom-if" restamp if="[[isSelected(selected,'Actions')]]">
+              <pbd-action-list name="action-list" data-page="action-list" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-action-list>
+            </template>
+            <template is="dom-if" restamp if="[[isSelected(selected,'Problems')]]">
+              <pbd-problem-list name="problem-list" data-page="problem-list" params="[[params]]" ros="[[ros]]" route="{{routeTail}}"></pbd-problem-list>
+            </template>
+          </div>
+        </div>
+
+        <div id="vizContent" class="vizDiv" hidden$="[[!_hasSteps(program.steps)]]">
+          <div class="vizDivInner">
+            <!-- <template is="dom-if" restamp if="[[_showViz(scene_id)]]"> -->
+            <ros-rviz id="rviz" ros="[[ros]]" hidden$="[[!_showViz(scene_id)]]" width="400"></ros-rviz>
+            <!-- </template> -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- <template is="dom-if" restamp if="[[isSelected(selected,'Robot Control')]]">
       <pbd-robot-control data-page="robot-control" name="robot-control"></pbd-robot-control>
     </template>
@@ -192,6 +246,12 @@
             return protocol + '//' + hostname + ':9090';
           },
         },
+        scene_id: {
+          type: Object,
+          value: function () {
+            return { data: false };
+          }
+        },
         params: {
           type: Object,
           value: function () {
@@ -224,7 +284,128 @@
         }
       },
 
-      observers: ['_robotChanged(_robot)'],
+      observers: [
+        '_robotChanged(_robot)',
+        'load(scene_id.data)'],
+
+      _showViz: function (scene_id) {
+
+        return (!this.isSelected(this.selected, 'Home'));
+      },
+      load: function (scene_id) {
+
+        console.log('load: old ', this.scene_id);
+        console.log('load: new ', scene_id);
+
+        if (!scene_id) {
+          return;
+        }
+        this.scene_id = scene_id;
+        if (!this.params.robot) {
+          return;
+        }
+        var depthCloudFrameId = '';
+        if (this.params.robot === "pr2") {
+          depthCloudFrameId = '/head_mount_kinect_rgb_optical_frame';
+        } else if (this.params.robot === "fetch") {
+          depthCloudFrameId = '/head_camera_rgb_optical_frame';
+        } else if (this.params.robot === "baxter") {
+          depthCloudFrameId = '/camera_rgb_optical_frame';
+        } else {
+          console.error('Unknown robot type', this.params.robot);
+        }
+
+        var fixedFrame = '';
+        if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+          fixedFrame = '/base_link';
+        } else if (this.params.robot === "baxter") {
+          fixedFrame = '/base';
+        } else {
+          console.error('Unknown robot type', this.params.robot);
+        }
+        var config = {
+          globalOptions: {
+            background: '#113344',
+            colladaLoader: 'collada2',
+            colladaServer: window.location.protocol + '//' + window.location.hostname + ':8001/',
+            fixedFrame: fixedFrame,
+            videoServer: window.location.protocol + '//' + window.location.hostname + ':9998',
+            url: 'ws://' + window.location.hostname + ':9090'
+          },
+          displays: [
+            {
+              //   isShown: false,
+              //   name: 'Grid',
+              //   type: 'grid',
+              //   options: {
+              //     cellSize: 1,
+              //     color: '#cccccc',
+              //     numCells: 20,
+              //   },
+              // }, {
+              //   isShown: false,
+              //   name: 'Program robot model',
+              //   type: 'markerArray',
+              //   options: {
+              //     topic: '/rapid_pbd/robot/' + this.action.program_id,
+              //   },
+              // }, {
+              isShown: true,
+              name: 'Surface segmentation',
+              type: 'markerArray',
+              options: {
+                topic: '/rapid_pbd/surface_segmentation/' + scene_id,
+              },
+            }, {
+              //   isShown: true,
+              //   name: 'Surface segmentation',
+              //   type: 'markers',
+              //   options: {
+              //     topic: '/rapid_pbd/surface_seg/visualization/'// + db_id,
+              //   },
+              // }, { 
+
+              isShown: true,
+              name: 'Scene',
+              type: 'pointCloud2',
+              options: {
+                size: 0.01,
+                topic: '/rapid_pbd/scene/' + scene_id,
+              },
+              // }, {
+              //   isShown: false,
+              //   name: 'Current robot model',
+              //   type: 'urdf',
+              //   options: {
+              //     param: 'robot_description',
+              //     tfPrefix: ''
+              //   },
+              // }, {
+              // isShown: false,
+              // name: 'Current surface segmentation',
+              // type: 'markerArray',
+              // options: {
+              //   topic: '/rapid_pbd/runtime_segmentation',
+              // },
+              // }, {
+              //   isShown: false,
+              //   name: 'Current depth cloud',
+              //   type: 'depthCloud',
+              //   options: {
+              //     topic: 'depthcloud_encoded',
+              //     frameId: depthCloudFrameId
+              //   },
+            },
+          ],
+          sidebarOpened: false,
+        };
+        if (this.$.rviz) {
+          console.info('rviz ready, with scene_id ' + scene_id);
+          this.$.rviz.config = config;
+        } else {
+          console.info('rviz not ready');
+        }
+      },
 
       reconnect: function () {
         var url = this.$.websocketUrl.value;

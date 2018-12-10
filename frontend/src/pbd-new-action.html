@@ -50,7 +50,7 @@
             }
 
             paper-input {
-                width: 40%;
+                width: 20px;
                 display: inline-block;
             }
 
@@ -82,23 +82,24 @@
                 padding-left: 2px;
                 padding-right: 2px;
                 padding-bottom: 2px;
+                padding-top: 10px;
                 display: inline-block;
             }
 
             #rviz {
                 display: block;
-                min-height: 1000px;
+                min-height: 500px;
             }
 
             fieldset>p {
                 display: inline-block;
-                margin-top: 5px;
+                margin-top: 10px;
             }
 
             fieldset iron-icon {
                 display: inline-block;
-                vertical-align: top;
-                margin-top: 5px;
+                vertical-align: center;
+                margin-top: 10px;
             }
 
             .delete {
@@ -131,8 +132,8 @@
                     margin-right: 10px;
                 }
                 #rviz {
-                    min-height: 750px;
-                    max-width: 750px;
+                    min-height: 100%;
+                    max-width: 350px;
                     @apply(--layout-flex);
                 }
 
@@ -146,16 +147,20 @@
 
             header {
                 display: flex;
+                padding-left: 10px;
             }
 
             nav {
                 font-size: 1.2em;
                 text-align: center;
                 flex: 1;
+                display: inline-block;
+                width: 100%;
             }
 
             #actionName {
-                width: 200px;
+                width: 100px;
+                text-align: center;
             }
 
             nav paper-button {
@@ -178,6 +183,7 @@
 
             #buttonDiv {
                 float: right;
+                display: inline-block;
             }
 
             header {
@@ -207,63 +213,72 @@
         <ros-topic auto last-message="{{pddlDomain}}" msg-type="rapid_pbd_msgs/PDDLDomain" topic="rapid_pbd/domain/{{domain_id}}"
             ros="[[ros]]"></ros-topic>
         <ros-topic auto last-message="{{domain_msg}}" msg-type="std_msgs/String" topic="rapid_pbd/pddl_domain" ros="[[ros]]"></ros-topic>
+        <ros-topic auto id="vizPub" msg-type="std_msgs/String" topic="rapid_pbd/gui_scene_id" ros="[[ros]]"></ros-topic>
 
-        <header>
-            <paper-input id="actionName" label="Action name" value="{{actionName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
-            <nav>
-                <!-- Action navigation buttons -->
-                <paper-button toggles class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]"
-                    active$="[[_displayNavStep(navStep,'perception')]]" data-args="perception">
-                    1. Perception
-                </paper-button>
-                <!-- <a href="#/program/{{action.program_id}}"> -->
-                <paper-button toggles name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]"
-                    active$="[[_displayNavStep(navStep,'demonstration')]]" data-args="demonstration">
-                    2. Demonstration
-                </paper-button>
-                <!-- </a> -->
-                <paper-button toggles class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]"
-                    active$="[[_displayNavStep(navStep,'actionModel')]]" data-args="actionModel">
-                    3. Conditions
-                </paper-button>
-            </nav>
-            <div id="buttonDiv">
+        <!-- <header> -->
+        <table>
+            <tr>
+                <paper-input id="actionName" label="Action name" value="{{actionName}}" auto-validate pattern="[a-zA-Z0-9_-]*" error-message="invalid characters"></paper-input>
+            </tr>
+            <tr>
+                <div id="buttonDiv">
+                    <p>
+                        <!-- <paper-radio-button class="button_not" id="button_show_robot">Show Robot</paper-radio-button> -->
+                        <paper-button raised class="clear" on-tap="_refreshViz">
 
-                <!-- <paper-radio-button class="button_not" id="button_show_robot">Show Robot</paper-radio-button> -->
-                <paper-button raised class="clear" on-tap="_refreshViz">
+                            <iron-icon icon="icons:refresh"> </iron-icon>
+                        </paper-button>
+                        <paper-button raised class="clear" on-click="saving">
+                            <iron-icon icon="icons:save"> </iron-icon>
+                            Save
+                        </paper-button>
 
-                    <iron-icon icon="icons:refresh"> </iron-icon>
-                </paper-button>
-                <paper-button raised class="clear" on-click="saving">
-                    <iron-icon icon="icons:save"> </iron-icon>
-                    Save
-                </paper-button>
-
-                <paper-button raised class="clear" on-click="exiting">
-                    <iron-icon icon="icons:close"> </iron-icon>
-                </paper-button>
+                        <paper-button raised class="clear" on-click="exiting">
+                            <iron-icon icon="icons:close"> </iron-icon>
+                        </paper-button>
+                    </p>
+                </div>
+            </tr>
+            <tr>
+                <nav>
+                    <!-- Action navigation buttons -->
+                    <paper-button toggles class="petit" name="perception" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'perception')]]"
+                        active$="[[_displayNavStep(navStep,'perception')]]" data-args="perception">
+                        1. Perception
+                    </paper-button>
+                    <!-- <a href="#/program/{{action.program_id}}"> -->
+                    <paper-button toggles name="demonstration" class="petit" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'demonstration')]]"
+                        active$="[[_displayNavStep(navStep,'demonstration')]]" data-args="demonstration">
+                        2. Demonstration
+                    </paper-button>
+                    <!-- </a> -->
+                    <paper-button toggles class="petit" name="actionModel" on-tap="_selectNavStep" disabled$="[[_displayNavStep(navStep,'actionModel')]]"
+                        active$="[[_displayNavStep(navStep,'actionModel')]]" data-args="actionModel">
+                        3. Conditions
+                    </paper-button>
+                </nav>
+            </tr>
+        </table>
+        <paper-dialog modal id="saving">
+            <h2>Save current action '[[actionName]]'?</h2>
+            <p id="description">
+                Make sure the parameters and their types are correct. </p>
+            <p>If action name changed, action will be closed on save.</p>
+            <div>
+                <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+                <paper-button dialog-confirm raised on-tap="saveQuit">Save and quit</paper-button>
             </div>
+        </paper-dialog>
 
-            <paper-dialog modal id="saving">
-                <h2>Save current action '[[actionName]]'?</h2>
-                <p id="description">
-                    Make sure the parameters and their types are correct. </p>
-                <p>If action name changed, action will be closed on save.</p>
-                <div>
-                    <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
-                    <paper-button dialog-confirm raised on-tap="saveQuit">Save and quit</paper-button>
-                </div>
-            </paper-dialog>
-
-            <paper-dialog modal id="exiting">
-                <h2>Quit current action?</h2>
-                <p>All change not saved will be lost.</p>
-                <div>
-                    <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
-                    <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
-                </div>
-            </paper-dialog>
-        </header>
+        <paper-dialog modal id="exiting">
+            <h2>Quit current action?</h2>
+            <p>All change not saved will be lost.</p>
+            <div>
+                <paper-button dialog-dismiss raised class="cancel">Cancel</paper-button>
+                <paper-button dialog-confirm raised on-tap="quit">Quit</paper-button>
+            </div>
+        </paper-dialog>
+        <!-- </header> -->
 
 
         <div id="layout" class="layout vertical">
@@ -448,7 +463,7 @@
                         </center>
                     </div>
                 </div>
-                <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz>
+                <!-- <ros-rviz id="rviz" ros="[[ros]]"></ros-rviz> -->
             </div>
         </div>
         <paper-dialog id="errorDialog" modal>
@@ -585,6 +600,7 @@
                 '_checkClearPrecond(newPrecondition.name)',
                 '_checkClearEffect(newEffect.name)',
                 '_stepChanged(ros, action.*)',
+                '_sceneUpdated(action.program_id)'
                 // '_predicatesChanged(action.preconditions.*,action.effects.*)',
                 // '_paramsChanged(action.params.*)',
                 // '_aparamsChanged(actionParams.*)',
@@ -646,6 +662,14 @@
             _actionUpdated: function (action) {
                 if (action && action.base && action.base.name != '') {
                     this.actionName = action.base.name;
+                }
+            },
+            _sceneUpdated: function (program_id) {
+                var now = new Date();
+                console.log('_sceneUpdated:', now.toLocaleString(), program_id);
+                if (program_id != '') {
+                    var msg = { data: program_id };
+                    this.$.vizPub.publish(msg);
                 }
             },
             load: function (db_id, paramsChangeRecord, currDomainId) {
@@ -768,7 +792,7 @@
                 if (this.$.rviz /*&& !this._displayNavStep(this.navStep, 'demonstration')*/) {
                     this.$.rviz.config = config;
                 } else {
-                    console.info('rviz not ready');
+                    // console.info('rviz not ready');
                 }
             },
 
@@ -974,8 +998,11 @@
             },
             quit: function (evt) {
                 this.logActivity('2.0.3,quit action: ' + this.action.name);
+                var msg = { data: '' };
+                this.$.vizPub.publish(msg);
+
                 this.remove();
-                location.reload();
+                // location.reload();
                 this.fire('quit');
             },
 
