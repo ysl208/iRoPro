@@ -465,13 +465,12 @@
               <legend>
                 Generated steps to solve problem
               </legend>
-              <!-- <p>Verify all sequence is correct before proceeding.</p> -->
-              <p id="noSteps" hidden$="[[!_stepsFound]]">
+              <p id="noSteps" hidden$="[[_stepsFound]]">
                 <img src="../../images/baxter-confused.png" height="30">
-                <br> Baxter couldn't find a way to achieve the goal with the existing actions and their conditions.</p>
+                <br> Baxter couldn't find a way to achieve the goal with the existing actions and their conditions.
+              </p>
               <table>
-                <!-- <template is="dom-if" if="[[_stepsFound]]"> -->
-                <p id="hasSteps" hidden$="[[_stepsFound]]">
+                <p id="hasSteps" hidden$="[[!_stepsFound]]">
                   <img src="../../images/baxter-neutral.png" height="30"> Baxter has found the following plan to reach your goal:
                   <br>
                 </p>
@@ -491,7 +490,6 @@
                     </div>
                   </tr>
                 </template>
-                <!-- </template> -->
               </table>
               <!-- Add new action to plan manually -->
               <!-- <div>
@@ -538,7 +536,7 @@
 
               <center>
                 <p>
-                  Make sure the steps are correct!
+                  If actions have been generated correctly, then you can
                   <paper-button id="execute" raised class="clear" on-tap="_execute">
                     Execute
                   </paper-button>
@@ -549,13 +547,13 @@
                 </paper-button>
               </center>
               <paper-button noink class="petit" on-click="showDebugging" raised>
-
                 <iron-icon icon="icons:lightbulb-outline"></iron-icon>Review Baxter's actions
               </paper-button>
 
               <div id="debugging" hidden$="[[!_showDebugging]]">
                 <p id="verifyActions">
-                  <!-- <h4>Review Baxter's actions:</h4> -->
+                  <h4>
+                    <img src="../../images/baxter-neutral.png" height="30"> Baxter's existing actions:</h4>
                   <template is="dom-repeat" items="[[domain.actions]]" as="action">
                     <i> [[_getGeneralisedAction(action)]]</i>
                     <paper-button class="clear" on-tap="viewActionSummary" data-args="[[action]]">
@@ -766,12 +764,20 @@
 
       ],
       _planGenerated(planSteps) {
+
+        console.debug('_planGenerated: ', planSteps.length);
         if (!planSteps || planSteps.length < 1) {
           this._stepsFound = false;
+          this._showDebugging = true;
+          console.debug('_planGenerated: no steps', );
           this.logActivity('4.3.0,no steps generated');
-        } else if (planSteps.length > 0) {
+        } else {
+          console.debug('_planGenerated: has steps', planSteps.length);
+          this._stepsFound = true;
+          this._showDebugging = false;
           this.logActivity('4.3.0.1,plan found with number of steps: ' + planSteps.length);
         }
+
       },
       _checkClearPos: function (type) {
         // TO DO: not sure if the added predicate is valid
@@ -846,8 +852,8 @@
       },
 
       _sceneUpdated: function (scene_id) {
-        var now = new Date();
-        console.log('_sceneUpdated:', now.toLocaleString(), scene_id);
+        // var now = new Date();
+        // console.log('_sceneUpdated:', now.toLocaleString(), scene_id);
         if (scene_id != '') {
           var msg = { data: scene_id };
           this.$.vizPub.publish(msg);
@@ -1025,9 +1031,9 @@
           // Check if items are well selected
           if (this.$.menu_instance1_goal_state.value == undefined
             || this.$.menu_name_goal_state.value == undefined
-            || ((this.$.menu_name_precond.value != "is clear"
-              && this.$.menu_name_precond.value != "is thin"
-              && this.$.menu_name_precond.value != "is flat")
+            || ((this.$.menu_name_goal_state.value != "is clear"
+              && this.$.menu_name_goal_state.value != "is thin"
+              && this.$.menu_name_goal_state.value != "is flat")
               && this.$.menu_instance2_goal_state.value == undefined)) {
             valide = false;
             msgErreur = "Complete your new predicate before adding it";
@@ -1313,12 +1319,13 @@
 
       _getParamTypeByName: function (obj) {
         // //console.debug('_getParamTypeByName: ', item);
-
-        for (var i = 0; i < this.problem.objects.length; ++i) {
-          if (this.problem.objects[i].name == obj.name)
-            return this.problem.objects[i].type.name;
+        if (obj && obj.name != "") {
+          for (var i = 0; i < this.problem.objects.length; ++i) {
+            if (this.problem.objects[i].name == obj.name)
+              return this.problem.objects[i].type.name;
+          }
         }
-        return "?";
+        return "";
       },
 
       _getTypes: function (item) {
@@ -1365,7 +1372,6 @@
       },
       _selectNavStep: function (evt) {
         this.navStep = evt.target.getAttribute('data-args');
-        console.log('selectNavStep: ', this.navStep);
         this.save();
         this.logActivity('4.0.5,switch to: ' + this.navStep);
       },
@@ -1444,8 +1450,8 @@
           var posFrom = action.params[1];
           var posTo = action.params[2];
           var objName = 'obj';
-          var fromName = 'from';
-          var toName = 'to';
+          var fromName = 'fromLoc';
+          var toName = 'toLoc';
           if (argname == posFrom.name)
             argname = fromName;
           if (argname == posTo.name)
@@ -1539,6 +1545,7 @@
           state_name: activity // use state_name as log description text
         };
         this.$.eventPub.publish(msg);
+        console.debug('logActivity, ', currentMenu);
       }
     });
   </script>
