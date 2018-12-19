@@ -60,6 +60,7 @@
       #rviz {
         display: block;
         min-height: 350px;
+        width: 400px;
       }
 
       a paper-button,
@@ -107,7 +108,7 @@
           margin-right: 20px;
         }
         .vizDiv {
-          width: 400px;
+          width: 600px;
           max-height: 100%;
           margin-bottom: 0px;
           margin-right: 20px;
@@ -116,7 +117,7 @@
         #rviz {
           padding-top: 10px;
           height: 900px;
-          width: 500px;
+          width: 800px;
           /* @apply(--layout-flex); */
         }
       }
@@ -294,8 +295,8 @@
       },
       load: function (scene_id) {
 
-        console.log('load: old ', this.scene_id);
-        console.log('load: new ', scene_id);
+        // console.log('load: old ', this.scene_id);
+        // console.log('load: new ', scene_id);
 
         if (!scene_id) {
           return;
