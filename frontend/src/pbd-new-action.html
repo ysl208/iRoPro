@@ -665,8 +665,8 @@
                 }
             },
             _sceneUpdated: function (program_id) {
-                var now = new Date();
-                console.log('_sceneUpdated:', now.toLocaleString(), program_id);
+                // var now = new Date();
+                // console.log('_sceneUpdated:', now.toLocaleString(), program_id);
                 if (program_id != '') {
                     var msg = { data: program_id };
                     this.$.vizPub.publish(msg);
@@ -799,7 +799,6 @@
             _updatePredicate: function (evt) {
                 var args = evt.target.getAttribute('data-args');
                 this.set(args, evt.target.name);
-                //console.debug(args, ' is ', this.newPrecondition);
             },
             checkPredicate: function (mode, _new) {
                 var newPredicate = _new;
@@ -824,8 +823,8 @@
                     // Check if items are well selected
                     if (this.$.menu_instance1_effect.value == undefined
                         || this.$.menu_name_effect.value == undefined
-                        || ((this.$.menu_name_precond.value == "is on"
-                            || this.$.menu_name_precond.value == "is stackable")
+                        || ((this.$.menu_name_effect.value == "is on"
+                            || this.$.menu_name_effect.value == "is stackable")
                             && this.$.menu_instance2_effect.value == undefined)) {
                         valide = false;
                         msgErreur = "Complete your new predicate before adding it";
@@ -857,7 +856,8 @@
                                 valide = false;
                                 msgErreur = "This " + mode + " exists already";
                             }
-                            else if (newPredicate.name == liste[index].name && newPredicate.arg1.name == liste[index].arg1.name && newPredicate.arg2.name == liste[index].arg2.name) {
+                            else if (newPredicate.name == liste[index].name && newPredicate.arg1.name == liste[index].arg1.name
+                                && newPredicate.arg2.name == liste[index].arg2.name && (newPredicate.negate == liste[index].negate)) {
                                 valide = false;
                                 msgErreur = "This " + mode + " exists already";
                             }
@@ -865,16 +865,16 @@
                                 if (newPredicate.arg2.name == liste[index].arg2.name) {
                                     valide = false;
                                     msgErreur = "You can't place two objects on one position, see :<br><strong>" + liste[index].arg1.name + liste[index].name + liste[index].arg2.name + "</strong>";
-                                } else if (newPredicate.arg1.name == liste[index].arg1.name) {
+                                } else if (newPredicate.arg1.name == liste[index].arg1.name && (!newPredicate.negate && !liste[index].negate)) {
                                     valide = false;
                                     msgErreur = "One object can't be on two positions, see :<br><strong>" + liste[index].arg1.name + " is " + liste[index].name + " " + liste[index].arg2.name + "</strong>";
                                 }
                             }
-                            else if (newPredicate.name == "clear" && (liste[index].name == "on" && liste[index].arg2.name == newPredicate.arg1.name)) {
+                            else if (newPredicate.name == "clear" && newPredicate.negate && (liste[index].name == "on" && liste[index].arg2.name == newPredicate.arg1.name)) {
                                 valide = false;
                                 msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + "is " + liste[index].name + " " + liste[index].arg2.name + "</strong>";
                             }
-                            else if (liste[index].name == "clear" && (newPredicate.name == "on" && newPredicate.arg2.name == liste[index].arg1.name)) {
+                            else if (liste[index].name == "clear" && !liste[index].negate && (newPredicate.name == "on" && newPredicate.arg2.name == liste[index].arg1.name)) {
                                 valide = false;
                                 msgErreur = "It is not possible to be clear and to have something on it at the same time, see :<br><strong>" + liste[index].arg1.name + " is " + liste[index].name + "</strong>";
                             }
@@ -926,13 +926,11 @@
             // },
             deletePred: function (evt) {
                 var item = evt.model.item;
-                //console.debug('deletePred', item);
                 var index = -1;
                 index = this.action.preconditions.indexOf(item);
                 if (index != -1) {
                     this.splice('action.preconditions', index, 1);
                     this.reevaluateArray('action.preconditions', this.action.preconditions);
-
                     this.logActivity('2.3.1,delete precondition:' + item.arg1.name + ' ' + item.name);
 
                 } else {
@@ -987,7 +985,14 @@
                     }
                 }
             },
+            quit: function (evt) {
+                this.logActivity('2.0.3,quit action: ' + this.action.name);
+                var msg = { data: '' };
+                this.$.vizPub.publish(msg);
 
+                this.remove();
+                this.fire('quit');
+            },
             saving: function (evt) {
                 this.actionDesc = this._getAction(this.action);
                 this.genActionDesc = this._getGeneralisedAction(this.action);
@@ -995,15 +1000,6 @@
             },
             exiting: function (evt) {
                 this.$.exiting.open();
-            },
-            quit: function (evt) {
-                this.logActivity('2.0.3,quit action: ' + this.action.name);
-                var msg = { data: '' };
-                this.$.vizPub.publish(msg);
-
-                this.remove();
-                // location.reload();
-                this.fire('quit');
             },
 
             _updateDomain: function (evt) {
@@ -1149,8 +1145,6 @@
                 return text + paramList.slice(0, -2) + ")";
             },
             _getParamTypeByName: function (obj) {
-                // //console.debug('_getParamTypeByName: ', item);
-
                 for (var i = 0; i < this.action.params.length; ++i) {
                     if (this.action.params[i] && obj && this.action.params[i].name == obj.name)
                         return this.action.params[i].type.name;
@@ -1265,14 +1259,18 @@
             },
             _displayAlias: function (argname) {
                 if (this.action.params.length == 3) {
+                    var obj = this.action.params[0];
                     var posFrom = this.action.params[1];
                     var posTo = this.action.params[2];
-                    var fromName = 'from';
-                    var toName = 'to';
+                    var objName = 'obj';
+                    var fromName = 'fromLoc';
+                    var toName = 'toLoc';
                     if (argname == posFrom.name)
                         argname = fromName;
                     if (argname == posTo.name)
                         argname = toName;
+                    if (argname == obj.name)
+                        argname = objName;
                 }
                 if (argname || argname != '')
                     return '(' + argname + ')';
@@ -1366,7 +1364,8 @@
                         clearExists = true;
                 }
                 if (!clearExists)
-                    eff.push(clearPred);
+                    console.debug('did not add negations');
+                //eff.push(clearPred);
                 return eff;
 
             },
@@ -1429,6 +1428,7 @@
                     state_name: activity // use state_name as log description text
                 };
                 this.$.eventPub.publish(msg);
+                console.debug('logActivity, ', currentMenu);
             }
         });
     </script>
