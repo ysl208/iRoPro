@@ -1,0 +1,877 @@
+2018-12-14,18:40:11,home,0,create user User26
+2018-12-14,18:43:03,action-list,1.1,add new action: action1
+2018-12-14,18:43:32,new-action/perception:action1,2.1.1,detect action conditions: Precondition
+2018-12-14,18:43:54,new-action/perception:action1,2.0.1,refresh view
+2018-12-14,18:44:27,new-action/demonstration:action1,2.0.2,save action: action1
+2018-12-14,18:44:27,new-action/demonstration:action1,2.0.5,switch to: demonstration
+2018-12-14,18:44:42,new-action/demonstration:action1,2.2.1,start demo: move-vacuum-base
+2018-12-14,18:45:05,new-action/demonstration:action1,2.2.2,stop demo
+2018-12-14,18:45:14,new-action/demonstration:action1,2.2.4,start replay:move-vacuum-base
+2018-12-14,18:46:01,new-action/actionModel:action1,2.0.2,save action: action1
+2018-12-14,18:46:01,new-action/actionModel:action1,2.0.5,switch to: actionModel
+2018-12-14,18:46:26,new-action/actionModel:action1,2.1.1,detect action conditions: Effect
+2018-12-14,18:47:15,new-action/actionModel:action1,2.3.2,add precondition:posA clear
+2018-12-14,18:47:23,new-action/actionModel:action1,2.3.1,delete precondition:posA clear
+2018-12-14,18:47:37,new-action/actionModel:action1,2.3.2,add precondition:posM clear
+2018-12-14,18:48:03,new-action/actionModel:action1,2.3.2,add effect:posB clear
+2018-12-14,18:48:10,new-action/actionModel:action1,2.3.3,generate complete action
+2018-12-14,18:48:10,new-action/actionModel:action1,2.0.2,save action: action1
+2018-12-14,18:48:47,new-action/actionModel:action1,2.0.2,save action: action1
+2018-12-14,18:48:47,new-action/actionModel:action1,2.0.4,renamed action to movevac
+2018-12-14,18:48:47,new-action/actionModel:action1,2.0.3,quit action: action1
+2018-12-14,18:48:47,new-action/actionModel:action1,2.0.3,quit action: action1
+2018-12-14,18:49:16,problem-list,3.1,add new problem: problem1
+2018-12-14,18:49:17,new-problem/perception:problem1,4.3.0,no steps generated
+2018-12-14,18:49:17,new-problem/perception:problem1,4.3.0,no steps generated
+2018-12-14,18:49:17,new-problem/perception:problem1,4.3.0,no steps generated
+2018-12-14,18:49:17,new-problem/perception:problem1,4.3.0,no steps generated
+2018-12-14,18:49:39,new-problem/perception:problem1,4.1.1,detect initial states: initial
+2018-12-14,18:49:39,new-problem/perception:problem1,4.3.0,no steps generated
+2018-12-14,18:49:56,new-problem/problemModel:problem1,4.0.2,save problem: problem1
+2018-12-14,18:49:56,new-problem/problemModel:problem1,4.0.5,switch to: problemModel
+2018-12-14,18:49:56,new-problem/problemModel:problem1,4.3.0,no steps generated
+2018-12-14,18:50:06,new-problem/problemModel:problem1,4.2.1,add goal state:posA clear
+2018-12-14,18:50:14,new-problem/problemModel:problem1,4.2.2,delete goal state:posA clear
+2018-12-14,18:51:01,new-problem/problemModel:problem1,4.2.1,add goal state:obj1 on
+2018-12-14,18:51:11,new-problem/generatedPlan:problem1,4.2.3,solve problem
+2018-12-14,18:51:11,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:51:37,new-problem/generatedPlan:problem1,4.3.2,execute plan
+2018-12-14,18:52:41,new-problem/generatedPlan:problem1,4.0.2,save problem: problem1
+2018-12-14,18:52:41,new-problem/generatedPlan:problem1,4.0.3,quit problem: problem1
+2018-12-14,18:52:41,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:52:42,problem-list,3.1,add new problem: problem2
+2018-12-14,18:52:42,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:52:42,new-problem/perception:problem2,4.3.0,no steps generated
+2018-12-14,18:52:42,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:52:42,new-problem/perception:problem2,4.3.0,no steps generated
+2018-12-14,18:52:42,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:52:42,new-problem/perception:problem2,4.3.0,no steps generated
+2018-12-14,18:52:42,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:52:42,new-problem/perception:problem2,4.3.0,no steps generated
+2018-12-14,18:53:01,new-problem/perception:problem2,4.1.1,detect initial states: initial
+2018-12-14,18:53:02,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:53:02,new-problem/perception:problem2,4.3.0,no steps generated
+2018-12-14,18:53:10,new-problem/perception:problem2,4.0.1,refresh view
+2018-12-14,18:53:20,new-problem/problemModel:problem2,4.0.2,save problem: problem2
+2018-12-14,18:53:20,new-problem/problemModel:problem2,4.0.5,switch to: problemModel
+2018-12-14,18:53:20,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:53:20,new-problem/problemModel:problem2,4.3.0,no steps generated
+2018-12-14,18:53:47,new-problem/problemModel:problem2,4.2.1,add goal state:obj1 on
+2018-12-14,18:54:00,new-problem/problemModel:problem2,4.2.1,add goal state:obj2 on
+2018-12-14,18:54:07,new-problem/generatedPlan:problem2,4.2.3,solve problem
+2018-12-14,18:54:07,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:54:07,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:54:29,new-problem/generatedPlan:problem2,4.0.2,save problem: problem2
+2018-12-14,18:54:29,new-problem/generatedPlan:problem2,4.0.3,quit problem: problem2
+2018-12-14,18:54:30,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:54:30,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:54:47,problem-list,3.1,add new problem: problem3
+2018-12-14,18:54:47,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:54:47,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:54:47,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,18:54:47,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:54:47,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:54:47,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,18:54:47,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:54:47,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:54:47,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,18:54:47,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:54:47,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:54:47,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,18:55:06,new-problem/perception:problem3,4.1.1,detect initial states: initial
+2018-12-14,18:55:06,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:55:06,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:55:06,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,18:55:11,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,18:55:11,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,18:55:11,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:55:11,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:55:11,new-problem/problemModel:problem3,4.3.0,no steps generated
+2018-12-14,18:55:32,new-problem/problemModel:problem3,4.2.1,add goal state:obj1 stackable
+2018-12-14,18:56:20,new-problem/problemModel:problem3,4.2.2,delete goal state:obj1 stackable
+2018-12-14,18:56:26,new-problem/problemModel:problem3,4.2.1,add goal state:obj2 on
+2018-12-14,18:56:33,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,18:56:33,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:56:33,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:56:33,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,18:58:24,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,18:58:24,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,18:58:24,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:58:24,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:58:24,new-problem/problemModel:problem3,4.3.0,no steps generated
+2018-12-14,18:58:31,new-problem/problemModel:problem3,4.2.2,delete goal state:obj2 on
+2018-12-14,18:58:33,new-problem/problemModel:problem3,4.2.1,add goal state:obj2 on
+2018-12-14,18:58:36,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,18:58:37,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,18:58:37,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,18:58:37,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:02:00,new-problem/perception:problem3,4.0.2,save problem: problem3
+2018-12-14,19:02:00,new-problem/perception:problem3,4.0.5,switch to: perception
+2018-12-14,19:02:00,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:02:00,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:02:00,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:02:19,new-problem/perception:problem3,4.1.1,detect initial states: initial
+2018-12-14,19:02:19,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:02:19,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:02:19,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:02:22,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:02:22,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:02:22,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:02:22,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:02:22,new-problem/problemModel:problem3,4.3.0,no steps generated
+2018-12-14,19:02:35,new-problem/problemModel:problem3,4.2.2,delete goal state:obj2 on
+2018-12-14,19:02:40,new-problem/problemModel:problem3,4.0.1,refresh view
+2018-12-14,19:03:01,new-problem/problemModel:problem3,4.2.1,add goal state:obj1 on
+2018-12-14,19:03:04,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:03:04,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:03:04,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:03:04,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:03:55,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:03:55,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:03:55,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:04:57,action-list,1.1,add new action: action2
+2018-12-14,19:04:57,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:04:57,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:04:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:04:57,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:04:57,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:04:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:04:57,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:04:57,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:04:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:04:57,new-problem/generatedPlan:problem1,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:04:57,new-problem/generatedPlan:problem2,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:04:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:05:21,action-list,1.3,delete action: action2
+2018-12-14,19:05:26,action-list,1.2,open action: movevac
+2018-12-14,19:05:34,new-action/perception:movevac,2.1.2,change type to: object
+2018-12-14,19:05:43,new-action/perception:movevac,2.0.2,save action: movevac
+2018-12-14,19:05:43,new-action/perception:movevac,2.0.3,quit action: movevac
+2018-12-14,19:05:55,problem-list,3.2,open problem: problem3
+2018-12-14,19:05:55,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:05:55,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:05:55,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:05:55,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:05:59,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:05:59,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:05:59,new-problem/problemModel:problem3,4.3.0,no steps generated
+2018-12-14,19:06:04,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:06:04,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:06:36,new-problem/perception:problem3,4.0.2,save problem: problem3
+2018-12-14,19:06:36,new-problem/perception:problem3,4.0.5,switch to: perception
+2018-12-14,19:06:37,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:06:54,new-problem/perception:problem3,4.1.1,detect initial states: initial
+2018-12-14,19:06:54,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:07:00,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:07:00,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:07:00,new-problem/problemModel:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:07:13,new-problem/problemModel:problem3,4.0.1,refresh view
+2018-12-14,19:08:06,new-problem/problemModel:problem3,4.2.2,delete goal state:obj1 on
+2018-12-14,19:08:07,new-problem/problemModel:problem3,4.2.1,add goal state:obj2 on
+2018-12-14,19:08:11,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:08:12,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:15,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:17,action-list,1.2,open action: movevac
+2018-12-14,19:10:17,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:17,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:18,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:38,new-action/perception:movevac,2.1.2,change type to: element
+2018-12-14,19:10:40,new-action/perception:movevac,2.1.2,change type to: element
+2018-12-14,19:10:46,new-action/perception:movevac,2.0.2,save action: movevac
+2018-12-14,19:10:46,new-action/perception:movevac,2.0.3,quit action: movevac
+2018-12-14,19:10:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:50,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:53,problem-list,3.2,open problem: problem3
+2018-12-14,19:10:54,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:10:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:54,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:10:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:54,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:10:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:54,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:10:56,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:10:56,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:10:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:10:57,new-problem/problemModel:problem3,4.3.0,no steps generated
+2018-12-14,19:11:01,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:11:01,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:11:01,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:11:21,new-problem/generatedPlan:problem3,4.3.2,execute plan
+2018-12-14,19:12:01,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:01,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:04,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:04,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:07,problem-list,3.2,open problem: problem3
+2018-12-14,19:12:07,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:08,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:08,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:08,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:12,new-problem/perception:problem3,4.1.2,change type to: roof
+2018-12-14,19:12:15,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:12:15,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:12:16,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:16,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:16,new-problem/problemModel:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:24,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:12:25,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:25,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:12:25,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:01,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:01,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:01,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:03,action-list,1.2,open action: movevac
+2018-12-14,19:13:03,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:03,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:03,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:03,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:03,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:03,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:03,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:03,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:03,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:11,new-action/perception:movevac,2.1.2,change type to: element
+2018-12-14,19:13:58,new-action/actionModel:movevac,2.0.2,save action: movevac
+2018-12-14,19:13:58,new-action/actionModel:movevac,2.0.5,switch to: actionModel
+2018-12-14,19:13:59,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:59,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:13:59,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:14:57,new-action/actionModel:movevac,2.3.2,add precondition:obj1 stackable
+2018-12-14,19:15:08,new-action/actionModel:movevac,2.0.2,save action: movevac
+2018-12-14,19:15:08,new-action/actionModel:movevac,2.0.3,quit action: movevac
+2018-12-14,19:15:09,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:09,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:09,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:13,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:13,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:13,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,problem-list,3.2,open problem: problem3
+2018-12-14,19:15:15,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:15,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:17,new-problem/generatedPlan:problem3,4.0.2,save problem: problem3
+2018-12-14,19:15:17,new-problem/generatedPlan:problem3,4.0.5,switch to: generatedPlan
+2018-12-14,19:15:18,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:18,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:18,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:18,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:19,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:15:19,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:15:19,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:19,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:19,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:19,new-problem/problemModel:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:15:21,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:15:21,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:15:21,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:15:21,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:15:21,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:10,new-problem/generatedPlan:problem3,4.0.3,quit problem: problem3
+2018-12-14,19:16:20,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:20,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:20,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:20,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:33,action-list,1.1,add new action: action2
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:34,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:56,new-action/perception:action2,2.1.1,detect action conditions: Precondition
+2018-12-14,19:16:56,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:56,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:56,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:16:56,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:01,new-action/demonstration:action2,2.0.2,save action: action2
+2018-12-14,19:17:01,new-action/demonstration:action2,2.0.5,switch to: demonstration
+2018-12-14,19:17:01,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:01,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:01,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:01,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:09,new-action/demonstration:action2,2.2.1,start demo: move-electric-roof
+2018-12-14,19:17:30,new-action/demonstration:action2,2.2.2,stop demo
+2018-12-14,19:17:30,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:30,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:30,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:30,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:49,new-action/actionModel:action2,2.0.2,save action: action2
+2018-12-14,19:17:49,new-action/actionModel:action2,2.0.4,renamed action to moveroof
+2018-12-14,19:17:49,new-action/actionModel:action2,2.0.3,quit action: action2
+2018-12-14,19:17:49,new-action/actionModel:action2,2.0.5,switch to: actionModel
+2018-12-14,19:17:50,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:50,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:50,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:50,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:53,action-list,1.2,open action: movevac
+2018-12-14,19:17:53,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:53,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:53,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:53,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:53,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:53,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:53,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:53,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:53,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:54,new-action/actionModel:movevac,2.0.2,save action: movevac
+2018-12-14,19:17:54,new-action/actionModel:movevac,2.0.5,switch to: actionModel
+2018-12-14,19:17:55,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:55,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:55,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:55,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:59,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:59,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:59,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:17:59,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:01,action-list,1.2,open action: moveroof
+2018-12-14,19:18:02,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:02,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:02,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:02,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:02,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:02,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:02,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:02,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:03,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:03,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:03,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:03,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:04,new-action/actionModel:moveroof,2.0.2,save action: moveroof
+2018-12-14,19:18:04,new-action/actionModel:moveroof,2.0.5,switch to: actionModel
+2018-12-14,19:18:05,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:05,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:05,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:05,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:30,new-action/actionModel:moveroof,2.1.1,detect action conditions: Effect
+2018-12-14,19:18:30,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:30,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:30,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:30,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:18:54,new-action/actionModel:moveroof,2.3.2,add precondition:posM clear
+2018-12-14,19:19:16,new-action/actionModel:moveroof,2.3.2,add effect:posB clear
+2018-12-14,19:19:19,new-action/actionModel:moveroof,2.3.3,generate complete action
+2018-12-14,19:19:19,new-action/actionModel:moveroof,2.0.2,save action: moveroof
+2018-12-14,19:19:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:19:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:19:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:19:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:19:44,new-action/actionModel:moveroof,2.0.1,refresh view
+2018-12-14,19:19:59,new-action/actionModel:moveroof,2.3.1,delete effect:obj3 on
+2018-12-14,19:20:11,new-action/actionModel:moveroof,2.3.2,add effect:obj1 on
+2018-12-14,19:20:15,new-action/actionModel:moveroof,2.3.3,generate complete action
+2018-12-14,19:20:15,new-action/actionModel:moveroof,2.0.2,save action: moveroof
+2018-12-14,19:20:15,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:15,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:15,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:15,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:25,new-action/actionModel:moveroof,2.0.2,save action: moveroof
+2018-12-14,19:20:25,new-action/actionModel:moveroof,2.0.3,quit action: moveroof
+2018-12-14,19:20:25,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:25,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:25,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:25,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:39,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:39,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:39,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:39,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:41,problem-list,3.2,open problem: problem3
+2018-12-14,19:20:42,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:42,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:20:46,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:20:46,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:20:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:20:47,new-problem/problemModel:problem3,4.3.0,no steps generated
+2018-12-14,19:20:52,new-problem/problemModel:problem3,4.0.1,refresh view
+2018-12-14,19:21:01,new-problem/perception:problem3,4.0.2,save problem: problem3
+2018-12-14,19:21:01,new-problem/perception:problem3,4.0.5,switch to: perception
+2018-12-14,19:21:01,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:01,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:01,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:01,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:01,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:21:19,new-problem/perception:problem3,4.1.1,detect initial states: initial
+2018-12-14,19:21:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:19,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:21:22,new-problem/perception:problem3,4.0.1,refresh view
+2018-12-14,19:21:29,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:21:29,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:21:29,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:29,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:29,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:29,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:21:30,new-problem/problemModel:problem3,4.3.0,no steps generated
+2018-12-14,19:21:37,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:21:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:21:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:21:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:21:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:21:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:05,new-problem/generatedPlan:problem3,4.3.2,execute plan
+2018-12-14,19:22:07,new-problem/perception:problem3,4.0.2,save problem: problem3
+2018-12-14,19:22:07,new-problem/perception:problem3,4.0.5,switch to: perception
+2018-12-14,19:22:07,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:07,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:07,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:07,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:07,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:48,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:48,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:48,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:48,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:48,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,action-list,1.2,open action: moveroof
+2018-12-14,19:22:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:53,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:56,new-action/actionModel:moveroof,2.0.2,save action: moveroof
+2018-12-14,19:22:56,new-action/actionModel:moveroof,2.0.5,switch to: actionModel
+2018-12-14,19:22:56,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:56,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:56,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:56,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:22:56,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:29,new-action/actionModel:moveroof,2.0.3,quit action: moveroof
+2018-12-14,19:23:31,action-list,1.2,open action: movevac
+2018-12-14,19:23:31,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:31,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:31,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:31,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:32,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:32,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:35,new-action/actionModel:movevac,2.0.2,save action: movevac
+2018-12-14,19:23:35,new-action/actionModel:movevac,2.0.5,switch to: actionModel
+2018-12-14,19:23:35,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:35,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:35,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:36,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:23:36,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:07,new-action/actionModel:movevac,2.3.2,add precondition:obj1 flat
+2018-12-14,19:25:27,new-action/actionModel:movevac,2.0.2,save action: movevac
+2018-12-14,19:25:27,new-action/actionModel:movevac,2.0.3,quit action: movevac
+2018-12-14,19:25:27,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:27,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:27,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:27,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:27,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:29,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:30,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:30,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:30,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:30,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:32,problem-list,3.2,open problem: problem3
+2018-12-14,19:25:32,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:32,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:32,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:33,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:38,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:25:38,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:25:38,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:38,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:38,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:38,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:38,new-problem/problemModel:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:25:40,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:25:40,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:40,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:40,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:40,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:40,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:25:40,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:54,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:25:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:56,action-list,1.2,open action: moveroof
+2018-12-14,19:25:56,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:56,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:56,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:25:57,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:11,new-action/actionModel:moveroof,2.0.2,save action: moveroof
+2018-12-14,19:26:11,new-action/actionModel:moveroof,2.0.5,switch to: actionModel
+2018-12-14,19:26:12,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:12,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:12,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:12,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:12,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:38,new-action/actionModel:moveroof,2.3.2,add precondition:obj1 thin
+2018-12-14,19:26:43,new-action/actionModel:moveroof,2.0.2,save action: moveroof
+2018-12-14,19:26:43,new-action/actionModel:moveroof,2.0.3,quit action: moveroof
+2018-12-14,19:26:44,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:44,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:44,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:44,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:44,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:44,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:45,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:45,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:45,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:45,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:45,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:45,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:47,problem-list,3.2,open problem: problem3
+2018-12-14,19:26:47,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:47,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:47,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:47,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:48,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:51,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:26:51,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:26:52,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:52,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:52,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:52,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:52,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:52,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:52,new-problem/problemModel:problem3,4.3.0,no steps generated
+2018-12-14,19:26:53,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:26:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:54,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:26:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:26:54,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:05,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:05,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:05,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:05,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:05,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:05,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:05,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:07,action-list,1.2,open action: moveroof
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:08,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:11,new-action/perception:moveroof,2.1.2,change type to: element
+2018-12-14,19:27:13,new-action/perception:moveroof,2.1.2,change type to: element
+2018-12-14,19:27:16,new-action/perception:moveroof,2.0.2,save action: moveroof
+2018-12-14,19:27:16,new-action/perception:moveroof,2.0.3,quit action: moveroof
+2018-12-14,19:27:16,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:16,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:16,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:16,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:16,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:16,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:16,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:17,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:17,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:17,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:17,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:17,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:18,problem-list,3.2,open problem: problem3
+2018-12-14,19:27:18,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:19,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:20,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:20,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:20,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:20,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:21,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:27:21,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:27:22,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:22,new-problem/perception:problem3,4.3.0,no steps generated
+2018-12-14,19:27:22,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:22,new-problem/generatedPlan:problem3,4.3.0,no steps generated
+2018-12-14,19:27:22,new-problem/problemModel:problem3,4.3.0,no steps generated
+2018-12-14,19:27:23,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:27:23,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:27:23,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:27:23,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:27:23,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:27:23,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:27:23,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:27:23,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:27:43,new-problem/generatedPlan:problem3,4.3.2,execute plan
+2018-12-14,19:28:15,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:28:15,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:28:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:15,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:15,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:15,new-problem/problemModel:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:33,new-problem/perception:problem3,4.0.2,save problem: problem3
+2018-12-14,19:28:33,new-problem/perception:problem3,4.0.5,switch to: perception
+2018-12-14,19:28:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:33,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:33,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:33,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:50,new-problem/perception:problem3,4.1.1,detect initial states: initial
+2018-12-14,19:28:50,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:50,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:50,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:50,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:50,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:50,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:50,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:28:50,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:29:07,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:29:07,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:29:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:29:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:29:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:29:08,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:29:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:29:08,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:29:08,new-problem/problemModel:problem3,4.3.0.1,plan found with number of steps: 1
+2018-12-14,19:29:18,new-problem/problemModel:problem3,4.0.1,refresh view
+2018-12-14,19:29:50,new-problem/problemModel:problem3,4.2.1,add goal state:obj3 on
+2018-12-14,19:29:53,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:29:53,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:29:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:29:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:29:53,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:30:41,new-problem/generatedPlan:problem3,4.3.2,execute plan
+2018-12-14,19:30:42,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:30:42,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:30:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:30:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:30:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:30:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:30:42,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:30:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:30:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:30:42,new-problem/problemModel:problem3,4.3.0.1,plan found with number of steps: 2
+2018-12-14,19:30:59,new-problem/problemModel:problem3,4.2.2,delete goal state:obj2 on
+2018-12-14,19:31:00,new-problem/problemModel:problem3,4.2.2,delete goal state:obj3 on
+2018-12-14,19:31:15,new-problem/problemModel:problem3,4.2.1,add goal state:obj1 on
+2018-12-14,19:31:23,new-problem/problemModel:problem3,4.2.1,add goal state:obj2 on
+2018-12-14,19:31:33,new-problem/problemModel:problem3,4.2.1,add goal state:obj3 on
+2018-12-14,19:31:37,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:31:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:31:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:31:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:31:37,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:31:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:31:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:31:37,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:32:25,new-problem/generatedPlan:problem3,4.3.2,execute plan
+2018-12-14,19:33:21,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:21,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:21,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:21,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:21,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:21,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:21,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:27,action-list,1.2,open action: movevac
+2018-12-14,19:33:27,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:27,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:27,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:28,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:40,new-action/actionModel:movevac,2.0.2,save action: movevac
+2018-12-14,19:33:40,new-action/actionModel:movevac,2.0.5,switch to: actionModel
+2018-12-14,19:33:40,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:40,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:40,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:40,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:41,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:33:41,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:25,new-action/actionModel:movevac,2.3.2,add precondition:obj1 clear
+2018-12-14,19:38:32,new-action/actionModel:movevac,2.0.2,save action: movevac
+2018-12-14,19:38:32,new-action/actionModel:movevac,2.0.3,quit action: movevac
+2018-12-14,19:38:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:32,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:32,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:38,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:38,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:38,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:38,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:38,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:41,problem-list,3.2,open problem: problem3
+2018-12-14,19:38:41,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:41,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:41,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:41,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:41,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:41,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:41,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:41,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:41,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:41,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:42,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:44,new-problem/problemModel:problem3,4.0.2,save problem: problem3
+2018-12-14,19:38:44,new-problem/problemModel:problem3,4.0.5,switch to: problemModel
+2018-12-14,19:38:44,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:44,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:45,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:45,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:45,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:45,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:45,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:45,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:45,new-problem/problemModel:problem3,4.3.0.1,plan found with number of steps: 3
+2018-12-14,19:38:48,new-problem/generatedPlan:problem3,4.2.3,solve problem
+2018-12-14,19:38:48,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 4
+2018-12-14,19:38:49,new-problem/perception:problem3,4.3.0.1,plan found with number of steps: 4
+2018-12-14,19:38:49,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 4
+2018-12-14,19:38:49,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 4
+2018-12-14,19:38:49,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 4
+2018-12-14,19:38:49,new-problem/generatedPlan:problem3,4.3.0.1,plan found with number of steps: 4
+2018-12-14,19:39:44,new-problem/generatedPlan:problem3,4.3.2,execute plan
