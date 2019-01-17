@@ -25,22 +25,30 @@ roscore
 `rosrun baxter_tools enable_robot.py -e`
 
 ### start baxter gripper and joint action servers
-`rosrun baxter_interface gripper_action_server.py & rosrun baxter_interface joint_trajectory_action_server.py -l both & rosrun baxter_examples gripper_cuff_control.py
- & rosrun baxter_interface head_action_server.py`
+`rosrun baxter_interface gripper_action_server.py & rosrun baxter_interface joint_trajectory_action_server.py -l both & rosrun baxter_interface head_action_server.py`
 
-roslaunch rapid_pbd baxter_moveit.launch right_electric_gripper:=false left_electric_gripper:=true
-roslaunch rapid_pbd web_prereqs.launch
-roslaunch rapid_pbd baxter.launch sim:=false kinect:=true --screen
-roslaunch rapid_pbd editor.launch robot:=baxter --screen
+### rapid_pbd nodes
+`roslaunch rapid_pbd baxter_moveit.launch right_electric_gripper:=false left_electric_gripper:=true`
+`roslaunch rapid_pbd web_prereqs.launch`
+`roslaunch rapid_pbd baxter.launch sim:=false kinect:=true --screen`
+`roslaunch rapid_pbd editor.launch robot:=baxter --screen`
 
-### kinect + PDDL planner
-roslaunch pddl_planner pddl_ff.launch
-roslaunch kinect2_bridge kinect2_bridge.launch publish_tf:=true
-roslaunch freenect_launch freenect.launch
+### PDDL planner
+`roslaunch pddl_planner pddl_ff.launch`
+
+### kinect xbox or kinect2
+`roslaunch kinect2_bridge kinect2_bridge.launch publish_tf:=true`
+`roslaunch freenect_launch freenect.launch`
+
+### Optional (used for user study)
+### activate gripper cuff buttons
+`rosrun baxter_examples gripper_cuff_control.py`
+### Baxter eyes
+`roslaunch baxter_eyes baxter_eyes.launch`
 
 ### start robot model for visualization
-cd ~/local/collada
-caddy
+`cd ~/local/collada`
+`caddy`
 
 ### start local web app - on http://localhost:9080
 cd ~/catkin_ws/src/rapid_pbd/frontend
@@ -50,3 +58,5 @@ static-server
 cd ~/catkin_ws/src/rapid_pbd/frontend
 polymer-serve
 
+### last used for testing/debugging camera
+rosrun tf static_transform_publisher 0.189 0.03 0.775 -0.014 0.876 -0.014 base camera_link 100   
