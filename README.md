@@ -17,9 +17,8 @@ For example, in one step, you can point the head down and move the robot's arms 
 
 ## Getting started
 - [Development setup](https://github.com/jstnhuang/rapid/wiki/Rapid-PbD-development-setup)
-- [Running Rapid PbD](https://github.com/jstnhuang/rapid/wiki/Running-Rapid-PbD)
 
-## Commands to run that are different (for the real robot)
+## Commands to run (for the real robot)
 roscore
 
 ### enable baxter robot
