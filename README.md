@@ -7,7 +7,7 @@ The goal of the system is to provide an easy way to program low- and high-level 
 
 ## Program model
 Users use the iRoPro interface to create *programs*.
-A program is represented using the `rapid_pbd_msgs/Program` msg.
+A program is represented using the `iRoPro_msgs/Program` msg.
 The system provides an actionlib interface for running programs.
 
 A program consists of a sequence of *steps*, and each step consists of one or more *actions*.
@@ -27,11 +27,11 @@ roscore
 ### start baxter gripper and joint action servers
 `rosrun baxter_interface gripper_action_server.py & rosrun baxter_interface joint_trajectory_action_server.py -l both & rosrun baxter_interface head_action_server.py`
 
-### rapid_pbd nodes
-`roslaunch rapid_pbd baxter_moveit.launch right_electric_gripper:=false left_electric_gripper:=true`
-`roslaunch rapid_pbd web_prereqs.launch`
-`roslaunch rapid_pbd baxter.launch sim:=false kinect:=true --screen`
-`roslaunch rapid_pbd editor.launch robot:=baxter --screen`
+### iRoPro nodes
+`roslaunch iRoPro baxter_moveit.launch right_electric_gripper:=false left_electric_gripper:=true`
+`roslaunch iRoPro web_prereqs.launch`
+`roslaunch iRoPro baxter.launch sim:=false kinect:=true --screen`
+`roslaunch iRoPro editor.launch robot:=baxter --screen`
 
 ### PDDL planner
 `roslaunch pddl_planner pddl_ff.launch`
@@ -51,11 +51,11 @@ roscore
 `caddy`
 
 ### start local web app - on http://localhost:9080
-cd ~/catkin_ws/src/rapid_pbd/frontend
+cd ~/catkin_ws/src/iRoPro/frontend
 static-server
 
 ### start web app - on http://localhost:8081
-cd ~/catkin_ws/src/rapid_pbd/frontend
+cd ~/catkin_ws/src/iRoPro/frontend
 polymer-serve
 
 ### last used for testing/debugging camera
