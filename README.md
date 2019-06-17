@@ -60,7 +60,7 @@ For example, in one step, you can point the head down and move the robot's arms 
 cd ~/catkin_ws/src/rapid_pbd/frontend
 static-server
 
-### start web app - on http://localhost:8081
+### Optional instead of static server (from rapid_pbd) start web app - on http://localhost:8081
 cd ~/catkin_ws/src/rapid_pbd/frontend
 polymer-serve
 
