@@ -27,11 +27,15 @@ roscore
 ### start baxter gripper and joint action servers
 `rosrun baxter_interface gripper_action_server.py & rosrun baxter_interface joint_trajectory_action_server.py -l both & rosrun baxter_interface head_action_server.py`
 
-### iRoPro nodes
-`roslaunch iRoPro baxter_moveit.launch right_electric_gripper:=false left_electric_gripper:=true`
-`roslaunch iRoPro web_prereqs.launch`
-`roslaunch iRoPro baxter.launch sim:=false kinect:=true --screen`
-`roslaunch iRoPro editor.launch robot:=baxter --screen`
+### iRoPro nodes (all in separate tabs)
+`roslaunch rapid_pbd baxter_moveit.launch right_electric_gripper:=false left_electric_gripper:=true`
+
+`roslaunch rapid_pbd web_prereqs.launch`
+
+`roslaunch rapid_pbd baxter.launch sim:=false kinect:=true --screen`
+
+`roslaunch rapid_pbd editor.launch robot:=baxter --screen`
+
 
 ### PDDL planner
 `roslaunch pddl_planner pddl_ff.launch`
