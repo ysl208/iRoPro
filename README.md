@@ -57,12 +57,13 @@ For example, in one step, you can point the head down and move the robot's arms 
 `caddy`
 
 ### start local web app - on http://localhost:9080
-cd ~/catkin_ws/src/rapid_pbd/frontend
-static-server
+`cd ~/catkin_ws/src/rapid_pbd/frontend`
+
+`static-server`
 
 ### Optional instead of static server (from rapid_pbd) start web app - on http://localhost:8081
 cd ~/catkin_ws/src/rapid_pbd/frontend
 polymer-serve
 
 ### last used for testing/debugging camera
-rosrun tf static_transform_publisher 0.189 0.03 0.775 -0.014 0.876 -0.014 base camera_link 100   
+`rosrun tf static_transform_publisher 0.189 0.03 0.775 -0.014 0.876 -0.014 base camera_link 100`
