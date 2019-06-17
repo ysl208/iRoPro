@@ -2,7 +2,7 @@
 [![Build Status](http://build.ros.org/buildStatus/icon?job=Ibin_uT64__rapid_pbd__ubuntu_trusty_amd64__binary)](http://build.ros.org/job/Ibin_uT64__rapid_pbd__ubuntu_trusty_amd64__binary/)
 
 iRoPro is an interactive Robot Programming tool.
-It uses [Rapid PbD](https://github.com/jstnhuang/rapid_pbd/) is a programming by demonstration (PbD) system for the PR2, Fetch, and Baxter robots.
+It uses [Rapid PbD](https://github.com/jstnhuang/rapid_pbd/) which is a programming by demonstration (PbD) system for the PR2, Fetch, and Baxter robots.
 The goal of the system is to provide an easy way to program low- and high-level manipulation actions that can be used with a task planner to complete more complex tasks.
 
 ## Program model
@@ -19,7 +19,7 @@ For example, in one step, you can point the head down and move the robot's arms 
 - [Development setup](https://github.com/jstnhuang/rapid/wiki/Rapid-PbD-development-setup)
 
 ## Commands to run (for the real robot)
-roscore
+`roscore`
 
 ### enable baxter robot
 `rosrun baxter_tools enable_robot.py -e`
@@ -38,10 +38,12 @@ roscore
 
 
 ### PDDL planner
+##  This allows iRoPro to send rostopics to a [PDDL planner](http://docs.ros.org/indigo/api/pddl_planner/)
 `roslaunch pddl_planner pddl_ff.launch`
 
 ### kinect xbox or kinect2
 `roslaunch kinect2_bridge kinect2_bridge.launch publish_tf:=true`
+
 `roslaunch freenect_launch freenect.launch`
 
 ### Optional (used for user study)
@@ -55,11 +57,11 @@ roscore
 `caddy`
 
 ### start local web app - on http://localhost:9080
-cd ~/catkin_ws/src/iRoPro/frontend
+cd ~/catkin_ws/src/rapid_pbd/frontend
 static-server
 
 ### start web app - on http://localhost:8081
-cd ~/catkin_ws/src/iRoPro/frontend
+cd ~/catkin_ws/src/rapid_pbd/frontend
 polymer-serve
 
 ### last used for testing/debugging camera
