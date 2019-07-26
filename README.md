@@ -82,3 +82,14 @@ Click on the Refresh button, if it still doesn't show then open the side menu on
 ### the arms don't move anymore, even if I just try to tuck them
 It's good to restart the robot by runing disable and untuck arms
 `rosrun baxter_tools enable_robot.py -d && rosrun baxter_tools tuck_arms -u`
+
+# Citation
+``
+@inproceedings{Liang2019a,
+	author = {Ying Siu Liang and Damien Pellier and Humbert Fiorino and Sylvie Pesty},
+	title = {End-User Programming of Low- and High-Level Actions for Robotic Task Planning},
+	booktitle = {IEEE International Conference on Robot and Human Interactive Communication (Ro-MAN)},
+	address = {New Delhi, India},
+	month = {October},
+	year = {2019}
+}``
