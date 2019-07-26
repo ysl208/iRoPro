@@ -84,7 +84,7 @@ It's good to restart the robot by runing disable and untuck arms
 `rosrun baxter_tools enable_robot.py -d && rosrun baxter_tools tuck_arms -u`
 
 # Citation
-``
+```
 @inproceedings{Liang2019a,
 	author = {Ying Siu Liang and Damien Pellier and Humbert Fiorino and Sylvie Pesty},
 	title = {End-User Programming of Low- and High-Level Actions for Robotic Task Planning},
@@ -92,4 +92,5 @@ It's good to restart the robot by runing disable and untuck arms
 	address = {New Delhi, India},
 	month = {October},
 	year = {2019}
-}``
+}
+```
