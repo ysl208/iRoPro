@@ -9,26 +9,143 @@ It is based on [Rapid PbD](https://github.com/jstnhuang/rapid_pbd/) which is a p
 Users use the iRoPro interface to create *actions* and *problems*.
 A video of the working system can be seen [here](https://youtu.be/NgaTPG8dZwg)
 
+# Clone rapid_pbd
+Clone this repository and its messages:
+```
+cd ~/catkin_ws/src
+git clone git@github.com:ysl208/rapid_pbd.git
+git clone git@github.com:ysl208/rapid_pbd_msgs.git
+```
+
 ## What is needed
-- As it is based on Rapid PbD, please follow the instructions for [setting it up](https://github.com/jstnhuang/rapid_pbd/wiki/Rapid-PbD-development-setup)
+
+- As it is based on Rapid PbD, the following instructions are taken from [Rapid PbD set up](https://github.com/jstnhuang/rapid_pbd/wiki/Rapid-PbD-development-setup):
+
+# Build the backend
+## Backend dependencies
+
+**MongoDB**
+
+Install `pymongo` version 3.4:
+```
+$ sudo pip install pymongo==3.4
+$ python -c 'import pymongo; print pymongo.version'
+3.4.0
+```
+
+[This fork](https://github.com/jstnhuang/mongodb_store) of `mongodb_store` is necessary to avoid startup errors (see [strands-project/mongodb_store#196](https://github.com/strands-project/mongodb_store/issues/196)):
+```
+cd ~/catkin_ws/src
+git clone git@github.com:jstnhuang/mongodb_store.git
+```
+Or just install the official version:
+```
+sudo apt-get install ros-melodic-mongodb-store
+```
+
+# Transform_graph
+The Rapid PbD part uses a transform_graph for object perception:
+```
+cd ~/catkin_ws/src
+git clone git@github.com/jstnhuang/surface_perception.git
+git clone git@github.com/jstnhuang/transform_graph.git
+```
+
+# MoveIt for motion planning
+Install [MoveIt](https://moveit.ros.org/install/) which is being used for motion planning for Baxter:
+```
+sudo apt-get install ros-<distribution>-moveit
+sudo apt-get install ros-melodic-simple-grasping
+
+```
+
+**rosdep**
+
+Get other dependencies through `rosdep`:
+```
+cd ~/catkin_ws
+rosdep install --from-paths src --ignore-src --rosdistro=<distribution> -y
+```
+For ROS melodic, you might need these:
+```
+git clone https://github.com/RobotWebTools/ros_web_video.git
+git clone https://github.com/jstnhuang/robot_markers.git
+git clone https://github.com/jstnhuang/moveit_goal_builder.git
+```
+
+## Build it
+You might want to install `python-catkin-tools` first:
+```
+sudo apt-get install python-catkin-tools
+```
+To build it, run
+```
+catkin build rapid_pbd
+```
+
+# Frontend
+## Build the frontend
+**One-time setup**
+
+First, [install Node.js](https://github.com/hcrlab/wiki/wiki/Resources%3A-Web-Development%3A-Installing-Node).
+
+Then, install Polymer and bower:
+```
+npm install -g bower polymer-cli
+```
+
+Go to the `frontend` folder and run `bower update`:
+```
+cd rapid_pbd/frontend
+bower update
+```
+
+**Development and deployment**
+
+When you are developing, just go to the frontend folder and run `polymer serve`:
+```
+cd frontend
+polymer serve
+```
+
+Polymer will tell you the address of the app (usually localhost:8081).
+
+
+## Collada file server
+In order to see robot meshes in the web interface, you will need to run a Collada file server with cross-origin resource sharing on.
+
+Follow the instructions in [Serving URDFs](https://github.com/hcrlab/wiki/wiki/Resources%3A-Web-Development%3A-Serving-URDF), ignoring the "In production" section.
+
+# Mock point clouds
+When running Rapid PbD in simulation, the system expects point clouds to be published to the `/mock_point_cloud` topic.
+This allows you to try out different perception scenarios without having to change the Gazebo world.
+
+You will need to write your own code to save point clouds in the `base_link` frame and publish them to `/mock_point_cloud`.
+Or, you can use the [CSE 481C](https://github.com/cse481sp17/cse481c) class code:
+```
+cd ~/catkin_ws/src
+git clone git@github.com:cse481sp17/cse481c.git
+catkin build
+rosrun perception save_cloud NAME.bag
+rosrun applications publish_saved_cloud NAME.bag
+```
+
 - Kinect xBox/Kinect2 installed and calibrated (or another rgbd depth camera)
-- Standard Baxter SDK packages need to be installed: [MoveIt!](http://sdk.rethinkrobotics.com/wiki/MoveIt_Tutorial):
-```
-sudo apt-get install ros-indigo-moveit-full
-```
 - For Baxter eyes, install the package [baxter_eyes](https://github.com/Anne-Gaisne/baxter_eyes)
 - You will further require [PDDL planner](http://docs.ros.org/indigo/api/pddl_planner/html/) developed by Ryohei Ueda:
 ```
-sudo apt-get install ros-indigo-pddl-planner
-sudo apt-get install ros-indigo-pddl-planner-msgs
-sudo apt-get install ros-indigo-pddl-planner-viewer
+sudo apt-get install ros-indigo-pddl-planner ros-indigo-pddl-planner-msgs
+(optional) sudo apt-get install ros-indigo-pddl-planner-viewer
 ```
 
-## Commands to run (for the real robot)
+## Commands to run
 Run the following commands in a separate tab
 ```
 roscore
 ```
+### (Optional) simulation in Gazebo
+Start the robot simulation before you run the following commands.
+Follow [these](https://sdk.rethinkrobotics.com/wiki/Simulator_Installation) instructions for the Baxter robot.
 
 ### enable baxter robot
 `rosrun baxter_tools enable_robot.py -e && rosrun baxter_tools tuck_arms -u`
