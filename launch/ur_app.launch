@@ -1,0 +1,9 @@
+<launch>
+  <include file="$(find rapid_pbd)/launch/ur.launch">
+    <arg name="sim" value="false" />
+  </include>
+  <include file="$(find rapid_pbd)/launch/editor.launch">
+    <arg name="robot" value="ur" />
+  </include>
+  <include file="$(find rapid_pbd)/launch/ur_moveit.launch" />
+</launch>
