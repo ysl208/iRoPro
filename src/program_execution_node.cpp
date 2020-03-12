@@ -47,12 +47,14 @@ int main(int argc, char** argv) {
     robot_config = new pbd::FetchRobotConfig();
   } else if (robot == "baxter") {
     robot_config = new pbd::BaxterRobotConfig();
+  } else if (robot == "ur") {
+    robot_config = new pbd::UniversalRobotConfig();
   } else {
     ROS_ERROR("Unsupported robot \"%s\"", robot.c_str());
     return 1;
   }
   pbd::ActionClients action_clients;
-  if (robot != "baxter") {
+  if (robot == "pr2" || robot == "fetch") {
     while (!action_clients.head_client.waitForServer(ros::Duration(5)) &&
            ros::ok()) {
       ROS_WARN("Waiting for head server.");
