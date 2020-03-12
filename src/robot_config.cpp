@@ -279,6 +279,77 @@ std::string BaxterRobotConfig::gripper_type(
   }
   return "";
 }
+
+
+UniversalRobotConfig::UniversalRobotConfig() {}
+
+std::string UniversalRobotConfig::planning_frame() const { return "base_link"; }
+std::string UniversalRobotConfig::planning_group() const { return "arm"; }
+std::string UniversalRobotConfig::base_link() const { return "base_link"; }
+std::string UniversalRobotConfig::torso_link() const { return "torso_lift_link"; }
+std::string UniversalRobotConfig::joint_states_topic() const {
+  return "/joint_states";
+}
+std::string UniversalRobotConfig::ee_frame_for_group(
+    const std::string& actuator_group) const {
+  if (actuator_group == Action::ARM) {
+    return "wrist_roll_link";
+  } else {
+    return "";
+  }
+}
+void UniversalRobotConfig::gripper_joints_for_group(
+    const std::string& actuator_group,
+    std::vector<std::string>* joint_names) const {
+  joint_names->clear();
+  if (actuator_group == Action::GRIPPER) {
+    joint_names->push_back("l_gripper_finger_joint");
+    joint_names->push_back("r_gripper_finger_joint");
+  }
+}
+void UniversalRobotConfig::gripper_open_positions(
+    std::vector<double>* positions) const {
+  positions->clear();
+  positions->push_back(0.05);
+  positions->push_back(0.05);
+}
+void UniversalRobotConfig::gripper_close_positions(
+    std::vector<double>* positions) const {
+  positions->clear();
+  positions->push_back(0.0);
+  positions->push_back(0.0);
+}
+void UniversalRobotConfig::default_gripper_poses(std::vector<double>* poses) const {
+  poses->clear();
+  poses->push_back(0.1422);
+  poses->push_back(-0.1396);
+  poses->push_back(0.1939);
+  poses->push_back(0.9314);
+  poses->push_back(0.0008);
+  poses->push_back(-0.3639);
+  poses->push_back(-0.0003);
+}
+void UniversalRobotConfig::joints_for_group(
+    const std::string& actuator_group,
+    std::vector<std::string>* joint_names) const {
+  joint_names->clear();
+  if (actuator_group == Action::ARM) {
+    joint_names->push_back("shoulder_pan_joint");
+    joint_names->push_back("shoulder_lift_joint");
+    joint_names->push_back("elbow_joint");
+    joint_names->push_back("wrist_1_joint");
+    joint_names->push_back("wrist_2_joint");
+    joint_names->push_back("wrist_3_joint");
+  }
+}
+int UniversalRobotConfig::num_arms() const { return 1; }
+std::string UniversalRobotConfig::gripper_type(
+    const std::string& actuator_group) const {
+  // TO DO: check yaml file
+  return "";
+}
+
+
 }  // namespace pbd
 }  // namespace rapid
 

@@ -92,6 +92,28 @@ class BaxterRobotConfig : public RobotConfig {
   std::string joint_states_topic() const;
 };
 
+
+class UniversalRobotConfig : public RobotConfig {
+ public:
+  UniversalRobotConfig();
+  std::string planning_frame() const;
+  std::string planning_group() const;
+  std::string base_link() const;
+  std::string torso_link() const;
+  std::string ee_frame_for_group(const std::string& actuator_group) const;
+  void gripper_joints_for_group(const std::string& actuator_group,
+                                std::vector<std::string>* joint_names) const;
+  void gripper_open_positions(std::vector<double>* positions) const;
+  void gripper_close_positions(std::vector<double>* positions) const;
+  void default_gripper_poses(std::vector<double>* poses) const;
+  void joints_for_group(const std::string& actuator_group,
+                        std::vector<std::string>* joint_names) const;
+  int num_arms() const;
+  std::string gripper_type(const std::string& actuator_group) const;
+  std::string joint_states_topic() const;
+};
+
+
 }  // namespace pbd
 }  // namespace rapid
 
