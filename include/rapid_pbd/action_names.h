@@ -68,6 +68,10 @@ static const char kRightGripperActionName[] =
 static const char kHeadActionName[] = "/robot/head/head_action";
 }  // namespace baxter
 
+namespace ur {
+static const char kControllerActionName[] = "/query_controller_states";
+}  // namespace ur
+
 }  // namespace pbd
 }  // namespace rapid
 
