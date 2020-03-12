@@ -144,6 +144,7 @@ catkin_package(
     rapid_pbd_runtime_robot_state
     rapid_pbd_step_executor
     rapid_pbd_surface_segmentation_action
+    rapid_pbd_ur_actions
     rapid_pbd_visualizer
     rapid_pbd_world
   CATKIN_DEPENDS
@@ -235,6 +236,10 @@ target_link_libraries(rapid_pbd_editor
 add_library(rapid_pbd_baxter_actions src/baxter_actions.cpp)
 add_dependencies(rapid_pbd_baxter_actions ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_baxter_actions ${catkin_LIBRARIES})
+
+add_library(rapid_pbd_ur_actions src/ur_actions.cpp)
+add_dependencies(rapid_pbd_ur_actions ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_ur_actions ${catkin_LIBRARIES})
 
 add_library(rapid_pbd_fetch_actions src/fetch_actions.cpp)
 add_dependencies(rapid_pbd_fetch_actions ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -361,6 +366,14 @@ target_link_libraries(rapid_pbd_baxter_action_node
   ${catkin_LIBRARIES}
 )
 
+add_executable(rapid_pbd_ur_action_node src/ur_action_node.cpp)
+set_target_properties(rapid_pbd_ur_action_node PROPERTIES OUTPUT_NAME ur_action_node PREFIX "")
+add_dependencies(rapid_pbd_ur_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rapid_pbd_ur_action_node
+  rapid_pbd_ur_actions
+  ${catkin_LIBRARIES}
+)
+
 add_executable(rapid_pbd_fetch_action_node src/fetch_action_node.cpp)
 set_target_properties(rapid_pbd_fetch_action_node PROPERTIES OUTPUT_NAME fetch_action_node PREFIX "")
 add_dependencies(rapid_pbd_fetch_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -466,6 +479,7 @@ install(TARGETS
   rapid_pbd_robot_config
   rapid_pbd_step_executor
   rapid_pbd_surface_segmentation_action
+  rapid_pbd_ur_actions
   rapid_pbd_visualizer
   rapid_pbd_world
   # Executables
@@ -476,9 +490,10 @@ install(TARGETS
   rapid_pbd_program_execution_demo
   rapid_pbd_program_execution_node
   rapid_pbd_pr2_action_node
-  rapid_pbd_surface_segmentation_node
   rapid_pbd_pr2_gripper_demo
   rapid_pbd_pr2_arm_joint_demo
+  rapid_pbd_surface_segmentation_node
+  rapid_pbd_ur_action_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -512,6 +527,9 @@ install(FILES
   launch/pr2_moveit.launch
   launch/pr2_planning_context.launch
   launch/pr2_sim.launch
+  launch/ur_app.launch
+  launch/ur.launch
+  launch/ur_moveit.launch
   launch/web_prereqs.launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
