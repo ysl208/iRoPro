@@ -1,5 +1,4 @@
 # iRoPro - interactive Robot Programming tool
-[![Build Status](http://build.ros.org/buildStatus/icon?job=Ibin_uT64__rapid_pbd__ubuntu_trusty_amd64__binary)](http://build.ros.org/job/Ibin_uT64__rapid_pbd__ubuntu_trusty_amd64__binary/)
 
 iRoPro is an interactive Robot Programming tool, currently developed for the Baxter robot.
 The goal of the system is to provide an easy way to program low- and high-level manipulation actions that can be used with a task planner to complete more complex tasks.
@@ -15,12 +14,13 @@ See the [wiki](https://github.com/ysl208/iRoPro/wiki)
 
 # Citation
 ```
-@inproceedings{Liang2019a,
-	author = {Ying Siu Liang and Damien Pellier and Humbert Fiorino and Sylvie Pesty},
-	title = {End-User Programming of Low- and High-Level Actions for Robotic Task Planning},
-	booktitle = {IEEE International Conference on Robot and Human Interactive Communication (Ro-MAN)},
-	address = {New Delhi, India},
-	month = {October},
-	year = {2019}
+@phdthesis{liang2019iropro,
+  TITLE = {{End-user Robot Programming in Cobotic Environments}},
+  AUTHOR = {Liang, Ying Siu},
+  URL = {https://tel.archives-ouvertes.fr/tel-02275084},
+  YEAR = {2019},
+  MONTH = Jun,
+  KEYWORDS = {End-User robot programming ; Programming by demonstration ; Automated planning ; Human-Robot interaction ; Cobotics ; Programmation par des non-Experts ; Programmation par d{\'e}monstration ; Planification ; Interaction homme-Robot ; Cobotique},
 }
+
 ```
