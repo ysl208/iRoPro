@@ -11,7 +11,7 @@ A video of the working system can be seen [here](https://youtu.be/NgaTPG8dZwg)
 
 ## Getting Started
 
-See the (wiki)[https://github.com/ysl208/iRoPro/wiki]
+See the [wiki](https://github.com/ysl208/iRoPro/wiki)
 
 # Citation
 ```
