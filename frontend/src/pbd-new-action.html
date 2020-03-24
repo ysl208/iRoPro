@@ -698,12 +698,14 @@
                     depthCloudFrameId = '/head_camera_rgb_optical_frame';
                 } else if (this.params.robot === "baxter") {
                     depthCloudFrameId = '/camera_rgb_optical_frame';
+                } else if (this.params.robot === "ur") {
+                    depthCloudFrameId = '/camera_rgb_optical_frame';
                 } else {
                     console.error('Unknown robot type', this.params.robot);
                 }
 
                 var fixedFrame = '';
-                if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+                if (this.params.robot === "pr2" || this.params.robot === "fetch" || this.params.robot === "ur") {
                     fixedFrame = '/base_link';
                 } else if (this.params.robot === "baxter") {
                     fixedFrame = '/base';
