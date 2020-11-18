@@ -341,7 +341,7 @@ void UniversalRobotConfig::joints_for_group(
     joint_names->push_back("wrist_2_joint");
     joint_names->push_back("wrist_3_joint");
   }
-}
+} // checked with ur5.srdf and seems to be correct
 int UniversalRobotConfig::num_arms() const { return 1; }
 std::string UniversalRobotConfig::gripper_type(
     const std::string& actuator_group) const {

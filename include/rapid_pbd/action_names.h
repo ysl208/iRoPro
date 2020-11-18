@@ -69,7 +69,7 @@ static const char kHeadActionName[] = "/robot/head/head_action";
 }  // namespace baxter
 
 namespace ur {
-static const char kControllerActionName[] = "/query_controller_states";
+static const char kControllerActionName[] = "/arm_controller/query_state";
 }  // namespace ur
 
 }  // namespace pbd

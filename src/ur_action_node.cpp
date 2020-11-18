@@ -3,7 +3,7 @@
 #include "rapid_pbd_msgs/ArmControllerState.h"
 #include "rapid_pbd_msgs/FreezeArm.h"
 #include "rapid_pbd_msgs/RelaxArm.h"
-#include "robot_controllers_msgs/QueryControllerStatesAction.h"
+#include "control_msgs/QueryTrajectoryStateAction.h"
 #include "ros/ros.h"
 
 namespace pbd = rapid::pbd;
@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
       robot_controllers_msgs::QueryControllerStatesAction>
       client(pbd::ur::kControllerActionName, true);
   while (ros::ok() && !client.waitForServer(ros::Duration(5.0))) {
-    ROS_WARN("Waiting for arm controller manager.");
+    ROS_WARN("Waiting for arm controller manager." );
   }
   pbd::ur::ArmControllerManager arm_controller_manager(
       arm_controller_state_pub, &client);
