@@ -13,7 +13,7 @@
     </node>
   </group>
 
-  <node pkg="ros_web_video" type="ros_web_video" name="rapid_pbd_video_server">
+  <node pkg="web_video_server" type="web_video_server" name="rapid_pbd_video_server">
     <param name="port" value="9998" />
     <param name="framerate" value="15" />
     <param name="bitrate" value="250000" />
