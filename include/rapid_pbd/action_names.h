@@ -69,8 +69,9 @@ static const char kHeadActionName[] = "/robot/head/head_action";
 }  // namespace baxter
 
 namespace ur {
-static const char kControllerActionName[] = "/arm_controller/query_state";
-}  // namespace ur
+static const char kGripperActionName[] = "/gripper";
+static const char kControllerActionName[] = "/arm_controller/follow_joint_trajectory"; // only required if ArmController class is created
+}  // namespace ur5
 
 }  // namespace pbd
 }  // namespace rapid
