@@ -143,6 +143,10 @@
           this.set('params.robot', robot);
           this.set('params.hasTwoArms', true);
           this.set('params.manualFreeze', false);
+        } else if (robot === 'ur5' || robot === 'ur') {
+          this.set('params.robot', robot);
+          this.set('params.hasTwoArms', false);
+          this.set('params.manualFreeze', false);
         } else {
           console.error('Unknown robot type:', robot);
         }

@@ -312,14 +312,14 @@
           depthCloudFrameId = '/head_camera_rgb_optical_frame';
         } else if (this.params.robot === "baxter") {
           depthCloudFrameId = '/camera_rgb_optical_frame';
-        } else if (this.params.robot === "ur") {
-          depthCloudFrameId = '/head_camera_rgb_optical_frame';
+        } else if (this.params.robot === "ur5" || this.params.robot === "ur") {
+          depthCloudFrameId = '/realsense_wrist_color_optical_frame';
         } else {
           console.error('Unknown robot type', this.params.robot);
         }
 
         var fixedFrame = '';
-        if (this.params.robot === "pr2" || this.params.robot === "fetch" || this.params.robot === "ur") {
+        if (this.params.robot === "pr2" || this.params.robot === "fetch" || this.params.robot === "ur5") {
           fixedFrame = '/base_link';
         } else if (this.params.robot === "baxter") {
           fixedFrame = '/base';
@@ -459,10 +459,10 @@
           this.set('params.robot', robot);
           this.set('params.hasTwoArms', false);
           this.set('params.manualFreeze', true);
-        } else if (robot === 'ur') {
+        } else if (robot === 'ur5' || robot === 'ur') {
           this.set('params.robot', robot);
           this.set('params.hasTwoArms', false);
-          this.set('params.manualFreeze', true);
+          this.set('params.manualFreeze', false);
         } else if (robot === 'baxter') {
           this.set('params.robot', robot);
           this.set('params.hasTwoArms', true);

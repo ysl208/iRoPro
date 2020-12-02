@@ -96,6 +96,9 @@
         else if (this.params.robot === "baxter") {
           joint_names = ['head_pan'];
         }
+        else if (this.params.robot === "ur5") {
+          joint_names = [''];
+        }
         if (!_.isEqual(this.action.joint_trajectory.joint_names, joint_names)) {
           this.set('action.joint_trajectory.joint_names', joint_names);
         }

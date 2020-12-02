@@ -698,14 +698,14 @@
                     depthCloudFrameId = '/head_camera_rgb_optical_frame';
                 } else if (this.params.robot === "baxter") {
                     depthCloudFrameId = '/camera_rgb_optical_frame';
-                } else if (this.params.robot === "ur") {
+                } else if (this.params.robot === "ur5") {
                     depthCloudFrameId = '/camera_rgb_optical_frame';
                 } else {
                     console.error('Unknown robot type', this.params.robot);
                 }
 
                 var fixedFrame = '';
-                if (this.params.robot === "pr2" || this.params.robot === "fetch" || this.params.robot === "ur") {
+                if (this.params.robot === "pr2" || this.params.robot === "fetch" || this.params.robot === "ur5") {
                     fixedFrame = '/base_link';
                 } else if (this.params.robot === "baxter") {
                     fixedFrame = '/base';
@@ -726,22 +726,22 @@
                     },
                     displays: [
                         {
-                            //   isShown: false,
-                            //   name: 'Grid',
-                            //   type: 'grid',
-                            //   options: {
-                            //     cellSize: 1,
-                            //     color: '#cccccc',
-                            //     numCells: 20,
-                            //   },
-                            // }, {
-                            //   isShown: false,
-                            //   name: 'Program robot model',
-                            //   type: 'markerArray',
-                            //   options: {
-                            //     topic: '/rapid_pbd/robot/' + this.action.program_id,
-                            //   },
-                            // }, {
+                              isShown: false,
+                              name: 'Grid',
+                              type: 'grid',
+                              options: {
+                                cellSize: 1,
+                                color: '#cccccc',
+                                numCells: 20,
+                              },
+                            }, {
+                              isShown: true,
+                              name: 'Program robot model',
+                              type: 'markerArray',
+                              options: {
+                                topic: '/rapid_pbd/robot/' + this.action.program_id,
+                              },
+                            }, {
                             isShown: true,
                             name: 'Surface segmentation',
                             type: 'markerArray',
