@@ -9,15 +9,15 @@ surface_segmentation:
   
   # Plane detection
   horizontal_tolerance_degrees: 10.0
-  margin_above_surface: 0.025
+  margin_above_surface: 0.005
   # Multi-plane detection
   min_surface_size: 5000
-  max_point_distance: 0.03
+  max_point_distance: 0.005
   
   # Clustering
   cluster_distance: 0.01
-  min_cluster_size: 100
-  max_cluster_size: 8000
+  min_cluster_size: 10
+  max_cluster_size: 500 #10000
   
   # For downsampling saved point clouds
   vox_leaf_size: 0.01
