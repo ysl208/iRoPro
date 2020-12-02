@@ -1,32 +1,52 @@
 <launch>
-  <arg name="camera_frame" default="/head_camera_rgb_optical_frame" />
+  <arg name="camera_frame" default="/realsense_wrist_color_optical_frame" />
+  <arg name="pddl_solver_topic" default="/pddl_planner" />
 
-  <arg name="sim" />
+  <!-- <arg name="sim" default="false" />
   <arg if="$(arg sim)" name="point_cloud_topic" default="/mock_point_cloud" />
-  <arg if="$(arg sim)" name="depth_topic" default="/head_camera/depth_registered/image_raw" />
-  <arg if="$(arg sim)" name="color_topic" default="/head_camera/rgb/image_raw" />
+  <arg if="$(arg realsense)" name="depth_topic" default="/realsense_wrist/depth/image_rect_raw" />
+  <arg if="$(arg realsense)" name="color_topic" default="/realsense_wrist/color/image_rect_color" /> -->
 
-  <arg unless="$(arg sim)" name="point_cloud_topic" default="/head_camera/depth_registered/points" />
+  <arg name="realsense" default="false"/>
+  <arg if="$(arg realsense)" name="point_cloud_topic" default="/realsense_wrist/depth_registered/points" />
+  <arg if="$(arg realsense)" name="depth_topic" default="/realsense_wrist/depth/image_rect_raw" />
+  <arg if="$(arg realsense)" name="color_topic" default="/realsense_wrist/color/image_rect_color" />
+
+  <!-- start camera TO DO-->
+  <!-- <include file="$(find rapid_pbd)/launch/kinect2.launch" unless="$(arg sim)">
+    <arg name="kinect" value="$(arg kinect)" />
+    <arg name="kinect2" value="$(arg kinect2)" />
+  </include> -->
+
+  <!-- <arg unless="$(arg sim)" name="point_cloud_topic" default="/head_camera/depth_registered/points" />
   <arg unless="$(arg sim)" name="depth_topic" default="/head_camera/depth_registered/image_raw" />
-  <arg unless="$(arg sim)" name="color_topic" default="/head_camera/rgb/image_raw" />
+  <arg unless="$(arg sim)" name="color_topic" default="/head_camera/rgb/image_raw" /> -->
 
   <group ns="rapid_pbd"> 
-    <param name="robot" value="ur" />
+    <param name="robot" value="ur5" />
     <node pkg="rapid_pbd" type="ur_action_node" name="ur_actuator_server" />
     <node pkg="rapid_pbd" type="program_execution_node" name="program_executor">
       <remap from="arm_joint_action" to="/arm_controller/follow_joint_trajectory" />
-      <remap from="gripper_action" to="/gripper_controller/gripper_action" />
-      <remap from="head_action" to="/head_controller/follow_joint_trajectory" />
+      <!-- <remap from="gripper_action" to="/gripper" /> -->
       <remap from="move_group" to="/move_group" />
     </node>
     <rosparam command="load" file="$(find rapid_pbd)/config/surface_segmentation.yaml" />
+    <rosparam command="load" file="$(find ur5_moveit_config)/config/kinematics.yaml"/>
     <node pkg="rapid_pbd" type="surface_segmentation_node" name="surface_segmentation_node" args="$(arg point_cloud_topic)" />
+    <node pkg="rapid_pbd" type="pddl_solver_node" name="pddl_solver_node" args="$(arg pddl_solver_topic)"/>
+
+    <rosparam command="load" file="$(find rapid_pbd)/config/planning_domain.yaml" />
   </group>
 
   <!-- Depth cloud -->
+  <node pkg="nodelet" type="nodelet" name="rapid_pbd_convert_metric" args="standalone depth_image_proc/convert_metric" if="$(arg sim)">
+    <remap from="image_raw" to="$(arg depth_topic)" />
+    <remap from="image" to="$(arg depth_topic)_float" />
+  </node>
   <node pkg="depthcloud_encoder" type="depthcloud_encoder_node" name="rapid_pbd_depthcloud_encoder">
     <param name="rgb" value="$(arg color_topic)" />
-    <param name="depth" value="$(arg depth_topic)" />
+    <param if="$(arg sim)" name="depth" value="$(arg depth_topic)" />
+    <param unless="$(arg sim)" name="depth" value="$(arg depth_topic)_float" />
     <param name="camera_frame_id" value="$(arg camera_frame)" />
   </node>
 </launch>
