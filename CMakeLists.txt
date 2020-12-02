@@ -16,8 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_goal_builder
   pcl_ros
   pddl_msgs
-  pr2_controllers_msgs
-  pr2_mechanism_msgs
+#  pr2_controllers_msgs
+#  pr2_mechanism_msgs
   rapid_pbd_msgs
   robot_controllers_msgs
   robot_markers
@@ -137,7 +137,7 @@ catkin_package(
     rapid_pbd_motion_planning
     rapid_pbd_pddl_domain
     rapid_pbd_pddl_solver_action
-    rapid_pbd_pr2_actions
+#    rapid_pbd_pr2_actions
     rapid_pbd_program_db
     rapid_pbd_program_executor
     rapid_pbd_robot_config
@@ -159,8 +159,8 @@ catkin_package(
     moveit_goal_builder
     pcl_ros
     pddl_msgs
-    pr2_controllers_msgs
-    pr2_mechanism_msgs
+#    pr2_controllers_msgs
+#    pr2_mechanism_msgs
     rapid_pbd_msgs
     robot_controllers_msgs
     robot_markers
@@ -275,9 +275,9 @@ add_library(rapid_pbd_pddl_solver_action src/pddl_solver_action.cpp)
 add_dependencies(rapid_pbd_pddl_solver_action ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rapid_pbd_pddl_solver_action ${catkin_LIBRARIES})
 
-add_library(rapid_pbd_pr2_actions src/pr2_actions.cpp)
-add_dependencies(rapid_pbd_pr2_actions ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(rapid_pbd_pr2_actions ${catkin_LIBRARIES})
+# add_library(rapid_pbd_pr2_actions src/pr2_actions.cpp)
+# add_dependencies(rapid_pbd_pr2_actions ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(rapid_pbd_pr2_actions ${catkin_LIBRARIES})
 
 add_library(rapid_pbd_program_db src/program_db.cpp)
 add_dependencies(rapid_pbd_program_db ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -408,13 +408,13 @@ target_link_libraries(rapid_pbd_program_execution_node
   ${catkin_LIBRARIES}
 )
 
-add_executable(rapid_pbd_pr2_action_node src/pr2_action_node.cpp)
-set_target_properties(rapid_pbd_pr2_action_node PROPERTIES OUTPUT_NAME pr2_action_node PREFIX "")
-add_dependencies(rapid_pbd_pr2_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(rapid_pbd_pr2_action_node
-  rapid_pbd_pr2_actions
-  ${catkin_LIBRARIES}
-)
+# add_executable(rapid_pbd_pr2_action_node src/pr2_action_node.cpp)
+# set_target_properties(rapid_pbd_pr2_action_node PROPERTIES OUTPUT_NAME pr2_action_node PREFIX "")
+# add_dependencies(rapid_pbd_pr2_action_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(rapid_pbd_pr2_action_node
+#   rapid_pbd_pr2_actions
+#   ${catkin_LIBRARIES}
+# )
 
 add_executable(rapid_pbd_surface_segmentation_node src/surface_segmentation_node.cpp)
 set_target_properties(rapid_pbd_surface_segmentation_node PROPERTIES OUTPUT_NAME surface_segmentation_node PREFIX "")
@@ -426,19 +426,19 @@ target_link_libraries(rapid_pbd_surface_segmentation_node
   ${catkin_LIBRARIES}
 )
 
-add_executable(rapid_pbd_pr2_gripper_demo src/pr2_gripper_demo.cpp)
-set_target_properties(rapid_pbd_pr2_gripper_demo PROPERTIES OUTPUT_NAME pr2_gripper_demo PREFIX "")
-add_dependencies(rapid_pbd_pr2_gripper_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(rapid_pbd_pr2_gripper_demo
-  ${catkin_LIBRARIES}
-)
+# add_executable(rapid_pbd_pr2_gripper_demo src/pr2_gripper_demo.cpp)
+# set_target_properties(rapid_pbd_pr2_gripper_demo PROPERTIES OUTPUT_NAME pr2_gripper_demo PREFIX "")
+# add_dependencies(rapid_pbd_pr2_gripper_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(rapid_pbd_pr2_gripper_demo
+#   ${catkin_LIBRARIES}
+# )
 
-add_executable(rapid_pbd_pr2_arm_joint_demo src/pr2_arm_joint_demo.cpp)
-set_target_properties(rapid_pbd_pr2_arm_joint_demo PROPERTIES OUTPUT_NAME pr2_arm_joint_demo PREFIX "")
-add_dependencies(rapid_pbd_pr2_arm_joint_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(rapid_pbd_pr2_arm_joint_demo
-  ${catkin_LIBRARIES}
-)
+# add_executable(rapid_pbd_pr2_arm_joint_demo src/pr2_arm_joint_demo.cpp)
+# set_target_properties(rapid_pbd_pr2_arm_joint_demo PROPERTIES OUTPUT_NAME pr2_arm_joint_demo PREFIX "")
+# add_dependencies(rapid_pbd_pr2_arm_joint_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(rapid_pbd_pr2_arm_joint_demo
+#   ${catkin_LIBRARIES}
+# )
 
 #############
 ## Install ##
@@ -473,7 +473,7 @@ install(TARGETS
   rapid_pbd_motion_planning
   rapid_pbd_pddl_domain
   rapid_pbd_pddl_solver_action
-  rapid_pbd_pr2_actions
+#  rapid_pbd_pr2_actions
   rapid_pbd_program_db
   rapid_pbd_program_executor
   rapid_pbd_robot_config
@@ -489,9 +489,9 @@ install(TARGETS
   rapid_pbd_pddl_solver_node
   rapid_pbd_program_execution_demo
   rapid_pbd_program_execution_node
-  rapid_pbd_pr2_action_node
-  rapid_pbd_pr2_gripper_demo
-  rapid_pbd_pr2_arm_joint_demo
+#  rapid_pbd_pr2_action_node
+#  rapid_pbd_pr2_gripper_demo
+#  rapid_pbd_pr2_arm_joint_demo
   rapid_pbd_surface_segmentation_node
   rapid_pbd_ur_action_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
