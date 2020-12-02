@@ -286,7 +286,7 @@ UniversalRobotConfig::UniversalRobotConfig() {}
 std::string UniversalRobotConfig::planning_frame() const { return "base_link"; }
 std::string UniversalRobotConfig::planning_group() const { return "arm"; }
 std::string UniversalRobotConfig::base_link() const { return "base_link"; }
-std::string UniversalRobotConfig::torso_link() const { return "torso_lift_link"; }
+std::string UniversalRobotConfig::torso_link() const { return "stand_link"; }
 std::string UniversalRobotConfig::joint_states_topic() const {
   return "/joint_states";
 }
@@ -303,21 +303,18 @@ void UniversalRobotConfig::gripper_joints_for_group(
     std::vector<std::string>* joint_names) const {
   joint_names->clear();
   if (actuator_group == Action::GRIPPER) {
-    joint_names->push_back("l_gripper_finger_joint");
-    joint_names->push_back("r_gripper_finger_joint");
+    joint_names->push_back("gripper_finger_joint");
   }
 }
 void UniversalRobotConfig::gripper_open_positions(
     std::vector<double>* positions) const {
   positions->clear();
-  positions->push_back(0.05);
-  positions->push_back(0.05);
+  positions->push_back(0.0);
 }
 void UniversalRobotConfig::gripper_close_positions(
     std::vector<double>* positions) const {
   positions->clear();
-  positions->push_back(0.0);
-  positions->push_back(0.0);
+  positions->push_back(0.8);
 }
 void UniversalRobotConfig::default_gripper_poses(std::vector<double>* poses) const {
   poses->clear();
