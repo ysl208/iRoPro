@@ -458,7 +458,7 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
       // ROS_INFO("Adding object %s as scene markers: %zu ",
       //          landmarks[i].name.c_str(), i);
     }
-    marker.scale.x = 0.125;
+    marker.scale.x = 0.125; // height of an A character
     marker.scale.y = 0.125;
     marker.scale.z = 0.125;
     marker.color.r = 1;
@@ -476,9 +476,9 @@ void GetSegmentationMarker(const std::vector<msgs::Landmark>& landmarks,
     blank.header.frame_id = base_link;
     blank.type = Marker::CUBE;
     blank.pose.orientation.w = 1;
-    blank.scale.x = 0.05;
-    blank.scale.y = 0.05;
-    blank.scale.z = 0.05;
+    blank.scale.x = 0.002;
+    // blank.scale.y = 0.05;
+    // blank.scale.z = 0.05;
     scene_markers->markers.push_back(blank);
     // Rename ns
     blank.ns = "segmentation_names";
@@ -511,6 +511,8 @@ void GetSurfaceMarker(const msgs::Surface& surface,
     table.color.b = 0.01;
     table.color.a = 1;
     scene_markers->markers.push_back(table);
+    ROS_INFO("Published Surface marker");
+    
   }
 }
 

@@ -83,10 +83,11 @@ void SurfaceSegmentationAction::Execute(
   tf::TransformListener tf_listener;
   std::string base_link(robot_config_.base_link());
 
-  // ROS_INFO("cloud_in frame_id is %s", cloud_in->header.frame_id.c_str());
+  ROS_INFO("target_frame is %s", base_link.c_str());
+  ROS_INFO("cloud_in frame_id is %s", cloud_in->header.frame_id.c_str());
 
   tf_listener.waitForTransform(base_link, cloud_in->header.frame_id,
-                               ros::Time(0), ros::Duration(5.0));
+                               ros::Time(0), ros::Duration(1.0));
   tf::StampedTransform transform;
   try {
     tf_listener.lookupTransform(base_link, cloud_in->header.frame_id,
@@ -99,9 +100,9 @@ void SurfaceSegmentationAction::Execute(
   }
 
   sensor_msgs::PointCloud2 cloud_msg;
-  pcl_ros::transformPointCloud(robot_config_.base_link(), transform, *cloud_in,
+  pcl_ros::transformPointCloud(base_link, transform, *cloud_in,
                                cloud_msg);
-  cloud_msg.header.frame_id = "base";
+  cloud_msg.header.frame_id = base_link;
   // Start processing cloud with PCL
   // ROS_INFO("Start processing cloud with PCL... ");
   msgs::SegmentSurfacesResult result;
@@ -184,7 +185,7 @@ void SurfaceSegmentationAction::Execute(
   std::vector<surface_perception::SurfaceObjects> surface_objects;
   bool success = seg.Segment(&surface_objects);
 
-  if (!success) {
+  if (!success || surface_objects.size() == 0) {
     ROS_ERROR("Failed to perceive surface objects.");
     as_.setSucceeded(result);
     return;
@@ -195,10 +196,13 @@ void SurfaceSegmentationAction::Execute(
   size_t num_objects = 0;
 
   int obj_count = 0;
+    ROS_INFO("Found %ld surfaces", surface_objects.size());
   for (size_t i = 0; i < surface_objects.size(); ++i) {
     const SurfaceObjects& surface_scene = surface_objects[i];
     // get tabletop objects as landmarks
     num_objects += surface_scene.objects.size();
+    ROS_INFO("%ld-th surface has %ld objects", i,
+             surface_scene.objects.size());
     if (i == 0) {
       msgs::Surface surface;
       surface.dimensions = surface_objects[i].surface.dimensions;
@@ -212,6 +216,8 @@ void SurfaceSegmentationAction::Execute(
 
     for (size_t j = 0; j < surface_scene.objects.size(); ++j) {
       const Object& object = surface_scene.objects[j];
+
+      // get min and max point cloud size
       size_t cloud_size = object.indices->indices.size();
       if (cloud_size < min_size) {
         min_size = cloud_size;
@@ -221,8 +227,8 @@ void SurfaceSegmentationAction::Execute(
       }
 
       // get object colour from point cloud
-      pcl::PointXYZRGB point;
-      GetRGB(object.cloud, object.indices, &point);
+      // pcl::PointXYZRGB point;
+      // GetRGB(object.cloud, object.indices, &point);
 
       ++obj_count;
       msgs::Landmark landmark;
@@ -250,7 +256,7 @@ void SurfaceSegmentationAction::Execute(
                                             pos_x_list);
     ros::param::param<std::vector<double> >("world_positions/pos_y", pos_y_list,
                                             pos_x_list);
-    ros::param::param<std::vector<double> >("world_objects/position", obj_dims,
+    ros::param::param<std::vector<double> >("world_positions/position", obj_dims,
                                             obj_dims);
 
     obj_count = 0;
@@ -280,10 +286,11 @@ void SurfaceSegmentationAction::Execute(
     ROS_INFO("Detected %ld objects, smallest: %ld points, largest: %ld points",
              num_objects, min_size, max_size);
 
+    viz_.Hide();
     viz_.set_surface_objects(surface_objects);
     viz_.Show();
-    as_.setSucceeded(result);
   }
+    as_.setSucceeded(result);
 }
 int SurfaceSegmentationAction::GetDistance(const std::vector<int>& a,
                                            const std::vector<int>& b) {
