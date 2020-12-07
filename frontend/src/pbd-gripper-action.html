@@ -18,8 +18,8 @@
         margin-left: 10px;
       }
     </style>
-    <!-- TODO: this is Fetch-specific -->
-    <ros-action-client id="armAction" server="/gripper_controller/gripper_action" action-type="control_msgs/GripperCommandAction"
+    <!-- NOTE: this is UR5-specific -->
+    <ros-action-client id="armAction" server="/rapid_pbd/gripper_action" action-type="control_msgs/GripperCommandAction"
       ros="[[ros]]"></ros-action-client>
     <ros-action-client id="leftAction" server="/rapid_pbd/l_gripper_action" action-type="control_msgs/GripperCommandAction" ros="[[ros]]"></ros-action-client>
     <ros-action-client id="rightAction" server="/rapid_pbd/r_gripper_action" action-type="control_msgs/GripperCommandAction"

@@ -705,7 +705,9 @@
                 }
 
                 var fixedFrame = '';
-                if (this.params.robot === "pr2" || this.params.robot === "fetch" || this.params.robot === "ur5") {
+                if (this.params.robot === "pr2" || this.params.robot === "fetch") {
+                    fixedFrame = '/base_link';
+                } else if (this.params.robot === "ur5") {
                     fixedFrame = '/base_link';
                 } else if (this.params.robot === "baxter") {
                     fixedFrame = '/base';
@@ -1412,9 +1414,11 @@
                 else return '';
             },
             isAdminDomain: function (name) {
-                if (name == "Domain1")
-                    return true;
-                return false;
+                // used for experiments where demonstration step was simulated
+                // if (name == "Domain1")
+                //     return true;
+                // return false;
+                return true;
             },
 
             logActivity: function (activity) {

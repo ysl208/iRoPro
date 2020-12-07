@@ -213,7 +213,7 @@
             },
             _specScores: function (posteriors) {
                 var objects = [];
-                console.debug('_specScores', this.program.posteriors);
+                // console.debug('_specScores', this.program.posteriors);
                 for (var i = 0; i < posteriors.data.length; ++i) {
                     if (posteriors.data[i] >= 0) {
                         objects.push(posteriors.data[i]);
