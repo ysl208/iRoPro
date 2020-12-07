@@ -285,15 +285,15 @@ UniversalRobotConfig::UniversalRobotConfig() {}
 
 std::string UniversalRobotConfig::planning_frame() const { return "base_link"; }
 std::string UniversalRobotConfig::planning_group() const { return "arm"; }
-std::string UniversalRobotConfig::base_link() const { return "base_link"; }
-std::string UniversalRobotConfig::torso_link() const { return "stand_link"; }
+std::string UniversalRobotConfig::base_link() const { return "stand_link"; }
+std::string UniversalRobotConfig::torso_link() const { return "base_link"; }
 std::string UniversalRobotConfig::joint_states_topic() const {
   return "/joint_states";
 }
 std::string UniversalRobotConfig::ee_frame_for_group(
     const std::string& actuator_group) const {
   if (actuator_group == Action::ARM) {
-    return "wrist_roll_link";
+    return "wrist_3_link";
   } else {
     return "";
   }
@@ -303,7 +303,7 @@ void UniversalRobotConfig::gripper_joints_for_group(
     std::vector<std::string>* joint_names) const {
   joint_names->clear();
   if (actuator_group == Action::GRIPPER) {
-    joint_names->push_back("gripper_finger_joint");
+    joint_names->push_back("finger_joint");
   }
 }
 void UniversalRobotConfig::gripper_open_positions(
@@ -318,13 +318,22 @@ void UniversalRobotConfig::gripper_close_positions(
 }
 void UniversalRobotConfig::default_gripper_poses(std::vector<double>* poses) const {
   poses->clear();
-  poses->push_back(0.1422);
-  poses->push_back(-0.1396);
-  poses->push_back(0.1939);
-  poses->push_back(0.9314);
-  poses->push_back(0.0008);
-  poses->push_back(-0.3639);
-  poses->push_back(-0.0003);
+  // UR5 facing down position
+  // read from Editor on save arm position
+  poses->push_back(-0.421);
+  poses->push_back(-0.267);
+  poses->push_back(0.514);
+  poses->push_back(-0.271);
+  poses->push_back(0.271);
+  poses->push_back(0.653);
+  poses->push_back(-0.653);
+  // corresponds to the below joint names:
+  // poses->push_back(0.7855);
+  // poses->push_back(-1.571);
+  // poses->push_back(-1.545);
+  // poses->push_back(-1.596);
+  // poses->push_back(1.570);
+  // poses->push_back(-0.0001);
 }
 void UniversalRobotConfig::joints_for_group(
     const std::string& actuator_group,
