@@ -45,6 +45,7 @@ void GripperAction::Execute(
   // TO DO: need to verify that the passed number is correct
   ur_goal.command.position = 0.8-goal->command.position;
   ur_goal.command.max_effort = goal->command.max_effort;
+  ROS_INFO("Gripper action forwarding to Gripper client");
   ur_client_.sendGoal(
       ur_goal,
       boost::function<void(const SimpleClientGoalState&,
@@ -70,11 +71,21 @@ void GripperAction::Execute(
   }
 
   GripperCommandResult::ConstPtr ur_result = ur_client_.getResult();
+  control_msgs::GripperCommandResult result;
+  result.effort = ur_result->effort;
+  result.position = ur_result->position;
+  result.reached_goal = ur_result->reached_goal;
+  result.stalled = ur_result->stalled;
   server_.setSucceeded(*ur_result);
 }
 
 void GripperAction::HandleFeedback(
     const GripperCommandFeedback::ConstPtr& ur_feedback) {
+  control_msgs::GripperCommandFeedback feedback;
+  feedback.effort = ur_feedback->effort;
+  feedback.position = ur_feedback->position;
+  feedback.reached_goal = ur_feedback->reached_goal;
+  feedback.stalled = ur_feedback->stalled;
   server_.publishFeedback(*ur_feedback);
 }
 
