@@ -130,7 +130,7 @@ string MotionPlanning::AddPoseGoal(
   ik_req.ik_request.pose_stamped.header.frame_id = base_link;
   ik_req.ik_request.pose_stamped.pose = pose_in_base;
   ik_req.ik_request.avoid_collisions = true;
-  ik_req.ik_request.attempts = 5;
+  // ik_req.ik_request.attempts = 5;
   ik_req.ik_request.timeout = ros::Duration(2);
   robot_state_.config.joints_for_group(actuator_group,
                                        &ik_req.ik_request.ik_link_names);

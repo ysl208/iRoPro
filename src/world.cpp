@@ -115,7 +115,7 @@ void GetWorld(const RobotConfig& robot_config, const msgs::Program& program,
           ik_req.ik_request.pose_stamped.header.frame_id =
               robot_config.base_link();
           ik_req.ik_request.pose_stamped.pose = pose;
-          ik_req.ik_request.attempts = 3;
+          // ik_req.ik_request.attempts = 3;
           ik_req.ik_request.timeout = ros::Duration(1);
           robot_config.joints_for_group(action.actuator_group,
                                         &ik_req.ik_request.ik_link_names);
