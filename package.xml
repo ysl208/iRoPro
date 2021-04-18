@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package>
-  <name>rapid_pbd</name>
+  <name>iropro</name>
   <version>0.2.0</version>
-  <description>Programming by demonstration for 1 or 2 arm robots</description>
-  <maintainer email="sheryl@liang.at">Ying Siu Liang</maintainer>
+  <description>interactive Robot Programming framework</description>
+  <maintainer email="sheryl@liang.at">Ying Siu (Sheryl) Liang</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
@@ -48,8 +48,6 @@
   <run_depend>moveit_goal_builder</run_depend>
   <run_depend>pcl_ros</run_depend>
   <run_depend>pddl_msgs</run_depend>
-  <!-- <run_depend>pr2_controllers_msgs</run_depend>
-  <run_depend>pr2_mechanism_msgs</run_depend> -->
   <run_depend>rapid_pbd_msgs</run_depend>
   <run_depend>robot_controllers_msgs</run_depend>
   <run_depend>robot_markers</run_depend>
@@ -69,6 +67,6 @@
   <run_depend>visualization_msgs</run_depend>
 
   <export>
-    <appname>iRoPro</appname>
+    <appname>iropro</appname>
   </export>
 </package>
