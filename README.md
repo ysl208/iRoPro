@@ -7,8 +7,8 @@ It is based on [Rapid PbD](https://github.com/jstnhuang/rapid_pbd/) which is a p
 ![iRoPro overview](https://github.com/ysl208/iRoPro/blob/indigo-devel/iropro-overview.pdf)
 
 ## Program model
-Users use the iRoPro interface to create *actions* and *problems*.
-A video of the working system can be seen [here](https://youtu.be/NgaTPG8dZwg)
+The iRoPro interface allows users to create *actions* and *problems* in order to have the robot solve previously unseen, complex tasks.
+Check out the video of this project and the working system [here](https://www.youtube.com/watch?v=YCDrC0UFX38)
 
 ## Getting Started
 
